@@ -19,6 +19,7 @@
 #include <oxley/OxleyDomain.h>
 #include <oxley/OxleyData.h>
 
+
 #include <escript/Data.h>
 #include <escript/DataExpanded.h>
 #include <escript/DataFactory.h>
@@ -1090,7 +1091,7 @@ namespace oxley {
                                              const IndexVector& nodes, dim_t numEq,
                                              const vector<cplx_t>& array) const
     {
-    #ifdef ESYS_HAVE_MUMPS
+    #if defined(ESYS_HAVE_MUMPS) && defined(ESYS_HAVE_PASO)
         paso::SystemMatrix<cplx_t>* psm = dynamic_cast<paso::SystemMatrix<cplx_t>*>(mat);
         if (psm) {
             addToPasoMatrix(psm, nodes, numEq, array);
@@ -1266,11 +1267,11 @@ esys_trilinos::TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     // const dim_t numMatrixRows = getNumDOF();
     const dim_t numMatrixRows = getNumNodes();
 
-    IndexVector rowTemp(getNumDataPointsGlobal());
+    IndexVector rowTemp(numMatrixRows);
     // if(getMPISize() == 1)
     // {
     #pragma omp for
-        for(long i = 0; i < getNumDataPointsGlobal(); i++)
+        for(long i = 0; i < numMatrixRows; i++)
             rowTemp[i] = i;
     // }
     // else
@@ -1280,11 +1281,11 @@ esys_trilinos::TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
 
     // rowMap
     // This is using the constructor on line 868 of file  Tpetra_Map_def.hpp.
-    TrilinosMap_ptr rowMap(new MapType(getNumDataPointsGlobal(), 
+    TrilinosMap_ptr rowMap(new MapType(numMatrixRows, 
                                                 rowTemp, 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
 
     // colMap
-    TrilinosMap_ptr colMap(new MapType(getNumDataPointsGlobal(), 
+    TrilinosMap_ptr colMap(new MapType(numMatrixRows, 
                                                 rowTemp, 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
     
     // rowPtr
@@ -1301,10 +1302,10 @@ esys_trilinos::TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
         copy(conns[i].begin(), conns[i].end(), &colInd[rowPtr[i]]);
     }
 
-    #ifdef OXLEY_ENABLE_DEBUG_CREATE_TRI_GRAPH
-        for(int i = 0; i < getNumDataPointsGlobal(); i++)
+    #ifdef OXLEY_ENABLE_DEBUG_CREATE_TRILINOS_GRAPH
+        for(int i = 0; i < numMatrixRows; i++)
             std::cout << "myRows["<<i<<"]: " << rowTemp[i]<<std::endl;
-        for(int i = 0; i < getNumDataPointsGlobal(); i++)
+        for(int i = 0; i < numMatrixRows; i++)
             std::cout << "colMap["<<i<<"]: " << rowTemp[i]<<std::endl;
         for(int i = 0; i < numMatrixRows+1; i++)
             std::cout << "rowPtr["<<i<<"]: " << rowPtr[i]<<std::endl;
@@ -1313,7 +1314,7 @@ esys_trilinos::TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     #endif
 
     // params
-    TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
+    TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd)); //here
     Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
     // params->set("Optimize Storage", true);
     params->set("Static profile clone", false);
@@ -1570,7 +1571,7 @@ esys_trilinos::TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     // params
     TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
     Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
-    // params->set("Optimize Storage", true);
+    params->set("Optimize Storage", true);
     params->set("Static profile clone", false);
     graph->fillComplete(rowMap, colMap, params);
 
@@ -1751,7 +1752,7 @@ void OxleyDomain::makeZ(bool complex)
     {
         // Size information
         const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
-        const Tpetra::global_size_t h = getDim()==2 ? 0.5*getNumHangingNodes() : getNumHangingNodes(); // Number of hanging nodes
+        const Tpetra::global_size_t h = getNumHangingNodes(); // Number of hanging nodes
         const Tpetra::global_size_t n = t - h;
 
         #ifdef OXLEY_PRINT_DEBUG_Z_EXTRA
@@ -1792,7 +1793,7 @@ void OxleyDomain::makeZ(bool complex)
             const cplx_t half = static_cast<cplx_t> (tmp_num);
 
             //worker
-            #pragma omp for
+            // #pragma omp for
             for(int i = 0; i < h; i++)
             {
                 int a, b;
@@ -1846,9 +1847,8 @@ void OxleyDomain::makeZ(bool complex)
                                     Teuchos::tuple<cplx_t> (half));
             }
 
-            #ifdef OXLEY_PRINT_DEBUG_Z_EXTRA_EXTRA
-            cZ->description();
-            // cZ->print();
+            #ifdef DOXLEY_ENABLE_DEBUG_Z
+                cZ->description();
             #endif
 
             cZ->fillComplete(zdomainMap,zrangeMap,params);
@@ -1856,13 +1856,15 @@ void OxleyDomain::makeZ(bool complex)
         }
         else // real
         {
-            zrrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) h, indexBase, comm));
-            zrcolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
-            zdomainMap = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
-            zrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) h, indexBase, comm));
+            int numEntries = t;
+            zrrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) numEntries, indexBase, comm));
+            zrcolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) numEntries, indexBase, comm));
+            zdomainMap = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm)); //correct
+            zrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) h, indexBase, comm)); //correct
 
             // Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(zrrowMap, getDim()==2?5:7, Tpetra::StaticProfile));
-            Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(zrrowMap, getDim()==2?9:21));
+            // Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(zrrowMap, getDim()==2?9:21));
+            Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(zrrowMap, zrcolMap, 2));
             rZ=trZ;
             rZ->resumeFill();
 
@@ -1870,7 +1872,6 @@ void OxleyDomain::makeZ(bool complex)
             const real_t half = static_cast<real_t> (tmp_num);
 
             //worker
-            // #pragma omp for
             for(int i = 0; i < h; i++)
             {
                 int a, b;
@@ -1895,23 +1896,23 @@ void OxleyDomain::makeZ(bool complex)
                 int x,y;
                 if(a>=n)
                 {
-                    x=a-n;
+                    x=a;
                     y=b;
                 }
                 else
                 {
-                    x=a;
-                    y=b-n;
+                    x=b;
+                    y=a;
                 }
 
-                #ifdef OXLEY_PRINT_DEBUG_Z_EXTRA
+                #ifdef OXLEY_DEBUG_Z_EXTRA
                     std::cout << "Z element: ["<< a << "," << b << "] (" << x << ", " << y << ") = " << 0.5;
                 #endif
 
                 const esys_trilinos::GO gblRowAz = zrrowMap->getGlobalElement(x);
                 const esys_trilinos::GO gblColBz = zrcolMap->getGlobalElement(y);
 
-                #ifdef OXLEY_PRINT_DEBUG_Z_EXTRA
+                #ifdef OXLEY_DEBUG_Z_EXTRA
                     std::cout << "   i.e (" << gblRowAz << ", " << gblColBz << ") = " << 0.5 << std::endl;
                 #endif
 
@@ -1920,13 +1921,12 @@ void OxleyDomain::makeZ(bool complex)
                                     Teuchos::tuple<real_t> (half));
             }
 
-            // #pragma omp critical
+            rZ->fillComplete(zdomainMap,zrangeMap,params);
 
-            #ifdef OXLEY_PRINT_DEBUG_Z_EXTRA_EXTRA
+            #ifdef OXLEY_ENABLE_DEBUG_Z
                 rZ->description();
             #endif
-            
-            rZ->fillComplete(zdomainMap,zrangeMap,params);
+
             z_needs_update=false;
         }
     }
@@ -1941,7 +1941,7 @@ void OxleyDomain::makeZworker(S half,Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trili
                         Teuchos::RCP<const Tpetra::Map<>> row,Teuchos::RCP<const Tpetra::Map<>> col)
 {   
     const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
-    const Tpetra::global_size_t h = 0.5*getNumHangingNodes(); // Number of hanging nodes
+    const Tpetra::global_size_t h = getNumHangingNodes(); // Number of hanging nodes
     const Tpetra::global_size_t n = t - h;
 
     for(int i = 0; i < getNumHangingNodes(); i++)
@@ -2007,7 +2007,7 @@ void OxleyDomain::makeIZ(bool complex)
     {
         // Size information
         const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
-        const Tpetra::global_size_t h = getDim()==2 ? 0.5*getNumHangingNodes() : getNumHangingNodes(); // Number of hanging nodes
+        const Tpetra::global_size_t h = getNumHangingNodes(); // Number of hanging nodes
         const Tpetra::global_size_t n = t - h;
 
         // initialise other variables
@@ -2030,37 +2030,41 @@ void OxleyDomain::makeIZ(bool complex)
         // updateIZ();
         if(complex==true)
         {
-            izcrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
-            izccolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
+            int numEntries=(n+2*h)*getMPISize();
+            izcrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) numEntries, indexBase, comm));
+            izccolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) numEntries, indexBase, comm));
             izdomainMap = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
-            izrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));;
+            izrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
 
-            // Teuchos::RCP<cplx_matrix_type> tcZ (new cplx_matrix_type(izcrowMap, getDim()==2 ? 5 : 7, Tpetra::StaticProfile));
-            Teuchos::RCP<cplx_matrix_type> tcZ (new cplx_matrix_type(izcrowMap, getDim()==2 ? 9 : 21));
+            // Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(izrrowMap, getDim()==2?5:7, Tpetra::StaticProfile));
+            Teuchos::RCP<cplx_matrix_type> tcZ (new cplx_matrix_type(izrrowMap, izrcolMap, getDim()==2 ? 9:21));
             cIZ=tcZ;
-
             cIZ->resumeFill();
 
             const cplx_t one  = static_cast<cplx_t> (1.0);
             const cplx_t half = static_cast<cplx_t> (0.5);
 
+            #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
+            int counter=0;
+            #endif
+
             // This is I
-            #pragma omp for
-            for (esys_trilinos::LO lclRow = 0; lclRow < static_cast<esys_trilinos::LO>(n); ++lclRow) 
+            // #pragma omp for
+            for (esys_trilinos::LO lclRow = 0; lclRow < static_cast<esys_trilinos::LO>(n); lclRow++) 
             {
                 const esys_trilinos::GO gblRow = izcrowMap->getGlobalElement(lclRow);
                 const esys_trilinos::GO gblCol = izccolMap->getGlobalElement(lclRow);
                 cIZ->insertGlobalValues(gblRow,
                                     Teuchos::tuple<esys_trilinos::GO>(gblCol),
                                     Teuchos::tuple<cplx_t> (one));
-                #ifdef OXLEY_PRINT_DEBUG_IZ
-                    std::cout << "IZ I element: (" << gblRow << ", " << gblRow << ") = " << 1.0 << std::endl;
+                #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
+                    std::cout << counter++ <<  ": IZ element: (" << gblRow << ", " << gblRow << ") = " << 1.0 << std::endl;
                 #endif
             }
 
             // This is Z
-            #pragma omp for
-            for(int i = 0; i < getNumHangingNodes(); i++)
+            // #pragma omp for
+            for(int i = 0; i < (getDim()==2?hanging_faces.size():hanging_edge_node_connections.size()); i++)
             {
                 int a, b;
                 if(getDim()==2)
@@ -2081,28 +2085,34 @@ void OxleyDomain::makeIZ(bool complex)
                         b = hanging_face_node_connections[i-hanging_edge_node_connections.size()].second;   
                     }
                 }
-                int x,y;
-                if(a>=n)
-                {
-                    x=a;
-                    y=b;
-                }
-                else
-                {
-                    x=a;
-                    y=b;
-                }
 
-                #ifdef OXLEY_PRINT_DEBUG_IZ
-                    std::cout << "IZ element: ["<< a << "," << b << "] (" << x << ", " << y << ") = " << 0.5;
+                #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
+                    // std::cout << "connection: " << a << " -- " << b << std::endl;
+                    std::cout << counter++ <<  ": IZ element: (" << a << ", " << b << ") = " << 0.5;
                 #endif
 
-                const esys_trilinos::GO gblRowAz = izcrowMap->getGlobalElement(x);
-                const esys_trilinos::GO gblColBz = izccolMap->getGlobalElement(y);
+                if(b > a)
+                {
+                    #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
+                    // std::cout << "connection: " << a << " -- " << b << std::endl;
+                        std::cout << "switching ... " ;
+                    #endif
+                    int temp = a;
+                    a=b;
+                    b=temp;
+                }
 
-                #ifdef OXLEY_PRINT_DEBUG_IZ
-                    std::cout << "   i.e (" << gblRowAz << ", " << gblColBz << ") = " << 0.5 << std::endl;
+                const esys_trilinos::GO gblRowAz = izcrowMap->getGlobalElement(a);
+                const esys_trilinos::GO gblColBz = izccolMap->getGlobalElement(b);
+
+                #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
+                    std::cout << "  \ti.e (" << gblRowAz << ", " << gblColBz << ") = " << 0.5 << std::endl;
                 #endif
+
+                ESYS_ASSERT(a <= t, "Invalid row index.");
+                ESYS_ASSERT(b <= n, "Invalid column index.");
+
+                //t=18, h=6, n=12
 
                 cIZ->insertGlobalValues(gblRowAz,
                                     Teuchos::tuple<esys_trilinos::GO>(gblColBz),
@@ -2111,26 +2121,46 @@ void OxleyDomain::makeIZ(bool complex)
 
             cIZ->fillComplete(izdomainMap,izrangeMap,params);
             iz_needs_update=false;
+
+            #ifdef OXLEY_ENABLE_DEBUG_IZ
+                std::string descript = rIZ->description();    
+                std::cout << "Final matrix:" << std::endl;
+                std::cout << descript << std::endl;
+
+                std::ostream output ( std::cout.rdbuf() );
+                Teuchos::RCP<Teuchos::FancyOStream> fancy = Teuchos::getFancyOStream(Teuchos::rcp(&output,false));
+                // Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_DEFAULT;
+                // // Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_NONE;
+                // Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_LOW;
+                Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_MEDIUM;
+                // // Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_HIGH;
+                // // Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_EXTREME;
+                cIZ->describe(*fancy, verbosity);
+            #endif
         }
         else
         {
-            izrrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
-            izrcolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
+            int numEntries=(n+2*h)*getMPISize();
+            izrrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) numEntries, indexBase, comm));
+            izrcolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) numEntries, indexBase, comm));
             izdomainMap = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
             izrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
 
             // Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(izrrowMap, getDim()==2?5:7, Tpetra::StaticProfile));
-            Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(izrrowMap, getDim()==2 ? 9:21));
+            Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(izrrowMap, izrcolMap, getDim()==2 ? 9:21));
             rIZ=trZ;
-
             rIZ->resumeFill();
 
             const real_t one  = static_cast<real_t> (1.0);
             const real_t half = static_cast<real_t> (0.5);
 
+            #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
+            int counter=0;
+            #endif
+
             // This is I
             // #pragma omp for
-            for (esys_trilinos::LO lclRow = 0; lclRow < static_cast<esys_trilinos::LO>(n); ++lclRow) 
+            for (esys_trilinos::LO lclRow = 0; lclRow < static_cast<esys_trilinos::LO>(n); lclRow++) 
             {
                 const esys_trilinos::GO gblRow = izrrowMap->getGlobalElement(lclRow);
                 const esys_trilinos::GO gblCol = izrcolMap->getGlobalElement(lclRow);
@@ -2138,13 +2168,13 @@ void OxleyDomain::makeIZ(bool complex)
                                     Teuchos::tuple<esys_trilinos::GO>(gblCol),
                                     Teuchos::tuple<real_t> (one));
                 #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
-                    std::cout << "iz element: (" << gblRow << ", " << gblRow << ") = " << 1.0 << std::endl;
+                    std::cout << counter++ <<  ": IZ element: (" << gblRow << ", " << gblRow << ") = " << 1.0 << std::endl;
                 #endif
             }
 
             // This is Z
             // #pragma omp for
-            for(int i = 0; i < getNumHangingNodes(); i++)
+            for(int i = 0; i < (getDim()==2?hanging_faces.size():hanging_edge_node_connections.size()); i++)
             {
                 int a, b;
                 if(getDim()==2)
@@ -2165,36 +2195,57 @@ void OxleyDomain::makeIZ(bool complex)
                         b = hanging_face_node_connections[i-hanging_edge_node_connections.size()].second;   
                     }
                 }
-                int x,y;
-                if(a>=n)
-                {
-                    x=a;
-                    y=b;
-                }
-                else
-                {
-                    x=a;
-                    y=b;
-                }
 
                 #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
-                    std::cout << "IZ element: (" << x << ", " << y << ") = " << 0.5;
+                    // std::cout << "connection: " << a << " -- " << b << std::endl;
+                    std::cout << counter++ <<  ": IZ element: (" << a << ", " << b << ") = " << 0.5;
                 #endif
 
-                const esys_trilinos::GO gblRowAz = izrrowMap->getGlobalElement(x);
-                const esys_trilinos::GO gblColBz = izrcolMap->getGlobalElement(y);
+                if(b > a)
+                {
+                    #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
+                    // std::cout << "connection: " << a << " -- " << b << std::endl;
+                        std::cout << "switching ... " ;
+                    #endif
+                    int temp = a;
+                    a=b;
+                    b=temp;
+                }
+
+                const esys_trilinos::GO gblRowAz = izrrowMap->getGlobalElement(a);
+                const esys_trilinos::GO gblColBz = izrcolMap->getGlobalElement(b);
 
                 #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
-                    std::cout << "   i.e (" << gblRowAz << ", " << gblColBz << ") = " << 0.5 << std::endl;
+                    std::cout << "  \ti.e (" << gblRowAz << ", " << gblColBz << ") = " << 0.5 << std::endl;
                 #endif
 
+                ESYS_ASSERT(a <= t, "Invalid row index.");
+                ESYS_ASSERT(b <= n, "Invalid column index.");
                 rIZ->insertGlobalValues(gblRowAz,
                                     Teuchos::tuple<esys_trilinos::GO>(gblColBz),
                                     Teuchos::tuple<real_t> (half));
             }
 
+            // 18x12
+
             rIZ->fillComplete(izdomainMap,izrangeMap,params);
             iz_needs_update=false;
+
+            #ifdef OXLEY_ENABLE_DEBUG_IZ
+                std::string descript = rIZ->description();    
+                std::cout << "Final matrix:" << std::endl;
+                std::cout << descript << std::endl;
+
+                std::ostream output ( std::cout.rdbuf() );
+                Teuchos::RCP<Teuchos::FancyOStream> fancy = Teuchos::getFancyOStream(Teuchos::rcp(&output,false));
+                // Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_DEFAULT;
+                // // Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_NONE;
+                // Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_LOW;
+                Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_MEDIUM;
+                // // Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_HIGH;
+                // // Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_EXTREME;
+                rIZ->describe(*fancy, verbosity);
+            #endif
         }
     }
 
@@ -2305,7 +2356,9 @@ void OxleyDomain::finaliseAworker(escript::AbstractSystemMatrix& mat,
     {
         escript::AbstractSystemMatrix * pMat = &mat;
         esys_trilinos::TrilinosMatrixAdapter * m = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(pMat);
-        m->IztAIz(IZ, getNumNodes());
+        bool needs_update = m->getNumRows() != (getNumNodes() - getNumHangingNodes());
+        if(needs_update)
+            m->IztAIz(IZ, getNumNodes());
     }
 }
 #endif
@@ -2326,7 +2379,7 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
             cplx_t dummy;
             
             const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
-            const Tpetra::global_size_t h = 0.5*getNumHangingNodes(); // Number of hanging nodes
+            const Tpetra::global_size_t h = getNumHangingNodes(); // Number of hanging nodes
             const Tpetra::global_size_t n = t - h;
 
             const esys_trilinos::GO indexBase = 0;
@@ -2371,21 +2424,57 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
 
             // const scalar_type one = static_cast<scalar_type> (1.0);
 
-            #ifdef OXLEY_PRINT_DEBUG_IZ
-                rhs.print();
-                std::cout << "f: " << std::endl;
-                auto tmpa_result_view = fc.getLocalViewHost();
-                auto tmpa_result_view_1d = Kokkos::subview(tmpa_result_view, Kokkos::ALL(), 0);
-                for(int i = 0; i < n; i++)
-                    std::cout << "[" << i << ":" << tmpa_result_view_1d(i) << "]";
-                std::cout << std::endl;
-                std::cout << "g: " << std::endl;
-                auto tmpb_result_view = gc.getLocalViewHost();
-                auto tmpb_result_view_1d = Kokkos::subview(tmpb_result_view, Kokkos::ALL(), 0);
-                for(int i = 0; i < h; i++)
-                    std::cout << "[" << i << ":" << tmpb_result_view_1d(i) << "]";
-                std::cout << std::endl;
-                std::cout << "Performing the multiplication" << std::endl;
+            #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
+                #ifdef ESYS_TRILINOS_14
+                    rhs.print();
+                    std::cout << "f: " << std::endl; 
+                    typedef typename Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>::dual_view_type::host_mirror_space host_execution_space;
+                    auto tmpa_result_view = fc.getLocalView<host_execution_space>(Tpetra::Access::ReadOnly);
+                    auto tmpa_result_view_1d = Kokkos::subview(tmpa_result_view, Kokkos::ALL(), 0);
+                    for(int i = 0; i < n; i++)
+                    {
+                        std::cout << "[" << i << ":" << tmpa_result_view_1d(i) << "]";
+                        if(i < n-1)
+                            std::cout << std::endl;
+                    }
+                    std::cout << std::endl;
+                    std::cout << "g: " << std::endl;
+                    auto tmpb_result_view = gc.getLocalView<host_execution_space>(Tpetra::Access::ReadOnly);
+                    auto tmpb_result_view_1d = Kokkos::subview(tmpb_result_view, Kokkos::ALL(), 0);
+                    for(int i = 0; i < h; i++)
+                    {
+                        std::cout << "[" << i << ":" << tmpb_result_view_1d(i) << "]";
+                        if(i < n-1)
+                            std::cout << std::endl;
+                    }
+                    std::cout << std::endl;
+                    std::cout << "cZ has dimensions " << cZ->getGlobalNumRows() << "x" << cZ->getGlobalNumCols() << std::endl;
+                    std::cout << "Performing the multiplication" << std::endl;
+                #else
+                    rhs.print();
+                    std::cout << "f: " << std::endl;
+                    auto tmpa_result_view = fc.getLocalViewHost();
+                    auto tmpa_result_view_1d = Kokkos::subview(tmpa_result_view, Kokkos::ALL(), 0);
+                    for(int i = 0; i < n; i++)
+                    {
+                        std::cout << "[" << i << ":" << tmpa_result_view_1d(i) << "]";
+                        if(i < n-1)
+                            std::cout << std::endl;
+                    }
+                    std::cout << std::endl;
+                    std::cout << "g: " << std::endl;
+                    auto tmpb_result_view = gc.getLocalViewHost();
+                    auto tmpb_result_view_1d = Kokkos::subview(tmpb_result_view, Kokkos::ALL(), 0);
+                    for(int i = 0; i < h; i++)
+                    {
+                        std::cout << "[" << i << ":" << tmpb_result_view_1d(i) << "]";
+                        if(i < n-1)
+                            std::cout << std::endl;
+                    }
+                    std::cout << std::endl;
+                    std::cout << "cZ has dimensions " << cZ->getGlobalNumRows() << "x" << cZ->getGlobalNumCols() << std::endl;
+                    std::cout << "Performing the multiplication" << std::endl;
+                #endif
             #endif
 
             // auto one = Teuchos::ScalarTraits<cplx_t>::one();
@@ -2443,9 +2532,8 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
             real_t dummy;
             
             const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
-            const Tpetra::global_size_t h = 0.5*getNumHangingNodes(); // Number of hanging nodes
+            const Tpetra::global_size_t h = getNumHangingNodes(); // Number of hanging nodes
             const Tpetra::global_size_t n = t - h;
-
             const esys_trilinos::GO indexBase = 0;
             Teuchos::RCP<const Teuchos::Comm<int>> comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
             
@@ -2485,21 +2573,56 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
             }
 
             #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
-                rhs.print();
-                std::cout << "f: " << std::endl;
-                auto tmpa_result_view = fr.getLocalViewHost();
-                auto tmpa_result_view_1d = Kokkos::subview(tmpa_result_view, Kokkos::ALL(), 0);
-                for(int i = 0; i < n; i++)
-                    std::cout << "[" << i << ":" << tmpa_result_view_1d(i) << "]";
-                std::cout << std::endl;
-                std::cout << "g: " << std::endl;
-                auto tmpb_result_view = gr.getLocalViewHost();
-                auto tmpb_result_view_1d = Kokkos::subview(tmpb_result_view, Kokkos::ALL(), 0);
-                for(int i = 0; i < h; i++)
-                    std::cout << "[" << i << ":" << tmpb_result_view_1d(i) << "]";
-                std::cout << std::endl;
-                std::cout << "rZ has dimensions " << rZ->getGlobalNumRows() << "x" << rZ->getGlobalNumCols() << std::endl;
-                std::cout << "Performing the multiplication" << std::endl;
+                #ifdef ESYS_TRILINOS_14
+                    rhs.print();
+                    std::cout << "f: " << std::endl; 
+                    typedef typename Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>::dual_view_type::host_mirror_space host_execution_space;
+                    auto tmpa_result_view = fr.getLocalView<host_execution_space>(Tpetra::Access::ReadOnly);
+                    auto tmpa_result_view_1d = Kokkos::subview(tmpa_result_view, Kokkos::ALL(), 0);
+                    for(int i = 0; i < n; i++)
+                    {
+                        std::cout << "[" << i << ":" << tmpa_result_view_1d(i) << "]";
+                        if(i < n-1)
+                            std::cout << std::endl;
+                    }
+                    std::cout << std::endl;
+                    std::cout << "g: " << std::endl;
+                    auto tmpb_result_view = gr.getLocalView<host_execution_space>(Tpetra::Access::ReadOnly);
+                    auto tmpb_result_view_1d = Kokkos::subview(tmpb_result_view, Kokkos::ALL(), 0);
+                    for(int i = 0; i < h; i++)
+                    {
+                        std::cout << "[" << i << ":" << tmpb_result_view_1d(i) << "]";
+                        if(i < n-1)
+                            std::cout << std::endl;
+                    }
+                    std::cout << std::endl;
+                    std::cout << "rZ has dimensions " << rZ->getGlobalNumRows() << "x" << rZ->getGlobalNumCols() << std::endl;
+                    std::cout << "Performing the multiplication" << std::endl;
+                #else
+                    rhs.print();
+                    std::cout << "f: " << std::endl;
+                    auto tmpa_result_view = fr.getLocalViewHost();
+                    auto tmpa_result_view_1d = Kokkos::subview(tmpa_result_view, Kokkos::ALL(), 0);
+                    for(int i = 0; i < n; i++)
+                    {
+                        std::cout << "[" << i << ":" << tmpa_result_view_1d(i) << "]";
+                        if(i < n-1)
+                            std::cout << std::endl;
+                    }
+                    std::cout << std::endl;
+                    std::cout << "g: " << std::endl;
+                    auto tmpb_result_view = gr.getLocalViewHost();
+                    auto tmpb_result_view_1d = Kokkos::subview(tmpb_result_view, Kokkos::ALL(), 0);
+                    for(int i = 0; i < h; i++)
+                    {
+                        std::cout << "[" << i << ":" << tmpb_result_view_1d(i) << "]";
+                        if(i < n-1)
+                            std::cout << std::endl;
+                    }
+                    std::cout << std::endl;
+                    std::cout << "rZ has dimensions " << rZ->getGlobalNumRows() << "x" << rZ->getGlobalNumCols() << std::endl;
+                    std::cout << "Performing the multiplication" << std::endl;
+                #endif
             #endif
 
             const real_t alpha = Teuchos::ScalarTraits<real_t>::one();
@@ -2539,12 +2662,13 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
             }
             // rhs=rhs_new;
             oxleytime.toc("finaliseRhs... done.");
-            return rhs_new;
-
+            
             #ifdef OXLEY_PRINT_DEBUG_IZ_RESULT
                 std::cout << "Final rhs" << std::endl;
                 rhs.print();
             #endif
+
+            return rhs_new;
         }
     }
     else
@@ -2584,7 +2708,7 @@ template<typename S>
 void OxleyDomain::finaliseRhsworker(escript::Data& rhs, 
         Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>& Z)
 {
-    #ifdef OXLEY_PRINT_DEBUG_ADDTOSYSTEM
+    #ifdef OXLEY_ENABLE_DEBUG_FINALISE_RHS_WORKER
         std::cout << "Before" << std::endl;
         rhs.print();
     #endif
@@ -2598,7 +2722,7 @@ void OxleyDomain::finaliseRhsworker(escript::Data& rhs,
         typedef Tpetra::Vector<>::global_ordinal_type global_ordinal_type;
         
         const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
-        const Tpetra::global_size_t h = 0.5*getNumHangingNodes(); // Number of hanging nodes
+        const Tpetra::global_size_t h = getNumHangingNodes(); // Number of hanging nodes
         const Tpetra::global_size_t n = t - h;
         const global_ordinal_type indexBase = 0;
         auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
@@ -2608,9 +2732,6 @@ void OxleyDomain::finaliseRhsworker(escript::Data& rhs,
         Teuchos::RCP<const map_type> g_map = Teuchos::rcp(new map_type(h, indexBase, comm));
         Tpetra::MultiVector<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> f(f_map,true);
         Tpetra::MultiVector<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> g(g_map,true);
-
-        // std::cout << f.description() << std::endl;
-        // std::cout << g.description() << std::endl;
 
         // f.modify();
         #pragma omp parallel for
@@ -2630,9 +2751,11 @@ void OxleyDomain::finaliseRhsworker(escript::Data& rhs,
             g.replaceGlobalValue(gblrow,1,value[0]);
         }
 
-        // std::cout << f.description() << std::endl;
-        // std::cout << g.description() << std::endl;
-        
+        #ifdef OXLEY_ENABLE_DEBUG_FINALISE_RHS_WORKER_EXTRA
+        std::cout << f.description() << std::endl;
+        std::cout << g.description() << std::endl;
+        #endif
+
         // get Z
         // Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
         // params->set("No Nonlocal Changes", false);
@@ -2640,9 +2763,6 @@ void OxleyDomain::finaliseRhsworker(escript::Data& rhs,
         // do the multiplication
         const scalar_type one = static_cast<scalar_type> (1.0);
         Z->apply(g,f,Teuchos::TRANS,one,one);
-
-        // std::cout << f.description() << std::endl;
-        // std::cout << g.description() << std::endl;
         
         // f.sync();
         auto result_view = f.getLocalViewHost();
@@ -2662,7 +2782,7 @@ void OxleyDomain::finaliseRhsworker(escript::Data& rhs,
         rhs.expand();
     }
 
-    #ifdef OXLEY_PRINT_DEBUG_ADDTOSYSTEM
+    #ifdef OXLEY_ENABLE_DEBUG_FINALISE_RHS_WORKER
         std::cout << "After" << std::endl;
         rhs.print();
     #endif

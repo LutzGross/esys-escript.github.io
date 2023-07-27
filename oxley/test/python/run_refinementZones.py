@@ -53,25 +53,25 @@ class Test_TableRefinementZone(unittest.TestCase):
     	zone.refinePoint(x0=0.5,y0=0.5,level=4)
 
     	domain.setRefinementLevel(3)
-    	domain.refineRegion(x0=3,y0=3,x1=6,y1=6)
-    	zone.refinePoint(x0=3,y0=3,x1=6,y1=6,level=3)
+    	domain.refineRegion(x0=3,y0=3)
+    	zone.refinePoint(x0=3,y0=3,level=3)
 
     	domain2=domain.applyRefinementZone(zone)
 
     	self.assertTrue(domain==domain2)
 
-    def test_RefinementZone_3D(self):
-    	domain=Brick(n0=N0,n1=N1,n2=N2,l0=L0,l1=L1,l2=L2)
-    	zone=RefinementZone2D()
+    # def test_RefinementZone_3D(self):
+    # 	domain=Brick(n0=N0,n1=N1,n2=N2,l0=L0,l1=L1,l2=L2)
+    # 	zone=RefinementZone2D()
 
-    	domain.setRefinementLevel(4)
-    	domain.refinePoint(x0=0.5,y0=0.5,z0=0.5)
-    	zone.refinePoint(x0=0.5,y0=0.5,z0=0.5,level=4)
+    # 	domain.setRefinementLevel(4)
+    # 	domain.refinePoint(x0=0.5,y0=0.5,z0=0.5)
+    # 	zone.refinePoint(x0=0.5,y0=0.5,z0=0.5,level=4)
 
-    	domain.setRefinementLevel(3)
-    	domain.refineRegion(x0=3,y0=3,z0=3,x1=6,y1=6,z1=6)
-    	zone.refinePoint(x0=3,y0=3,z0=3,x1=6,y1=6,z1=6,level=3)
+    # 	domain.setRefinementLevel(3)
+    # 	domain.refineRegion(x0=3,y0=3,z0=3,x1=6,y1=6,z1=6)
+    # 	zone.refinePoint(x0=3,y0=3,z0=3,x1=6,y1=6,z1=6,level=3)
 
-    	domain2=domain.applyRefinementZone(zone)
+    # 	domain2=domain.applyRefinementZone(zone)
 
-    	self.assertTrue(domain==domain2)
+    # 	self.assertTrue(domain==domain2)

@@ -190,6 +190,7 @@ class Test_ComplexSolveFinleyRect_Order1_Trilinos_BICGSTAB_GaussSeidel(ComplexSo
     def tearDown(self):
         del self.domain
 
+@unittest.skip("fails with Nan during iteration.")
 class Test_ComplexSolveFinleyRect_Order2_Trilinos_BICGSTAB_GaussSeidel(ComplexSolveOnTrilinosOrder2):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)

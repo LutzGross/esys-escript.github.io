@@ -28,6 +28,10 @@
 
 #include <string>
 
+#ifdef ESYS_TRILINOS_14
+#include "Tpetra_CrsMatrix.hpp"
+#endif
+
 namespace esys_trilinos {
 
 namespace util {
@@ -63,7 +67,7 @@ TrilinosGraph_ptr unrollCrsGraph(const_TrilinosGraph_ptr graph, int blockSize)
     Teuchos::ArrayRCP<GO> colInd(graph->getLocalNumEntries() * blockSize * blockSize);
     for (LO row = 0; row < numMatrixRows; row++) {
         size_t numColumns = graph->getNumEntriesInLocalRow(row);
-        Tpetra::CrsGraph<LO,GO,NT>::nonconst_local_inds_host_view_type indices(0,numColumns);
+        Tpetra::CrsMatrix<>::nonconst_local_inds_host_view_type indices("indices",numColumns);
         graph->getLocalRowCopy(row, indices, numColumns);
         for (int b = 0; b < blockSize; b++) {
             for (size_t c = 0; c < numColumns; c++) {

@@ -7,17 +7,17 @@ namespace oxley {
 RefinementZone::RefinementZone()
 {
 	refinement_levels=0;
-};
+}
 
 RefinementZone::~RefinementZone()
 {
 
-};
+}
 
 void RefinementZone::addToQueue(RefinementType R)
 {	
 	queue.push_back(R);
-};
+}
 
 RefinementType RefinementZone::getRefinement(int n)
 {
@@ -25,7 +25,7 @@ RefinementType RefinementZone::getRefinement(int n)
         return queue[n];
     else
         throw OxleyException("Number is greater than queue length");
-};
+}
 
 void RefinementZone::setRefinementLevel(int n)
 {
@@ -33,7 +33,7 @@ void RefinementZone::setRefinementLevel(int n)
     	refinement_levels=n;
     else
     	throw OxleyException("The levels of refinement must be equal to or greater than zero.");
-};
+}
 
 void RefinementZone::deleteFromQueue(int n)
 {
@@ -43,17 +43,17 @@ void RefinementZone::deleteFromQueue(int n)
 void RefinementZone::print()
 {
    	throw OxleyException("Unknown error.");
-};
+}
 
 RefinementZone2D::RefinementZone2D()
 {
 
-};
+}
 
 RefinementZone2D::~RefinementZone2D()
 {
 
-};
+}
 
 void RefinementZone2D::refinePoint(float x0, float y0, int level)
 {
@@ -62,7 +62,7 @@ void RefinementZone2D::refinePoint(float x0, float y0, int level)
 	RefinementType refine;
 	refine.Point2DRefinement(x0,y0,level);
 	addToQueue(refine);
-};
+}
 
 void RefinementZone2D::refineRegion(float x0, float y0, float x1, float y1, int level)
 {
@@ -71,7 +71,7 @@ void RefinementZone2D::refineRegion(float x0, float y0, float x1, float y1, int 
 	RefinementType refine;
 	refine.Region2DRefinement(x0,y0,x1,y1,level);
 	addToQueue(refine);
-};
+}
 
 void RefinementZone2D::refineCircle(float x0, float y0, float r, int level)
 {
@@ -80,7 +80,7 @@ void RefinementZone2D::refineCircle(float x0, float y0, float r, int level)
 	RefinementType refine;
 	refine.CircleRefinement(x0,y0,r,level);
 	addToQueue(refine);
-};
+}
 
 void RefinementZone2D::refineBorder(Border b, float dx, int level)
 {
@@ -89,14 +89,14 @@ void RefinementZone2D::refineBorder(Border b, float dx, int level)
 	RefinementType refine;
 	refine.Border2DRefinement(b,dx,level);
 	addToQueue(refine);
-};
+}
 
 void RefinementZone2D::refineMask(escript::Data d)
 {
 	RefinementType refine;
 	refine.Mask2DRefinement(&d,refinement_levels);
 	addToQueue(refine);	
-};
+}
 
 void RefinementZone2D::print()
 {
@@ -183,7 +183,7 @@ void RefinementZone2D::print()
     		}
         }
 	}
-};
+}
 
 void RefinementZone2D::deleteFromQueue(int n)
 {
@@ -196,12 +196,12 @@ void RefinementZone2D::deleteFromQueue(int n)
 RefinementZone3D::RefinementZone3D()
 {
 
-};
+}
 
 RefinementZone3D::~RefinementZone3D()
 {
 
-};
+}
 
 void RefinementZone3D::refinePoint(float x0, float y0, float z0, int level)
 {
@@ -210,7 +210,7 @@ void RefinementZone3D::refinePoint(float x0, float y0, float z0, int level)
 	RefinementType refine;
 	refine.Point3DRefinement(x0,y0,z0,refinement_levels);
 	addToQueue(refine);
-};
+}
 
 void RefinementZone3D::refineRegion(float x0, float y0, float z0, float x1, float y1, float z1, int level)
 {
@@ -219,7 +219,7 @@ void RefinementZone3D::refineRegion(float x0, float y0, float z0, float x1, floa
 	RefinementType refine;
 	refine.Region3DRefinement(x0,y0,z0,x1,y1,z1,level);
 	addToQueue(refine);
-};
+}
 
 void RefinementZone3D::refineSphere(float x0, float y0, float z0, float r, int level)
 {
@@ -228,7 +228,7 @@ void RefinementZone3D::refineSphere(float x0, float y0, float z0, float r, int l
 	RefinementType refine;
 	refine.SphereRefinement(x0,y0,z0,r,level);
 	addToQueue(refine);
-};
+}
 
 void RefinementZone3D::refineBorder(Border b, float dx, int level)
 {
@@ -237,14 +237,14 @@ void RefinementZone3D::refineBorder(Border b, float dx, int level)
 	RefinementType refine;
 	refine.Border3DRefinement(b,dx,level);
 	addToQueue(refine);
-};
+}
 
 void RefinementZone3D::refineMask(escript::Data d)
 {
 	RefinementType refine;
 	refine.Mask3DRefinement(&d, refinement_levels);
 	addToQueue(refine);	
-};
+}
 
 void RefinementZone3D::print()
 {
@@ -342,7 +342,7 @@ void RefinementZone3D::print()
         		throw OxleyException("Unknown RefinementType");
         }
 	}
-};
+}
 
 void RefinementZone3D::deleteFromQueue(int n)
 {

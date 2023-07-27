@@ -45,6 +45,9 @@ using namespace boost::python;
 
 namespace oxley {
 
+//forward declaration
+class interpolateWorker_Data;
+
 /**
    \brief
    Rectangle is the 2-dimensional implementation of a Oxleydomain.
@@ -347,10 +350,38 @@ public:
     void getNeighouringNodeIDs(int8_t level, p4est_qcoord_t x, p4est_qcoord_t y, p4est_topidx_t treeid, long (&ids) [4]) const;
 
     /**
+       \brief
+       Returns true if the node is on the border and should be treated as hanging
+    */
+    bool checkHangingBorderNode(p4est_quadrant_t * quad, p4est_qcoord_t x, p4est_qcoord_t y, 
+                                 p4est_topidx_t treeid, int n) const;
+
+    /**
+       \brief
+       Returns the face code of the hanging border node
+       (cf. p6est_lnodes.h lines 57-116)
+    */
+    int getHangingBorderNodeFacecode(p4est_quadrant_t * quad, int8_t level, p4est_qcoord_t x, p4est_qcoord_t y, 
+                                 p4est_topidx_t treeid, int n, int boundary_code) const;
+
+    /**
+       \brief
+       A version of p4est_qcoord_to_vertex that does not test for exceptions
+       *** USE WITH CAUTION ***
+    */
+    void p4est_qcoord_to_vertex_mod (p4est_connectivity_t * connectivity,
+                        p4est_topidx_t treeid,
+                        p4est_qcoord_t x, p4est_qcoord_t y,
+                        double vxyz[3]) const;
+
+    /**
       \brief
       Applies a refinementzone
    */
     escript::Domain_ptr apply_refinementzone(RefinementZone R);
+
+    // Data used by the interpolation functions
+    // const interpolationData interp_data;
 
 private:
     // The data structure in p4est
@@ -570,13 +601,17 @@ protected:
     */
     void validateInterpolationAcross(int fsType_source, const escript::AbstractDomain& domain, int fsType_target) const;
     void interpolateNodesToNodesFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
+    template <typename S> 
+    void interpolateNodesToNodesWorker(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
+    void interpolateNodesToNodesCoarser(const escript::Data& source, escript::Data& target, const Rectangle& other)  const;
     void interpolateNodesToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
     void interpolateElementsToElementsCoarser(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
     void interpolateElementsToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
+    template <typename S> 
+    void interpolateElementsToElementsWorker(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
     void interpolateReducedToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
     void interpolateReducedToReducedFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
-
-
+   
     template <typename S>
     void interpolateNodesOnElementsWorker(escript::Data& out,
                                   const escript::Data& in, bool reduced, S sentinel) const;   
@@ -645,10 +680,25 @@ protected:
 
     TicTocClock oxleytimer;
 
+
 };
 
+// typedef POINTER_WRAPPER_CLASS(Rectangle) OxleyDomainRect_ptr;
 
-typedef POINTER_WRAPPER_CLASS(Rectangle) OxleyDomainRect_ptr;
+// class interpolateWorker_Data {
+// public:
+//    const escript::Data * source;
+//    const escript::Data * target;
+//    const oxley::Rectangle * other;
+
+//    interpolateWorker_Data(const escript::Data * source, 
+//                           const escript::Data * target, 
+//                           const oxley::Rectangle * other);
+//    ~interpolateWorker_Data();
+
+// };
+
+
 
 } //end namespace
 

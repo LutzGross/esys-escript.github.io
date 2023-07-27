@@ -17,6 +17,8 @@
 #include <random>
 #include <vector>
 
+#include <escript/Assert.h>
+
 #include <oxley/RefinementAlgorithms.h>
 #include <oxley/OtherAlgorithms.h>
 #include <oxley/OxleyData.h>
@@ -31,13 +33,13 @@ namespace oxley {
 int refine_uniform(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
     p4estData * forestData = (p4estData *) p4est->user_pointer;
-    return quadrant->level < forestData->refinement_depth && (quadrant->level < forestData->max_levels_refinement);
+    return quadrant->level <= forestData->max_levels_refinement;
 }
 
 int refine_uniform(p8est_t * p4est, p4est_topidx_t tree, p8est_quadrant_t * quadrant)
 {
     p8estData * octantData = (p8estData *) p4est->user_pointer;
-    return quadrant->level < octantData->refinement_depth && (quadrant->level < octantData->max_levels_refinement);
+    return quadrant->level <= octantData->max_levels_refinement;
 }
 
 int refine_mare2dem(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
@@ -87,7 +89,7 @@ int refine_mare2dem(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * qua
 
 //     // Make a decision
 //     return (abs(average - quad_solution) > MARE2DEM_TOL) && (quadrant->level < forestData->max_levels_refinement);
-//     // return 0;
+    return 0;
 }
 
 int refine_mare2dem(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
@@ -166,56 +168,110 @@ int refine_random(p8est_t * p4est, p4est_topidx_t tree, p8est_quadrant_t * quadr
 // Boundaries
 int refine_north(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
+    // pointers
     p4estData * forestData = (p4estData *) p4est->user_pointer;
-    double dx = forestData->refinement_depth;
-    double domain_length = forestData->m_length[1];
-
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
 
-    return     (xy[1] <= domain_length) 
-            && (xy[1] >= domain_length - dx - 1)
-            && (quadrant->level < forestData->max_levels_refinement);
+    // refine everything to the right 
+    double dx = forestData->refinement_depth;
+    double domain_length = forestData->m_length[0];
+    double y = domain_length - dx;
+
+    // ne spatial coordinate
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
+    double xyE[3] = {-1};
+    ESYS_ASSERT(quadData->treeid!=-1, "refine_north: invalid treeid");
+    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, 
+                                    quadrant->x+l, quadrant->y+l, xyE);
+
+
+    bool do_refinement = ((xy[1] > y) // to the north of the line
+                        || (xyE[1] == domain_length)) // or on boundary
+                        && (quadrant->level < forestData->max_levels_refinement); // above the limit
+
+    return do_refinement;
 }
 
 int refine_south(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
+    // pointers
     p4estData * forestData = (p4estData *) p4est->user_pointer;
-    double dx = forestData->refinement_depth;
-
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
 
-    return     (xy[1] >= 0) 
-            && (xy[1] <= dx) 
-            && (quadrant->level < forestData->max_levels_refinement);
+    // refine everything to the right 
+    double dx = forestData->refinement_depth;
+    double domain_length = forestData->m_length[0];
+    double y = dx;
+
+    // ne spatial coordinate
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
+    double xyE[3] = {-1};
+    ESYS_ASSERT(quadData->treeid!=-1, "refine_south: invalid treeid");
+    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, 
+                                    quadrant->x+l, quadrant->y+l, xyE);
+
+
+    bool do_refinement = ((xy[1] < y) // to the south of the line
+                        || (xy[1] == 0)) // or on boundary
+                        && (quadrant->level < forestData->max_levels_refinement); // above the limit
+
+    return do_refinement;
 }
 
 int refine_east(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
+    // pointers
     p4estData * forestData = (p4estData *) p4est->user_pointer;
-    double dx = forestData->refinement_depth;
-    double domain_length = forestData->m_length[0];
-
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
 
-    return     (xy[0] <= domain_length) 
-            && (xy[0] >= domain_length - dx - 1)
-            && (quadrant->level < forestData->max_levels_refinement);
+    // refine everything to the right 
+    double dx = forestData->refinement_depth;
+    double domain_length = forestData->m_length[0];
+    double y = domain_length - dx;
+
+    // ne spatial coordinate
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
+    double xyE[3] = {-1};
+    ESYS_ASSERT(quadData->treeid!=-1, "refine_east: invalid treeid");
+    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, 
+                                    quadrant->x+l, quadrant->y+l, xyE);
+
+
+    bool do_refinement = ((xy[0] > y) // to the right of the line
+                        || (xyE[0] == domain_length)) // or on boundary
+                        && (quadrant->level < forestData->max_levels_refinement); // above the limit
+
+    return do_refinement;
 }
 
 int refine_west(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
+    // pointers
     p4estData * forestData = (p4estData *) p4est->user_pointer;
-    double dx = forestData->refinement_depth;
-
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
 
-    return     (xy[0] >= 0) 
-            && (xy[0] <= dx) 
-            && (quadrant->level < forestData->max_levels_refinement);
+    // refine everything to the right 
+    double dx = forestData->refinement_depth;
+    double domain_length = forestData->m_length[0];
+    double y = dx;
+
+    // ne spatial coordinate
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
+    double xyE[3] = {-1};
+    ESYS_ASSERT(quadData->treeid!=-1, "refine_west: invalid treeid");
+    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, 
+                                    quadrant->x+l, quadrant->y+l, xyE);
+
+
+    bool do_refinement = ((xy[0] < y) // to the west of the line
+                        || (xy[0] == 0)) // or on boundary
+                        && (quadrant->level < forestData->max_levels_refinement); // above the limit
+
+    return do_refinement;
 }
 
 int refine_north(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
@@ -847,53 +903,53 @@ int refine_gce(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * quad)
     }
 }
 
-void refine_copy_parent_quadrant(p4est_t * p4est, p4est_topidx_t tree,
-                                 int num_outgoing,
-                                 p4est_quadrant_t * outgoing[],
-                                 int num_incoming,
-                                 p4est_quadrant_t * incoming[])
-{
-    if(num_incoming == 4 && num_outgoing == 1)
-    {
-        // parent user data
-        // quadrantData *childData = (quadrantData *) incoming[0]->p.user_data;
-        quadrantData *parentData = (quadrantData *) outgoing[0]->p.user_data;
+// void refine_copy_parent_quadrant(p4est_t * p4est, p4est_topidx_t tree,
+//                                  int num_outgoing,
+//                                  p4est_quadrant_t * outgoing[],
+//                                  int num_incoming,
+//                                  p4est_quadrant_t * incoming[])
+// {
+//     if(num_incoming == 4 && num_outgoing == 1)
+//     {
+//         // parent user data
+//         // quadrantData *childData = (quadrantData *) incoming[0]->p.user_data;
+//         quadrantData *parentData = (quadrantData *) outgoing[0]->p.user_data;
 
-        // Averaging
-        parentData->u = 0.0;
-        for(int i = 0; i < 4; i++)
-        {
-            quadrantData *childData = (quadrantData *) incoming[i]->p.user_data;
-            parentData->u+=childData->u;
-        }
-        parentData->u=0.25*parentData->u;
+//         // Averaging
+//         parentData->u = 0.0;
+//         for(int i = 0; i < 4; i++)
+//         {
+//             quadrantData *childData = (quadrantData *) incoming[i]->p.user_data;
+//             parentData->u+=childData->u;
+//         }
+//         parentData->u=0.25*parentData->u;
 
-        // Tags
-        quadrantData *childData = (quadrantData *) incoming[0]->p.user_data;
-        parentData->quadTag=childData->quadTag;
+//         // Tags
+//         quadrantData *childData = (quadrantData *) incoming[0]->p.user_data;
+//         parentData->quadTag=childData->quadTag;
 
-        // Update the spatial coordinates
-        p4est_qcoord_to_vertex(p4est->connectivity, tree, outgoing[0]->x, outgoing[0]->y, &parentData->xy[0]);
-    }
-    else if(num_incoming == 1 && num_outgoing == 4)
-    {
-        quadrantData *parentData = (quadrantData *) incoming[0]->p.user_data;
+//         // Update the spatial coordinates
+//         p4est_qcoord_to_vertex(p4est->connectivity, tree, outgoing[0]->x, outgoing[0]->y, &parentData->xy[0]);
+//     }
+//     else if(num_incoming == 1 && num_outgoing == 4)
+//     {
+//         quadrantData *parentData = (quadrantData *) incoming[0]->p.user_data;
 
-        // Loop over the four children
-        for(int i = 0; i < 4; i++){
-            quadrantData *childData = (quadrantData *) outgoing[i]->p.user_data;
-            childData->u=parentData->u;
-          	childData->quadTag=parentData->quadTag;
+//         // Loop over the four children
+//         for(int i = 0; i < 4; i++){
+//             quadrantData *childData = (quadrantData *) outgoing[i]->p.user_data;
+//             childData->u=parentData->u;
+//           	childData->quadTag=parentData->quadTag;
 
-            // Update the spatial coordinates
-            p4est_qcoord_to_vertex(p4est->connectivity, tree, outgoing[i]->x, outgoing[i]->y, &childData->xy[0]);
-        }
-    }
-    else
-    {
-        throw OxleyException("refine_copy_parent_quadrant: Unknown error.");
-    }
-}
+//             // Update the spatial coordinates
+//             p4est_qcoord_to_vertex(p4est->connectivity, tree, outgoing[i]->x, outgoing[i]->y, &childData->xy[0]);
+//         }
+//     }
+//     else
+//     {
+//         throw OxleyException("refine_copy_parent_quadrant: Unknown error.");
+//     }
+// }
 
 void refine_copy_parent_octant(p8est_t * p8est, p4est_topidx_t tree,
                                  int num_outgoing, p8est_quadrant_t * outgoing[],
@@ -1292,10 +1348,112 @@ void update_connections(p4est_iter_volume_info_t *info, void *user_data)
     }
 
     // std::cout << "xy = " << xy[0] << ", " << xy[1] << std::endl; // coordinates
-
-
 }
 
+int refine_nodesToNodesFiner(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
+{
+    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
+    return quadData->needs_refinement;
+}
+
+void refine_copy_parent_quadrant_data(p4est_t * p4est, p4est_topidx_t tree,
+                                 int num_outgoing,
+                                 p4est_quadrant_t * outgoing[],
+                                 int num_incoming,
+                                 p4est_quadrant_t * incoming[])
+{
+    if(num_incoming == 4 && num_outgoing == 1)
+    {
+        quadrantData *childData = (quadrantData *) incoming[0]->p.user_data;
+        if(childData->u_real==nullptr)
+        {
+            cplx_t new_value;
+            for(int n = 0; n < 4; n++)
+            {
+                quadrantData *childData = (quadrantData *) incoming[n]->p.user_data;
+                new_value+=*(childData->u_cplx);
+            }
+
+            quadrantData *parentData = (quadrantData *) outgoing[0]->p.user_data;
+            new_value*=0.25;
+            parentData->u_cplx=&new_value;    
+        }
+        else
+        {
+            real_t new_value;
+            for(int n = 0; n < 4; n++)
+            {
+                quadrantData *childData = (quadrantData *) incoming[n]->p.user_data;
+                new_value+=*(childData->u_real);
+            }
+
+            quadrantData *parentData = (quadrantData *) outgoing[0]->p.user_data;
+            new_value*=0.25;
+            parentData->u_real=&new_value;  
+        }    
+    }
+    else if(num_incoming == 1 && num_outgoing == 4)
+    {
+        quadrantData *parentData = (quadrantData *) outgoing[0]->p.user_data;
+        if(parentData->u_real==nullptr)
+        {
+            for(int n = 0; n < 4; n++)
+            {
+                quadrantData *childData = (quadrantData *) incoming[n]->p.user_data;
+                cplx_t new_value = *(parentData->u_cplx);
+                childData->u_cplx=&new_value;
+            }
+        }
+        else
+        {
+            for(int n = 0; n < 4; n++)
+            {
+                quadrantData *childData = (quadrantData *) incoming[n]->p.user_data;
+                real_t new_value = *(parentData->u_real);
+                childData->u_real=&new_value;
+            }
+        }        
+    }
+    else
+    {
+        throw OxleyException("refine_copy_parent_quadrant_data: Unknown error.");
+    }
+}
+
+void refine_copy_parent_element_data(p4est_t * p4est, p4est_topidx_t tree,
+                                 int num_outgoing,
+                                 p4est_quadrant_t * outgoing[],
+                                 int num_incoming,
+                                 p4est_quadrant_t * incoming[])
+{
+    if(num_incoming == 4 && num_outgoing == 1)
+    {
+        // cplx_t new_value;
+        // for(int n = 0; n < 4; n++)
+        // {
+        //     quadrantData *childData = (quadrantData *) incoming[n]->p.user_data;
+        //     new_value+=*(childData->u);
+        // }
+
+        // quadrantData *parentData = (quadrantData *) outgoing[0]->p.user_data;
+        // new_value*=0.25;
+        // parentData->u=&new_value;        
+    }
+    else if(num_incoming == 1 && num_outgoing == 4)
+    {
+        // quadrantData *parentData = (quadrantData *) outgoing[0]->p.user_data;
+        // for(int n = 0; n < 4; n++)
+        // {
+        //     quadrantData *childData = (quadrantData *) incoming[n]->p.user_data;
+        //     cplx_t new_value = *(parentData->u);
+        //     childData->u=&new_value;
+        // }
+    }
+    else
+    {
+        throw OxleyException("refine_copy_parent_element_data: Unknown error.");
+    }
+}
 
 
 } // namespace oxley
