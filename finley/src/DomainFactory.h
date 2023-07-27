@@ -22,8 +22,9 @@
 
 #include <boost/python/list.hpp>
 
-#include <sstream>
 
+#include <sstream>
+namespace bp = boost::python;
 /**
     \brief
     A suite of factory methods for creating various finley domains.
@@ -135,10 +136,6 @@ escript::Domain_ptr rectangle_driver(const boost::python::list& args);
 
 FINLEY_DLL_API
 escript::Domain_ptr rectangle_driver_MPI(const boost::python::list& args);
-
-#ifdef ESYS_HAVE_MPI4PY
-static MPI_Comm * pythonMPIWrapper(boost::python::object py_comm);
-#endif
 
 /**
     \brief

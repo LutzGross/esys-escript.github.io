@@ -38,16 +38,10 @@
 
 #include <sstream>
 
-#ifdef ESYS_HAVE_MPI4PY
-#include <mpi4py/mpi4py.h>
-#include <mpi4py/mpi4py.MPI.h>
-#include <mpi4py/mpi4py.MPI_api.h>
-#endif
-
-
 using namespace std;
 using namespace escript;
-namespace bp = boost::python;
+
+
 
 #ifdef NETCDF4
 using namespace netCDF;
@@ -1138,6 +1132,9 @@ Domain_ptr brick_driver(const bp::list& args)
         MPI_Init(NULL,NULL);
 #endif
     JMPI info = makeInfo(MPI_COMM_WORLD);
+
+
+
     return brick(info, static_cast<dim_t>(bp::extract<float>(args[0])),
                  static_cast<dim_t>(bp::extract<float>(args[1])),
                  static_cast<dim_t>(bp::extract<float>(args[2])),
@@ -1194,15 +1191,14 @@ Domain_ptr brick_driver_MPI(const bp::list& args)
         }
     }
     bp::object pworld = args[16];
-    
-    bp::object py_comm = bp::extract<bp::object>(args[17]);
     // PyObject* py_obj = py_comm.ptr();
-    #ifdef ESYS_HAVE_MPI4PY
-    MPI_Comm *comm_p = pythonMPIWrapper(py_comm);
-    JMPI info = makeInfo(*comm_p);
-    #else
-    JMPI info = makeInfo(MPI_COMM_WORLD);
-    #endif
+    //bp::extract<bp::object > py_comm(args[17]);
+    //if ( py_comm.check() ) {
+        MPI_Comm *comm_p  = extractMPICommunicator(args[17]);
+        JMPI info = makeInfo(*comm_p);
+    //} else {
+    //     throw FinleyException("Unable to obtain MPI communicator.");
+    //}
 
     return brick(info, static_cast<dim_t>(bp::extract<float>(args[0])),
                  static_cast<dim_t>(bp::extract<float>(args[1])),
@@ -1261,8 +1257,11 @@ Domain_ptr rectangle_driver(const bp::list& args)
     // we need to convert lists to stl vectors
     bp::list pypoints = bp::extract<bp::list>(args[12]);
     bp::list pytags = bp::extract<bp::list>(args[13]);
-    int numpts = bp::extract<int>(pypoints.attr("__len__")());
-    int numtags = bp::extract<int>(pytags.attr("__len__")());
+    int numpts = bp::len(pypoints);
+    int numtags = bp::len(pytags);
+
+    // int numpts = bp::extract<int>(pypoints.attr("__len__")());
+    // int numtags = bp::extract<int>(pytags.attr("__len__")());
     vector<double> points;
     vector<int> tags;
     tags.resize(numtags, -1);
@@ -1299,6 +1298,12 @@ Domain_ptr rectangle_driver(const bp::list& args)
             throw FinleyException("Unable to extract tag value.");
         }
     }
+
+//if ( bp::len(args) > 14 ) {
+//
+//} else {
+//
+//}
 #ifdef ESYS_MPI 
     int mpi_init = 0;
     MPI_Initialized(&mpi_init);
@@ -1316,18 +1321,6 @@ Domain_ptr rectangle_driver(const bp::list& args)
                      bp::extract<int>(args[10]), bp::extract<int>(args[11]),
                      points, tags, tagstonames);
 }
-
-#ifdef ESYS_HAVE_MPI4PY
-static MPI_Comm * pythonMPIWrapper(boost::python::object py_comm)
-{
-  PyObject* py_obj = py_comm.ptr();
-  MPI_Comm *comm_p = 0; 
-  comm_p = PyMPIComm_Get(py_obj);
-  if (comm_p == NULL)
-        throw FinleyException("Null communicator.");
-  return comm_p;
-}
-#endif
 
 Domain_ptr rectangle_driver_MPI(const bp::list& args)
 {
@@ -1373,15 +1366,30 @@ Domain_ptr rectangle_driver_MPI(const bp::list& args)
             throw FinleyException("Unable to extract tag value.");
         }
     }
-    
-    bp::object py_comm = bp::extract<bp::object>(args[14]);
-    // PyObject* py_obj = py_comm.ptr();
-    #ifdef ESYS_HAVE_MPI4PY
-    MPI_Comm *comm_p = pythonMPIWrapper(py_comm);
-    JMPI info = makeInfo(*comm_p);
-    #else
-    JMPI info = makeInfo(MPI_COMM_WORLD);
-    #endif
+
+    //bp::extract<bp::object > py_comm(bp::extract<bp::object>(args[14]));
+    //if ( py_comm.check() ) {
+    std::cout << "TEST A1 \n";
+    std::cout << bp::extract<int>(args[14].attr("size")) << "\n";
+
+bp::extract<bp::object> py_comm(args[14]);
+if (import_mpi4py() < 0) {
+return NULL;
+}
+         PyObject* py_obj = py_comm().ptr();
+        std::cout << "TEST A" << py_obj <<  "\n";
+
+ MPI_Comm *comm_p  = PyMPIComm_Get(py_obj);
+
+  //      MPI_Comm *comm_p  = extractMPICommunicator(py_comm());
+
+
+    std::cout << "TEST A2 \n";
+        JMPI info = makeInfo(*comm_p);
+    std::cout << "TEST A3 \n";
+    //} else {
+    //     throw FinleyException("Unable to obtain MPI communicator.");
+    //}
 
     return rectangle(info, static_cast<dim_t>(bp::extract<float>(args[0])),
                      static_cast<dim_t>(bp::extract<float>(args[1])),

@@ -22,7 +22,7 @@
 
 namespace escript
 {
-  
+
 using DataTypes::dim_t;
 using DataTypes::index_t;
 

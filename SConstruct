@@ -1006,6 +1006,8 @@ def print_summary():
         d_list.append('mpi')
     if env['mpi4py']:
         print("          mpi4py:  YES")
+    else:
+        print("          mpi4py:  NO")
     if env['parmetis']:
         print("        ParMETIS:  %s (Version %s)"%(env['parmetis_prefix'],env['parmetis_version']))
     else:

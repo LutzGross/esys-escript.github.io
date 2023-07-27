@@ -20,7 +20,9 @@ void example_calculation_program(float x);
 /////////////////////////////////////////////////////////////////
 // wrapper that converts py_comm to an MPI_Comm 
 #ifdef ESYS_HAVE_MPI4PY
-static void pythonMPIWrapper(boost::python::object py_comm)
+
+
+static void test_pythonMPIWrapper(boost::python::object py_comm)
 {
 
   PyObject* py_obj = py_comm.ptr();
@@ -31,7 +33,7 @@ static void pythonMPIWrapper(boost::python::object py_comm)
 }
 
 // wrapper for floating point number test function
-static float pythonMPIWrapper2(boost::python::object py_comm, float x)
+static float test_pythonMPIWrapper2(boost::python::object py_comm, float x)
 {
 	#ifdef ESYS_HAVE_MPI4PY
   PyObject* py_obj = py_comm.ptr();
