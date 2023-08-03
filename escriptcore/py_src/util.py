@@ -2910,6 +2910,8 @@ def interpolate(arg,where):
           if arg.isComplex():
               return interpolate(arg.real(), where)+1j*interpolate(arg.imag(), where)
           else:
+              if arg.isConstant():
+                  arg.expand()
               return escore.Data(arg,where)
     elif isinstance(arg,sym.Symbol):
        return sym.symfn.interpolate(arg, where)
