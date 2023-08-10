@@ -1241,11 +1241,6 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
         //pre-logic error check
         if (check_error(errorFlag, fileHandle, errorMsg) == SUCCESS)
             break;
-
-
-        // ae tmp
-        auto temp_Tagmap = dom->getTagMap(); 
-
         // format
         if (logicFlag == 1 && !errorFlag) {
             std::vector<char> fmt;
@@ -1358,10 +1353,10 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
                     }
                     else
                     {
-                        int tmp;
-                        sscanf(&line[0], "%d %d %d %d %d %d", &pointTag, &tmp, &tmp, &tmp, &numPhysicalTags, &physicalTag);
+                        float tmp[3]={-1};
+                        sscanf(&line[0], "%d %f %f %f %d %d", &pointTag, &tmp[0], &tmp[1], &tmp[2], &numPhysicalTags, &physicalTag);
                     }
-                    if(numPhysicalTags != 0)
+                    if(numPhysicalTags > 0)
                         TagMap.pointTags.insert(std::pair<int,int>(pointTag,physicalTag));
                 }
 
@@ -1372,7 +1367,7 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
                     int pointTag, numPhysicalTags, physicalTag;
                     float tmp[6]={-1};
                     scan_ret = sscanf(&line[0], "%d %f %f %f %f %f %f %d %d", &pointTag, &tmp[0], &tmp[1], &tmp[2], &tmp[3], &tmp[4], &tmp[5], &numPhysicalTags, &physicalTag);
-                    if(numPhysicalTags != 0)
+                    if(numPhysicalTags > 0)
                         TagMap.curveTags.insert(std::pair<int,int>(pointTag,physicalTag));
                 }
 
@@ -1383,8 +1378,7 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
                     signed int pointTag, numPhysicalTags, physicalTag;
                     float tmp[6]={-1};
                     scan_ret = sscanf(&line[0], "%d %f %f %f %f %f %f %d %d", &pointTag, &tmp[0], &tmp[1], &tmp[2], &tmp[3], &tmp[4], &tmp[5], &numPhysicalTags, &physicalTag);
-
-                    if(numPhysicalTags != 0)
+                    if(numPhysicalTags > 0)
                         TagMap.surfaceTags.insert(std::pair<int,int>(pointTag,physicalTag));
                 }
 
@@ -1395,7 +1389,7 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
                     int pointTag, numPhysicalTags, physicalTag;
                     float tmp[6]={-1};
                     scan_ret = sscanf(&line[0], "%d %f %f %f %f %f %f %d %d", &pointTag, &tmp[0], &tmp[1], &tmp[2], &tmp[3], &tmp[4], &tmp[5], &numPhysicalTags, &physicalTag);
-                    if(numPhysicalTags != 0)
+                    if(numPhysicalTags > 0)
                         TagMap.volumeTags.insert(std::pair<int,int>(pointTag,physicalTag));
                 }
             }
