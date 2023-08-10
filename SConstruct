@@ -64,6 +64,7 @@ netcdf_flavours = ('no', 'off', 'none', 'False', # Must be last of the false alt
                    'yes', 'on', 'True', '3', # Must be last of the version 3 alternatives
                    '4')
 all_domains = ('finley','oxley','ripley','speckley')
+version_info=['0.0','5','6']
 build_trilinos_flavours = ( "check",      # check for unsuccessful make before setting up make
                             "True", "make", # set-up standard make install
                             "always",    # always build
@@ -79,6 +80,7 @@ vars = Variables(options_file, ARGUMENTS)
 vars.AddVariables(
   PathVariable('options_file', 'Path to options file', options_file, PathVariable.PathIsFile),
   PathVariable('prefix', 'Installation prefix', Dir('#.').abspath, PathVariable.PathIsDirCreate),
+  PathVariable('PREFIX', 'Installation prefix', Dir('#.').abspath, PathVariable.PathIsDirCreate),
   PathVariable('build_dir', 'Top-level build directory', Dir('#/build').abspath, PathVariable.PathIsDirCreate),
   BoolVariable('verbose', 'Output full compile/link lines', False),
 # Compiler/Linker options
@@ -169,6 +171,7 @@ vars.AddVariables(
   BoolVariable('stdlocationisprefix', 'Set the prefix as escript root in the launcher', False),
   BoolVariable('mpi_no_host', 'Do not specify --host in run-escript launcher (only OPENMPI)', False),
   BoolVariable('insane', 'Instructs scons to not run a sanity check after compilation.', False),
+  EnumVariable('version_information', 'Instructs scons to create symlinks to the library files','0.0',allowed_values=version_info),
   BoolVariable('mpi4py', 'Compile with mpi4py.', False),
   BoolVariable('use_p4est', 'Compile with p4est.', True),
   ('trilinos_LO', 'Manually specify the LO used by Trilinos.', ''),
@@ -296,6 +299,10 @@ env['buildvars'] = {}
 env['warnings'] = []
 
 #################### Make sure install directories exist #####################
+
+# This is for easybuild
+if len(env['PREFIX']) != 0:
+    env['prefix']=env['PREFIX']
 
 env['BUILD_DIR'] = Dir(env['build_dir']).abspath
 prefix = Dir(env['prefix']).abspath
@@ -523,6 +530,14 @@ if env['cc_optim']    == 'default': env['cc_optim'] = cc_optim
 if env['cc_debug']    == 'default': env['cc_debug'] = cc_debug
 if env['omp_flags']   == 'default': env['omp_flags'] = omp_flags
 if env['omp_ldflags'] == 'default': env['omp_ldflags'] = omp_ldflags
+if env['cxx_extra'] != '': env.Append(CXXFLAGS = env['cxx_extra'])
+if env['ld_extra']  != '': env.Append(LINKFLAGS = env['ld_extra'])
+
+if env['version_information'] != '0.0':
+    env['SHLIBVERSION']=env['version_information']
+    env['LDMODULEVERSION']=env['version_information']
+sonameflags=" -Wl,-soname=$_SHLIBSONAME "
+env.Append(LINKFLAGS = sonameflags)
 
 if env['longindices']:
   if env['paso']:
@@ -586,7 +601,8 @@ else:
     #env.Append(CXXFLAGS = env['cc_optim'])
 
 
-
+# always add cc_flags
+env.Append(CCFLAGS = env['cc_flags'])
 
 # add system libraries
 env.AppendUnique(LIBS = env['sys_libs'])
@@ -732,7 +748,7 @@ env=checkNumpy(env)
 ######## CppUnit (required for tests)
 env=checkCppUnit(env)
 
-######## optional python modules (sympy,)
+######## optional python modules (sympy, pyproj)
 env=checkOptionalModules(env)
 
 ######## optional dependencies (netCDF, MKL, UMFPACK, MUMPS, Lapack, Silo, ...)
