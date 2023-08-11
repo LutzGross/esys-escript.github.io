@@ -475,7 +475,6 @@ def checkForTrilinos(env):
                     'Tpetra_Vector.hpp', 'Trilinos_version.h']
     packages = ['Tpetra', 'Kokkos', 'Belos', 'Amesos2', 'Ifpack2', 'MueLu']
 
-    # 'Kokkos_DefaultNode.hpp',
     # 'Tpetra_createDeepCopy_CrsMatrix.hpp', \
 
     if env['trilinos']:
@@ -519,6 +518,8 @@ def checkForTrilinos(env):
             env['trilinos_version'] = str(major)+"."+str(minor)+"."+str(tmp)
             if major >= 14:
                 env.Append(CPPDEFINES = ['ESYS_TRILINOS_14'])
+            if major >= 14 and minor >=2:
+                env.Append(CPPDEFINES = ['ESYS_TRILINOS_14_2'])
 
     if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix.hpp')):
         print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix.hpp', "yes") )
@@ -543,6 +544,16 @@ def checkForTrilinos(env):
         env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKV'])
     else:
         raise RuntimeError('Could not locate the Trilinos BlockVector header')
+
+    if os.path.isfile(os.path.join(trilinos_inc_path,'Kokkos_DefaultNode.hpp')):
+        print("Checking for %s... %s" % ('Kokkos_DefaultNode.hpp', "yes"))
+        env.Append(CPPDEFINES = ['ESYS_NO_KOKKOSCOMPAT'])
+    elif os.path.isfile(os.path.join(trilinos_inc_path,'KokkosCompat_DefaultNode.hpp')):
+        print("Checking for %s... %s" % ('KokkosCompat_DefaultNode.hpp', "yes"))
+        env.Append(CPPDEFINES = ['ESYS_HAVE_KOKKOSCOMPAT'])
+    else:
+        raise RuntimeError('Could not locate Kokkos_DefaultNode.hpp or KokkosCompat_DefaultNode.hpp')
+
 
     # Trilinos version 14 and higher
     if major >= 14:

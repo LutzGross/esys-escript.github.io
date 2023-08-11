@@ -28,11 +28,15 @@
 
 // #include <oxley/tictoc.h>
 
-#ifdef ESYS_TRILINOS_14
+#ifdef ESYS_NO_KOKKOSCOMPAT
+#include "Kokkos_DefaultNode.hpp"
+#else
 #include "KokkosCompat_DefaultNode.hpp"
+#endif
+
+#ifdef ESYS_TRILINOS_14
 #include "Teuchos_ArrayRCPDecl.hpp"
 #else
-#include "Kokkos_DefaultNode.hpp"
 #include "Tpetra_createDeepCopy_CrsMatrix.hpp"
 #endif
 // #include <MatrixMarket_Tpetra.hpp>
