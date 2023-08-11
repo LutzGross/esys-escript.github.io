@@ -475,7 +475,6 @@ def checkForTrilinos(env):
                     'Tpetra_Vector.hpp', 'Trilinos_version.h']
     packages = ['Tpetra', 'Kokkos', 'Belos', 'Amesos2', 'Ifpack2', 'MueLu']
 
-    # 'Kokkos_DefaultNode.hpp',
     # 'Tpetra_createDeepCopy_CrsMatrix.hpp', \
 
     if env['trilinos']:
@@ -519,6 +518,8 @@ def checkForTrilinos(env):
             env['trilinos_version'] = str(major)+"."+str(minor)+"."+str(tmp)
             if major >= 14:
                 env.Append(CPPDEFINES = ['ESYS_TRILINOS_14'])
+            if major >= 14 and minor >=2:
+                env.Append(CPPDEFINES = ['ESYS_TRILINOS_14_2'])
 
     if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix.hpp')):
         print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix.hpp', "yes") )
