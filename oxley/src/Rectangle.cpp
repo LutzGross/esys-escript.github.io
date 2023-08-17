@@ -1361,14 +1361,8 @@ void Rectangle::loadMesh(std::string filename)
     p4est_ghost_destroy(ghost);
 
     // Update rectangle
-    updateNodeIncrements();
-    renumberNodes();
-    updateRowsColumns();
-    updateNodeDistribution();
-    updateElementIds();
-    updateFaceOffset();
-    updateFaceElementCount();
-    updateQuadrantIDinformation();
+    if(autoMeshUpdates)
+        updateMesh();
 
     // Need to update these now that the mesh has changed
     z_needs_update=true;
@@ -1428,14 +1422,8 @@ void Rectangle::refineMesh(std::string algorithmname)
     p4est_ghost_destroy(ghost);
 
     // Update
-    updateNodeIncrements();
-    renumberNodes();
-    updateRowsColumns();
-    updateNodeDistribution();
-    updateElementIds();
-    updateFaceOffset();
-    updateFaceElementCount();
-updateQuadrantIDinformation();
+    if(autoMeshUpdates)
+        updateMesh();
 
     oxleytimer.toc("refineMesh...done");
 }
@@ -1499,14 +1487,8 @@ void Rectangle::refineBoundary(std::string boundaryname, double dx)
     p4est_ghost_destroy(ghost);
 
     // Update
-    updateNodeIncrements();
-    renumberNodes();
-    updateRowsColumns();
-    updateNodeDistribution();
-    updateElementIds();
-    updateFaceOffset();
-    updateFaceElementCount();
-updateQuadrantIDinformation();
+    if(autoMeshUpdates)
+        updateMesh();
 
     oxleytimer.toc("refineBoundary...Done");
 }
@@ -1550,14 +1532,8 @@ void Rectangle::refineRegion(double x0, double x1, double y0, double y1)
     p4est_ghost_destroy(ghost);
 
     // Update
-    updateNodeIncrements();
-    renumberNodes();
-    updateRowsColumns();
-    updateNodeDistribution();
-    updateElementIds();
-    updateFaceOffset();
-    updateFaceElementCount();
-updateQuadrantIDinformation();
+    if(autoMeshUpdates)
+        updateMesh();
 
     oxleytimer.toc("refineRegion...Done");
 }
@@ -1600,14 +1576,8 @@ void Rectangle::refinePoint(double x0, double y0)
     p4est_ghost_destroy(ghost);
 
     // Update
-    updateNodeIncrements();
-    renumberNodes();
-    updateRowsColumns();
-    updateNodeDistribution(); //
-    updateElementIds();
-    updateFaceOffset();
-    updateFaceElementCount();
-    updateQuadrantIDinformation();
+    if(autoMeshUpdates)
+        updateMesh();
 
     oxleytimer.toc("refinePoint...Done");
 }
@@ -1651,15 +1621,9 @@ void Rectangle::refineCircle(double x0, double y0, double r)
     p4est_ghost_destroy(ghost);
 
     // Update
-    updateNodeIncrements();
-    renumberNodes();
-    updateRowsColumns();
-    updateNodeDistribution();
-    updateElementIds();
-    updateFaceOffset();
-    updateFaceElementCount();
-updateQuadrantIDinformation();
-
+    if(autoMeshUpdates)
+        updateMesh();
+    
     oxleytimer.toc("refineCircle...Done");
 }
 #endif //ESYS_HAVE_TRILINOS
@@ -1699,14 +1663,8 @@ void Rectangle::refineMask(escript::Data mask)
     p4est_ghost_destroy(ghost);
 
     // Update
-    updateNodeIncrements();
-    renumberNodes();
-    updateRowsColumns();
-    updateNodeDistribution();
-    updateElementIds();
-    updateFaceOffset();
-    updateFaceElementCount();
-updateQuadrantIDinformation();
+    if(autoMeshUpdates)
+        updateMesh();
 
     oxleytimer.toc("refineCircle...Done");
 }
@@ -5336,6 +5294,31 @@ RankVector Rectangle::getOwnerVector(int fsType) const
     }
 
     return owner;
+}
+
+/**
+ * \brief
+ * Updates the mesh after refinement
+*/
+void Rectangle::updateMesh()
+{
+    updateNodeIncrements();
+    renumberNodes();
+    updateRowsColumns();
+    updateNodeDistribution();
+    updateElementIds();
+    updateFaceOffset();
+    updateFaceElementCount();
+    updateQuadrantIDinformation();
+}
+
+/**
+* \brief
+* Toggles automatic mesh updates in the refinement functions
+*/
+void Rectangle::AutomaticMeshUpdateOnOff(bool new_setting)
+{
+    autoMeshUpdates = new_setting;    
 }
 
 /**

@@ -566,6 +566,19 @@ protected:
     void updateTreeIDs();
 
     /**
+     * \brief
+     * Updates the mesh after refinement
+   */
+   void updateMesh();
+
+   /**
+    * \brief
+    * Toggles automatic mesh updates in the refinement functions
+    */
+   void AutomaticMeshUpdateOnOff(bool autoMeshUpdates);
+   bool autoMeshUpdates = true;
+
+    /**
        \brief
        Updates the NodeID information
     */

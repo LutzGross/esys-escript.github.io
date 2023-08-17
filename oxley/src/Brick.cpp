@@ -1051,6 +1051,22 @@ void Brick::saveMesh(std::string filename)
 }
 
 #ifdef ESYS_HAVE_TRILINOS
+void Brick::updateMesh()
+{
+    reset_ghost();
+    updateNodeIncrements();
+    renumberNodes();
+    updateRowsColumns();
+    updateElementIds();
+    updateFaceOffset();
+    updateFaceElementCount();
+}
+
+void Brick::AutomaticMeshUpdateOnOff(bool new_setting)
+{
+    autoMeshUpdates = new_setting;
+}
+
 void Brick::loadMesh(std::string filename) 
 {
     std::string fnames=filename+".p8est";
@@ -1077,13 +1093,8 @@ void Brick::loadMesh(std::string filename)
     nodes = p8est_lnodes_new(p8est, ghost, 1);
     
     // Update Brick
-    reset_ghost();
-    updateNodeIncrements();
-    renumberNodes();
-    updateRowsColumns();
-    updateElementIds();
-    updateFaceOffset();
-    updateFaceElementCount();
+    if(autoMeshUpdates)
+        updateMesh();
 
     // Need to update these now that the mesh has changed
     z_needs_update=true;
@@ -1136,13 +1147,8 @@ void Brick::refineMesh(std::string algorithmname)
     nodes = p8est_lnodes_new(p8est, ghost, 1);
     
     // Update
-    reset_ghost();
-    updateNodeIncrements();
-    renumberNodes();
-    updateRowsColumns();
-    updateElementIds();
-    updateFaceOffset();
-    updateFaceElementCount();
+    if(autoMeshUpdates)
+        updateMesh();
 }
 
 void Brick::refineBoundary(std::string boundaryname, double dx)
@@ -1214,13 +1220,8 @@ void Brick::refineBoundary(std::string boundaryname, double dx)
     nodes = p8est_lnodes_new(p8est, ghost, 1);
     
     // Update
-    reset_ghost();
-    updateNodeIncrements();
-    renumberNodes();
-    updateRowsColumns();
-    updateElementIds();
-    updateFaceOffset();
-    updateFaceElementCount();
+    if(autoMeshUpdates)
+        updateMesh();
 }
 
 void Brick::refineRegion(double x0, double x1, double y0, double y1, double z0, double z1)
@@ -1255,13 +1256,8 @@ void Brick::refineRegion(double x0, double x1, double y0, double y1, double z0, 
     nodes = p8est_lnodes_new(p8est, ghost, 1);
     
     // Update
-    reset_ghost();
-    updateNodeIncrements();
-    renumberNodes();
-    updateRowsColumns();
-    updateElementIds();
-    updateFaceOffset();
-    updateFaceElementCount();
+    if(autoMeshUpdates)
+        updateMesh();
 }
 
 void Brick::refinePoint(double x0, double y0, double z0)
@@ -1307,13 +1303,8 @@ void Brick::refinePoint(double x0, double y0, double z0)
     nodes = p8est_lnodes_new(p8est, ghost, 1);
     
     // Update
-    reset_ghost();
-    updateNodeIncrements();
-    renumberNodes();
-    updateRowsColumns();
-    updateElementIds();
-    updateFaceOffset();
-    updateFaceElementCount();
+    if(autoMeshUpdates)
+        updateMesh();
 
     oxleytimer.toc("Finished refining point");
 }
@@ -1355,13 +1346,8 @@ void Brick::refineSphere(double x0, double y0, double z0, double r)
     nodes = p8est_lnodes_new(p8est, ghost, 1);
     
     // Update
-    reset_ghost();
-    updateNodeIncrements();
-    renumberNodes();
-    updateRowsColumns();
-    updateElementIds();
-    updateFaceOffset();
-    updateFaceElementCount();
+    if(autoMeshUpdates)
+        updateMesh();
 }
 #endif //ESYS_HAVE_TRILINOS
 
@@ -1391,13 +1377,8 @@ void Brick::refineMask(escript::Data mask)
     nodes = p8est_lnodes_new(p8est, ghost, 1);
     
     // Update
-    reset_ghost();
-    updateNodeIncrements();
-    renumberNodes();
-    updateRowsColumns();
-    updateElementIds();
-    updateFaceOffset();
-    updateFaceElementCount();
+    if(autoMeshUpdates)
+        updateMesh();
 }
 
 escript::Data Brick::getX() const
@@ -4940,6 +4921,8 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
 {
     oxley::Brick * newDomain = new Brick(*this, m_order);
 
+    AutomaticMeshUpdateOnOff(false);
+
     int numberOfRefinements = R.getNumberOfOperations();
 
     for(int n = 0; n < numberOfRefinements; n++)
@@ -5039,6 +5022,9 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
             default:
                 throw OxleyException("Unknown refinement algorithm.");
         }
+
+        updateMesh();
+        AutomaticMeshUpdateOnOff(true);
     }
     return escript::Domain_ptr(newDomain);
 }
