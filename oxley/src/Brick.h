@@ -690,7 +690,7 @@ protected:
     int num_hanging;
 
     // Timer used to profile code
-    TicTocClock oxleytimer;
+    // TicTocClock oxleytimer;
 };
 
 // typedef POINTER_WRAPPER_CLASS(Brick) OxleyDomainBrick_ptr;

@@ -904,6 +904,9 @@ public:
     */
     virtual const dim_t* getNumFacesPerBoundary() const = 0;
 
+    // stopwatch used when profiling 
+    TicTocClock oxleytimer;
+
 protected:
 
     // element order
@@ -1076,8 +1079,6 @@ private:
 
     /// finds the node that the given point coordinates belong to
     virtual dim_t findNode(const double *coords) const = 0;
-
-    TicTocClock oxleytime;
 };
 
 #define POINTER_WRAPPER_CLASS(x) boost::shared_ptr<x>

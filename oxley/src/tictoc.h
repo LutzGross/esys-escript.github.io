@@ -14,6 +14,8 @@ public:
 	~TicTocClock();
 
 	void toc(std::string message);
+	void setTime(time_t newtime);
+	time_t getTime();
 };
 
 #endif //_OXLEY_TICTOCCLOCK_

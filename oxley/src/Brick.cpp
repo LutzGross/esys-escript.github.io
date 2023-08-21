@@ -79,6 +79,8 @@ Brick::Brick(int order,
     OxleyDomain(3, order)
 {
 
+    oxleytimer.toc("Creating an oxley::Brick...");
+
     // Possible error: User passes invalid values for the dimensions
     if(n0 <= 0 || n1 <= 0 || n2 <= 0)
         throw OxleyException("Number of elements in each spatial dimension must be positive");
@@ -101,6 +103,7 @@ Brick::Brick(int order,
             d2=m_mpiInfo->size-d0-d1;
     }
 
+    oxleytimer.toc("\t creating connectivity");
     connectivity = new_brick_connectivity(n0, n1, n2, false, false, false, x0, x1, y0, y1, z0, z1);    
 
 #ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
@@ -116,6 +119,7 @@ Brick::Brick(int order,
     p8est_locidx_t min_quadrants = n0*n1*n2;
     int min_level = 0;
     int fill_uniform = 1;
+    oxleytimer.toc("\t creating p8est...");
     p8est = p8est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
             min_level, fill_uniform, sizeof(octantData), &init_brick_data, (void *) &forestData);
 
@@ -128,9 +132,11 @@ Brick::Brick(int order,
 #endif
 
     // Nodes numbering
+    oxleytimer.toc("\t creating ghost...");
     ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
     nodes = p8est_lnodes_new(p8est, ghost, 1);
     
+    oxleytimer.toc("\t saving forestData information...");
     // This information is needed by the assembler
     m_NE[0] = n0;
     m_NE[1] = n1;
@@ -181,6 +187,7 @@ Brick::Brick(int order,
     m_numDim=3;
 
     //  // Distribute the p8est across the processors
+    oxleytimer.toc("\t partitioning...");
     int allow_coarsening = 0;
     p8est_partition(p8est, allow_coarsening, NULL);
 
@@ -188,21 +195,22 @@ Brick::Brick(int order,
     indices = new std::vector<IndexVector>;
 
     // Number the nodes
-    updateNodeIncrements();
-    renumberNodes();
-    updateRowsColumns();
-    updateNodeDistribution();
-    updateElementIds();
-    updateFaceOffset();
-    updateFaceElementCount();
+    updateMesh();
 
     // Tags
-    populateSampleIds();
-    for (TagMap::const_iterator i = tagnamestonums.begin(); i != tagnamestonums.end(); i++) {
-        setTagMap(i->first, i->second);
-    }
+    oxleytimer.toc("\t populating sample ids...");
+    // TODO
+    // populateSampleIds(); // very slow
+
+    oxleytimer.toc("\t populating tags ("+std::to_string(tagnamestonums.size())+")...");
+    TagMap tmpMap(tagnamestonums);
+    m_tagMap=tmpMap;
+    // for (TagMap::const_iterator i = tagnamestonums.begin(); i != tagnamestonums.end(); i++) {
+    //     setTagMap(i->first, i->second);
+    // }
 
     // Dirac points and tags
+    oxleytimer.toc("\t adding Dirac points...");
     addPoints(points, tags);
 
     // To prevent segmentation faults when using numpy ndarray
@@ -243,8 +251,26 @@ Brick::Brick(int order,
 Brick::Brick(oxley::Brick& B, int order): 
     OxleyDomain(3, order)
 {
-    connectivity = B.connectivity;
-    p8est = B.p8est;
+    oxleytimer.setTime(B.oxleytimer.getTime());
+
+    oxleytimer.toc("In Brick copy constructor");
+    // connectivity = B.connectivity;
+    // p8est = B.p8est;
+
+    m_mpiInfo=B.m_mpiInfo;
+
+
+    oxleytimer.toc("\t Creating connectivity...");
+    connectivity=new_brick_connectivity(B.m_NE[0], B.m_NE[1], B.m_NE[2], false, false, false, 
+                                        B.forestData.m_origin[0], B.forestData.m_lxyz[0], 
+                                        B.forestData.m_origin[1], B.forestData.m_lxyz[1], 
+                                        B.forestData.m_origin[2], B.forestData.m_lxyz[2]);    
+    p8est_locidx_t min_quadrants = B.m_NE[0]*B.m_NE[1]*B.m_NE[2];
+    int min_level = 0;
+    int fill_uniform = 1;
+    oxleytimer.toc("\t creating p8est...");
+    p8est = p8est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
+            min_level, fill_uniform, sizeof(octantData), &init_brick_data, (void *) &forestData);
 
 #ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
     std::cout << "In Brick() constructor..." << std::endl;
@@ -261,8 +287,10 @@ Brick::Brick(oxley::Brick& B, int order):
 #endif
 
     // Nodes numbering
-    ghost = B.ghost;
-    nodes = B.nodes;
+    oxleytimer.toc("\t creating ghost...");
+    ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL); // (backend is slow, even with MPI enabled)
+    oxleytimer.toc("\t creating lnodes...");
+    nodes = p8est_lnodes_new(p8est, ghost, 1);
     
     // This information is needed by the assembler
     m_NE[0] = B.m_NE[0];
@@ -289,27 +317,28 @@ Brick::Brick(oxley::Brick& B, int order):
     m_numDim=3;
 
     //  // Distribute the p8est across the processors
+    oxleytimer.toc("\t partitioning");
     int allow_coarsening = 0;
-    p8est_partition(p8est, allow_coarsening, NULL);
+    p8est_partition(p8est, allow_coarsening, NULL); //backend is slow (even with MPI enabled)
 
     // Indices
+    oxleytimer.toc("\t creating index vector");
     indices = new std::vector<IndexVector>;
 
     // Number the nodes
-    updateNodeIncrements();
-    renumberNodes();
-    updateRowsColumns();
-    updateNodeDistribution();
-    updateElementIds();
-    updateFaceOffset();
-    updateFaceElementCount();
+    oxleytimer.toc("\t updating the mesh");
+    updateMesh();
 
     // Tags
-    populateSampleIds();
+    oxleytimer.toc("\t populating sample ids");
+    // TODO
+    // populateSampleIds();
     
+    oxleytimer.toc("\t copying tag map");
     m_tagMap = B.m_tagMap;
 
     // Dirac points and tags
+    oxleytimer.toc("\t copying Dirac points");
     m_diracPoints=B.m_diracPoints;
 
     // To prevent segmentation faults when using numpy ndarray
@@ -318,7 +347,7 @@ Brick::Brick(oxley::Brick& B, int order):
     boost::python::numpy::initialize();
 #endif
 
-    oxleytimer.toc("Class initialised");
+    oxleytimer.toc("Brick initialised");
 }
 
 /**
@@ -1081,7 +1110,7 @@ void Brick::updateMesh()
 
 void Brick::AutomaticMeshUpdateOnOff(bool new_setting)
 {
-    #ifdef OXLEY_ENABLE_PROFILE_TIMERS
+    #ifdef OXLEY_ENABLE_PROFILE_TIMERS_INFORMATIONAL
     oxleytimer.toc("INFO: Disabling automatic mesh update");
     #endif
     autoMeshUpdates = new_setting;
@@ -1765,8 +1794,7 @@ void Brick::renumberNodes()
                 for(int n = 0; n < 8; n++)
                 {
                     // Get the first coordinate
-                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
-                                                oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
+                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
                     auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
                     if(std::find(NormalNodesTmp.begin(), NormalNodesTmp.end(), point)==NormalNodesTmp.end())
                     {
@@ -1776,8 +1804,7 @@ void Brick::renumberNodes()
                 }
             else
             {
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
-                                                oct->x+l*lxy_nodes[0][0], oct->y+l*lxy_nodes[0][1], oct->z+l*lxy_nodes[0][2], xyz);
+                p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[0][0], oct->y+l*lxy_nodes[0][1], oct->z+l*lxy_nodes[0][2], xyz);
                 auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
                 NormalNodesTmp.push_back(point);
                 NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
@@ -3211,6 +3238,7 @@ void Brick::populateSampleIds()
 
 void Brick::updateFaceElementCount()
 {
+    oxleytimer.toc("updateFaceElementCount");
     // TODO
 
 //     for(int i = 0; i < 4; i++)
@@ -3391,6 +3419,7 @@ void Brick::updateFaceElementCount()
 //     m_faceId.resize(NFE);
 //     for (dim_t k=0; k<NFE; k++)
 //         m_faceId[k]=k;
+    oxleytimer.toc("done");
 }
 
 // This is a wrapper that converts the p8est node information into an IndexVector
@@ -3434,12 +3463,14 @@ void Brick::updateNodeDistribution()
 // updates m_elementIDs()
 void Brick::updateElementIds()
 {
+    oxleytimer.toc("updateElementIds");
     m_elementId.clear();
     m_elementId.assign(MAXP4ESTNODES,0);
     int count=0;
     for(std::pair<DoubleTuple,long> e : NodeIDs)
         m_elementId[count++]=e.second;
     m_elementId.shrink_to_fit();
+    oxleytimer.toc("done");
 }
 
 std::vector<IndexVector> Brick::getConnections(bool includeShared) const
@@ -4077,7 +4108,9 @@ void Brick::nodesToDOF(escript::Data& out, const escript::Data& in) const
 // Updates m_faceOffset for each quadrant
 void Brick::updateFaceOffset()
 {
+    oxleytimer.toc("updateFaceOffset");
     p8est_iterate(p8est, NULL, NULL, update_node_faceoffset, NULL, NULL, NULL);
+    oxleytimer.toc("done");
 }
 
 void Brick::updateMeshInformation()
@@ -4921,7 +4954,7 @@ const long Brick::getNodeId(double x, double y, double z)
 */
 escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
 {
-    oxleytimer.toc("apply_refinementZone");
+    oxleytimer.toc("Applying the refinement zone...");
 
     oxley::Brick * newDomain = new Brick(*this, m_order);
 
@@ -4931,6 +4964,10 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
 
     for(int n = 0; n < numberOfRefinements; n++)
     {
+        #ifdef OXLEY_ENABLE_PROFILE_TIMERS_INFORMATIONAL
+            std::string message = std::to_string(n) + " of " + std::to_string(numberOfRefinements);
+            oxleytimer.toc(message);
+        #endif
         RefinementType Refinement = R.getRefinement(n);
         //set the refinement level for this refinement
         setRefinementLevels(Refinement.levels);

@@ -86,7 +86,7 @@ namespace oxley {
 
         m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
      
-        oxleytime.toc("Created an OxleyDomain");   
+        oxleytimer.toc("Created an OxleyDomain");   
     }
 
     /**
@@ -877,6 +877,8 @@ namespace oxley {
 
     void OxleyDomain::updateTagsInUse(int fsType) const
     {
+        // TODO speed this up
+        
         vector<int>* tagsInUse=NULL;
         const vector<int>* tags=NULL;
         switch(fsType) {
@@ -1540,7 +1542,7 @@ esys_trilinos::TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
 {
     using namespace esys_trilinos;
 
-    // oxleytime.toc("createTrilinosGraph... ");
+    // oxleytimer.toc("createTrilinosGraph... ");
 
     // IndexVector rowTemp(NumDataPointsGlobal);
     // #pragma omp for
@@ -1584,7 +1586,7 @@ esys_trilinos::TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     params->set("Static profile clone", false);
     graph->fillComplete(rowMap, colMap, params);
 
-    // oxleytime.toc("createTrilinosGraph... done.");
+    // oxleytimer.toc("createTrilinosGraph... done.");
 
     return graph;
 }
@@ -1597,7 +1599,7 @@ esys_trilinos::TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
 #ifdef ESYS_HAVE_TRILINOS
 void OxleyDomain::initZ(bool complex)
 {
-    oxleytime.toc("initZ... ");
+    oxleytimer.toc("initZ... ");
 
     using namespace esys_trilinos;
 
@@ -1626,14 +1628,14 @@ void OxleyDomain::initZ(bool complex)
     rZ->fillComplete(zrrowMap,zrcolMap);
     cZ->fillComplete(zcrowMap,zccolMap);
 
-    oxleytime.toc("initZ... done.");
+    oxleytimer.toc("initZ... done.");
 }
 #endif
 
 #ifdef ESYS_HAVE_TRILINOS
 void OxleyDomain::initIZ(bool complex)
 {
-    oxleytime.toc("initIZ... ");
+    oxleytimer.toc("initIZ... ");
 
     using namespace esys_trilinos;
 
@@ -1663,7 +1665,7 @@ void OxleyDomain::initIZ(bool complex)
     rIZ->fillComplete(izrrowMap,izrcolMap);
     cIZ->fillComplete(izcrowMap,izccolMap);
 
-    oxleytime.toc("initIZ... done.");
+    oxleytimer.toc("initIZ... done.");
 }
 #endif
 
@@ -1755,7 +1757,7 @@ void OxleyDomain::initIZ(bool complex)
 #ifdef ESYS_HAVE_TRILINOS
 void OxleyDomain::makeZ(bool complex)
 {
-    oxleytime.toc("makeZ... ");
+    oxleytimer.toc("makeZ... ");
 
     if(z_needs_update)
     {
@@ -1940,7 +1942,7 @@ void OxleyDomain::makeZ(bool complex)
         }
     }
 
-    oxleytime.toc("makeZ... done.");
+    oxleytimer.toc("makeZ... done.");
 }
 #endif
 
@@ -2010,7 +2012,7 @@ void OxleyDomain::makeZworker(S half,Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trili
 #ifdef ESYS_HAVE_TRILINOS
 void OxleyDomain::makeIZ(bool complex)
 {
-    oxleytime.toc("makeIZ... ");
+    oxleytimer.toc("makeIZ... ");
 
     if(iz_needs_update)
     {
@@ -2258,7 +2260,7 @@ void OxleyDomain::makeIZ(bool complex)
         }
     }
 
-    oxleytime.toc("makeIZ... done.");
+    oxleytimer.toc("makeIZ... done.");
 }
 #endif
 
@@ -2341,7 +2343,7 @@ void OxleyDomain::makeIZworker(Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::L
 #ifdef ESYS_HAVE_TRILINOS
 void OxleyDomain::finaliseA(escript::AbstractSystemMatrix& mat, bool isComplex)
 {
-    oxleytime.toc("finaliseA... ");
+    oxleytimer.toc("finaliseA... ");
 
     if(isComplex==true) 
     {
@@ -2352,7 +2354,7 @@ void OxleyDomain::finaliseA(escript::AbstractSystemMatrix& mat, bool isComplex)
         finaliseAworker<escript::DataTypes::real_t>(mat, rIZ);
     }
 
-    oxleytime.toc("finaliseA... done.");
+    oxleytimer.toc("finaliseA... done.");
 }
 #endif
 
@@ -2375,7 +2377,7 @@ void OxleyDomain::finaliseAworker(escript::AbstractSystemMatrix& mat,
 #ifdef ESYS_HAVE_TRILINOS
 escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
 {
-    oxleytime.toc("finaliseRhs... ");
+    oxleytimer.toc("finaliseRhs... ");
 
     if(getNumHangingNodes() > 0)
     {
@@ -2528,7 +2530,7 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
                 #endif
             }
             // rhs=rhs_new;
-            oxleytime.toc("finaliseRhs... done.");
+            oxleytimer.toc("finaliseRhs... done.");
             return rhs_new;
 
             #ifdef OXLEY_PRINT_DEBUG_IZ_RESULT
@@ -2670,7 +2672,7 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
                 #endif
             }
             // rhs=rhs_new;
-            oxleytime.toc("finaliseRhs... done.");
+            oxleytimer.toc("finaliseRhs... done.");
             
             #ifdef OXLEY_PRINT_DEBUG_IZ_RESULT
                 std::cout << "Final rhs" << std::endl;
@@ -2686,7 +2688,7 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
             std::cout << "finaliseRhs...................... no hanging nodes" << std::endl;
         #endif
 
-        oxleytime.toc("finaliseRhs... done.");
+        oxleytimer.toc("finaliseRhs... done.");
 
         return rhs;
     }

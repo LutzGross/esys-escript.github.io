@@ -1665,23 +1665,26 @@ void Rectangle::refineMask(escript::Data mask)
 
 void Rectangle::updateQuadrantIDinformation()
 {
+    oxleytimer.toc("updateQuadrantIDinformation");
     // quadrant IDs
-    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
-        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        for(int q = 0; q < Q; ++q) { 
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            quadrantData * quadData = (quadrantData *) quad->p.user_data;
-            double xy[2];
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
-            long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            quadData->nodeid=nodeid;
-            quadData->treeid=treeid;
-            quadData->xy[0]=xy[0];
-            quadData->xy[1]=xy[1];
-        }
-    }
+    // TODO speed up
+    // for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
+    //     p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+    //     sc_array_t * tquadrants = &tree->quadrants;
+    //     p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+    //     for(int q = 0; q < Q; ++q) { 
+    //         p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+    //         quadrantData * quadData = (quadrantData *) quad->p.user_data;
+    //         double xy[3];
+    //         p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
+    //         long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+    //         quadData->nodeid=nodeid;
+    //         quadData->treeid=treeid;
+    //         quadData->xy[0]=xy[0];
+    //         quadData->xy[1]=xy[1];
+    //     }
+    // }
+    oxleytimer.toc("done");
 }
 
 escript::Data Rectangle::getX() const
@@ -5296,6 +5299,7 @@ RankVector Rectangle::getOwnerVector(int fsType) const
 */
 void Rectangle::updateMesh()
 {
+    oxleytimer.toc("\x1B[31mupdating the Mesh....\x1B[37m");
     // Update the nodes
     p4est_lnodes_destroy(nodes);
     p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
@@ -5310,6 +5314,7 @@ void Rectangle::updateMesh()
     updateFaceOffset();
     updateFaceElementCount();
     updateQuadrantIDinformation();
+    oxleytimer.toc("\x1B[31mdone\x1B[37m");
 }
 
 /**
@@ -5327,6 +5332,8 @@ void Rectangle::AutomaticMeshUpdateOnOff(bool new_setting)
 */
 escript::Domain_ptr Rectangle::apply_refinementzone(RefinementZone R)
 {
+    oxleytimer.toc("Applying the refinement zone...");
+
     oxley::Rectangle * newDomain = new Rectangle(*this, m_order);
     int numberOfRefinements = R.getNumberOfOperations();
 
@@ -5422,6 +5429,7 @@ escript::Domain_ptr Rectangle::apply_refinementzone(RefinementZone R)
     newDomain->updateMesh();
     newDomain->AutomaticMeshUpdateOnOff(true);
 
+    oxleytimer.toc("done");
     return escript::Domain_ptr(newDomain);
 }
 
