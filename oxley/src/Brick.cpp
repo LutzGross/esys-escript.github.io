@@ -98,7 +98,7 @@ Brick::Brick(int order,
         d2 = m_mpiInfo->size / (d0*d1);
 
         if(d0*d1*d2 != m_mpiInfo->size)
-            throw OxleyException("Could not find values for d0, d1 and d2. Please set them manually.");
+            d2=m_mpiInfo->size-d0-d1;
     }
 
     connectivity = new_brick_connectivity(n0, n1, n2, false, false, false, x0, x1, y0, y1, z0, z1);    
@@ -149,9 +149,9 @@ Brick::Brick(int order,
     forestData.m_length[0] = x1-x0;
     forestData.m_length[1] = y1-y0;
     forestData.m_length[2] = z1-z0;
-    forestData.m_lxyz[0] = (x1-x0)/n0;
-    forestData.m_lxyz[1] = (y1-y0)/n1;
-    forestData.m_lxyz[2] = (z1-z0)/n2;
+    // forestData.m_lxyz[0] = (x1-x0)/n0;
+    // forestData.m_lxyz[1] = (y1-y0)/n1;
+    // forestData.m_lxyz[2] = (z1-z0)/n2;
 
     // Whether or not we have periodic boundaries
     forestData.periodic[0] = periodic0;
@@ -1053,6 +1053,19 @@ void Brick::saveMesh(std::string filename)
 #ifdef ESYS_HAVE_TRILINOS
 void Brick::updateMesh()
 {
+    #ifdef OXLEY_ENABLE_DEBUG_UPDATE_MESH
+        std::cout << "Brick::updateMesh: Updating the Mesh..." << std::endl;
+    #endif
+
+    p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
+
+    bool partition_for_coarsening = true;
+    p8est_partition_ext(p8est, partition_for_coarsening, NULL);
+
+    // Update the nodes
+    p8est_lnodes_destroy(nodes);
+    nodes = p8est_lnodes_new(p8est, ghost, 1);
+
     reset_ghost();
     updateNodeIncrements();
     renumberNodes();
@@ -1060,10 +1073,17 @@ void Brick::updateMesh()
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
+
+    #ifdef OXLEY_ENABLE_DEBUG_UPDATE_MESH
+        std::cout << "Brick::updateMesh: Finis..." << std::endl;
+    #endif
 }
 
 void Brick::AutomaticMeshUpdateOnOff(bool new_setting)
 {
+    #ifdef OXLEY_ENABLE_PROFILE_TIMERS
+    oxleytimer.toc("INFO: Disabling automatic mesh update");
+    #endif
     autoMeshUpdates = new_setting;
 }
 
@@ -1139,13 +1159,6 @@ void Brick::refineMesh(std::string algorithmname)
         throw OxleyException("connectivity broke during refinement");
 #endif
 
-    bool partition_for_coarsening = true;
-    p8est_partition_ext(p8est, partition_for_coarsening, NULL);
-
-    // Update the nodes
-    p8est_lnodes_destroy(nodes);
-    nodes = p8est_lnodes_new(p8est, ghost, 1);
-    
     // Update
     if(autoMeshUpdates)
         updateMesh();
@@ -1211,13 +1224,6 @@ void Brick::refineBoundary(std::string boundaryname, double dx)
     if(!p8est_connectivity_is_valid(connectivity))
         throw OxleyException("connectivity broke during refinement");
 #endif
-
-    bool partition_for_coarsening = true;
-    p8est_partition_ext(p8est, partition_for_coarsening, NULL);
-
-    // Update the nodes
-    p8est_lnodes_destroy(nodes);
-    nodes = p8est_lnodes_new(p8est, ghost, 1);
     
     // Update
     if(autoMeshUpdates)
@@ -1238,8 +1244,7 @@ void Brick::refineRegion(double x0, double x1, double y0, double y1, double z0, 
     forestData.refinement_boundaries[5] = z1 == -1 ? forestData.m_lxyz[1] : z1;
 
     p8est_refine_ext(p8est, true, -1, refine_region, init_brick_data, refine_copy_parent_octant);
-    p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
-
+    
     // Make sure that nothing went wrong
 #ifdef OXLEY_ENABLE_DEBUG
     if(!p8est_is_valid(p8est))
@@ -1247,13 +1252,6 @@ void Brick::refineRegion(double x0, double x1, double y0, double y1, double z0, 
     if(!p8est_connectivity_is_valid(connectivity))
         throw OxleyException("connectivity broke during refinement");
 #endif
-
-    bool partition_for_coarsening = true;
-    p8est_partition_ext(p8est, partition_for_coarsening, NULL);
-
-    // Update the nodes
-    p8est_lnodes_destroy(nodes);
-    nodes = p8est_lnodes_new(p8est, ghost, 1);
     
     // Update
     if(autoMeshUpdates)
@@ -1262,17 +1260,21 @@ void Brick::refineRegion(double x0, double x1, double y0, double y1, double z0, 
 
 void Brick::refinePoint(double x0, double y0, double z0)
 {
-    oxleytimer.toc("Refining a point");
+    // oxleytimer.toc("Refining a point");
 
     z_needs_update=true;
     iz_needs_update=true;
 
+
+
     // Check that the point is inside the domain
-    if(x0 < forestData.m_origin[0] || x0 > forestData.m_length[0] 
-        || y0 < forestData.m_origin[1] || y0 > forestData.m_length[1] 
-        || z0 < forestData.m_origin[2] || z0 > forestData.m_length[2] )
+    if(    x0 < forestData.m_origin[0] || x0 > forestData.m_lxyz[0] 
+        || y0 < forestData.m_origin[1] || y0 > forestData.m_lxyz[1] 
+        || z0 < forestData.m_origin[2] || z0 > forestData.m_lxyz[2] )
     {
-        throw OxleyException("Coordinates lie outside the domain.");
+        std::string message = "INFORMATION: Coordinates lie outside the domain. (" + std::to_string(x0) + ", " + std::to_string(y0) + ", " + std::to_string(z0) + ") skipping point";
+        std::cout << message << std::endl;
+        // throw OxleyException(message);
     }
 
     // If the boundaries were not specified by the user, default to the border of the domain
@@ -1280,7 +1282,6 @@ void Brick::refinePoint(double x0, double y0, double z0)
     forestData.refinement_boundaries[1] = y0;
     forestData.refinement_boundaries[2] = z0;
     p8est_refine_ext(p8est, true, -1, refine_point, init_brick_data, refine_copy_parent_octant);
-    p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
 
     // Make sure that nothing went wrong
 #ifdef OXLEY_ENABLE_DEBUG_REFINEPOINT
@@ -1293,20 +1294,12 @@ void Brick::refinePoint(double x0, double y0, double z0)
     else
         std::cout << "\033[1;31m[oxley]\033[0m refinePoint: valid connectivity" << std::endl;
 #endif
-
-    bool partition_for_coarsening = true;
-    p8est_partition_ext(p8est, partition_for_coarsening, NULL);
-
-    // Update the nodes
-    p8est_lnodes_destroy(nodes);
-    p8est_partition_lnodes(p8est, ghost, 1, partition_for_coarsening);
-    nodes = p8est_lnodes_new(p8est, ghost, 1);
     
     // Update
     if(autoMeshUpdates)
         updateMesh();
 
-    oxleytimer.toc("Finished refining point");
+    // oxleytimer.toc("Finished refining point");
 }
 
 void Brick::refineSphere(double x0, double y0, double z0, double r)
@@ -1338,13 +1331,6 @@ void Brick::refineSphere(double x0, double y0, double z0, double r)
         throw OxleyException("connectivity broke during refinement");
 #endif
 
-    bool partition_for_coarsening = true;
-    p8est_partition_ext(p8est, partition_for_coarsening, NULL);
-
-    // Update the nodes
-    p8est_lnodes_destroy(nodes);
-    nodes = p8est_lnodes_new(p8est, ghost, 1);
-    
     // Update
     if(autoMeshUpdates)
         updateMesh();
@@ -1368,13 +1354,6 @@ void Brick::refineMask(escript::Data mask)
     if(!p8est_connectivity_is_valid(connectivity))
         throw OxleyException("connectivity broke during refinement");
 #endif
-
-    bool partition_for_coarsening = true;
-    p8est_partition_ext(p8est, partition_for_coarsening, NULL);
-
-    // Update the nodes
-    p8est_lnodes_destroy(nodes);
-    nodes = p8est_lnodes_new(p8est, ghost, 1);
     
     // Update
     if(autoMeshUpdates)
@@ -1719,6 +1698,8 @@ void Brick::renumberNodes()
     //                                         {0,0.5,0},{1,0.5,0},{0,0.5,1},{1,0.5,1},
     //                                         {0,0,0.5},{1,0,0.5},{0,1,0.5},{1,1,0.5}};
 
+    oxleytimer.toc("first loop");
+
     // Assign numbers to the nodes
     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
@@ -1726,29 +1707,41 @@ void Brick::renumberNodes()
         p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count; // TODO possible(?) bug
 
         // Loop over octants
+        #pragma omp for
         for(int q = 0; q < Q; ++q) { 
             p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
             p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
 
-            // Assign numbers to the vertix nodes
+            // Assign numbers to the vertex nodes
             double xyz[3];
-            for(int n = 0; n < 8; n++)
-            {
-                // Get the first coordinate
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
-                                            oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
-                auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-                if(std::find(NormalNodesTmp.begin(), NormalNodesTmp.end(), point)==NormalNodesTmp.end())
-                {
-                    NormalNodesTmp.push_back(point);
-                    NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
-                }
-            }
+
+            p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[0][0], oct->y+l*lxy_nodes[0][1], oct->z+l*lxy_nodes[0][2], xyz);
+            auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
+
+            NormalNodesTmp.push_back(point);
+            NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
+
+            // if((xyz[0]>=forestData.m_lxyz[0]-l) || (xyz[1]>=forestData.m_lxyz[1]-l) || (xyz[0]>=forestData.m_lxyz[2]-l))
+            // {
+            //      for(int n = 0; n < 8; n++)
+            //     {
+            //         // Get the first coordinate
+            //         p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
+            //         auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
+            //         if(std::count(NormalNodesTmp.begin(), NormalNodesTmp.end(), point)==0)
+            //         {
+            //             NormalNodesTmp.push_back(point);
+            //             NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
+            //         }
+            //     }
+            // }
         }
     }
 
-    // timer.toc("first loop");
-    // timer.tic();
+    // TODO
+    // outer boundary nodes
+
+    oxleytimer.toc("second loop");
 
     // Now work out the connections
     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
@@ -1761,27 +1754,33 @@ void Brick::renumberNodes()
             p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
             p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
 
-            // const p8est_qcoord_t lxy_nodes[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
-            //                                         {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
-            // const p8est_qcoord_t h = 0.5 * l;
-            // const p8est_qcoord_t lxy_face[6][3] = {{0,h,h},{l,h,h},{h,0,h},{h,l,h},{h,h,0},{h,h,l}};
-            // const p8est_qcoord_t lxy_edge[12][3] = {{h,0,0},{h,l,0},{h,0,l},{h,l,l},
-            //                                         {0,h,0},{l,h,0},{0,h,l},{l,h,l},
-            //                                         {0,0,h},{l,0,h},{0,l,h},{l,l,h}};
-            
+            // std::cout << "a";
+
             // Assign numbers to the vertix nodes
             double xyz[3];
-            for(int n = 0; n < 8; n++)
-            {
-                // Get the first coordinate
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
-                                            oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
-                auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-                if(std::find(NormalNodesTmp.begin(), NormalNodesTmp.end(), point)==NormalNodesTmp.end())
+            p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
+                                            oct->x+l, oct->y+l, oct->z+l, xyz);
+
+            if(xyz[0] == forestData.m_lxyz[0] || xyz[1] == forestData.m_lxyz[1] || xyz[2] == forestData.m_lxyz[2])
+                for(int n = 0; n < 8; n++)
                 {
-                    NormalNodesTmp.push_back(point);
-                    NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
+                    // Get the first coordinate
+                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
+                                                oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
+                    auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
+                    if(std::find(NormalNodesTmp.begin(), NormalNodesTmp.end(), point)==NormalNodesTmp.end())
+                    {
+                        NormalNodesTmp.push_back(point);
+                        NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
+                    }
                 }
+            else
+            {
+                p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
+                                                oct->x+l*lxy_nodes[0][0], oct->y+l*lxy_nodes[0][1], oct->z+l*lxy_nodes[0][2], xyz);
+                auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
+                NormalNodesTmp.push_back(point);
+                NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
             }
 
             // Save octant information
@@ -2078,9 +2077,7 @@ void Brick::renumberNodes()
         }
     }
 
-
-    // timer.toc("second loop");
-    // timer.tic();
+    oxleytimer.toc("done");
 
     // Update num_hanging
     num_hanging=HangingFaceNodesTmp.size()+HangingEdgeNodesTmp.size();
@@ -2816,41 +2813,42 @@ void Brick::updateRowsColumns()
         std::cout << "\033[1;31m[oxley]\033[0m....looping over internal edges" << std::endl;
     #endif
 
-    // Initialise info needed by p4est
-    update_RC_data_brick * data;
-    data = new update_RC_data_brick;
-    data->indices = indices;
-    data->pNodeIDs = &NodeIDs;
-    data->p8est = p8est;
-    data->m_origin[0]=forestData.m_origin[0];
-    data->m_origin[1]=forestData.m_origin[1];
-    data->m_origin[2]=forestData.m_origin[2];
-    data->pOctInfo = &octantInfo;
+    // // Initialise info needed by p4est
+    // update_RC_data_brick * data;
+    // data = new update_RC_data_brick;
+    // data->indices = indices;
+    // data->pNodeIDs = &NodeIDs;
+    // data->p8est = p8est;
+    // data->m_origin[0]=forestData.m_origin[0];
+    // data->m_origin[1]=forestData.m_origin[1];
+    // data->m_origin[2]=forestData.m_origin[2];
+    // data->pOctInfo = &octantInfo;
 
-    #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-    std::cout << "\033[1;31m[oxley]\033[0m checking p8est ..." ;
-    p8est_t * p8esttmp0=p8est_copy(p8est,0);
-    p8est_t * p8esttmp1=p8est_copy(p8est,1); // already broken
-    if(p8est_is_valid(p8esttmp1)!=1)
-        std::cout << "\033[1;31mp8est is invalid\033[0m" << std::endl;
-    else
-        std::cout << "p8est is valid ..." << std::endl;
-    #endif
+    // #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
+    // std::cout << "\033[1;31m[oxley]\033[0m checking p8est ..." ;
+    // p8est_t * p8esttmp0=p8est_copy(p8est,0);
+    // p8est_t * p8esttmp1=p8est_copy(p8est,1); // already broken
+    // if(p8est_is_valid(p8esttmp1)!=1)
+    //     std::cout << "\033[1;31mp8est is invalid\033[0m" << std::endl;
+    // else
+    //     std::cout << "p8est is valid ..." << std::endl;
+    // #endif
     
-    #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-    std::cout << "\033[1;31m[oxley]\033[0m checking ghost ..." ;
-    if(p8est_ghost_is_valid(p8est,ghost)!=1)
-        std::cout << "\033[1;31mghost is invalid\033[0m" << std::endl;
-    else
-        std::cout << "ghost is valid ..." << std::endl;
-    #endif
+    // #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
+    // std::cout << "\033[1;31m[oxley]\033[0m checking ghost ..." ;
+    // if(p8est_ghost_is_valid(p8est,ghost)!=1)
+    //     std::cout << "\033[1;31mghost is invalid\033[0m" << std::endl;
+    // else
+    //     std::cout << "ghost is valid ..." << std::endl;
+    // #endif
 
-    update_RC_data_brick * ghost_data;
-    ghost_data = (update_RC_data_brick *) malloc(ghost->ghosts.elem_count);
-    p8est_ghost_exchange_data(p8est, ghost, ghost_data);
-    p8est_iterate_ext(p8est, ghost, data, NULL, NULL, update_RC, NULL, true);
+    // // TODO
+    // update_RC_data_brick * ghost_data;
+    // ghost_data = (update_RC_data_brick *) malloc(ghost->ghosts.elem_count);
+    // p8est_ghost_exchange_data(p8est, ghost, ghost_data);
+    // p8est_iterate_ext(p8est, ghost, data, NULL, NULL, update_RC, NULL, true);
 
-    delete data;
+    // delete data;
 
     // *******************************************************************
     // Boundary edges
@@ -3213,184 +3211,186 @@ void Brick::populateSampleIds()
 
 void Brick::updateFaceElementCount()
 {
-    for(int i = 0; i < 4; i++)
-        m_faceCount[i]=-1;
+    // TODO
 
-    NodeIDsTop.clear();
-    NodeIDsBottom.clear();
-    NodeIDsLeft.clear();
-    NodeIDsRight.clear();
-    NodeIDsAbove.clear();
-    NodeIDsBelow.clear();
+//     for(int i = 0; i < 4; i++)
+//         m_faceCount[i]=-1;
 
-    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
-    {
-        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-        for(int q = 0; q < Q; ++q) 
-        {
-            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-            p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
-            // int k = q - Q + nodeIncrements[treeid - p8est->first_local_tree];
-            p8est_qcoord_t lxy[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
-                                        {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
-            double xyz[4][3] = {{0}};
-            int nodeids[4]={-1};
-            bool do_check_yes_no[4]={false};
-            for(int n = 0; n < 4; n++)
-            {
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], xyz[n]);
-                nodeids[n]=NodeIDs.find(std::make_tuple(xyz[n][0],xyz[n][1],xyz[n][2]))->second;
+//     NodeIDsTop.clear();
+//     NodeIDsBottom.clear();
+//     NodeIDsLeft.clear();
+//     NodeIDsRight.clear();
+//     NodeIDsAbove.clear();
+//     NodeIDsBelow.clear();
 
-                //TODO
-                if(n==0)
-                    do_check_yes_no[n]=true;
-                else if(n==1 && xyz[n][0]==forestData.m_lxyz[0])
-                    do_check_yes_no[n]=true;
-                else if(n==2 && xyz[n][1]==forestData.m_lxyz[1])
-                    do_check_yes_no[n]=true;
-                else if(n==3 && xyz[n][0]==forestData.m_lxyz[0] && xyz[n][1]==forestData.m_lxyz[1])
-                    do_check_yes_no[n]=true;
-                else
-                    do_check_yes_no[n]=false;
-            }
+//     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
+//     {
+//         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+//         sc_array_t * tquadrants = &tree->quadrants;
+//         p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+//         for(int q = 0; q < Q; ++q) 
+//         {
+//             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+//             p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
+//             // int k = q - Q + nodeIncrements[treeid - p8est->first_local_tree];
+//             p8est_qcoord_t lxy[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
+//                                         {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
+//             double xyz[4][3] = {{0}};
+//             int nodeids[4]={-1};
+//             bool do_check_yes_no[4]={false};
+//             for(int n = 0; n < 4; n++)
+//             {
+//                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], xyz[n]);
+//                 nodeids[n]=NodeIDs.find(std::make_tuple(xyz[n][0],xyz[n][1],xyz[n][2]))->second;
 
-            for(int n = 0; n < 4; n++)
-            {
-                if(do_check_yes_no[n] == false)
-                    continue;
+//                 //TODO
+//                 if(n==0)
+//                     do_check_yes_no[n]=true;
+//                 else if(n==1 && xyz[n][0]==forestData.m_lxyz[0])
+//                     do_check_yes_no[n]=true;
+//                 else if(n==2 && xyz[n][1]==forestData.m_lxyz[1])
+//                     do_check_yes_no[n]=true;
+//                 else if(n==3 && xyz[n][0]==forestData.m_lxyz[0] && xyz[n][1]==forestData.m_lxyz[1])
+//                     do_check_yes_no[n]=true;
+//                 else
+//                     do_check_yes_no[n]=false;
+//             }
 
-                borderNodeInfo tmp;
-                // tmp.nodeid=NodeIDs.find(std::make_pair(xy[n][0],xy[n][1]))->second;
-                tmp.nodeid=nodeids[n];
-                tmp.neighbours[0]=nodeids[0];
-                tmp.neighbours[1]=nodeids[1];
-                tmp.neighbours[2]=nodeids[2];
-                tmp.neighbours[3]=nodeids[3];
-                tmp.x=quad->x;
-                tmp.y=quad->y;
-                tmp.y=quad->z;
-                tmp.level=quad->level;
-                tmp.treeid=treeid;
+//             for(int n = 0; n < 4; n++)
+//             {
+//                 if(do_check_yes_no[n] == false)
+//                     continue;
 
-                if(isLeftBoundaryNode(quad, n, treeid, l))
-                {
-                    NodeIDsLeft.push_back(tmp);
-                    m_faceCount[0]++;
-                }
+//                 borderNodeInfo tmp;
+//                 // tmp.nodeid=NodeIDs.find(std::make_pair(xy[n][0],xy[n][1]))->second;
+//                 tmp.nodeid=nodeids[n];
+//                 tmp.neighbours[0]=nodeids[0];
+//                 tmp.neighbours[1]=nodeids[1];
+//                 tmp.neighbours[2]=nodeids[2];
+//                 tmp.neighbours[3]=nodeids[3];
+//                 tmp.x=quad->x;
+//                 tmp.y=quad->y;
+//                 tmp.y=quad->z;
+//                 tmp.level=quad->level;
+//                 tmp.treeid=treeid;
 
-                if(isRightBoundaryNode(quad, n, treeid, l))
-                {
-                    NodeIDsRight.push_back(tmp);
-                    m_faceCount[1]++;
-                }
+//                 if(isLeftBoundaryNode(quad, n, treeid, l))
+//                 {
+//                     NodeIDsLeft.push_back(tmp);
+//                     m_faceCount[0]++;
+//                 }
+
+//                 if(isRightBoundaryNode(quad, n, treeid, l))
+//                 {
+//                     NodeIDsRight.push_back(tmp);
+//                     m_faceCount[1]++;
+//                 }
                     
-                if(isBottomBoundaryNode(quad, n, treeid, l))
-                {
-                    NodeIDsBottom.push_back(tmp);
-                    m_faceCount[2]++;
-                }
+//                 if(isBottomBoundaryNode(quad, n, treeid, l))
+//                 {
+//                     NodeIDsBottom.push_back(tmp);
+//                     m_faceCount[2]++;
+//                 }
                     
-                if(isTopBoundaryNode(quad, n, treeid, l))
-                {
-                    NodeIDsTop.push_back(tmp);
-                    m_faceCount[3]++;
-                }
+//                 if(isTopBoundaryNode(quad, n, treeid, l))
+//                 {
+//                     NodeIDsTop.push_back(tmp);
+//                     m_faceCount[3]++;
+//                 }
 
-                if(isAboveBoundaryNode(quad, n, treeid, l))
-                {
-                    NodeIDsAbove.push_back(tmp);
-                    m_faceCount[4]++;
-                }
+//                 if(isAboveBoundaryNode(quad, n, treeid, l))
+//                 {
+//                     NodeIDsAbove.push_back(tmp);
+//                     m_faceCount[4]++;
+//                 }
 
-                if(isBelowBoundaryNode(quad, n, treeid, l))
-                {
-                    NodeIDsBelow.push_back(tmp);
-                    m_faceCount[5]++;
-                }
+//                 if(isBelowBoundaryNode(quad, n, treeid, l))
+//                 {
+//                     NodeIDsBelow.push_back(tmp);
+//                     m_faceCount[5]++;
+//                 }
             
-                #ifdef OXLEY_ENABLE_DEBUG_FACEELEMENTS_POINTS
-                    double xyz[3];
-                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], &xyz[n]);
-                    std::cout << nodeids[n] << ": quad (x,y,z) = ( " << xyz[0] 
-                                            << ", " << xyz[1] << ", " << xyz[2] << " ) ";
-                    if(isLeftBoundaryNode(quad, n, treeid, l))
-                        std::cout << "L";
-                    if(isRightBoundaryNode(quad, n, treeid, l))
-                        std::cout << "R";
-                    if(isBottomBoundaryNode(quad, n, treeid, l))
-                        std::cout << "B";
-                    if(isTopBoundaryNode(quad, n, treeid, l))
-                        std::cout << "T";
-                    if(isAboveBoundaryNode(quad, n, treeid, l))
-                        std::cout << "A";
-                    if(isBelowBoundaryNode(quad, n, treeid, l))
-                        std::cout << "B";
-                    std::cout << std::endl;
-                #endif
-            }
-        }
-    }
+//                 #ifdef OXLEY_ENABLE_DEBUG_FACEELEMENTS_POINTS
+//                     double xyz[3];
+//                     p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], &xyz[n]);
+//                     std::cout << nodeids[n] << ": quad (x,y,z) = ( " << xyz[0] 
+//                                             << ", " << xyz[1] << ", " << xyz[2] << " ) ";
+//                     if(isLeftBoundaryNode(quad, n, treeid, l))
+//                         std::cout << "L";
+//                     if(isRightBoundaryNode(quad, n, treeid, l))
+//                         std::cout << "R";
+//                     if(isBottomBoundaryNode(quad, n, treeid, l))
+//                         std::cout << "B";
+//                     if(isTopBoundaryNode(quad, n, treeid, l))
+//                         std::cout << "T";
+//                     if(isAboveBoundaryNode(quad, n, treeid, l))
+//                         std::cout << "A";
+//                     if(isBelowBoundaryNode(quad, n, treeid, l))
+//                         std::cout << "B";
+//                     std::cout << std::endl;
+//                 #endif
+//             }
+//         }
+//     }
 
-    const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20, ABOVE=100, BELOW=200;
-    m_faceTags.clear();
-    const index_t faceTag[] = { LEFT, RIGHT, BOTTOM, TOP, ABOVE, BELOW };
-    m_faceOffset.clear();
-    m_faceOffset.resize(6);
-    m_faceOffset.assign(6, -1);
-    index_t offset=0;
-    for (size_t i=0; i<6; i++) {
-        if (m_faceCount[i]>0) {
-            m_faceOffset[i]=offset;
-            offset+=m_faceCount[i];
-            m_faceTags.insert(m_faceTags.end(), m_faceCount[i], faceTag[i]);
-        }
-    }
+//     const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20, ABOVE=100, BELOW=200;
+//     m_faceTags.clear();
+//     const index_t faceTag[] = { LEFT, RIGHT, BOTTOM, TOP, ABOVE, BELOW };
+//     m_faceOffset.clear();
+//     m_faceOffset.resize(6);
+//     m_faceOffset.assign(6, -1);
+//     index_t offset=0;
+//     for (size_t i=0; i<6; i++) {
+//         if (m_faceCount[i]>0) {
+//             m_faceOffset[i]=offset;
+//             offset+=m_faceCount[i];
+//             m_faceTags.insert(m_faceTags.end(), m_faceCount[i], faceTag[i]);
+//         }
+//     }
 
-#ifdef OXLEY_ENABLE_DEBUG_FACEELEMENTS
-    std::cout << "NodeIDsLeft" << std::endl;
-    for(int i = 0; i < NodeIDsLeft.size()-1;i++)
-        std::cout << NodeIDsLeft[i].nodeid << " ";
-    std::cout << std::endl;
-    std::cout << "NodeIDsRight" << std::endl;
-    for(int i = 0; i < NodeIDsRight.size()-1;i++)
-        std::cout << NodeIDsRight[i].nodeid << " ";
-    std::cout << std::endl;
-    std::cout << "NodeIDsTop" << std::endl;
-    for(int i = 0; i < NodeIDsTop.size()-1;i++)
-        std::cout << NodeIDsTop[i].nodeid << " ";
-    std::cout << std::endl;
-    std::cout << "NodeIDsBottom" << std::endl;
-    for(int i = 0; i < NodeIDsBottom.size()-1;i++)
-        std::cout << NodeIDsBottom[i].nodeid << " ";
-    std::cout << std::endl;
-    std::cout << "NodeIDsAbove" << std::endl;
-    for(int i = 0; i < NodeIDsAbove.size()-1;i++)
-        std::cout << NodeIDsAbove[i].nodeid << " ";
-    std::cout << std::endl;
-    std::cout << "NodeIDsBelow" << std::endl;
-    for(int i = 0; i < NodeIDsBelow.size()-1;i++)
-        std::cout << NodeIDsBelow[i].nodeid << " ";
-    std::cout << std::endl;
-    std::cout << "-------------------------------------------------------" << std::endl;
-#endif
+// #ifdef OXLEY_ENABLE_DEBUG_FACEELEMENTS
+//     std::cout << "NodeIDsLeft" << std::endl;
+//     for(int i = 0; i < NodeIDsLeft.size()-1;i++)
+//         std::cout << NodeIDsLeft[i].nodeid << " ";
+//     std::cout << std::endl;
+//     std::cout << "NodeIDsRight" << std::endl;
+//     for(int i = 0; i < NodeIDsRight.size()-1;i++)
+//         std::cout << NodeIDsRight[i].nodeid << " ";
+//     std::cout << std::endl;
+//     std::cout << "NodeIDsTop" << std::endl;
+//     for(int i = 0; i < NodeIDsTop.size()-1;i++)
+//         std::cout << NodeIDsTop[i].nodeid << " ";
+//     std::cout << std::endl;
+//     std::cout << "NodeIDsBottom" << std::endl;
+//     for(int i = 0; i < NodeIDsBottom.size()-1;i++)
+//         std::cout << NodeIDsBottom[i].nodeid << " ";
+//     std::cout << std::endl;
+//     std::cout << "NodeIDsAbove" << std::endl;
+//     for(int i = 0; i < NodeIDsAbove.size()-1;i++)
+//         std::cout << NodeIDsAbove[i].nodeid << " ";
+//     std::cout << std::endl;
+//     std::cout << "NodeIDsBelow" << std::endl;
+//     for(int i = 0; i < NodeIDsBelow.size()-1;i++)
+//         std::cout << NodeIDsBelow[i].nodeid << " ";
+//     std::cout << std::endl;
+//     std::cout << "-------------------------------------------------------" << std::endl;
+// #endif
 
-    // set face tags
-    setTagMap("left", LEFT);
-    setTagMap("right", RIGHT);
-    setTagMap("bottom", BOTTOM);
-    setTagMap("top", TOP);
-    setTagMap("above", ABOVE);
-    setTagMap("below", BELOW);
-    updateTagsInUse(FaceElements);
+//     // set face tags
+//     setTagMap("left", LEFT);
+//     setTagMap("right", RIGHT);
+//     setTagMap("bottom", BOTTOM);
+//     setTagMap("top", TOP);
+//     setTagMap("above", ABOVE);
+//     setTagMap("below", BELOW);
+//     updateTagsInUse(FaceElements);
 
 
-    // Update faceElementId
-    const dim_t NFE = getNumFaceElements();
-    m_faceId.resize(NFE);
-    for (dim_t k=0; k<NFE; k++)
-        m_faceId[k]=k;
+//     // Update faceElementId
+//     const dim_t NFE = getNumFaceElements();
+//     m_faceId.resize(NFE);
+//     for (dim_t k=0; k<NFE; k++)
+//         m_faceId[k]=k;
 }
 
 // This is a wrapper that converts the p8est node information into an IndexVector
@@ -3402,31 +3402,33 @@ IndexVector Brick::getNodeDistribution() const
 // This is a wrapper that converts the p8est node information into an IndexVector
 void Brick::updateNodeDistribution() 
 {
-    m_nodeDistribution.clear();
-    m_nodeDistribution.assign(MAXP4ESTNODES,0);
+    // TODO
 
-    int counter =0;
-    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
-    {
-        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-        for(int q = 0; q < Q; ++q) 
-        { 
-            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-            p8est_qcoord_t length = P8EST_QUADRANT_LEN(quad->level);
-            for(int n = 0; n < 4; n++)
-            {
-                double lx = length * ((int) (n % 2) == 1);
-                double ly = length * ((int) (n / 2) == 1);
-                double lz = length * ((int) (n / 2) == 1); //TODO
-                double xy[3];
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
-                m_nodeDistribution[counter++]=NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
-            }
-        }
-    }
-    m_nodeDistribution.shrink_to_fit();
+    // m_nodeDistribution.clear();
+    // m_nodeDistribution.assign(MAXP4ESTNODES,0);
+
+    // int counter =0;
+    // for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
+    // {
+    //     p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+    //     sc_array_t * tquadrants = &tree->quadrants;
+    //     p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+    //     for(int q = 0; q < Q; ++q) 
+    //     { 
+    //         p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+    //         p8est_qcoord_t length = P8EST_QUADRANT_LEN(quad->level);
+    //         for(int n = 0; n < 4; n++)
+    //         {
+    //             double lx = length * ((int) (n % 2) == 1);
+    //             double ly = length * ((int) (n / 2) == 1);
+    //             double lz = length * ((int) (n / 2) == 1); //TODO
+    //             double xy[3];
+    //             p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
+    //             m_nodeDistribution[counter++]=NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+    //         }
+    //     }
+    // }
+    // m_nodeDistribution.shrink_to_fit();
 }
 
 // updates m_elementIDs()
@@ -4919,9 +4921,11 @@ const long Brick::getNodeId(double x, double y, double z)
 */
 escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
 {
+    oxleytimer.toc("apply_refinementZone");
+
     oxley::Brick * newDomain = new Brick(*this, m_order);
 
-    AutomaticMeshUpdateOnOff(false);
+    newDomain->AutomaticMeshUpdateOnOff(false);
 
     int numberOfRefinements = R.getNumberOfOperations();
 
@@ -5023,9 +5027,14 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
                 throw OxleyException("Unknown refinement algorithm.");
         }
 
-        updateMesh();
-        AutomaticMeshUpdateOnOff(true);
+        oxleytimer.toc("apply_refinementZone: Updating Mesh (" + std::to_string(n) + " of " + std::to_string(numberOfRefinements));
     }
+
+    newDomain->updateMesh();
+    newDomain->AutomaticMeshUpdateOnOff(true);
+
+    oxleytimer.toc("done");
+
     return escript::Domain_ptr(newDomain);
 }
 

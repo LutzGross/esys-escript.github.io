@@ -1569,12 +1569,6 @@ void Rectangle::refinePoint(double x0, double y0)
     bool partition_for_coarsening = true;
     p4est_partition_ext(p4est, partition_for_coarsening, NULL);
 
-    // Update the nodes
-    p4est_lnodes_destroy(nodes);
-    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    nodes = p4est_lnodes_new(p4est, ghost, 1);
-    p4est_ghost_destroy(ghost);
-
     // Update
     if(autoMeshUpdates)
         updateMesh();
@@ -1623,7 +1617,7 @@ void Rectangle::refineCircle(double x0, double y0, double r)
     // Update
     if(autoMeshUpdates)
         updateMesh();
-    
+
     oxleytimer.toc("refineCircle...Done");
 }
 #endif //ESYS_HAVE_TRILINOS
@@ -5302,6 +5296,12 @@ RankVector Rectangle::getOwnerVector(int fsType) const
 */
 void Rectangle::updateMesh()
 {
+    // Update the nodes
+    p4est_lnodes_destroy(nodes);
+    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    nodes = p4est_lnodes_new(p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+    
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
@@ -5329,6 +5329,8 @@ escript::Domain_ptr Rectangle::apply_refinementzone(RefinementZone R)
 {
     oxley::Rectangle * newDomain = new Rectangle(*this, m_order);
     int numberOfRefinements = R.getNumberOfOperations();
+
+    newDomain->AutomaticMeshUpdateOnOff(false);
 
     for(int n = 0; n < numberOfRefinements; n++)
     {
@@ -5416,6 +5418,10 @@ escript::Domain_ptr Rectangle::apply_refinementzone(RefinementZone R)
                 throw OxleyException("Unknown refinement algorithm.");
         }
     }
+
+    newDomain->updateMesh();
+    newDomain->AutomaticMeshUpdateOnOff(true);
+
     return escript::Domain_ptr(newDomain);
 }
 

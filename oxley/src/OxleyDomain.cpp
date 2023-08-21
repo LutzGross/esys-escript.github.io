@@ -75,6 +75,15 @@ namespace oxley {
             sc_set_log_defaults(NULL, NULL, 9);
         #endif
 
+        // For safety
+        int active = false;
+        int temp = MPI_Initialized(&active);
+        int * argc = nullptr;
+        auto argv = nullptr;
+        if (active == false)
+            MPI_Init(argc,argv);
+
+
         m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
      
         oxleytime.toc("Created an OxleyDomain");   
