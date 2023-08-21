@@ -74,19 +74,6 @@ namespace oxley {
         #else
             sc_set_log_defaults(NULL, NULL, 9);
         #endif
-
-        // For safety
-        int active = false;
-        int temp = MPI_Initialized(&active);
-        int * argc = nullptr;
-        auto argv = nullptr;
-        if (active == false)
-            MPI_Init(argc,argv);
-
-
-        m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
-     
-        oxleytimer.toc("Created an OxleyDomain");   
     }
 
     /**
@@ -878,7 +865,7 @@ namespace oxley {
     void OxleyDomain::updateTagsInUse(int fsType) const
     {
         // TODO speed this up
-        
+
         vector<int>* tagsInUse=NULL;
         const vector<int>* tags=NULL;
         switch(fsType) {

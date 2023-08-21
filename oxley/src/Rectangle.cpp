@@ -81,6 +81,16 @@ Rectangle::Rectangle(int order,
     int periodic0, int periodic1):
     OxleyDomain(2, order){
 
+    // For safety
+    int active = false;
+    int temp = MPI_Initialized(&active);
+    int * argc = nullptr;
+    auto argv = nullptr;
+    if (active == false)
+        MPI_Init(argc,argv);
+
+    m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
+
     // Possible error: User passes invalid values for the dimensions
     if(n0 <= 0 || n1 <= 0)
         throw OxleyException("Number of elements in each spatial dimension must be positive");
@@ -300,6 +310,8 @@ Rectangle::Rectangle(const oxley::Rectangle& R, int order):
     initZ(true);
     initIZ(true);
 #endif //ESYS_HAVE_TRILINOS
+
+    m_mpiInfo = R.m_mpiInfo;
 
     p4est=p4est_copy(R.p4est,1);
 

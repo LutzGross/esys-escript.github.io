@@ -81,6 +81,15 @@ Brick::Brick(int order,
 
     oxleytimer.toc("Creating an oxley::Brick...");
 
+    // For safety
+    int active = false;
+    int temp = MPI_Initialized(&active);
+    int * argc = nullptr;
+    auto argv = nullptr;
+    if (active == false)
+        MPI_Init(argc,argv);
+    m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
+
     // Possible error: User passes invalid values for the dimensions
     if(n0 <= 0 || n1 <= 0 || n2 <= 0)
         throw OxleyException("Number of elements in each spatial dimension must be positive");
@@ -259,7 +268,6 @@ Brick::Brick(oxley::Brick& B, int order):
 
     m_mpiInfo=B.m_mpiInfo;
 
-
     oxleytimer.toc("\t Creating connectivity...");
     connectivity=new_brick_connectivity(B.m_NE[0], B.m_NE[1], B.m_NE[2], false, false, false, 
                                         B.forestData.m_origin[0], B.forestData.m_lxyz[0], 
@@ -272,25 +280,36 @@ Brick::Brick(oxley::Brick& B, int order):
     p8est = p8est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
             min_level, fill_uniform, sizeof(octantData), &init_brick_data, (void *) &forestData);
 
-#ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
-    std::cout << "In Brick() constructor..." << std::endl;
-    std::cout << "Checking connectivity ... ";
+//These checks are turned off by default as they can be very timeconsuming
+#ifdef OXLEY_ENABLE_DEBUG_CHECKS
+    std::cout << "In Brick copy constructor..." << std::endl;
+    std::cout << "Checking connectivity ... " << std::endl;;
     if(!p8est_connectivity_is_valid(connectivity))
-        std::cout << "broken" << std::endl;
+        std::cout << "\t broken" << std::endl;
     else
-        std::cout << "OK" << std::endl;
-    std::cout << "Checking p8est ... ";
+        std::cout << "\t OK" << std::endl;
+    std::cout << "Checking p8est ... " << std::endl;
     if(!p8est_is_valid(p8est))
-        std::cout << "broken" << std::endl;
+        std::cout << "\t broken" << std::endl;
     else
-        std::cout << "OK" << std::endl;
+        std::cout << "\t OK" << std::endl;
+#endif
+#ifdef OXLEY_COPY_CONSTRUCTOR
+    std::cout << "\t\t p8est_is_equal: " << p8est_is_equal(p8est, B.p8est, false) << std::endl;
+    std::cout << "\t\t p8est_connectivity_is_equal: " << p8est_connectivity_is_equal(connectivity, B.connectivity) << std::endl;
 #endif
 
     // Nodes numbering
     oxleytimer.toc("\t creating ghost...");
-    ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL); // (backend is slow, even with MPI enabled)
+    //TODO
+    // ghost = p8est_ghost_new(B.p8est, P8EST_CONNECT_FULL); // (backend is slow, even with MPI enabled)
+    p8est_ghost_t temp_ghost(*B.ghost);
+    ghost = &temp_ghost;
     oxleytimer.toc("\t creating lnodes...");
-    nodes = p8est_lnodes_new(p8est, ghost, 1);
+    // TODO
+    // nodes = p8est_lnodes_new(B.p8est, B.ghost, 1);
+    // p8est_lnodes temp_nodes(*B.nodes);
+    // nodes=&temp_nodes;
     
     // This information is needed by the assembler
     m_NE[0] = B.m_NE[0];
@@ -1095,12 +1114,19 @@ void Brick::updateMesh()
     p8est_lnodes_destroy(nodes);
     nodes = p8est_lnodes_new(p8est, ghost, 1);
 
+    oxleytimer.toc("/t reseting ghost");
     reset_ghost();
+    oxleytimer.toc("/t updating node increments");
     updateNodeIncrements();
+    oxleytimer.toc("/t renumbering nodes");
     renumberNodes();
+    oxleytimer.toc("/t updating Yale index vectors");
     updateRowsColumns();
+    oxleytimer.toc("/t updating element ids");
     updateElementIds();
+    oxleytimer.toc("/t updating face offset");
     updateFaceOffset();
+    oxleytimer.toc("/t updating face element count");
     updateFaceElementCount();
 
     #ifdef OXLEY_ENABLE_DEBUG_UPDATE_MESH
