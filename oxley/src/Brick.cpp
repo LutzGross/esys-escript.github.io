@@ -263,22 +263,19 @@ Brick::Brick(oxley::Brick& B, int order):
     oxleytimer.setTime(B.oxleytimer.getTime());
 
     oxleytimer.toc("In Brick copy constructor");
-    // connectivity = B.connectivity;
-    // p8est = B.p8est;
 
     m_mpiInfo=B.m_mpiInfo;
 
     oxleytimer.toc("\t Creating connectivity...");
-    connectivity=new_brick_connectivity(B.m_NE[0], B.m_NE[1], B.m_NE[2], false, false, false, 
-                                        B.forestData.m_origin[0], B.forestData.m_lxyz[0], 
-                                        B.forestData.m_origin[1], B.forestData.m_lxyz[1], 
-                                        B.forestData.m_origin[2], B.forestData.m_lxyz[2]);    
+    p8est_connectivity_t tempConnectivity(*B.connectivity);
+    connectivity = &tempConnectivity;
+
     p8est_locidx_t min_quadrants = B.m_NE[0]*B.m_NE[1]*B.m_NE[2];
     int min_level = 0;
     int fill_uniform = 1;
     oxleytimer.toc("\t creating p8est...");
-    p8est = p8est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
-            min_level, fill_uniform, sizeof(octantData), &init_brick_data, (void *) &forestData);
+    p8est_t p8estTemp(*B.p8est);
+    p8est = &p8estTemp;
 
 //These checks are turned off by default as they can be very timeconsuming
 #ifdef OXLEY_ENABLE_DEBUG_CHECKS
@@ -301,15 +298,12 @@ Brick::Brick(oxley::Brick& B, int order):
 
     // Nodes numbering
     oxleytimer.toc("\t creating ghost...");
-    //TODO
-    // ghost = p8est_ghost_new(B.p8est, P8EST_CONNECT_FULL); // (backend is slow, even with MPI enabled)
     p8est_ghost_t temp_ghost(*B.ghost);
     ghost = &temp_ghost;
+
     oxleytimer.toc("\t creating lnodes...");
-    // TODO
-    // nodes = p8est_lnodes_new(B.p8est, B.ghost, 1);
-    // p8est_lnodes temp_nodes(*B.nodes);
-    // nodes=&temp_nodes;
+    p8est_lnodes temp_nodes(*B.nodes);
+    nodes=&temp_nodes;
     
     // This information is needed by the assembler
     m_NE[0] = B.m_NE[0];
@@ -335,17 +329,12 @@ Brick::Brick(oxley::Brick& B, int order):
     // Number of dimensions
     m_numDim=3;
 
-    //  // Distribute the p8est across the processors
-    oxleytimer.toc("\t partitioning");
-    int allow_coarsening = 0;
-    p8est_partition(p8est, allow_coarsening, NULL); //backend is slow (even with MPI enabled)
-
     // Indices
     oxleytimer.toc("\t creating index vector");
     indices = new std::vector<IndexVector>;
 
     // Number the nodes
-    oxleytimer.toc("\t updating the mesh");
+    oxleytimer.toc("\t updating the mesh (inc partitioning) ");
     updateMesh();
 
     // Tags
@@ -354,11 +343,13 @@ Brick::Brick(oxley::Brick& B, int order):
     // populateSampleIds();
     
     oxleytimer.toc("\t copying tag map");
-    m_tagMap = B.m_tagMap;
+    TagMap tempTagMap(B.m_tagMap);
+    m_tagMap=tempTagMap;
 
     // Dirac points and tags
     oxleytimer.toc("\t copying Dirac points");
-    m_diracPoints=B.m_diracPoints;
+    m_diracPoints diracTemp(*B.m_diracPoints);
+    m_diracPoints=diracTemp;
 
     // To prevent segmentation faults when using numpy ndarray
 #ifdef ESYS_HAVE_BOOST_NUMPY
