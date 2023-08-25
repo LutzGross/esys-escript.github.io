@@ -82,12 +82,14 @@ Brick::Brick(int order,
     oxleytimer.toc("Creating an oxley::Brick...");
 
     // For safety
+#ifdef ESYS_MPI
     int active = false;
     int temp = MPI_Initialized(&active);
     int * argc = nullptr;
     auto argv = nullptr;
     if (active == false)
         MPI_Init(argc,argv);
+#endif
     m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
 
     // Possible error: User passes invalid values for the dimensions
