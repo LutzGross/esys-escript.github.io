@@ -147,7 +147,7 @@ struct hangingEdgeInfo // used for hanging edges in Brick
 
 struct octantData
 {
-	double u = 0.0; // A Scalar variable
+	double u = 0.0;
 
 	// The octant's tag
 	long octantTag = 0;

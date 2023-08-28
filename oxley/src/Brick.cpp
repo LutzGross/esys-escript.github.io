@@ -1137,9 +1137,7 @@ void Brick::saveMesh(std::string filename)
 #ifdef ESYS_HAVE_TRILINOS
 void Brick::updateMesh()
 {
-    #ifdef OXLEY_ENABLE_DEBUG_UPDATE_MESH
-        std::cout << "Brick::updateMesh: Updating the Mesh..." << std::endl;
-    #endif
+    oxleytimer.toc("Brick::updateMesh ...");
 
     p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
 
@@ -1155,7 +1153,7 @@ void Brick::updateMesh()
     oxleytimer.toc("\t updating node increments");
     updateNodeIncrements();
     oxleytimer.toc("\t renumbering nodes");
-    renumberNodes();
+    renumberNodes();                                //here
     oxleytimer.toc("\t updating Yale index vectors");
     updateRowsColumns();
     oxleytimer.toc("\t updating element ids");
@@ -1357,8 +1355,6 @@ void Brick::refineRegion(double x0, double x1, double y0, double y1, double z0, 
 
 void Brick::refinePoint(double x0, double y0, double z0)
 {
-    // oxleytimer.toc("Refining a point");
-
     z_needs_update=true;
     iz_needs_update=true;
 
@@ -1372,7 +1368,7 @@ void Brick::refinePoint(double x0, double y0, double z0)
         // throw OxleyException(message);
     }
 
-    // If the boundaries were not specified by the user, default to the border of the domain
+    // Copy over information required by the backend
     forestData.refinement_boundaries[0] = x0;
     forestData.refinement_boundaries[1] = y0;
     forestData.refinement_boundaries[2] = z0;
@@ -1396,8 +1392,6 @@ void Brick::refinePoint(double x0, double y0, double z0)
     // Update
     if(autoMeshUpdates)
         updateMesh();
-
-    // oxleytimer.toc("Finished refining point");
 }
 
 void Brick::refineSphere(double x0, double y0, double z0, double r)
@@ -1975,7 +1969,7 @@ void Brick::renumberNodes()
 
                 // Add to list of nodes
                 DoubleTuple point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-                long nodeid = NodeIDs.find(point)->second;
+                long nodeid = NodeIDs.find(point)->second;                  //here
                 std::vector<long>::iterator have_node = std::find(HangingFaceNodesTmp.begin(), HangingFaceNodesTmp.end(),nodeid);
                 if(have_node == HangingFaceNodesTmp.end())
                       HangingFaceNodesTmp.push_back(nodeid);

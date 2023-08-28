@@ -546,17 +546,15 @@ int refine_point(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadra
     p8est_qcoord_to_vertex(p8est->connectivity, tree, quadrant->x+l, quadrant->y+l, quadrant->z+l, xy2);
 
 #ifdef OXLEY_ENABLE_DEBUG
-    std::cout << "Refining point in quad " 
+    std::cout << "Refining point in octant " 
               << "(" << xy1[0] << ", " << xy1[1] << ", " << xy1[2] << ") " << " & "
               << "(" << xy2[0] << ", " << xy2[1] << ", " << xy2[2] << ") " << std::endl;
 #endif
 
-    // Check if the point is inside the quadrant
-    // nt. should be equality but the p4est backend has a segmentation fault 
-    // if the point is on the boundary
-    bool do_refinement = (p[0] > xy1[0]) && (p[0] < xy2[0])
-                      && (p[1] > xy1[1]) && (p[1] < xy2[1])
-                      && (p[2] > xy1[2]) && (p[2] < xy2[2]);
+    // Check if the point is inside the octant
+    bool do_refinement = (p[0] >= xy1[0]) && (p[0] <= xy2[0])
+                      && (p[1] >= xy1[1]) && (p[1] <= xy2[1])
+                      && (p[2] >= xy1[2]) && (p[2] <= xy2[2]);
 
     return  do_refinement &&
             (quadrant->level < forestData->max_levels_refinement);

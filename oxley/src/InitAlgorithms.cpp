@@ -42,7 +42,7 @@ void init_rectangle_data(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t 
 void init_brick_data(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * q)
 {
     // the data associated with each quadrant
-    octantData *data = (octantData *) q->p.user_data;
+    octantData *data = (octantData *) q->p.user_data; //here
     data->u=0.0;
     data->nodeTag=0;
   	data->octantTag=0;
