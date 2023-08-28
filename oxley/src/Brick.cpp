@@ -92,7 +92,6 @@ Brick::Brick(int order,
 #endif
     m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
 
-
     // Possible error: User passes invalid values for the dimensions
     if(n0 <= 0 || n1 <= 0 || n2 <= 0)
         throw OxleyException("Number of elements in each spatial dimension must be positive");
@@ -268,18 +267,59 @@ Brick::Brick(oxley::Brick& B, int order, bool update):
 
     oxleytimer.toc("In Brick copy constructor");
 
+    // This information is needed by the assembler
+    m_NE[0] = B.m_NE[0];
+    m_NE[1] = B.m_NE[1];
+    m_NE[2] = B.m_NE[2];
+    m_NX[0] = B.m_NX[0];
+    m_NX[1] = B.m_NX[1];
+    m_NX[2] = B.m_NX[2];
+    forestData.m_origin[0] = B.forestData.m_origin[0];
+    forestData.m_origin[1] = B.forestData.m_origin[1];
+    forestData.m_origin[2] = B.forestData.m_origin[2];
+    forestData.m_lxyz[0] = B.forestData.m_lxyz[0];
+    forestData.m_lxyz[1] = B.forestData.m_lxyz[1];
+    forestData.m_lxyz[2] = B.forestData.m_lxyz[2];
+    forestData.m_length[0] = B.forestData.m_length[0];
+    forestData.m_length[1] = B.forestData.m_length[1];
+    forestData.m_length[2] = B.forestData.m_length[2];
+    forestData.m_NX[0] = B.forestData.m_NX[0];
+    forestData.m_NX[1] = B.forestData.m_NX[1];
+    forestData.m_NX[2] = B.forestData.m_NX[2];
+    forestData.m_gNE[0] = B.forestData.m_gNE[0];
+    forestData.m_gNE[1] = B.forestData.m_gNE[1];
+    forestData.m_gNE[2] = B.forestData.m_gNE[2];
+    forestData.m_NE[0] = B.forestData.m_NE[0];
+    forestData.m_NE[1] = B.forestData.m_NE[1];
+    forestData.m_NE[2] = B.forestData.m_NE[2];
+    forestData.periodic[0] = B.forestData.periodic[0];
+    forestData.periodic[1] = B.forestData.periodic[1];
+    forestData.periodic[2] = B.forestData.periodic[2];
+    forestData.max_levels_refinement = B.forestData.max_levels_refinement;
+    forestData.refinement_depth = B.forestData.refinement_depth;
+    forestData.refinement_boundaries[0] = B.forestData.refinement_boundaries[0];
+    forestData.refinement_boundaries[1] = B.forestData.refinement_boundaries[1];
+    forestData.refinement_boundaries[2] = B.forestData.refinement_boundaries[2];
+    forestData.refinement_boundaries[3] = B.forestData.refinement_boundaries[3];
+    forestData.refinement_boundaries[4] = B.forestData.refinement_boundaries[4];
+    forestData.refinement_boundaries[5] = B.forestData.refinement_boundaries[5];
+
     m_mpiInfo=B.m_mpiInfo;
 
     oxleytimer.toc("\t Creating connectivity...");
-    p8est_connectivity_t tempConnectivity(*B.connectivity);
-    connectivity = &tempConnectivity;
+    // p8est_connectivity_t tempConnectivity(*B.connectivity);
+    connectivity = new_brick_connectivity(m_NE[0], m_NE[1], m_NE[2], 
+                                          false, false, false, 
+                                          forestData.m_origin[0], forestData.m_lxyz[0], 
+                                          forestData.m_origin[1], forestData.m_lxyz[1], 
+                                          forestData.m_origin[2], forestData.m_lxyz[2]);    
 
     p8est_locidx_t min_quadrants = B.m_NE[0]*B.m_NE[1]*B.m_NE[2];
     int min_level = 0;
     int fill_uniform = 1;
     oxleytimer.toc("\t creating p8est...");
-    p8est_t p8estTemp(*B.p8est);
-    p8est = &p8estTemp;
+    p8est = p8est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
+        min_level, fill_uniform, sizeof(octantData), &init_brick_data, (void *) &forestData);
 
 //These checks are turned off by default as they can be very timeconsuming
 #ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS
@@ -311,22 +351,9 @@ Brick::Brick(oxley::Brick& B, int order, bool update):
 
     // Nodes numbering
     oxleytimer.toc("\t creating ghost...");
-    p8est_ghost_t temp_ghost(*B.ghost);
-    ghost = &temp_ghost;
-
-    oxleytimer.toc("\t creating lnodes...");
-    p8est_lnodes temp_nodes(*B.nodes);
-    nodes=&temp_nodes;
+    ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
+    nodes = p8est_lnodes_new(p8est, ghost, 1);
     
-    // This information is needed by the assembler
-    m_NE[0] = B.m_NE[0];
-    m_NE[1] = B.m_NE[1];
-    m_NE[2] = B.m_NE[2];
-    m_NX[0] = B.m_NX[0];
-    m_NX[1] = B.m_NX[1];
-    m_NX[2] = B.m_NX[2];
-    forestData = B.forestData;
-
     // Find the grid spacing for each level of refinement in the mesh
 #pragma omp parallel for
     for(int i = 0; i <= P8EST_MAXLEVEL; i++)
@@ -388,11 +415,13 @@ Brick::~Brick(){
         std::cout << "broken" << std::endl;
     else
         std::cout << "OK" << std::endl;
+    #ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS
     std::cout << "\033[1;31m[oxley]\033[0m checking connectivity ... ";
     if(!p8est_connectivity_is_valid(connectivity))
         std::cout << "\t\tbroken" << std::endl;
     else
         std::cout << "\t\tOK" << std::endl;
+    #endif
     std::cout << "\033[1;31m[oxley]\033[0m checking ghost ... ";
     if(!p8est_ghost_is_valid(p8est,ghost))
         std::cout << "broken" << std::endl;
@@ -1121,7 +1150,7 @@ void Brick::updateMesh()
     p8est_lnodes_destroy(nodes);
     nodes = p8est_lnodes_new(p8est, ghost, 1);
 
-    oxleytimer.toc("\t reseting ghost");
+    oxleytimer.toc("\t resetting ghost");
     reset_ghost();
     oxleytimer.toc("\t updating node increments");
     updateNodeIncrements();
@@ -1217,8 +1246,10 @@ void Brick::refineMesh(std::string algorithmname)
 #ifdef OXLEY_ENABLE_DEBUG
     if(!p8est_is_valid(p8est))
         throw OxleyException("p8est broke during refinement");
+    #ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS
     if(!p8est_connectivity_is_valid(connectivity))
         throw OxleyException("connectivity broke during refinement");
+    #endif
 #endif
 
     // Update
@@ -1283,8 +1314,10 @@ void Brick::refineBoundary(std::string boundaryname, double dx)
 #ifdef OXLEY_ENABLE_DEBUG
     if(!p8est_is_valid(p8est))
         throw OxleyException("p8est broke during refinement");
+    #ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS
     if(!p8est_connectivity_is_valid(connectivity))
         throw OxleyException("connectivity broke during refinement");
+    #endif
 #endif
     
     // Update
@@ -1311,8 +1344,10 @@ void Brick::refineRegion(double x0, double x1, double y0, double y1, double z0, 
 #ifdef OXLEY_ENABLE_DEBUG
     if(!p8est_is_valid(p8est))
         throw OxleyException("p8est broke during refinement");
+    #ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS
     if(!p8est_connectivity_is_valid(connectivity))
         throw OxleyException("connectivity broke during refinement");
+    #endif
 #endif
     
     // Update
@@ -1326,8 +1361,6 @@ void Brick::refinePoint(double x0, double y0, double z0)
 
     z_needs_update=true;
     iz_needs_update=true;
-
-
 
     // Check that the point is inside the domain
     if(    x0 < forestData.m_origin[0] || x0 > forestData.m_lxyz[0] 
@@ -1343,7 +1376,6 @@ void Brick::refinePoint(double x0, double y0, double z0)
     forestData.refinement_boundaries[0] = x0;
     forestData.refinement_boundaries[1] = y0;
     forestData.refinement_boundaries[2] = z0;
-    p8est_refine_ext(p8est, true, -1, refine_point, init_brick_data, refine_copy_parent_octant);
 
     // Make sure that nothing went wrong
 #ifdef OXLEY_ENABLE_DEBUG_REFINEPOINT
@@ -1351,12 +1383,16 @@ void Brick::refinePoint(double x0, double y0, double z0)
         throw OxleyException("p8est broke during refinement");
     else
         std::cout << "\033[1;31m[oxley]\033[0m refinePoint: valid p8est" << std::endl;
+    #ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS
     if(p8est_connectivity_is_valid(connectivity)!=1)
         throw OxleyException("connectivity broke during refinement");
     else
         std::cout << "\033[1;31m[oxley]\033[0m refinePoint: valid connectivity" << std::endl;
+    #endif
 #endif
-    
+
+    p8est_refine_ext(p8est, true, -1, refine_point, init_brick_data, refine_copy_parent_octant);
+
     // Update
     if(autoMeshUpdates)
         updateMesh();
@@ -1389,8 +1425,10 @@ void Brick::refineSphere(double x0, double y0, double z0, double r)
 #ifdef OXLEY_ENABLE_DEBUG
     if(!p8est_is_valid(p8est))
         throw OxleyException("p8est broke during refinement");
+    #ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS
     if(!p8est_connectivity_is_valid(connectivity))
         throw OxleyException("connectivity broke during refinement");
+    #endif
 #endif
 
     // Update
@@ -1413,8 +1451,10 @@ void Brick::refineMask(escript::Data mask)
 #ifdef OXLEY_ENABLE_DEBUG
     if(!p8est_is_valid(p8est))
         throw OxleyException("p8est broke during refinement");
+    #ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS
     if(!p8est_connectivity_is_valid(connectivity))
         throw OxleyException("connectivity broke during refinement");
+    #endif
 #endif
     
     // Update
@@ -1438,8 +1478,10 @@ void Brick::print_debug_report(std::string locat)
         std::cout << "WARNING: p8est is invalid" << std::endl;
     std::cout << "forestData = " << &forestData << std::endl;
     std::cout << "connectivity = " << &connectivity << std::endl;
+    #ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS
     if(!p8est_connectivity_is_valid(connectivity))
         std::cout << "WARNING: connectivity is invalid" << std::endl;
+    #endif
     std::cout << "temp_data = " << &temp_data << std::endl;
 }
 
@@ -4695,7 +4737,7 @@ Brick::new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int perio
     // P4EST_FREE(tree_to_corner2);
     // P4EST_FREE(tree_to_edge2);
 
-#ifdef OXLEY_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS
     P4EST_ASSERT(p8est_connectivity_is_valid(conn)); //This is very time consuming
 #endif
 
@@ -5062,13 +5104,14 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
     bool update=false; // Update after the refinement zones have been applied to save time
     oxley::Brick * newDomain = new Brick(*this, m_order, update);
 
-#ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS //turned off by default as re timeconsuming
+#ifdef OXLEY_ENABLE_DEBUG_CHECKS 
     std::cout << "In apply_refinementzone debug checks..." << std::endl;
     std::cout << "Checking connectivity (1) ... ";
     if(!p8est_connectivity_is_valid(connectivity))
         std::cout << "broken" << std::endl;
     else
         std::cout << "OK" << std::endl;
+#ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS
     std::cout << "Checking connectivity (2) ... ";
     if(!p8est_connectivity_is_equal(connectivity, newDomain->connectivity))
         std::cout << "broken" << std::endl;
@@ -5079,6 +5122,7 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
         std::cout << "broken" << std::endl;
     else
         std::cout << "OK" << std::endl;
+#endif
     std::cout << "Checking p8est (1) ... ";
     if(!p8est_is_valid(p8est))
         std::cout << "broken" << std::endl;
@@ -5097,10 +5141,11 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
 
     for(int n = 0; n < numberOfRefinements; n++)
     {
-        #ifdef OXLEY_ENABLE_PROFILE_TIMERS_INFORMATIONAL
-            std::string message = std::to_string(n) + " of " + std::to_string(numberOfRefinements);
-            oxleytimer.toc(message);
-        #endif
+        // #ifdef OXLEY_ENABLE_PROFILE_TIMERS_INFORMATIONAL
+        if(n % 200 == 0)
+            oxleytimer.toc("apply_refinementZone: Updating Mesh (" + std::to_string(n) + " of " + std::to_string(numberOfRefinements) + ")");
+        // #endif
+
         RefinementType Refinement = R.getRefinement(n);
         //set the refinement level for this refinement
         setRefinementLevels(Refinement.levels);
@@ -5196,8 +5241,6 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
             default:
                 throw OxleyException("Unknown refinement algorithm.");
         }
-
-        oxleytimer.toc("apply_refinementZone: Updating Mesh (" + std::to_string(n) + " of " + std::to_string(numberOfRefinements));
     }
 
     newDomain->updateMesh();
