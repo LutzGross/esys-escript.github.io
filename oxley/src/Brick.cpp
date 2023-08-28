@@ -84,7 +84,6 @@ Brick::Brick(int order,
     // For safety
 #ifdef ESYS_MPI
     int active = false;
-#ifdef ESYS_MPI
     int temp = MPI_Initialized(&active);
     int * argc = nullptr;
     auto argv = nullptr;
