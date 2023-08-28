@@ -2035,7 +2035,7 @@ void OxleyDomain::makeIZ(bool complex)
             izrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
 
             // Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(izrrowMap, getDim()==2?5:7, Tpetra::StaticProfile));
-            Teuchos::RCP<cplx_matrix_type> tcZ (new cplx_matrix_type(izrrowMap, izrcolMap, getDim()==2 ? 9:21));
+            Teuchos::RCP<cplx_matrix_type> tcZ (new cplx_matrix_type(izcrowMap, getDim()==2 ? 9:21));
             cIZ=tcZ;
             cIZ->resumeFill();
 
@@ -2101,7 +2101,7 @@ void OxleyDomain::makeIZ(bool complex)
                 }
 
                 const esys_trilinos::GO gblRowAz = izcrowMap->getGlobalElement(a);
-                const esys_trilinos::GO gblColBz = izccolMap->getGlobalElement(b);
+                // const esys_trilinos::GO gblColBz = izccolMap->getGlobalElement(b);
 
                 #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
                     std::cout << "  \ti.e (" << gblRowAz << ", " << gblColBz << ") = " << 0.5 << std::endl;
@@ -2112,8 +2112,8 @@ void OxleyDomain::makeIZ(bool complex)
 
                 //t=18, h=6, n=12
 
-                cIZ->insertGlobalValues(gblRowAz,
-                                    Teuchos::tuple<esys_trilinos::GO>(gblColBz),
+                cIZ->insertGlobalValues(a,
+                                    Teuchos::tuple<esys_trilinos::GO>(b),
                                     Teuchos::tuple<cplx_t> (half));
             }
 
@@ -2138,14 +2138,14 @@ void OxleyDomain::makeIZ(bool complex)
         }
         else
         {
-            int numEntries=(n+2*h)*getMPISize();
-            izrrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) numEntries, indexBase, comm));
-            izrcolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) numEntries, indexBase, comm));
+            // int numEntries=(n+2*h)*getMPISize();
+            izrrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
+            // izrcolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) numEntries, indexBase, comm));
             izdomainMap = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
             izrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
 
             // Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(izrrowMap, getDim()==2?5:7, Tpetra::StaticProfile));
-            Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(izrrowMap, izrcolMap, getDim()==2 ? 9:21));
+            Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(izrrowMap, getDim()==2 ? 9:21));
             rIZ=trZ;
             rIZ->resumeFill();
 
@@ -2211,7 +2211,7 @@ void OxleyDomain::makeIZ(bool complex)
                 }
 
                 const esys_trilinos::GO gblRowAz = izrrowMap->getGlobalElement(a);
-                const esys_trilinos::GO gblColBz = izrcolMap->getGlobalElement(b);
+                // const esys_trilinos::GO gblColBz = izrcolMap->getGlobalElement(b);
 
                 #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
                     std::cout << "  \ti.e (" << gblRowAz << ", " << gblColBz << ") = " << 0.5 << std::endl;
@@ -2219,8 +2219,8 @@ void OxleyDomain::makeIZ(bool complex)
 
                 ESYS_ASSERT(a <= t, "Invalid row index.");
                 ESYS_ASSERT(b <= n, "Invalid column index.");
-                rIZ->insertGlobalValues(gblRowAz,
-                                    Teuchos::tuple<esys_trilinos::GO>(gblColBz),
+                rIZ->insertGlobalValues(a,
+                                    Teuchos::tuple<esys_trilinos::GO>(b),
                                     Teuchos::tuple<real_t> (half));
             }
 

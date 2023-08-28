@@ -460,7 +460,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
         .def("setRefinementLevel", &oxley::RefinementZone2D::setRefinementLevel, (arg("level")),
                 "Sets the level of refinement\n"
                 ":param level:\n:type int: the level of the refinement.\n")
-        .def("print", &oxley::RefinementZone2D::print, (arg("level")),
+        .def("print", &oxley::RefinementZone2D::print,
                 "Prints the current queue to console\n")
         .def("remove", &oxley::RefinementZone2D::deleteFromQueue, (arg("n")),
                 "Removes the n^th item from the queue\n"

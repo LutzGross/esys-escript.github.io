@@ -47,6 +47,12 @@ using namespace boost::python;
 
 namespace oxley {
 
+
+#define NORMAL 1;
+#define HANGINGEDGE 2;
+#define HANGINGFACE 3;
+
+
 /**
    \brief
    Brick is the 2-dimensional implementation of an Oxleydomain.
@@ -70,7 +76,8 @@ public:
       const std::vector<double>& points, const std::vector<int>& tags,
       const TagMap& tagnamestonums,
       int periodic0, int periodic1, int periodic2);
-    Brick(oxley::Brick& B, int order);
+    // DANGEROUS: If update is false then the mesh is not properly initialised
+    Brick(oxley::Brick& B, int order, bool update);
 
     /**
        \brief creates a rectangular mesh from numpy arrays [x,y].
@@ -549,6 +556,15 @@ protected:
 
     /**
        \brief
+       A faster version of p8est_qcoord_to_vertex
+    */
+    void p8est_qcoord_to_vertex_fast(p8est_connectivity_t * connectivity,
+                        p4est_topidx_t treeid,
+                        p4est_qcoord_t x, p4est_qcoord_t y, p4est_qcoord_t z,
+                        double vxyz[3]);
+
+    /**
+       \brief
        Updates the NodeIDs of the hanging Nodes
     */
     void updateHangingNodeIDs();
@@ -691,6 +707,10 @@ protected:
 
     // Timer used to profile code
     // TicTocClock oxleytimer;
+
+    // A modified version of the p4est library p8est_connectivity_is_valid function
+    // that uses openMP
+    int p8est_connectivity_is_valid_fast(p8est_connectivity_t * conn);
 };
 
 // typedef POINTER_WRAPPER_CLASS(Brick) OxleyDomainBrick_ptr;

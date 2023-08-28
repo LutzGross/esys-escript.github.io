@@ -83,12 +83,15 @@ Brick::Brick(int order,
 
     // For safety
     int active = false;
+#ifdef ESYS_MPI
     int temp = MPI_Initialized(&active);
     int * argc = nullptr;
     auto argv = nullptr;
     if (active == false)
         MPI_Init(argc,argv);
+#endif
     m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
+
 
     // Possible error: User passes invalid values for the dimensions
     if(n0 <= 0 || n1 <= 0 || n2 <= 0)
@@ -115,13 +118,14 @@ Brick::Brick(int order,
     oxleytimer.toc("\t creating connectivity");
     connectivity = new_brick_connectivity(n0, n1, n2, false, false, false, x0, x1, y0, y1, z0, z1);    
 
-#ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
+#ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS
     std::cout << "In Brick() constructor..." << std::endl;
-    std::cout << "Checking connectivity ... ";
+    std::cout << "Checking connectivity ... " << std::endl;
     if(!p8est_connectivity_is_valid(connectivity))
-        std::cout << "broken" << std::endl;
+    // if(!p8est_connectivity_is_valid_fast(connectivity))
+        std::cout << "\t\tbroken" << std::endl;
     else
-        std::cout << "OK" << std::endl;
+        std::cout << "\t\tOK" << std::endl;
 #endif
 
     // Create the p8est
@@ -257,7 +261,7 @@ Brick::Brick(int order,
     oxleytimer.toc("Class initialised");
 }
 
-Brick::Brick(oxley::Brick& B, int order): 
+Brick::Brick(oxley::Brick& B, int order, bool update): 
     OxleyDomain(3, order)
 {
     oxleytimer.setTime(B.oxleytimer.getTime());
@@ -278,9 +282,10 @@ Brick::Brick(oxley::Brick& B, int order):
     p8est = &p8estTemp;
 
 //These checks are turned off by default as they can be very timeconsuming
-#ifdef OXLEY_ENABLE_DEBUG_CHECKS
+#ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS
     std::cout << "In Brick copy constructor..." << std::endl;
     std::cout << "Checking connectivity ... " << std::endl;;
+    // if(!p8est_connectivity_is_valid_fast(connectivity))
     if(!p8est_connectivity_is_valid(connectivity))
         std::cout << "\t broken" << std::endl;
     else
@@ -292,8 +297,16 @@ Brick::Brick(oxley::Brick& B, int order):
         std::cout << "\t OK" << std::endl;
 #endif
 #ifdef OXLEY_COPY_CONSTRUCTOR
-    std::cout << "\t\t p8est_is_equal: " << p8est_is_equal(p8est, B.p8est, false) << std::endl;
-    std::cout << "\t\t p8est_connectivity_is_equal: " << p8est_connectivity_is_equal(connectivity, B.connectivity) << std::endl;
+    std::cout << "\t\t Checking p8est_is_equal: ";
+    if(p8est_is_equal(p8est, B.p8est, false))
+        std::cout << "OK" << std::endl;
+    else
+        std::cout << "broken" << std::endl;
+    std::cout << "\t\t Checking p8est_connectivity_is_equal: ";
+    if(p8est_connectivity_is_equal(connectivity, B.connectivity))
+        std::cout << "OK" << std::endl;
+    else
+        std::cout << "broken" << std::endl;
 #endif
 
     // Nodes numbering
@@ -316,7 +329,8 @@ Brick::Brick(oxley::Brick& B, int order):
 
     // Find the grid spacing for each level of refinement in the mesh
 #pragma omp parallel for
-    for(int i = 0; i <= P8EST_MAXLEVEL; i++){
+    for(int i = 0; i <= P8EST_MAXLEVEL; i++)
+    {
         double numberOfSubDivisions = (p8est_qcoord_t) (1 << (P8EST_MAXLEVEL - i));
         forestData.m_dx[0][i] = forestData.m_length[0] / numberOfSubDivisions;
         forestData.m_dx[1][i] = forestData.m_length[1] / numberOfSubDivisions;
@@ -333,9 +347,12 @@ Brick::Brick(oxley::Brick& B, int order):
     oxleytimer.toc("\t creating index vector");
     indices = new std::vector<IndexVector>;
 
-    // Number the nodes
-    oxleytimer.toc("\t updating the mesh (inc partitioning) ");
-    updateMesh();
+    // Number the nodes, if required
+    if(update)
+    {
+        oxleytimer.toc("\t updating the mesh (inc partitioning) ");
+        updateMesh();
+    }
 
     // Tags
     oxleytimer.toc("\t populating sample ids");
@@ -348,10 +365,9 @@ Brick::Brick(oxley::Brick& B, int order):
 
     // Dirac points and tags
     oxleytimer.toc("\t copying Dirac points");
-    m_diracPoints diracTemp(*B.m_diracPoints);
+    std::vector<DiracPoint> diracTemp(B.m_diracPoints);
     m_diracPoints=diracTemp;
 
-    // To prevent segmentation faults when using numpy ndarray
 #ifdef ESYS_HAVE_BOOST_NUMPY
     Py_Initialize();
     boost::python::numpy::initialize();
@@ -374,9 +390,9 @@ Brick::~Brick(){
         std::cout << "OK" << std::endl;
     std::cout << "\033[1;31m[oxley]\033[0m checking connectivity ... ";
     if(!p8est_connectivity_is_valid(connectivity))
-        std::cout << "broken" << std::endl;
+        std::cout << "\t\tbroken" << std::endl;
     else
-        std::cout << "OK" << std::endl;
+        std::cout << "\t\tOK" << std::endl;
     std::cout << "\033[1;31m[oxley]\033[0m checking ghost ... ";
     if(!p8est_ghost_is_valid(p8est,ghost))
         std::cout << "broken" << std::endl;
@@ -699,8 +715,8 @@ void Brick::setToSize(escript::Data& out) const
         std::vector<double> size_vect(max_level+1, -1.0);
         for(int i = 0 ; i <= max_level ; i++)
         {
-            size_vect[i] = sqrt((forestData.m_dx[0][P4EST_MAXLEVEL-i]*forestData.m_dx[0][P4EST_MAXLEVEL-i]
-                                                    +forestData.m_dx[1][P4EST_MAXLEVEL-i]*forestData.m_dx[1][P4EST_MAXLEVEL-i]));
+            size_vect[i] = sqrt((forestData.m_dx[0][P8EST_MAXLEVEL-i]*forestData.m_dx[0][P8EST_MAXLEVEL-i]
+                                                    +forestData.m_dx[1][P8EST_MAXLEVEL-i]*forestData.m_dx[1][P8EST_MAXLEVEL-i]));
         }
 
         const dim_t numQuad=out.getNumDataPointsPerSample();
@@ -732,7 +748,7 @@ void Brick::setToSize(escript::Data& out) const
             for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsLeft[k];
                 double* o = out.getSampleDataRW(m_faceOffset[0]+k);
-                std::fill(o, o+numQuad, forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level]);
+                std::fill(o, o+numQuad, forestData.m_dx[1][P8EST_MAXLEVEL-tmp.level]);
             }
         }
 
@@ -740,7 +756,7 @@ void Brick::setToSize(escript::Data& out) const
             for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsRight[k];
                 double* o = out.getSampleDataRW(m_faceOffset[1]+k);
-                std::fill(o, o+numQuad, forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level]);
+                std::fill(o, o+numQuad, forestData.m_dx[1][P8EST_MAXLEVEL-tmp.level]);
             }
         }
 
@@ -748,7 +764,7 @@ void Brick::setToSize(escript::Data& out) const
             for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsBottom[k];
                 double* o = out.getSampleDataRW(m_faceOffset[2]+k);
-                std::fill(o, o+numQuad, forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level]);
+                std::fill(o, o+numQuad, forestData.m_dx[0][P8EST_MAXLEVEL-tmp.level]);
             }
         }
 
@@ -756,7 +772,7 @@ void Brick::setToSize(escript::Data& out) const
             for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsTop[k];
                 double* o = out.getSampleDataRW(m_faceOffset[3]+k);
-                std::fill(o, o+numQuad, forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level]);
+                std::fill(o, o+numQuad, forestData.m_dx[0][P8EST_MAXLEVEL-tmp.level]);
             }
         }
 
@@ -764,7 +780,7 @@ void Brick::setToSize(escript::Data& out) const
             for (index_t k=0; k<NodeIDsAbove.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsAbove[k];
                 double* o = out.getSampleDataRW(m_faceOffset[4]+k);
-                std::fill(o, o+numQuad, forestData.m_dx[2][P4EST_MAXLEVEL-tmp.level]);
+                std::fill(o, o+numQuad, forestData.m_dx[2][P8EST_MAXLEVEL-tmp.level]);
             }
         }
 
@@ -772,7 +788,7 @@ void Brick::setToSize(escript::Data& out) const
             for (index_t k=0; k<NodeIDsBelow.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsBelow[k];
                 double* o = out.getSampleDataRW(m_faceOffset[5]+k);
-                std::fill(o, o+numQuad, forestData.m_dx[2][P4EST_MAXLEVEL-tmp.level]);
+                std::fill(o, o+numQuad, forestData.m_dx[2][P8EST_MAXLEVEL-tmp.level]);
             }
         }
     } 
@@ -1105,19 +1121,19 @@ void Brick::updateMesh()
     p8est_lnodes_destroy(nodes);
     nodes = p8est_lnodes_new(p8est, ghost, 1);
 
-    oxleytimer.toc("/t reseting ghost");
+    oxleytimer.toc("\t reseting ghost");
     reset_ghost();
-    oxleytimer.toc("/t updating node increments");
+    oxleytimer.toc("\t updating node increments");
     updateNodeIncrements();
-    oxleytimer.toc("/t renumbering nodes");
+    oxleytimer.toc("\t renumbering nodes");
     renumberNodes();
-    oxleytimer.toc("/t updating Yale index vectors");
+    oxleytimer.toc("\t updating Yale index vectors");
     updateRowsColumns();
-    oxleytimer.toc("/t updating element ids");
+    oxleytimer.toc("\t updating element ids");
     updateElementIds();
-    oxleytimer.toc("/t updating face offset");
+    oxleytimer.toc("\t updating face offset");
     updateFaceOffset();
-    oxleytimer.toc("/t updating face element count");
+    oxleytimer.toc("\t updating face element count");
     updateFaceElementCount();
 
     #ifdef OXLEY_ENABLE_DEBUG_UPDATE_MESH
@@ -1729,7 +1745,8 @@ void Brick::renumberNodes()
     // Write in NodeIDs
 // #pragma omp for
     int k = 0;
-    std::vector<DoubleTuple> NormalNodesTmp;
+    // std::vector<DoubleTuple> NormalNodesTmp;
+    std::map<DoubleTuple,int> NormalNodesTmp;
     NormalNodes.clear();
     std::vector<long> HangingFaceNodesTmp;
     HangingFaceNodes.clear();
@@ -1753,7 +1770,6 @@ void Brick::renumberNodes()
         p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count; // TODO possible(?) bug
 
         // Loop over octants
-        #pragma omp for
         for(int q = 0; q < Q; ++q) { 
             p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
             p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
@@ -1764,8 +1780,10 @@ void Brick::renumberNodes()
             p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[0][0], oct->y+l*lxy_nodes[0][1], oct->z+l*lxy_nodes[0][2], xyz);
             auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
 
-            NormalNodesTmp.push_back(point);
-            NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
+            // NormalNodesTmp.push_back(point);
+            NormalNodesTmp[point]=NORMAL;
+            // NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
+            NodeIDs[point]=NormalNodesTmp.size()-1;
 
             // if((xyz[0]>=forestData.m_lxyz[0]-l) || (xyz[1]>=forestData.m_lxyz[1]-l) || (xyz[0]>=forestData.m_lxyz[2]-l))
             // {
@@ -1793,42 +1811,58 @@ void Brick::renumberNodes()
     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
-        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count; // TODO possible(?) bug
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+
+        // oxleytimer.toc("starting octant loop: " + std::to_string(treeid) + " of " 
+        //         + std::to_string(p8est->last_local_tree-p8est->first_local_tree) ); //ae tmp
 
         // Loop over octants
         for(int q = 0; q < Q; ++q) { 
             p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
             p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
 
-            // std::cout << "a";
-
             // Assign numbers to the vertix nodes
             double xyz[3];
-            p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
-                                            oct->x+l, oct->y+l, oct->z+l, xyz);
+            // p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
+            //                                 oct->x+l, oct->y+l, oct->z+l, xyz);
 
-            if(xyz[0] == forestData.m_lxyz[0] || xyz[1] == forestData.m_lxyz[1] || xyz[2] == forestData.m_lxyz[2])
+            p8est_qcoord_to_vertex_fast(p8est->connectivity, treeid, 
+                                               oct->x+l, oct->y+l, oct->z+l, xyz);
+
+            // oxleytimer.toc("nodes"); 
+            if(xyz[0] == forestData.m_lxyz[0] || 
+                xyz[1] == forestData.m_lxyz[1] || 
+                 xyz[2] == forestData.m_lxyz[2]) // TODO double check this
+            {
                 for(int n = 0; n < 8; n++)
                 {
                     // Get the first coordinate
-                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
+                    p8est_qcoord_to_vertex_fast(p8est->connectivity, treeid, oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
                     auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-                    if(std::find(NormalNodesTmp.begin(), NormalNodesTmp.end(), point)==NormalNodesTmp.end())
-                    {
-                        NormalNodesTmp.push_back(point);
-                        NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
-                    }
+                    // if(std::count(NormalNodesTmp.begin(), NormalNodesTmp.end(), point)==0)
+                    // {
+                        // NormalNodesTmp.push_back(point);
+                    NormalNodesTmp[point]=NORMAL;
+                    // NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
+                    NodeIDs[point]=NormalNodesTmp.size()-1;
+                    // }
                 }
+            }
             else
             {
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[0][0], oct->y+l*lxy_nodes[0][1], oct->z+l*lxy_nodes[0][2], xyz);
+                p8est_qcoord_to_vertex_fast(p8est->connectivity, treeid, oct->x+l*lxy_nodes[0][0], oct->y+l*lxy_nodes[0][1], oct->z+l*lxy_nodes[0][2], xyz);
                 auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-                NormalNodesTmp.push_back(point);
-                NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
+                NormalNodesTmp[point]=NORMAL;
+                // NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
+                NodeIDs[point]=NormalNodesTmp.size()-1;
+
             }
 
+            // oxleytimer.toc("save octant info"); //ae tmp
             // Save octant information
-            p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyz);
+            // p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyz);
+            p8est_qcoord_to_vertex_fast(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyz);
+            // p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyz);
             octantIDs.push_back(NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second);
             oct_info tmp;
             tmp.x=xyz[0];
@@ -1866,6 +1900,7 @@ void Brick::renumberNodes()
                 std::cout << std::endl;
             #endif
         
+            // oxleytimer.toc("hanging node information "); //ae tmp
             // Record hanging node information
             // Loop over faces
             for(int n = 0; n < 6; n++)
@@ -1906,6 +1941,7 @@ void Brick::renumberNodes()
                 // *******************************************************************
                 // Get the parent octant
                 // *******************************************************************
+                // oxleytimer.toc("get parent octant"); //ae tmp
                 p8est_quadrant_t parentOct;
                 p8est_quadrant_t * parent = &parentOct;
                 p8est_quadrant_parent(oct, parent);
@@ -1913,6 +1949,7 @@ void Brick::renumberNodes()
                 // *******************************************************************
                 // Get the octant neighbouring this face
                 // *******************************************************************
+                // oxleytimer.toc("get neighbour"); //ae tmp
                 // Get the neighbouring face
                 p8est_quadrant_t neighbourOct;
                 p8est_quadrant_t * neighbour = &neighbourOct;
@@ -1937,6 +1974,7 @@ void Brick::renumberNodes()
                 // *******************************************************************
                 // Calculate the edge nodes
                 // *******************************************************************
+                // oxleytimer.toc("calculate edge nodes"); //ae tmp
                 signed long x_e_corner[2] = {((int) xedge[n][hanging_faces[n]][0]) * l,((int) xedge[n][hanging_faces[n]][1]) * l};
                 signed long y_e_corner[2] = {((int) yedge[n][hanging_faces[n]][0]) * l,((int) yedge[n][hanging_faces[n]][1]) * l};
                 signed long z_e_corner[2] = {((int) zedge[n][hanging_faces[n]][0]) * l,((int) zedge[n][hanging_faces[n]][1]) * l};
@@ -1958,6 +1996,7 @@ void Brick::renumberNodes()
                 // *******************************************************************
                 // Get the neighbouring edge(s)
                 // *******************************************************************
+                // oxleytimer.toc("get neighbouring edge information"); //ae tmp
                 // Get the neighbours
                 p8est_quadrant_t EdgeNeighbourOct;
                 p8est_quadrant_t * EdgeNeighbour = &EdgeNeighbourOct;
@@ -2027,6 +2066,8 @@ void Brick::renumberNodes()
                 // *******************************************************************
                 // Store connection information for updateRowsColumns
                 // *******************************************************************
+
+                // oxleytimer.toc("store connection information"); //ae tmp
 
                 signed long x_corner0 = xface0[n][hanging_faces[n]] * l;
                 signed long y_corner0 = yface0[n][hanging_faces[n]] * l;
@@ -2130,8 +2171,11 @@ void Brick::renumberNodes()
     std::vector<bool> is_hanging_tmp;
     int num_nodes=NormalNodesTmp.size();
     is_hanging_tmp.resize(getNumNodes(),false);
-    for(int i=0;i<num_nodes;i++)
-        NodeIDs[NormalNodesTmp[i]]=i;
+    // for(int i=0;i<num_nodes;i++)
+    //     NodeIDs[NormalNodesTmp[i]]=i;
+    int counter = 0;
+    for(auto i = NormalNodesTmp.begin(); i != NormalNodesTmp.end(); i++)
+        NodeIDs[i->first]=counter++;
     for(int i=0;i<HangingFaceNodesTmp.size();i++)
         is_hanging_tmp[HangingFaceNodesTmp[i]]=true;
     for(int i=0;i<HangingEdgeNodesTmp.size();i++)
@@ -2151,17 +2195,20 @@ void Brick::renumberNodes()
 
     }
     
-    // TODO vectorise
-
     for(std::pair<DoubleTuple,long> e : NodeIDs)
         NodeIDs[e.first]=new_node_ids[e.second];
 
-    for(int i = 0; i<getNumNodes(); i++)
-        NormalNodes.push_back(NormalNodesTmp[new_node_ids[i]]);
+    // for(int i = 0; i<num_nodes; i++)
+    //     NormalNodes.push_back(NormalNodesTmp[new_node_ids[i]]);
+    NormalNodes.resize(NormalNodesTmp.size());
+    for(auto i = NormalNodesTmp.begin(); i != NormalNodesTmp.end(); i++)
+        NormalNodes.push_back(i->first);
 
+    HangingFaceNodes.resize(HangingFaceNodesTmp.size());
     for(int i = 0; i<HangingFaceNodesTmp.size();i++)
         HangingFaceNodes.push_back(new_node_ids[HangingFaceNodesTmp[i]]);
 
+    HangingEdgeNodes.resize(HangingEdgeNodesTmp.size());
     for(int i = 0; i<HangingEdgeNodesTmp.size();i++)
         HangingEdgeNodes.push_back(new_node_ids[HangingEdgeNodesTmp[i]]);
 
@@ -2251,6 +2298,45 @@ void Brick::renumberNodes()
 #endif
 
     oxleytimer.toc("Nodes renumbered");
+}
+
+// A faster version of p8est_qcoord_to_vertex
+void Brick::p8est_qcoord_to_vertex_fast(p8est_connectivity_t * connectivity,
+                        p4est_topidx_t treeid,
+                        p4est_qcoord_t x, p4est_qcoord_t y, p4est_qcoord_t z,
+                        double vxyz[3])
+{
+    const double       *vertices = connectivity->vertices;
+    const p4est_topidx_t *vindices;
+    // int                 xi, yi, zi;
+    double              wx[2], wy[2], wz[2];
+
+    vindices = connectivity->tree_to_vertex + 8 * treeid;
+
+    vxyz[0] = vxyz[1] = vxyz[2] = 0.;
+
+    double divisor = ((p4est_qcoord_t) 1 << P8EST_MAXLEVEL);
+
+    wx[1] = (double) x / divisor;
+    wx[0] = 1. - wx[1];
+
+    wy[1] = (double) y / divisor;
+    wy[0] = 1. - wy[1];
+
+    wz[1] = (double) z / divisor;
+    wz[0] = 1. - wz[1];
+
+    // double w[6] = {x/divisor, (1-x)/divisor, y/divisor, (1-y)/divisor, z/divisor, (1-z)/divisor};
+
+    int ii[8][3] ={{0,0,0},{0,0,1},{0,1,0},{0,1,1},{1,0,0},{1,0,1},{1,1,0},{1,1,1}};
+
+    for(int i = 0; i < 8; i++) {
+        double xfactor = wz[ii[i][0]] * wy[ii[i][1]] * wx[ii[i][2]];
+        p4est_topidx_t vindex = 3 * (*vindices++);
+        vxyz[0] += xfactor * vertices[vindex++];
+        vxyz[1] += xfactor * vertices[vindex++];
+        vxyz[2] += xfactor * vertices[vindex++];
+    }
 }
 
 //protected
@@ -4973,7 +5059,37 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
 {
     oxleytimer.toc("Applying the refinement zone...");
 
-    oxley::Brick * newDomain = new Brick(*this, m_order);
+    bool update=false; // Update after the refinement zones have been applied to save time
+    oxley::Brick * newDomain = new Brick(*this, m_order, update);
+
+#ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS //turned off by default as re timeconsuming
+    std::cout << "In apply_refinementzone debug checks..." << std::endl;
+    std::cout << "Checking connectivity (1) ... ";
+    if(!p8est_connectivity_is_valid(connectivity))
+        std::cout << "broken" << std::endl;
+    else
+        std::cout << "OK" << std::endl;
+    std::cout << "Checking connectivity (2) ... ";
+    if(!p8est_connectivity_is_equal(connectivity, newDomain->connectivity))
+        std::cout << "broken" << std::endl;
+    else
+        std::cout << "OK" << std::endl;
+    std::cout << "Checking connectivity (3) ... ";
+    if(!p8est_connectivity_is_equivalent(connectivity, newDomain->connectivity))
+        std::cout << "broken" << std::endl;
+    else
+        std::cout << "OK" << std::endl;
+    std::cout << "Checking p8est (1) ... ";
+    if(!p8est_is_valid(p8est))
+        std::cout << "broken" << std::endl;
+    else
+        std::cout << "OK" << std::endl;
+    std::cout << "Checking p8est (2) ... ";
+    if(!p8est_is_equal(p8est, newDomain->p8est, false))
+        std::cout << "broken" << std::endl;
+    else
+        std::cout << "OK" << std::endl;
+#endif
 
     newDomain->AutomaticMeshUpdateOnOff(false);
 
@@ -5090,6 +5206,261 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
     oxleytimer.toc("done");
 
     return escript::Domain_ptr(newDomain);
+}
+
+int Brick::p8est_connectivity_is_valid_fast(p8est_connectivity_t * conn)
+{
+    // int                 nvert;
+    // int                 face, rface, nface, orientation;
+    // int                 errcode, errcount;
+    // int                 edge, nedge;
+    // int                 flip, nflip, nflip1, nflip2;
+    // p8est_topidx_t      nett, aedge, edge_begin, edge_end;
+    // int                 corner, ncorner;
+    // int                 good, cfound;
+    // p8est_topidx_t      vertex, tree, ntree;
+    // p8est_topidx_t      acorner, corner_begin, corner_end;
+    // p8est_topidx_t      nctt;
+    const p8est_topidx_t num_vertices = conn->num_vertices;
+    const p8est_topidx_t num_trees = conn->num_trees;
+    const p8est_topidx_t *ttv = conn->tree_to_vertex;
+    const p8est_topidx_t *ttt = conn->tree_to_tree;
+    const int8_t         *ttf = conn->tree_to_face;
+    const p8est_topidx_t num_edges = conn->num_edges;
+    const p8est_topidx_t *tte = conn->tree_to_edge;
+    const p8est_topidx_t *eoff = conn->ett_offset;
+    const p8est_topidx_t *ett = conn->edge_to_tree;
+    const int8_t         *ete = conn->edge_to_edge;
+    const p8est_topidx_t num_ett = eoff[num_edges];
+    p8est_edge_info_t ei;
+    const p8est_topidx_t num_corners = conn->num_corners;
+    const p8est_topidx_t *ttc = conn->tree_to_corner;
+    const p8est_topidx_t *coff = conn->ctt_offset;
+    const p8est_topidx_t *ctt = conn->corner_to_tree;
+    const int8_t *ctc = conn->corner_to_corner;
+    const p4est_topidx_t num_ctt = coff[num_corners];
+    // p8est_corner_info_t ci;
+    // sc_array_t *cta = &ci.corner_transforms;
+
+    std::string message = "";
+
+#ifdef OXLEY_ENABLE_PROFILE_TIMERS
+    oxleytimer.toc("checking connectivity ...");
+#endif
+
+    // sc_array_t *eta = &ei.edge_transforms;
+    // sc_array_init(eta, sizeof(p8est_edge_transform_t));
+    
+    // sc_array_init(cta, sizeof (p4est_corner_transform_t));
+
+    if(num_vertices == 0 && (conn->vertices != NULL || ttv != NULL)) {
+        throw OxleyException("Zero vertices still with arrays\n");
+    }
+    if(num_vertices > 0  && (conn->vertices == NULL || ttv == NULL)) {
+        throw OxleyException("Nonzero vertices missing arrays\n");
+    }
+
+#ifdef OXLEY_ENABLE_PROFILE_TIMERS
+    oxleytimer.toc("\t checking edges ...");
+#endif
+
+#pragma omp parallel for
+    for(p4est_topidx_t nett = 0; nett < num_ett; ++nett) {
+        if(ett[nett] < 0 || ett[nett] >= num_trees) {
+            message += "Edge to tree " + std::to_string(nett) + " out of range\n";
+        }
+        if(ete[nett] < 0 || ete[nett] >= 24) {
+            message += "Edge to edge " + std::to_string(nett) + " out of range\n";
+        }
+    }
+
+#ifdef OXLEY_ENABLE_PROFILE_TIMERS
+    oxleytimer.toc("\t checking corners ...");
+#endif
+    #pragma omp parallel for
+    for(p8est_topidx_t nctt = 0; nctt < num_ctt; ++nctt) {
+        if(ctt[nctt] < 0 || ctt[nctt] >= num_trees) {
+            std::string message = "Corner to tree " + std::to_string(nctt) + " out of range\n";
+            throw OxleyException(message);
+        }
+        if(ctc[nctt] < 0 || ctc[nctt] >= 8) {
+            std::string message = "Corner to corner " + std::to_string(nctt) + " out of range\n";
+            throw OxleyException(message);
+        }
+    }
+
+#ifdef OXLEY_ENABLE_PROFILE_TIMERS
+    oxleytimer.toc("\t checking vertices ...");
+#endif
+
+    if(num_vertices > 0) {
+#pragma omp parallel for
+        for(p8est_topidx_t tree = 0; tree < num_trees; ++tree) {
+            for(int nvert = 0; nvert < 8; ++nvert) {
+                p8est_topidx_t vertex = ttv[tree * 8 + nvert];
+                if(vertex < 0 || vertex >= num_vertices) {
+                    std::string message = "Tree to vertex out of range " + std::to_string(tree) + " " + std::to_string(nvert);
+                    throw OxleyException(message);
+                }
+            }
+        }
+    }
+
+    if((conn->tree_to_attr != NULL) != (conn->tree_attr_bytes > 0)) {
+        message += "Tree attribute properties inconsistent " + std::to_string(conn->tree_attr_bytes);
+    }
+
+#ifdef OXLEY_ENABLE_PROFILE_TIMERS
+    oxleytimer.toc("\t checking trees ...");
+#endif
+
+#pragma omp parallel for
+    for(p4est_topidx_t tree = 0; tree < num_trees; ++tree) {
+        for(int face = 0; face < 6; ++face) {
+            p8est_topidx_t ntree = ttt[tree * 6 + face];
+            if(ntree < 0 || ntree >= num_trees) {
+                message += "Tree to tree out of range " + std::to_string(tree) + " " + std::to_string(face) + "\n";
+            }
+            int rface = (int) ttf[tree * 6 + face];
+            if (rface < 0 || rface >= 6 * 4) {
+                message += "Tree to face out of range " + std::to_string(tree) + " " + std::to_string(face) + "\n";
+            }
+            int nface = rface % 6;      /* clamp to a real face index */
+            int orientation = rface / 6;        /* 0..P4EST_HALF-1 */
+            if(ntree == tree) {
+            /* no neighbor across this face or self-periodic */
+                if (nface == face && orientation != 0) {
+                    message += "Face invalid in " + std::to_string(tree) + " " + std::to_string(face) + "\n";
+                }
+            }
+            if(ntree != tree || nface != face) {
+                /* check reciprocity */
+                if (ttt[ntree * 6 + nface] != tree) {
+                    message += "Tree to tree reciprocity in " + std::to_string(tree) + " " + std::to_string(face) + "\n";
+                }
+                if ((int) ttf[ntree * 6 + nface] !=
+                    face + 6 * orientation) {
+                    message += "Tree to face reciprocity in " + std::to_string(tree) + " " + std::to_string(face) + "\n";
+                }
+            }
+        }
+
+        for(p8est_topidx_t aedge = 0; aedge < num_edges; ++aedge) {
+            if (eoff[aedge + 1] < eoff[aedge]) {
+                message += "Edge offset backwards " + std::to_string(aedge) + "\n";
+            }
+        }
+
+        if(num_edges > 0) {
+            for(int edge = 0; edge < P8EST_EDGES; ++edge) {
+                p8est_find_edge_transform(conn, tree, edge, &ei);
+                p8est_topidx_t aedge = tte[tree * P8EST_EDGES + edge];
+                if(aedge < -1 || aedge >= num_edges) {
+                    message += "Tree to edge out of range "  + std::to_string(tree) + " " + std::to_string(edge) + "\n";
+                }
+                if(aedge == -1) {
+                    continue;
+                }
+                int errcode = 0, errcount = 0;
+                int flip = -1, nflip1 = -1, nflip2 = -1;
+                p8est_topidx_t edge_begin = eoff[aedge];
+                p8est_topidx_t edge_end = eoff[aedge + 1];
+                if(edge_begin < 0 || edge_begin >= num_ett || edge_end < 0 || edge_end > num_ett) {
+                    message += "Invalid edge range "  + std::to_string(tree) + " " + std::to_string(edge) + "\n";
+                }
+                for(p8est_topidx_t nett = edge_begin; nett < edge_end; ++nett) {
+                    p8est_topidx_t ntree = ett[nett];
+                    int nedge = (int) ete[nett] % P8EST_EDGES;
+                    if (tte[ntree * P8EST_EDGES + nedge] != aedge) {
+                        message += "Invalid edge range "  + std::to_string(tree) + " " + std::to_string(edge)  + " " + std::to_string(nett) + "\n";
+                    }
+                    int nflip = (int) ete[nett] / P8EST_EDGES;
+                    if(ntree == tree && nedge == edge) {
+                        if(flip != -1 && nflip == flip) {
+                            errcode = 1;
+                            break;
+                        }
+                        flip = nflip;
+                        continue;
+                    }
+                    ++errcount;
+                }
+                if(errcode > 0) {
+                    // std::string message = "Shared edge " + std::to_string(tree) + " " + std::to_string((int) edge) + " " + std::to_string((int) nett) + " " + " inconsistency " +  + std::to_string((int) errcode);
+                    // throw OxleyException(message);
+                    // throw OxleyException("Shared edge inconsistency");
+                    message += "Shared edge inconsistency\n";
+                }
+                if(flip == -1 || !(nflip1 == -1 || nflip1 == flip) || !(nflip2 == -1 || nflip2 == flip)) {
+                    message += "Shared edge " + std::to_string(tree) + " " + std::to_string(edge) + " " + " inconsistent flip " + "\n";
+                }
+            }
+        }
+
+        for(p8est_topidx_t acorner = 0; acorner < num_corners; ++acorner) {
+            if (coff[acorner + 1] < coff[acorner]) {
+                message += "Corner offset backwards " + std::to_string(acorner) + "\n";
+            }
+        }
+
+        if(num_corners > 0) {
+            for(int corner = 0; corner < 8; ++corner) {
+                p8est_corner_info_t ci;
+                sc_array_t *cta = &ci.corner_transforms;
+                sc_array_init(cta, sizeof(p8est_corner_transform_t));
+                p8est_find_corner_transform(conn, tree, corner, &ci);  //here
+                p8est_topidx_t acorner = ttc[tree * 8 + corner];
+                if (acorner < -1 || acorner >= num_corners) {
+                    message += "Tree to corner out of range " + std::to_string(tree) + " " + std::to_string(corner) + "\n";
+                }
+                if (acorner == -1) {
+                    continue;
+                }
+                int errcode = 0, errcount = 0;
+                int cfound = 0;
+                p8est_topidx_t corner_begin = coff[acorner];
+                p8est_topidx_t corner_end = coff[acorner + 1];
+                if(corner_begin < 0 || corner_begin >= num_ctt || corner_end < 0 || corner_end > num_ctt) {
+                    message += "Invalid corner range " + std::to_string(tree) + " " + std::to_string(corner) + "\n";
+                }
+                for(p8est_topidx_t nctt = corner_begin; nctt < corner_end; ++nctt) {
+                p8est_topidx_t ntree = ctt[nctt];
+                int ncorner = (int) ctc[nctt];
+                if(ttc[ntree * P8EST_CHILDREN + ncorner] != acorner) {
+                    message += "Invalid corner range " + std::to_string(tree) + " " + std::to_string(corner) + " " + std::to_string(nctt) + "\n";
+                }
+                if (ntree == tree && ncorner == corner) {
+                    if (cfound) {
+                        errcode = 1;
+                        break;
+                    }
+                    cfound = 1;
+                    continue;
+                }
+                ++errcount;
+                }
+                if (errcode > 0) {
+                    message += "Invalid corner range " + std::to_string(tree) + " " + std::to_string(corner) + " inconsistency "+ std::to_string(errcode) + "\n";
+                }
+                if (!cfound) {
+                    message += "Shared corner " + std::to_string(tree) + " " + std::to_string(corner) + " inconsistent count B \n";
+                }
+                sc_array_reset(cta);
+            }
+        }
+    }
+
+    if(message.compare("")!=0)
+        throw OxleyException(message);
+  
+#ifdef OXLEY_ENABLE_PROFILE_TIMERS
+    oxleytimer.toc("done ...");
+#endif
+
+    // sc_array_reset (eta);
+    // sc_array_reset (cta);
+
+    return 1;
 }
 
 } // end of namespace oxley

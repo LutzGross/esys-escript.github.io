@@ -1109,4 +1109,6 @@ def print_summary():
     else:
         print("\nSUCCESS: build complete\n")
 
+    print("If publishing results using esys-escript, please cite us: https://esys-escript.github.io/")
+
 atexit.register(print_summary)
