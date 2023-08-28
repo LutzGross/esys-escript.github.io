@@ -82,6 +82,7 @@ Brick::Brick(int order,
     oxleytimer.toc("Creating an oxley::Brick...");
 
     // For safety
+#ifdef ESYS_MPI
     int active = false;
 #ifdef ESYS_MPI
     int temp = MPI_Initialized(&active);
