@@ -155,16 +155,6 @@ int refine_mare2dem(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * qua
     // return 0;
 }
 
-int refine_random(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
-{
-    return ((int) rand() % 2) == 0;
-}
-
-int refine_random(p8est_t * p4est, p4est_topidx_t tree, p8est_quadrant_t * quadrant)
-{
-    return ((int) rand() % 2) == 0;
-}
-
 // Boundaries
 int refine_north(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
@@ -185,8 +175,8 @@ int refine_north(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
     p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, 
                                     quadrant->x+l, quadrant->y+l, xyE);
 
-
-    bool do_refinement = ((xy[1] > y) // to the north of the line
+    float tol = 1e-8;
+    bool do_refinement = (abs(xy[1] - y) > tol*l // to the north of the line
                         || (xyE[1] == domain_length)) // or on boundary
                         && (quadrant->level < forestData->max_levels_refinement); // above the limit
 
@@ -212,8 +202,8 @@ int refine_south(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
     p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, 
                                     quadrant->x+l, quadrant->y+l, xyE);
 
-
-    bool do_refinement = ((xy[1] < y) // to the south of the line
+    float tol = 1e-8;
+    bool do_refinement = ( (abs(xy[1] - y) < tol*l) // to the south of the line
                         || (xy[1] == 0)) // or on boundary
                         && (quadrant->level < forestData->max_levels_refinement); // above the limit
 
@@ -239,8 +229,8 @@ int refine_east(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
     p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, 
                                     quadrant->x+l, quadrant->y+l, xyE);
 
-
-    bool do_refinement = ((xy[0] > y) // to the right of the line
+    float tol = 1e-8;
+    bool do_refinement = ( abs(xy[0] - y) > tol*l // to the right of the line
                         || (xyE[0] == domain_length)) // or on boundary
                         && (quadrant->level < forestData->max_levels_refinement); // above the limit
 
@@ -266,8 +256,8 @@ int refine_west(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
     p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, 
                                     quadrant->x+l, quadrant->y+l, xyE);
 
-
-    bool do_refinement = ((xy[0] < y) // to the west of the line
+    float tol = 1e-8; 
+    bool do_refinement = ( abs(xy[0] - y) < tol*l // to the west of the line
                         || (xy[0] == 0)) // or on boundary
                         && (quadrant->level < forestData->max_levels_refinement); // above the limit
 
@@ -282,10 +272,15 @@ int refine_north(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadra
     double domain_length = forestData->m_length[1];
     int steps = dx / m_NX;
 
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
 
-    return (xy[1] >= domain_length - m_NX) && (quadrant->level < (steps+1)) && (quadrant->level < forestData->max_levels_refinement);
+    float tol = 1e-8;
+
+    return (abs(xy[1] - (domain_length - m_NX)) >= tol*l)
+        && (quadrant->level < (steps+1)) 
+        && (quadrant->level < forestData->max_levels_refinement);
 }
 
 int refine_south(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
@@ -298,7 +293,12 @@ int refine_south(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadra
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
 
-    return (xy[1] <= m_NX) && (quadrant->level < (steps+1)) && (quadrant->level < forestData->max_levels_refinement);
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
+    float tol = 1e-8;
+
+    return  (abs(xy[1] - m_NX) <= tol*l)
+        && (quadrant->level < (steps+1)) 
+        && (quadrant->level < forestData->max_levels_refinement);
 }
 
 int refine_east(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
@@ -312,7 +312,12 @@ int refine_east(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadran
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
 
-    return (xy[0] >= domain_length - m_NX) && (quadrant->level < (steps+1)) && (quadrant->level < forestData->max_levels_refinement);
+    float tol = 1e-8;
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
+
+    return (abs(xy[0] - (domain_length - m_NX)) >= tol*l)
+        && (quadrant->level < (steps+1)) 
+        && (quadrant->level < forestData->max_levels_refinement);
 }
 
 int refine_west(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
@@ -325,7 +330,12 @@ int refine_west(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadran
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
 
-    return (xy[0] <= m_NX) && (quadrant->level < (steps+1)) && (quadrant->level < forestData->max_levels_refinement);
+    float tol = 1e-8;
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
+
+    return (abs(xy[0] - m_NX) <= tol*l)
+        && (quadrant->level < (steps+1)) 
+        && (quadrant->level < forestData->max_levels_refinement);
 }
 
 int refine_top(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
@@ -339,7 +349,12 @@ int refine_top(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
 
-    return (xy[2] >= domain_length - m_NX) && (quadrant->level < (steps+1)) && (quadrant->level < forestData->max_levels_refinement);
+    float tol = 1e-8;
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
+
+    return (abs(xy[2] - (domain_length - m_NX)) >= tol*l)
+        && (quadrant->level < (steps+1)) 
+        && (quadrant->level < forestData->max_levels_refinement);
 }
 
 int refine_bottom(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
@@ -352,19 +367,26 @@ int refine_bottom(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadr
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
 
-    return (xy[2] <= m_NX) && (quadrant->level < (steps+1)) && (quadrant->level < forestData->max_levels_refinement);
+    float tol = 1e-8;
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
+
+    return (abs(xy[2] - m_NX) <= tol*l) 
+        && (quadrant->level < (steps+1)) 
+        && (quadrant->level < forestData->max_levels_refinement);
 }
 
 // Returns true if the point (x,y) is inside the square whose corners are (x0,y0) and (x1,y1)
 inline bool point_in_square(double x, double y, double x0, double y0, double x1, double y1)
 {
-    return (x>=x0) && (x<=x1) && (y>=y0) && (y<=y1);
+    float tol = 1e-8;
+    return (abs(x-x0)>= tol) && (abs(x-x1)<= tol) && (abs(y-y0)>= tol) && (abs(y-y1)<= tol);
 }
 
 // Returns true if the point (x,y) is inside the square whose corners are (x0,y0) and (x1,y1)
 inline bool point_in_box(double x, double y, double z, double x0, double y0, double z0, double x1, double y1, double z1)
 {
-    return (x>=x0) && (x<=x1) && (y>=y0) && (y<=y1) && (z>=z0) && (z<=z1);
+    float tol = 1e-8;
+    return (abs(x-x0)>=tol) && (abs(x-x1)<=tol) && (abs(y-y0)>=tol) && (abs(y-y1)<=tol) && (abs(z-z0)>=tol) && (abs(z-z1)<=tol);
 }
 
 // Returns true if the line segment connecting (x1,y1) and (x2,y2) and the line segment connecting
@@ -373,7 +395,7 @@ inline bool intersection(double x1, double y1, double x2, double y2, double x3, 
 {
     double t = -(x1*(y3-y2)+x2*(y1-y3)+x3*(y2-y1))/(x1*(y4-y3)+x2*(y3-y4)+x4*(y2-y1)+x3*(y1-y2));
     double s =  (x1*(y4-y3)+x3*(y1-y4)+x4*(y3-y1))/(x1*(y4-y3)+x2*(y3-y4)+x4*(y2-y1)+x3*(y1-y2));
-    return (s<=1) && (s>=0) && (t<=1) && (t>=0);
+    return (abs(s-1)<=1e-8) && (abs(s-0)>=1e-8) && (abs(t-1)<=1e-8) && (abs(t-0)>=1e-8);
 }
 
 // Returns true if the line segment connecting (x1,y1,z2) and (x2,y2,z2) and the line segment connecting
@@ -382,7 +404,7 @@ inline bool intersection3D(double x1, double y1, double x2, double y2, double x3
 {
     double t = -(x1*(y3-y2)+x2*(y1-y3)+x3*(y2-y1))/(x1*(y4-y3)+x2*(y3-y4)+x4*(y2-y1)+x3*(y1-y2));
     double s =  (x1*(y4-y3)+x3*(y1-y4)+x4*(y3-y1))/(x1*(y4-y3)+x2*(y3-y4)+x4*(y2-y1)+x3*(y1-y2));
-    return (s<=1) && (s>=0) && (t<=1) && (t>=0);
+    return (abs(s-1)<=1e-8) && (abs(s-0)>=1e-8) && (abs(t-1)<=1e-8) && (abs(t-0)>=1e-8);
 }
 
 class point_info // for the sake of brevity in refine_region
@@ -402,26 +424,14 @@ int refine_region(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadr
     double y[2]={forestData->refinement_boundaries[2],forestData->refinement_boundaries[3]};
 
     // The point being examined
-    // double l[3] = {forestData->m_dx[0][P4EST_MAXLEVEL-quadrant->level],
-    //                forestData->m_dx[1][P4EST_MAXLEVEL-quadrant->level]};
     double xy[2]={*(xy0  ),*(xy0+1)};
 
-    bool x_in_region = (xy[0] >= x[0]) && (xy[0] <= x[1]);
-    bool y_in_region = (xy[1] >= y[0]) && (xy[1] <= y[1]);
+    float tol = 1e-8;
+
+    bool x_in_region = (abs(xy[0]-x[0]) >= 1e-8) && (abs(xy[0]-x[1]) <= 1e-8);
+    bool y_in_region = (abs(xy[1]-y[0]) >= 1e-8) && (abs(xy[1]-y[1]) <= 1e-8);
 
     bool refinement = x_in_region && y_in_region;
-
-#ifdef OXLEY_ENABLE_DEBUG_REFINE_REGION
-    if(refinement)
-        std::cout << "YES ";
-    else
-        std::cout << "NO  ";
-    std::cout << "(x,y)=(" << xy0[0] << "," << xy0[1] << ") \t\t";
-    std::cout << "region= ";
-    std::cout << "(" << x[0] << "," << y[0] << ") ";
-    std::cout << "(" << x[1] << "," << y[1] << ") ";
-    std::cout << std::endl;
-#endif
 
     return refinement && (quadrant->level < forestData->max_levels_refinement);
 }
@@ -437,19 +447,11 @@ int refine_point(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
     p4est_qcoord_to_vertex(p4est->connectivity, tree, quadrant->x+l, quadrant->y+l, xy2);
 
-    // Check if the point is inside the quadrant
-    bool do_refinement = (p[0] >= xy1[0]) && (p[0] <= xy2[0])
-                      && (p[1] >= xy1[1]) && (p[1] <= xy2[1]);
+    float tol = 1e-8;
 
-#ifdef OXLEY_ENABLE_DEBUG_REFINE_POINT
-    if(do_refinement)
-        std::cout << " YES ";
-    else
-        std::cout << " NO  ";
-    std::cout << "Point (" << p[0] << ", " << p[1] << ") \t";
-    std::cout << "Boundaries (" << xy1[0] << ", " << xy1[1] << ") &"
-              << "(" << xy2[0] << ", " << xy2[1] << ") " << std::endl;
-#endif
+    // Check if the point is inside the quadrant
+    bool do_refinement = (abs(p[0]-xy1[0]) >= 1e-8) && (abs(p[0]-xy2[0]) <= 1e-8)
+                      && (abs(p[1]-xy1[1]) >= 1e-8) && (abs(p[1]-xy2[1]) <= 1e-8);
 
     return  do_refinement &&
             (quadrant->level < forestData->max_levels_refinement);
@@ -472,9 +474,11 @@ int refine_circle(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadr
     p[0] = 0.5*(xy1[0]+p[0]);
     p[1] = 0.5*(xy1[1]+p[1]);
 
+    float tol = 1e-8;
+
     // Check if the point is inside the circle
-    bool do_refinement = (center[0]-p[0])*(center[0]-p[0]) + 
-                         (center[1]-p[1])*(center[1]-p[1]) - r*r < 0;
+    bool do_refinement = abs((center[0]-p[0])*(center[0]-p[0]) 
+                           + (center[1]-p[1])*(center[1]-p[1]) - r*r) < tol;
 
     return  do_refinement &&
             (quadrant->level < forestData->max_levels_refinement);
@@ -515,19 +519,13 @@ int refine_region(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadr
                    forestData->m_dx[2][P4EST_MAXLEVEL-quadrant->level]};
     double xy[3]={*(xy0  ),*(xy0+1),*(xy0+2)};
 
-    bool x_in_region = (xy[0] >= x[0]) && (xy[0] <= x[1]);
-    bool y_in_region = (xy[1] >= y[0]) && (xy[1] <= y[1]);
-    bool z_in_region = (xy[2] >= z[0]) && (xy[2] <= z[1]);
+    float tol = 1e-8;
+
+    bool x_in_region = (abs(xy[0] - x[0]) >= tol) && (abs(xy[0] - x[1]) <= tol);
+    bool y_in_region = (abs(xy[1] - y[0]) >= tol) && (abs(xy[1] - y[1]) <= tol);
+    bool z_in_region = (abs(xy[2] - z[0]) >= tol) && (abs(xy[2] - z[1]) <= tol);
 
     bool refinement = x_in_region && y_in_region && z_in_region;
-
-#ifdef OXLEY_ENABLE_DEBUG_REFINE_REGION
-    if(refinement)
-    {
-        std::cout << "Point (x,y)=(" << xy0[0] << "," << xy0[1] << ", " << xy0[2] << ") ";
-        std::cout << " is in the region." << std::endl;
-    }
-#endif
 
     return refinement && (quadrant->level < forestData->max_levels_refinement);
 }
@@ -545,16 +543,12 @@ int refine_point(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadra
     p8est_qcoord_t l = P8EST_QUADRANT_LEN(quadrant->level);
     p8est_qcoord_to_vertex(p8est->connectivity, tree, quadrant->x+l, quadrant->y+l, quadrant->z+l, xy2);
 
-#ifdef OXLEY_ENABLE_DEBUG
-    std::cout << "Refining point in octant " 
-              << "(" << xy1[0] << ", " << xy1[1] << ", " << xy1[2] << ") " << " & "
-              << "(" << xy2[0] << ", " << xy2[1] << ", " << xy2[2] << ") " << std::endl;
-#endif
+    float tol = 1e-8;
 
     // Check if the point is inside the octant
-    bool do_refinement = (p[0] >= xy1[0]) && (p[0] <= xy2[0])
-                      && (p[1] >= xy1[1]) && (p[1] <= xy2[1])
-                      && (p[2] >= xy1[2]) && (p[2] <= xy2[2]);
+    bool do_refinement = (abs(p[0] - xy1[0]) >= tol) && (abs(p[0] - xy2[0]) <= tol)
+                      && (abs(p[1] - xy1[1]) >= tol) && (abs(p[1] - xy2[1]) <= tol)
+                      && (abs(p[2] - xy1[2]) >= tol) && (abs(p[2] - xy2[2]) <= tol);
 
     return  do_refinement &&
             (quadrant->level < forestData->max_levels_refinement);
@@ -580,10 +574,12 @@ int refine_sphere(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadr
     p[1] = 0.5*(xy1[1]+p[1]);
     p[2] = 0.5*(xy1[2]+p[2]);
 
+    float tol = 1e-8;
+
     // Check if the point is inside the sphere
-    bool do_refinement = (center[0]-p[0])*(center[0]-p[0]) + 
-                         (center[1]-p[1])*(center[1]-p[1]) +
-                         (center[2]-p[2])*(center[2]-p[2]) - r*r < 0;
+    bool do_refinement = abs((center[0]-p[0])*(center[0]-p[0]) + 
+                             (center[1]-p[1])*(center[1]-p[1]) +
+                             (center[2]-p[2])*(center[2]-p[2]) - r*r) < tol;
 
     return  do_refinement &&
             (quadrant->level < forestData->max_levels_refinement);
