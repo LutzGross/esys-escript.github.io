@@ -208,7 +208,7 @@ void RefinementZone3D::refinePoint(float x0, float y0, float z0, int level)
     if(level == -1)
         level=refinement_levels;
 	RefinementType refine;
-	refine.Point3DRefinement(x0,y0,z0,refinement_levels);
+	refine.Point3DRefinement(x0,y0,z0,level);
 	addToQueue(refine);
 }
 

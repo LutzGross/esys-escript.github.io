@@ -1781,8 +1781,7 @@ void Brick::renumberNodes()
     // Write in NodeIDs
 // #pragma omp for
     int k = 0;
-    // std::vector<DoubleTuple> NormalNodesTmp;
-    std::map<DoubleTuple,int> NormalNodesTmp;
+    std::vector<DoubleTuple> NormalNodesTmp;
     NormalNodes.clear();
     std::vector<long> HangingFaceNodesTmp;
     HangingFaceNodes.clear();
@@ -1797,8 +1796,6 @@ void Brick::renumberNodes()
     //                                         {0,0.5,0},{1,0.5,0},{0,0.5,1},{1,0.5,1},
     //                                         {0,0,0.5},{1,0,0.5},{0,1,0.5},{1,1,0.5}};
 
-    oxleytimer.toc("first loop");
-
     // Assign numbers to the nodes
     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
@@ -1810,95 +1807,62 @@ void Brick::renumberNodes()
             p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
             p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
 
-            // Assign numbers to the vertex nodes
+            // Assign numbers to the vertix nodes
             double xyz[3];
-
-            p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[0][0], oct->y+l*lxy_nodes[0][1], oct->z+l*lxy_nodes[0][2], xyz);
-            auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-
-            // NormalNodesTmp.push_back(point);
-            NormalNodesTmp[point]=NORMAL;
-            // NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
-            NodeIDs[point]=NormalNodesTmp.size()-1;
-
-            // if((xyz[0]>=forestData.m_lxyz[0]-l) || (xyz[1]>=forestData.m_lxyz[1]-l) || (xyz[0]>=forestData.m_lxyz[2]-l))
-            // {
-            //      for(int n = 0; n < 8; n++)
-            //     {
-            //         // Get the first coordinate
-            //         p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
-            //         auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-            //         if(std::count(NormalNodesTmp.begin(), NormalNodesTmp.end(), point)==0)
-            //         {
-            //             NormalNodesTmp.push_back(point);
-            //             NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
-            //         }
-            //     }
-            // }
+            for(int n = 0; n < 8; n++)
+            {
+                // Get the first coordinate
+                p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
+                                            oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
+                auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
+                if(std::find(NormalNodesTmp.begin(), NormalNodesTmp.end(), point)==NormalNodesTmp.end())
+                {
+                    NormalNodesTmp.push_back(point);
+                    NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
+                }
+            }
         }
     }
 
-    // TODO
-    // outer boundary nodes
-
-    oxleytimer.toc("second loop");
+    // timer.toc("first loop");
+    // timer.tic();
 
     // Now work out the connections
     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
-        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-
-        // oxleytimer.toc("starting octant loop: " + std::to_string(treeid) + " of " 
-        //         + std::to_string(p8est->last_local_tree-p8est->first_local_tree) ); //ae tmp
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count; // TODO possible(?) bug
 
         // Loop over octants
         for(int q = 0; q < Q; ++q) { 
             p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
             p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
 
+            // const p8est_qcoord_t lxy_nodes[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
+            //                                         {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
+            // const p8est_qcoord_t h = 0.5 * l;
+            // const p8est_qcoord_t lxy_face[6][3] = {{0,h,h},{l,h,h},{h,0,h},{h,l,h},{h,h,0},{h,h,l}};
+            // const p8est_qcoord_t lxy_edge[12][3] = {{h,0,0},{h,l,0},{h,0,l},{h,l,l},
+            //                                         {0,h,0},{l,h,0},{0,h,l},{l,h,l},
+            //                                         {0,0,h},{l,0,h},{0,l,h},{l,l,h}};
+            
             // Assign numbers to the vertix nodes
             double xyz[3];
-            // p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
-            //                                 oct->x+l, oct->y+l, oct->z+l, xyz);
-
-            p8est_qcoord_to_vertex_fast(p8est->connectivity, treeid, 
-                                               oct->x+l, oct->y+l, oct->z+l, xyz);
-
-            // oxleytimer.toc("nodes"); 
-            if(xyz[0] == forestData.m_lxyz[0] || 
-                xyz[1] == forestData.m_lxyz[1] || 
-                 xyz[2] == forestData.m_lxyz[2]) // TODO double check this
+            for(int n = 0; n < 8; n++)
             {
-                for(int n = 0; n < 8; n++)
+                // Get the first coordinate
+                p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
+                                            oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
+                auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
+                if(std::find(NormalNodesTmp.begin(), NormalNodesTmp.end(), point)==NormalNodesTmp.end())
                 {
-                    // Get the first coordinate
-                    p8est_qcoord_to_vertex_fast(p8est->connectivity, treeid, oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
-                    auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-                    // if(std::count(NormalNodesTmp.begin(), NormalNodesTmp.end(), point)==0)
-                    // {
-                        // NormalNodesTmp.push_back(point);
-                    NormalNodesTmp[point]=NORMAL;
-                    // NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
-                    NodeIDs[point]=NormalNodesTmp.size()-1;
-                    // }
+                    NormalNodesTmp.push_back(point);
+                    NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
                 }
             }
-            else
-            {
-                p8est_qcoord_to_vertex_fast(p8est->connectivity, treeid, oct->x+l*lxy_nodes[0][0], oct->y+l*lxy_nodes[0][1], oct->z+l*lxy_nodes[0][2], xyz);
-                auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-                NormalNodesTmp[point]=NORMAL;
-                // NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
-                NodeIDs[point]=NormalNodesTmp.size()-1;
 
-            }
-
-            // oxleytimer.toc("save octant info"); //ae tmp
             // Save octant information
-            // p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyz);
-            p8est_qcoord_to_vertex_fast(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyz);
-            // p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyz);
+            p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyz);
             octantIDs.push_back(NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second);
             oct_info tmp;
             tmp.x=xyz[0];
@@ -1936,7 +1900,6 @@ void Brick::renumberNodes()
                 std::cout << std::endl;
             #endif
         
-            // oxleytimer.toc("hanging node information "); //ae tmp
             // Record hanging node information
             // Loop over faces
             for(int n = 0; n < 6; n++)
@@ -1969,7 +1932,7 @@ void Brick::renumberNodes()
 
                 // Add to list of nodes
                 DoubleTuple point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-                long nodeid = NodeIDs.find(point)->second;                  //here
+                long nodeid = NodeIDs.find(point)->second;
                 std::vector<long>::iterator have_node = std::find(HangingFaceNodesTmp.begin(), HangingFaceNodesTmp.end(),nodeid);
                 if(have_node == HangingFaceNodesTmp.end())
                       HangingFaceNodesTmp.push_back(nodeid);
@@ -1977,7 +1940,6 @@ void Brick::renumberNodes()
                 // *******************************************************************
                 // Get the parent octant
                 // *******************************************************************
-                // oxleytimer.toc("get parent octant"); //ae tmp
                 p8est_quadrant_t parentOct;
                 p8est_quadrant_t * parent = &parentOct;
                 p8est_quadrant_parent(oct, parent);
@@ -1985,7 +1947,6 @@ void Brick::renumberNodes()
                 // *******************************************************************
                 // Get the octant neighbouring this face
                 // *******************************************************************
-                // oxleytimer.toc("get neighbour"); //ae tmp
                 // Get the neighbouring face
                 p8est_quadrant_t neighbourOct;
                 p8est_quadrant_t * neighbour = &neighbourOct;
@@ -2010,7 +1971,6 @@ void Brick::renumberNodes()
                 // *******************************************************************
                 // Calculate the edge nodes
                 // *******************************************************************
-                // oxleytimer.toc("calculate edge nodes"); //ae tmp
                 signed long x_e_corner[2] = {((int) xedge[n][hanging_faces[n]][0]) * l,((int) xedge[n][hanging_faces[n]][1]) * l};
                 signed long y_e_corner[2] = {((int) yedge[n][hanging_faces[n]][0]) * l,((int) yedge[n][hanging_faces[n]][1]) * l};
                 signed long z_e_corner[2] = {((int) zedge[n][hanging_faces[n]][0]) * l,((int) zedge[n][hanging_faces[n]][1]) * l};
@@ -2032,7 +1992,6 @@ void Brick::renumberNodes()
                 // *******************************************************************
                 // Get the neighbouring edge(s)
                 // *******************************************************************
-                // oxleytimer.toc("get neighbouring edge information"); //ae tmp
                 // Get the neighbours
                 p8est_quadrant_t EdgeNeighbourOct;
                 p8est_quadrant_t * EdgeNeighbour = &EdgeNeighbourOct;
@@ -2102,8 +2061,6 @@ void Brick::renumberNodes()
                 // *******************************************************************
                 // Store connection information for updateRowsColumns
                 // *******************************************************************
-
-                // oxleytimer.toc("store connection information"); //ae tmp
 
                 signed long x_corner0 = xface0[n][hanging_faces[n]] * l;
                 signed long y_corner0 = yface0[n][hanging_faces[n]] * l;
@@ -2198,7 +2155,9 @@ void Brick::renumberNodes()
         }
     }
 
-    oxleytimer.toc("done");
+
+    // timer.toc("second loop");
+    // timer.tic();
 
     // Update num_hanging
     num_hanging=HangingFaceNodesTmp.size()+HangingEdgeNodesTmp.size();
@@ -2207,11 +2166,8 @@ void Brick::renumberNodes()
     std::vector<bool> is_hanging_tmp;
     int num_nodes=NormalNodesTmp.size();
     is_hanging_tmp.resize(getNumNodes(),false);
-    // for(int i=0;i<num_nodes;i++)
-    //     NodeIDs[NormalNodesTmp[i]]=i;
-    int counter = 0;
-    for(auto i = NormalNodesTmp.begin(); i != NormalNodesTmp.end(); i++)
-        NodeIDs[i->first]=counter++;
+    for(int i=0;i<num_nodes;i++)
+        NodeIDs[NormalNodesTmp[i]]=i;
     for(int i=0;i<HangingFaceNodesTmp.size();i++)
         is_hanging_tmp[HangingFaceNodesTmp[i]]=true;
     for(int i=0;i<HangingEdgeNodesTmp.size();i++)
@@ -2231,20 +2187,17 @@ void Brick::renumberNodes()
 
     }
     
+    // TODO vectorise
+
     for(std::pair<DoubleTuple,long> e : NodeIDs)
         NodeIDs[e.first]=new_node_ids[e.second];
 
-    // for(int i = 0; i<num_nodes; i++)
-    //     NormalNodes.push_back(NormalNodesTmp[new_node_ids[i]]);
-    NormalNodes.resize(NormalNodesTmp.size());
-    for(auto i = NormalNodesTmp.begin(); i != NormalNodesTmp.end(); i++)
-        NormalNodes.push_back(i->first);
+    for(int i = 0; i<getNumNodes(); i++)
+        NormalNodes.push_back(NormalNodesTmp[new_node_ids[i]]);
 
-    HangingFaceNodes.resize(HangingFaceNodesTmp.size());
     for(int i = 0; i<HangingFaceNodesTmp.size();i++)
         HangingFaceNodes.push_back(new_node_ids[HangingFaceNodesTmp[i]]);
 
-    HangingEdgeNodes.resize(HangingEdgeNodesTmp.size());
     for(int i = 0; i<HangingEdgeNodesTmp.size();i++)
         HangingEdgeNodes.push_back(new_node_ids[HangingEdgeNodesTmp[i]]);
 
@@ -5105,18 +5058,18 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
         std::cout << "broken" << std::endl;
     else
         std::cout << "OK" << std::endl;
-#ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS
-    std::cout << "Checking connectivity (2) ... ";
-    if(!p8est_connectivity_is_equal(connectivity, newDomain->connectivity))
-        std::cout << "broken" << std::endl;
-    else
-        std::cout << "OK" << std::endl;
-    std::cout << "Checking connectivity (3) ... ";
-    if(!p8est_connectivity_is_equivalent(connectivity, newDomain->connectivity))
-        std::cout << "broken" << std::endl;
-    else
-        std::cout << "OK" << std::endl;
-#endif
+    #ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS
+        std::cout << "Checking connectivity (2) ... ";
+        if(!p8est_connectivity_is_equal(connectivity, newDomain->connectivity))
+            std::cout << "broken" << std::endl;
+        else
+            std::cout << "OK" << std::endl;
+        std::cout << "Checking connectivity (3) ... ";
+        if(!p8est_connectivity_is_equivalent(connectivity, newDomain->connectivity))
+            std::cout << "broken" << std::endl;
+        else
+            std::cout << "OK" << std::endl;
+    #endif
     std::cout << "Checking p8est (1) ... ";
     if(!p8est_is_valid(p8est))
         std::cout << "broken" << std::endl;
@@ -5141,8 +5094,7 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
         // #endif
 
         RefinementType Refinement = R.getRefinement(n);
-        //set the refinement level for this refinement
-        setRefinementLevels(Refinement.levels);
+        newDomain->setRefinementLevels(Refinement.levels);
         switch(Refinement.flavour)
         {
             case POINT3D:

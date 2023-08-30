@@ -546,9 +546,23 @@ int refine_point(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadra
     float tol = 1e-8;
 
     // Check if the point is inside the octant
-    bool do_refinement = (abs(p[0] - xy1[0]) >= tol) && (abs(p[0] - xy2[0]) <= tol)
-                      && (abs(p[1] - xy1[1]) >= tol) && (abs(p[1] - xy2[1]) <= tol)
-                      && (abs(p[2] - xy1[2]) >= tol) && (abs(p[2] - xy2[2]) <= tol);
+    // bool do_refinement = (abs(p[0] - xy1[0]) >= tol) && (abs(p[0] - xy2[0]) <= tol)
+    //                   && (abs(p[1] - xy1[1]) >= tol) && (abs(p[1] - xy2[1]) <= tol)
+    //                   && (abs(p[2] - xy1[2]) >= tol) && (abs(p[2] - xy2[2]) <= tol);
+
+    bool do_refinement = p[0] >= xy1[0] && p[0] <= xy2[0]
+                      && p[1] >= xy1[1] && p[1] <= xy2[1]
+                      && p[2] >= xy1[2] && p[2] <= xy2[2];
+
+    std::cout << "Point (" << xy1[0] << ", " << xy1[1] << ", " << xy1[2] << ") ";
+    if(do_refinement)
+        std::cout << " <---- " << std::endl;
+    else
+        std::cout << std::endl;
+
+    // bool do_refinement = p[0] >= xy1[0] && p[0] <= xy2[0]
+    //                   && p[1] >= xy1[1] && p[1] <= xy2[1]
+    //                   && p[2] >= xy1[2] && p[2] <= xy2[2];
 
     return  do_refinement &&
             (quadrant->level < forestData->max_levels_refinement);

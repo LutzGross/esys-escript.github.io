@@ -447,6 +447,8 @@ private:
     std::vector<hangingFaceInfo> hanging_face_orientation;
     std::vector<hangingEdgeInfo> hanging_edge_orientation;
 
+    std::vector<std::vector<long>> neighbours;
+
     // Row and column indices in CRS format
     IndexVector myRows;
     IndexVector myColumns;
@@ -708,9 +710,9 @@ protected:
     // Timer used to profile code
     // TicTocClock oxleytimer;
 
-    // A modified version of the p4est library p8est_connectivity_is_valid function
-    // that uses openMP
-    int p8est_connectivity_is_valid_fast(p8est_connectivity_t * conn);
+    // Modified versions of the p4est library functions that use openMP
+    int p8est_connectivity_is_valid_fast(p8est_connectivity_t * conn); 
+
 };
 
 // typedef POINTER_WRAPPER_CLASS(Brick) OxleyDomainBrick_ptr;
