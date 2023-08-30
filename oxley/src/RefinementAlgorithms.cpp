@@ -13,6 +13,7 @@
 *
 *****************************************************************************/
 
+#include <cmath>
 #include <iostream>
 #include <random>
 #include <vector>
@@ -88,7 +89,7 @@ int refine_mare2dem(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * qua
 // #endif
 
 //     // Make a decision
-//     return (abs(average - quad_solution) > MARE2DEM_TOL) && (quadrant->level < forestData->max_levels_refinement);
+//     return (std::abs(average - quad_solution) > MARE2DEM_TOL) && (quadrant->level < forestData->max_levels_refinement);
     return 0;
 }
 
@@ -151,7 +152,7 @@ int refine_mare2dem(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * qua
 #endif
 
     // Make a decision
-    return (abs(average - quad_solution) > MARE2DEM_TOL) && (quadrant->level < forestData->max_levels_refinement);
+    return (std::abs(average - quad_solution) > MARE2DEM_TOL) && (quadrant->level < forestData->max_levels_refinement);
     // return 0;
 }
 
@@ -176,7 +177,7 @@ int refine_north(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
                                     quadrant->x+l, quadrant->y+l, xyE);
 
     float tol = 1e-8;
-    bool do_refinement = (abs(xy[1] - y) > tol*l // to the north of the line
+    bool do_refinement = (std::abs(xy[1] - y) > tol*l // to the north of the line
                         || (xyE[1] == domain_length)) // or on boundary
                         && (quadrant->level < forestData->max_levels_refinement); // above the limit
 
@@ -203,7 +204,7 @@ int refine_south(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
                                     quadrant->x+l, quadrant->y+l, xyE);
 
     float tol = 1e-8;
-    bool do_refinement = ( (abs(xy[1] - y) < tol*l) // to the south of the line
+    bool do_refinement = ( (std::abs(xy[1] - y) < tol*l) // to the south of the line
                         || (xy[1] == 0)) // or on boundary
                         && (quadrant->level < forestData->max_levels_refinement); // above the limit
 
@@ -230,7 +231,7 @@ int refine_east(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
                                     quadrant->x+l, quadrant->y+l, xyE);
 
     float tol = 1e-8;
-    bool do_refinement = ( abs(xy[0] - y) > tol*l // to the right of the line
+    bool do_refinement = ( std::abs(xy[0] - y) > tol*l // to the right of the line
                         || (xyE[0] == domain_length)) // or on boundary
                         && (quadrant->level < forestData->max_levels_refinement); // above the limit
 
@@ -257,7 +258,7 @@ int refine_west(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
                                     quadrant->x+l, quadrant->y+l, xyE);
 
     float tol = 1e-8; 
-    bool do_refinement = ( abs(xy[0] - y) < tol*l // to the west of the line
+    bool do_refinement = ( std::abs(xy[0] - y) < tol*l // to the west of the line
                         || (xy[0] == 0)) // or on boundary
                         && (quadrant->level < forestData->max_levels_refinement); // above the limit
 
@@ -278,7 +279,7 @@ int refine_north(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadra
 
     float tol = 1e-8;
 
-    return (abs(xy[1] - (domain_length - m_NX)) >= tol*l)
+    return (std::abs(xy[1] - (domain_length - m_NX)) >= tol*l)
         && (quadrant->level < (steps+1)) 
         && (quadrant->level < forestData->max_levels_refinement);
 }
@@ -296,7 +297,7 @@ int refine_south(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadra
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
     float tol = 1e-8;
 
-    return  (abs(xy[1] - m_NX) <= tol*l)
+    return  (std::abs(xy[1] - m_NX) <= tol*l)
         && (quadrant->level < (steps+1)) 
         && (quadrant->level < forestData->max_levels_refinement);
 }
@@ -315,7 +316,7 @@ int refine_east(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadran
     float tol = 1e-8;
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
 
-    return (abs(xy[0] - (domain_length - m_NX)) >= tol*l)
+    return (std::abs(xy[0] - (domain_length - m_NX)) >= tol*l)
         && (quadrant->level < (steps+1)) 
         && (quadrant->level < forestData->max_levels_refinement);
 }
@@ -333,7 +334,7 @@ int refine_west(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadran
     float tol = 1e-8;
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
 
-    return (abs(xy[0] - m_NX) <= tol*l)
+    return (std::abs(xy[0] - m_NX) <= tol*l)
         && (quadrant->level < (steps+1)) 
         && (quadrant->level < forestData->max_levels_refinement);
 }
@@ -352,7 +353,7 @@ int refine_top(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant
     float tol = 1e-8;
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
 
-    return (abs(xy[2] - (domain_length - m_NX)) >= tol*l)
+    return (std::abs(xy[2] - (domain_length - m_NX)) >= tol*l)
         && (quadrant->level < (steps+1)) 
         && (quadrant->level < forestData->max_levels_refinement);
 }
@@ -370,7 +371,7 @@ int refine_bottom(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadr
     float tol = 1e-8;
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
 
-    return (abs(xy[2] - m_NX) <= tol*l) 
+    return (std::abs(xy[2] - m_NX) <= tol*l) 
         && (quadrant->level < (steps+1)) 
         && (quadrant->level < forestData->max_levels_refinement);
 }
@@ -379,14 +380,14 @@ int refine_bottom(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadr
 inline bool point_in_square(double x, double y, double x0, double y0, double x1, double y1)
 {
     float tol = 1e-8;
-    return (abs(x-x0)>= tol) && (abs(x-x1)<= tol) && (abs(y-y0)>= tol) && (abs(y-y1)<= tol);
+    return (std::abs(x-x0)>= tol) && (std::abs(x-x1)<= tol) && (std::abs(y-y0)>= tol) && (std::abs(y-y1)<= tol);
 }
 
 // Returns true if the point (x,y) is inside the square whose corners are (x0,y0) and (x1,y1)
 inline bool point_in_box(double x, double y, double z, double x0, double y0, double z0, double x1, double y1, double z1)
 {
     float tol = 1e-8;
-    return (abs(x-x0)>=tol) && (abs(x-x1)<=tol) && (abs(y-y0)>=tol) && (abs(y-y1)<=tol) && (abs(z-z0)>=tol) && (abs(z-z1)<=tol);
+    return (std::abs(x-x0)>=tol) && (std::abs(x-x1)<=tol) && (std::abs(y-y0)>=tol) && (std::abs(y-y1)<=tol) && (std::abs(z-z0)>=tol) && (std::abs(z-z1)<=tol);
 }
 
 // Returns true if the line segment connecting (x1,y1) and (x2,y2) and the line segment connecting
@@ -395,7 +396,7 @@ inline bool intersection(double x1, double y1, double x2, double y2, double x3, 
 {
     double t = -(x1*(y3-y2)+x2*(y1-y3)+x3*(y2-y1))/(x1*(y4-y3)+x2*(y3-y4)+x4*(y2-y1)+x3*(y1-y2));
     double s =  (x1*(y4-y3)+x3*(y1-y4)+x4*(y3-y1))/(x1*(y4-y3)+x2*(y3-y4)+x4*(y2-y1)+x3*(y1-y2));
-    return (abs(s-1)<=1e-8) && (abs(s-0)>=1e-8) && (abs(t-1)<=1e-8) && (abs(t-0)>=1e-8);
+    return (std::abs(s-1)<=1e-8) && (std::abs(s-0)>=1e-8) && (std::abs(t-1)<=1e-8) && (std::abs(t-0)>=1e-8);
 }
 
 // Returns true if the line segment connecting (x1,y1,z2) and (x2,y2,z2) and the line segment connecting
@@ -404,7 +405,7 @@ inline bool intersection3D(double x1, double y1, double x2, double y2, double x3
 {
     double t = -(x1*(y3-y2)+x2*(y1-y3)+x3*(y2-y1))/(x1*(y4-y3)+x2*(y3-y4)+x4*(y2-y1)+x3*(y1-y2));
     double s =  (x1*(y4-y3)+x3*(y1-y4)+x4*(y3-y1))/(x1*(y4-y3)+x2*(y3-y4)+x4*(y2-y1)+x3*(y1-y2));
-    return (abs(s-1)<=1e-8) && (abs(s-0)>=1e-8) && (abs(t-1)<=1e-8) && (abs(t-0)>=1e-8);
+    return (std::abs(s-1)<=1e-8) && (std::abs(s-0)>=1e-8) && (std::abs(t-1)<=1e-8) && (std::abs(t-0)>=1e-8);
 }
 
 class point_info // for the sake of brevity in refine_region
@@ -428,8 +429,8 @@ int refine_region(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadr
 
     float tol = 1e-8;
 
-    bool x_in_region = (abs(xy[0]-x[0]) >= 1e-8) && (abs(xy[0]-x[1]) <= 1e-8);
-    bool y_in_region = (abs(xy[1]-y[0]) >= 1e-8) && (abs(xy[1]-y[1]) <= 1e-8);
+    bool x_in_region = (std::abs(xy[0]-x[0]) >= 1e-8) && (std::abs(xy[0]-x[1]) <= 1e-8);
+    bool y_in_region = (std::abs(xy[1]-y[0]) >= 1e-8) && (std::abs(xy[1]-y[1]) <= 1e-8);
 
     bool refinement = x_in_region && y_in_region;
 
@@ -450,8 +451,8 @@ int refine_point(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
     float tol = 1e-8;
 
     // Check if the point is inside the quadrant
-    bool do_refinement = (abs(p[0]-xy1[0]) >= 1e-8) && (abs(p[0]-xy2[0]) <= 1e-8)
-                      && (abs(p[1]-xy1[1]) >= 1e-8) && (abs(p[1]-xy2[1]) <= 1e-8);
+    bool do_refinement = (std::abs(p[0]-xy1[0]) >= 1e-8) && (std::abs(p[0]-xy2[0]) <= 1e-8)
+                      && (std::abs(p[1]-xy1[1]) >= 1e-8) && (std::abs(p[1]-xy2[1]) <= 1e-8);
 
     return  do_refinement &&
             (quadrant->level < forestData->max_levels_refinement);
@@ -477,7 +478,7 @@ int refine_circle(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadr
     float tol = 1e-8;
 
     // Check if the point is inside the circle
-    bool do_refinement = abs((center[0]-p[0])*(center[0]-p[0]) 
+    bool do_refinement = std::abs((center[0]-p[0])*(center[0]-p[0]) 
                            + (center[1]-p[1])*(center[1]-p[1]) - r*r) < tol;
 
     return  do_refinement &&
@@ -521,9 +522,9 @@ int refine_region(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadr
 
     float tol = 1e-8;
 
-    bool x_in_region = (abs(xy[0] - x[0]) >= tol) && (abs(xy[0] - x[1]) <= tol);
-    bool y_in_region = (abs(xy[1] - y[0]) >= tol) && (abs(xy[1] - y[1]) <= tol);
-    bool z_in_region = (abs(xy[2] - z[0]) >= tol) && (abs(xy[2] - z[1]) <= tol);
+    bool x_in_region = (std::abs(xy[0] - x[0]) >= tol) && (std::abs(xy[0] - x[1]) <= tol);
+    bool y_in_region = (std::abs(xy[1] - y[0]) >= tol) && (std::abs(xy[1] - y[1]) <= tol);
+    bool z_in_region = (std::abs(xy[2] - z[0]) >= tol) && (std::abs(xy[2] - z[1]) <= tol);
 
     bool refinement = x_in_region && y_in_region && z_in_region;
 
@@ -546,19 +547,9 @@ int refine_point(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadra
     float tol = 1e-8;
 
     // Check if the point is inside the octant
-    // bool do_refinement = (abs(p[0] - xy1[0]) >= tol) && (abs(p[0] - xy2[0]) <= tol)
-    //                   && (abs(p[1] - xy1[1]) >= tol) && (abs(p[1] - xy2[1]) <= tol)
-    //                   && (abs(p[2] - xy1[2]) >= tol) && (abs(p[2] - xy2[2]) <= tol);
-
-    bool do_refinement = p[0] >= xy1[0] && p[0] <= xy2[0]
-                      && p[1] >= xy1[1] && p[1] <= xy2[1]
-                      && p[2] >= xy1[2] && p[2] <= xy2[2];
-
-    std::cout << "Point (" << xy1[0] << ", " << xy1[1] << ", " << xy1[2] << ") ";
-    if(do_refinement)
-        std::cout << " <---- " << std::endl;
-    else
-        std::cout << std::endl;
+    bool do_refinement = (std::abs(p[0] - xy1[0]) >= tol) && (std::abs(p[0] - xy2[0]) <= tol)
+                      && (std::abs(p[1] - xy1[1]) >= tol) && (std::abs(p[1] - xy2[1]) <= tol)
+                      && (std::abs(p[2] - xy1[2]) >= tol) && (std::abs(p[2] - xy2[2]) <= tol);
 
     // bool do_refinement = p[0] >= xy1[0] && p[0] <= xy2[0]
     //                   && p[1] >= xy1[1] && p[1] <= xy2[1]
@@ -591,7 +582,7 @@ int refine_sphere(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadr
     float tol = 1e-8;
 
     // Check if the point is inside the sphere
-    bool do_refinement = abs((center[0]-p[0])*(center[0]-p[0]) + 
+    bool do_refinement = std::abs((center[0]-p[0])*(center[0]-p[0]) + 
                              (center[1]-p[1])*(center[1]-p[1]) +
                              (center[2]-p[2])*(center[2]-p[2]) - r*r) < tol;
 
@@ -687,7 +678,7 @@ void gce_second_pass(p4est_iter_volume_info_t * info, void *tmp)
             for(int i = 0; i < 4; i++)
                 sum += ab[i];
 
-            if(abs(sum) != 4)
+            if(std::abs(sum) != 4)
                 surfaceinfo->oldTag = quaddata->quadTag;
         }
     }
@@ -761,7 +752,7 @@ int refine_gce(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quad)
         for(int i = 0; i < 4; i++)
             sum += ab[i];
 
-        return (abs(sum) == 4) ? false : true;
+        return (std::abs(sum) == 4) ? false : true;
     }
     else
     {
@@ -822,7 +813,7 @@ void gce_second_pass(p8est_iter_volume_info_t * info, void *tmp)
             for(int i = 0; i < 8; i++)
                 sum += ab[i];
 
-            if(abs(sum) != 8)
+            if(std::abs(sum) != 8)
                 surfaceinfo->oldTag = quaddata->octantTag;
         }
     }
@@ -905,7 +896,7 @@ int refine_gce(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * quad)
         for(int i = 0; i < 8; i++)
             sum += ab[i];
 
-        return (abs(sum) == 8) ? false : true;
+        return (std::abs(sum) == 8) ? false : true;
     }
     else
     {
