@@ -462,10 +462,12 @@ int refine_point(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
     float tol = 1e-8;
 
     // Check if the point is inside the quadrant
-    bool do_refinement = (std::abs(p[0]-xy1[0]) >= 1e-8) && (std::abs(p[0]-xy2[0]) <= 1e-8)
+    bool on_boundary =   (std::abs(p[0]-xy1[0]) >= 1e-8) && (std::abs(p[0]-xy2[0]) <= 1e-8)
                       && (std::abs(p[1]-xy1[1]) >= 1e-8) && (std::abs(p[1]-xy2[1]) <= 1e-8);
+    bool in_quadrant =   (p[0] >= xy1[0]) && (p[0] <= xy2[0])
+                      && (p[1] >= xy1[1]) && (p[1] <= xy2[1]);
 
-    return  do_refinement &&
+    return  (on_boundary || in_quadrant) &&
             (quadrant->level < forestData->max_levels_refinement);
 }
 

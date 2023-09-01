@@ -536,6 +536,18 @@ protected:
        \brief
        Returns true if the node is hanging
     */
+    bool hasHanging(p8est_lnodes_code_t face_code) const;
+
+    /**
+       \brief
+       Returns true if the node is hanging
+    */
+    bool onUpperBoundary(double x, double y, double z) const;
+
+    /**
+       \brief
+       Returns true if the node is hanging
+    */
     int getNumHangingNodes() { return num_hanging; };
 
     /**
@@ -555,6 +567,12 @@ protected:
        Renumbers the nodes (called after refinement)
     */
     void renumberNodes();
+
+    /**
+       \brief
+       Returns true if vector has point. 
+    */
+    bool hasDuplicate(DoubleTuple point, std::vector<DoubleTuple> vector );
 
     /**
        \brief
