@@ -1127,37 +1127,40 @@ void Brick::saveMesh(std::string filename)
 
     p8est_deflate_quadrants(p8est, NULL);
 
-#ifdef ESYS_MPI
-    if(escript::getMPIRankWorld()==0)
-    {
-#endif
+// #ifdef ESYS_MPI
+//     if(escript::getMPIRankWorld()==0)
+//     {
+// #endif
         int retval = p8est_connectivity_save(cname, connectivity)==0;
         ESYS_ASSERT(retval!=0,"Failed to save connectivity");
         int save_partition = 0;
         int save_data = 1;
         p8est_save_ext(fname, p8est, save_data, save_partition); // Should abort on file error
-#ifdef ESYS_MPI
-    }
-#endif
+// #ifdef ESYS_MPI
+//     }
+// #endif
 }
 
 #ifdef ESYS_HAVE_TRILINOS
 void Brick::updateMesh()
 {
+    // Mesh creation
     oxleytimer.toc("Brick::updateMesh ...");
     oxleytimer.toc("\t balancing...");    
     p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
     oxleytimer.toc("\t partitioning...");    
     bool partition_for_coarsening = true;
     p8est_partition_ext(p8est, partition_for_coarsening, NULL);
-    oxleytimer.toc("\t destroying old lnodes...");   
-    p8est_lnodes_destroy(nodes);
+    oxleytimer.toc("\t destroying old ghost..."); 
+    p8est_ghost_destroy(ghost);
     oxleytimer.toc("\t creating new ghost..."); 
     ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
+    oxleytimer.toc("\t destroying old lnodes...");   
+    p8est_lnodes_destroy(nodes);
     oxleytimer.toc("\t creating new lnodes..."); 
     nodes = p8est_lnodes_new(p8est, ghost, 1);
-    oxleytimer.toc("\t resetting ghost");
-    reset_ghost();
+
+    // addition information
     oxleytimer.toc("\t updating node increments");
     updateNodeIncrements();
     oxleytimer.toc("\t renumbering nodes");
@@ -1171,6 +1174,7 @@ void Brick::updateMesh()
     oxleytimer.toc("\t updating face element count");
     updateFaceElementCount();
     oxleytimer.toc("Brick::updateMesh: Finished...");
+
 }
 
 void Brick::AutomaticMeshUpdateOnOff(bool new_setting)
@@ -1812,7 +1816,7 @@ void Brick::renumberNodes()
 
     const float lxy_nodes[8][3] = {{0,0,0},{1,0,0},{0,1,0},{1,1,0},{0,0,1},{1,0,1},{0,1,1},{1,1,1}};
 
-    // Assign numbers to the nodes
+    // // Assign numbers to the nodes
     // oxleytimer.toc("\tmain loop"); 
     // for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
     //     p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
@@ -1841,6 +1845,56 @@ void Brick::renumberNodes()
     //     }
     // }
 
+    // v2    
+
+    // 
+    // oxleytimer.toc("\tmain loop"); 
+    // for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
+    //     p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+    //     sc_array_t * tquadrants = &tree->quadrants;
+    //     p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+
+    //     // Loop over octants
+    //     for(int q = 0; q < Q; ++q) { 
+    //         p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
+    //         p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
+
+    //         // Assign numbers to the vertix nodes
+    //         double xyz[3];
+    //         p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[0][0], oct->y+l*lxy_nodes[0][1], oct->z+l*lxy_nodes[0][2], xyz);
+    //         auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
+
+    //         bool hanging = hasHanging(nodes->face_code[k++]);
+    //         double xyzL[3];
+    //         p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l, oct->y+l, oct->z+l, xyzL);
+    //         bool boundary = onUpperBoundary(xyzL[0],xyzL[1],xyzL[2]);
+    //         bool possiblyMissingNodes = hanging || boundary; // Nodes not tracked by p8est
+
+    //         if(!hasDuplicate(point,NormalNodesTmp))
+    //         {
+    //             NormalNodesTmp.push_back(point);
+    //             NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
+    //         }
+
+    //         if(possiblyMissingNodes)
+    //         {
+    //             for(int n = 1; n < 8; n++)
+    //             {
+    //                 // Get the first coordinate
+    //                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
+    //                 auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
+
+    //                 if(!hasDuplicate(point,NormalNodesTmp))
+    //                 {
+    //                     NormalNodesTmp.push_back(point);
+    //                     NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+
+    // 
     oxleytimer.toc("\tmain loop"); 
     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
@@ -1863,7 +1917,7 @@ void Brick::renumberNodes()
             bool boundary = onUpperBoundary(xyzL[0],xyzL[1],xyzL[2]);
             bool possiblyMissingNodes = hanging || boundary; // Nodes not tracked by p8est
 
-            if(!hasDuplicate(point,NormalNodesTmp))
+            if(std::count(NormalNodesTmp.begin(), NormalNodesTmp.end(), point)==0)
             {
                 NormalNodesTmp.push_back(point);
                 NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
@@ -1877,7 +1931,7 @@ void Brick::renumberNodes()
                     p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
                     auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
 
-                    if(!hasDuplicate(point,NormalNodesTmp))
+                    if(std::count(NormalNodesTmp.begin(), NormalNodesTmp.end(), point)==0)
                     {
                         NormalNodesTmp.push_back(point);
                         NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
@@ -2348,10 +2402,10 @@ bool Brick::hasDuplicate(DoubleTuple point, std::vector<DoubleTuple> vec )
                   && std::get<2>(vec[i]) == std::get<2>(point))
                         gotPoint[thread_num] = true;
     #pragma omp barrier
-        bool PointInVector = false;
         for(int i = 0; i < omp_get_num_threads(); i++ )
-            PointInVector = PointInVector || gotPoint[i];
-        return PointInVector;
+            if(gotPoint[i])
+                return true;
+        return false;
     }
     else // more than one mpi process
     {
@@ -2407,13 +2461,11 @@ bool Brick::hasDuplicate(DoubleTuple point, std::vector<DoubleTuple> vec )
                 && std::get<1>(vec[i]) == std::get<1>(point) 
                   && std::get<2>(vec[i]) == std::get<2>(point))
                         gotPoint[thread_num] = true;
-
-
     #pragma omp barrier
-        bool PointInVector = false;
-        for(int i = 0; i < omp_get_num_threads(); i++ )
-            PointInVector = PointInVector || gotPoint[i];
-        return PointInVector;
+    for(int i = 0; i < omp_get_num_threads(); i++ )
+        if(gotPoint[i])
+            return true;
+    return false;
 
 #endif
 }
