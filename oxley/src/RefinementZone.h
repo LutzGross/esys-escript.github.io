@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 
+#include <escript/DataTypes.h>
 #include <escript/Pointers.h>
 
 #include <oxley/RefinementType.h>
@@ -109,7 +110,7 @@ public:
     void refineRegion(float x0, float y0, float x1, float y1, int level);
     void refineCircle(float x0, float y0, float r, int level);
     void refineBorder(Border b, float dx, int level);
-    void refineMask(escript::Data d);
+    void refineMask(escript::Data d, int level);
     /**
        \brief
        Prints the current queue to console
@@ -137,7 +138,7 @@ public:
     void refineRegion(float x0, float y0, float z0, float x1, float y1, float z1, int level);
     void refineSphere(float x0, float y0, float z0, float r, int level);
     void refineBorder(Border b, float dx, int level);
-    void refineMask(escript::Data d);
+    void refineMask(escript::Data d, int level);
     /**
        \brief
        Prints the current queue to console

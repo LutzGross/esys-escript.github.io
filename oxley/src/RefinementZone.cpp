@@ -91,11 +91,30 @@ void RefinementZone2D::refineBorder(Border b, float dx, int level)
 	addToQueue(refine);
 }
 
-void RefinementZone2D::refineMask(escript::Data d)
+void RefinementZone2D::refineMask(escript::Data mask, int level)
 {
-	RefinementType refine;
-	refine.Mask2DRefinement(&d,refinement_levels);
-	addToQueue(refine);	
+	level == -1 ? 1 : level;
+
+    int numsamples = mask.getNumSamples();
+    int dpps = mask.getNumDataPointsPerSample(); // should always be = 1
+
+    for (int i=0; i<numsamples; ++i) 
+    {
+        const escript::DataTypes::real_t onlyreal=0;
+        for (int j=0; j<dpps; ++j)
+        {
+            const double* masksample = mask.getSampleDataRO(i, onlyreal);
+            bool doRefinement = masksample[0];
+            if(!doRefinement)
+            {
+                escript::Data x = mask.getXFromFunctionSpace();
+                auto p = x.getSampleDataRO(i, onlyreal);
+                RefinementType refine;
+                refine.Point3DRefinement(*(p), *(p+1), *(p+2), level);
+                addToQueue(refine); 
+            }
+        }
+    }
 }
 
 void RefinementZone2D::print()
@@ -239,11 +258,91 @@ void RefinementZone3D::refineBorder(Border b, float dx, int level)
 	addToQueue(refine);
 }
 
-void RefinementZone3D::refineMask(escript::Data d)
+void RefinementZone3D::refineMask(escript::Data mask, int level)
 {
-	RefinementType refine;
-	refine.Mask3DRefinement(&d, refinement_levels);
-	addToQueue(refine);	
+    level == -1 ? 1 : level;
+
+    int numsamples = mask.getNumSamples();
+    int dpps = mask.getNumDataPointsPerSample(); // should always be = 1
+
+    for (int i=0; i<numsamples; ++i) 
+    {
+        const escript::DataTypes::real_t onlyreal=0;
+        for (int j=0; j<dpps; ++j)
+        {
+            const double* masksample = mask.getSampleDataRO(i, onlyreal);
+            bool doRefinement = masksample[0];
+            if(!doRefinement)
+            {
+                escript::Data x = mask.getXFromFunctionSpace();
+                auto p = x.getSampleDataRO(i, onlyreal);
+                RefinementType refine;
+                refine.Point3DRefinement(*(p), *(p+1), *(p+2), level);
+                addToQueue(refine);
+            }
+        }
+    }
+
+// #ifdef HAVE_OPENMP
+//     if(omp_get_num_threads() == 1)
+//     {
+//     }
+//     else
+//     {
+//         #pragma omp parallel
+//         {
+//             int numsamples = mask.getNumSamples();
+//             int dpps = mask.getNumDataPointsPerSample();
+//             std::vector<std::vector<RefinementType>> storage;
+//             // #pragma omp parallel for shared(storage)
+//             for (int i=0; i<numsamples; ++i) 
+//             {
+//                 const escript::DataTypes::real_t onlyreal=0;
+//                 for (int j=0; j<dpps; ++j) 
+//                 {
+//                     const double* masksample = mask.getSampleDataRO(i, onlyreal);
+//                     bool doRefinement = masksample[j];
+//                     if(doRefinement == true)
+//                     {
+//                         escript::Data x = mask.getXFromFunctionSpace();
+
+
+//                         // RefinementType refine;
+//                         // refine.Point3DRefinement(x0, y0, z0, level);
+//                         // storage.push_back(refine);
+//                     }
+//                 }
+//             }
+
+//             #pragma omp barrier
+//             if(omp_get_thread_num()==0)
+//             {
+//                 for(int i = 0; i > omp_get_num_threads(); i++)
+//                 {
+//                     std::vector<RefinementType> tmp = storage[i];
+//                     for(int j = 0; j < tmp.size(); j++)
+//                         addToQueue(tmp[j]); 
+//                 }
+//             }
+//         } // omp parallel
+//     }
+
+// #else
+//     int numsamples = mask.getNumSamples();
+//     int dpps = mask.getNumDataPointsPerSample();
+//     const escript::DataTypes::real_t onlyreal=0;
+//     for (int i=0; i<numsamples; ++i) {
+//         for (int j=0; j<dpps; ++j) {
+//             bool doRefinement = mask.getSampleDataRO(i, onlyreal);
+
+//             // RefinementType refine;
+//             // refine.Point3DRefinement(x0, y0, z0, level);
+//             // addToQueue(refine); 
+//         }
+//     }
+
+
+// #endif
 }
 
 void RefinementZone3D::print()

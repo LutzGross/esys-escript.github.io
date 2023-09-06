@@ -537,7 +537,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param Border:\n:type string: The border to refine (top,bottom,right,left).\n"
                 ":param dx:\n:type float: the depth of the refinement.\n"
                 ":param level:\n:type float: the level of refinement.\n")
-        .def("refineMask", &oxley::RefinementZone3D::refineMask, (args("mask")),
+        .def("refineMask", &oxley::RefinementZone3D::refineMask, (arg("mask"),arg("level")=-1),
                 "Refines the mesh in regions defined by a mask\n"
                 ":param mask:\n:type Data: a mask.\n")
         ;
