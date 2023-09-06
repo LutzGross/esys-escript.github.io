@@ -14,6 +14,7 @@
 *****************************************************************************/
 
 #include <algorithm>
+#include <cmath>
 #include <ctime>
 #include <random>
 #include <vector>
@@ -1177,6 +1178,25 @@ void Brick::updateMesh()
 
 }
 
+void Brick::updateMeshBackend()
+{
+    // Mesh creation
+    oxleytimer.toc("Brick::updateMeshBackend ...");
+    oxleytimer.toc("\t balancing...");    
+    p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
+    oxleytimer.toc("\t partitioning...");    
+    bool partition_for_coarsening = true;
+    p8est_partition_ext(p8est, partition_for_coarsening, NULL);
+    oxleytimer.toc("\t destroying old ghost..."); 
+    p8est_ghost_destroy(ghost);
+    oxleytimer.toc("\t creating new ghost..."); 
+    ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
+    oxleytimer.toc("\t destroying old lnodes...");   
+    p8est_lnodes_destroy(nodes);
+    oxleytimer.toc("\t creating new lnodes..."); 
+    nodes = p8est_lnodes_new(p8est, ghost, 1);
+}
+
 void Brick::AutomaticMeshUpdateOnOff(bool new_setting)
 {
     #ifdef OXLEY_ENABLE_PROFILE_TIMERS_INFORMATIONAL
@@ -1816,134 +1836,8 @@ void Brick::renumberNodes()
 
     const float lxy_nodes[8][3] = {{0,0,0},{1,0,0},{0,1,0},{1,1,0},{0,0,1},{1,0,1},{0,1,1},{1,1,1}};
 
-    // // Assign numbers to the nodes
-    // oxleytimer.toc("\tmain loop"); 
-    // for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
-    //     p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-    //     sc_array_t * tquadrants = &tree->quadrants;
-    //     p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-
-    //     // Loop over octants
-    //     for(int q = 0; q < Q; ++q) { 
-    //         p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
-    //         p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
-
-    //         // Assign numbers to the vertix nodes
-    //         double xyz[3];
-    //         for(int n = 0; n < 8; n++)
-    //         {
-    //             // Get the first coordinate
-    //             p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
-    //                                         oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
-    //             auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-    //             if(std::find(NormalNodesTmp.begin(), NormalNodesTmp.end(), point)==NormalNodesTmp.end())
-    //             {
-    //                 NormalNodesTmp.push_back(point);
-    //                 NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
-    //             }
-    //         }
-    //     }
-    // }
-
-    // v2    
-
-    // 
-    // oxleytimer.toc("\tmain loop"); 
-    // for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
-    //     p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-    //     sc_array_t * tquadrants = &tree->quadrants;
-    //     p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-
-    //     // Loop over octants
-    //     for(int q = 0; q < Q; ++q) { 
-    //         p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
-    //         p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
-
-    //         // Assign numbers to the vertix nodes
-    //         double xyz[3];
-    //         p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[0][0], oct->y+l*lxy_nodes[0][1], oct->z+l*lxy_nodes[0][2], xyz);
-    //         auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-
-    //         bool hanging = hasHanging(nodes->face_code[k++]);
-    //         double xyzL[3];
-    //         p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l, oct->y+l, oct->z+l, xyzL);
-    //         bool boundary = onUpperBoundary(xyzL[0],xyzL[1],xyzL[2]);
-    //         bool possiblyMissingNodes = hanging || boundary; // Nodes not tracked by p8est
-
-    //         if(!hasDuplicate(point,NormalNodesTmp))
-    //         {
-    //             NormalNodesTmp.push_back(point);
-    //             NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
-    //         }
-
-    //         if(possiblyMissingNodes)
-    //         {
-    //             for(int n = 1; n < 8; n++)
-    //             {
-    //                 // Get the first coordinate
-    //                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
-    //                 auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-
-    //                 if(!hasDuplicate(point,NormalNodesTmp))
-    //                 {
-    //                     NormalNodesTmp.push_back(point);
-    //                     NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-
-    //
-
-    // 
-    // oxleytimer.toc("\tmain loop"); 
-    // for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
-    //     p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-    //     sc_array_t * tquadrants = &tree->quadrants;
-    //     p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-
-    //     // Loop over octants
-    //     for(int q = 0; q < Q; ++q) { 
-    //         p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
-    //         p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
-
-    //         // Assign numbers to the vertix nodes
-    //         double xyz[3];
-    //         p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[0][0], oct->y+l*lxy_nodes[0][1], oct->z+l*lxy_nodes[0][2], xyz);
-    //         auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-
-    //         bool hanging = hasHanging(nodes->face_code[k++]);
-    //         double xyzL[3];
-    //         p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l, oct->y+l, oct->z+l, xyzL);
-    //         bool boundary = onUpperBoundary(xyzL[0],xyzL[1],xyzL[2]);
-    //         bool possiblyMissingNodes = hanging || boundary; // Nodes not tracked by p8est
-
-    //         if(std::count(NormalNodesTmp.begin(), NormalNodesTmp.end(), point)==0)
-    //         {
-    //             NormalNodesTmp.push_back(point);
-    //             NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
-    //         }
-
-    //         if(possiblyMissingNodes)
-    //         {
-    //             for(int n = 1; n < 8; n++)
-    //             {
-    //                 // Get the first coordinate
-    //                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
-    //                 auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-
-    //                 if(std::count(NormalNodesTmp.begin(), NormalNodesTmp.end(), point)==0)
-    //                 {
-    //                     NormalNodesTmp.push_back(point);
-    //                     NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-
-    // v4
+    // // v1
+    // Assign numbers to the nodes
     oxleytimer.toc("\tmain loop"); 
     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
@@ -1957,65 +1851,212 @@ void Brick::renumberNodes()
 
             // Assign numbers to the vertix nodes
             double xyz[3];
-            p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[0][0], oct->y+l*lxy_nodes[0][1], oct->z+l*lxy_nodes[0][2], xyz);
-            auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-
-            bool hanging = hasHanging(nodes->face_code[k++]);
-            double xyzL[3];
-            p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l, oct->y+l, oct->z+l, xyzL);
-            bool boundary = onUpperBoundary(xyzL[0],xyzL[1],xyzL[2]);
-            bool possiblyMissingNodes = hanging || boundary; // Nodes not tracked by p8est
-
-            NormalNodesTmp.push_back(point);
-            
-            if(possiblyMissingNodes)
+            for(int n = 0; n < 8; n++)
             {
-                for(int n = 1; n < 8; n++)
+                // Get the first coordinate
+                p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
+                                            oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
+                auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
+                if(std::find(NormalNodesTmp.begin(), NormalNodesTmp.end(), point)==NormalNodesTmp.end())
                 {
-                    // Get the first coordinate
-                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
-                    auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
                     NormalNodesTmp.push_back(point);
+                    NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
                 }
             }
-        }
-    }
-    //check for duplicates
-    for(int i = NormalNodesTmp.size()-1; i > 0 ; i--)
-    {
-        auto point = NormalNodesTmp[i];
-        double tol = 1e-12;
-        bool duplicatePoint = hasDuplicate(point,NormalNodesTmp);
-        if(duplicatePoint)
-        {
-            bool locats[NormalNodesTmp.size()] = {false};
-        #pragma omp parallel for
-            for(int j = 0; j < NormalNodesTmp.size(); j++) // find location of duplicate points
-            {
-                if((std::abs(std::get<0>(NormalNodesTmp[j]) - std::get<0>(point)) < tol)
-                    && (std::abs(std::get<1>(NormalNodesTmp[j]) - std::get<1>(point)) < tol) 
-                        && (std::abs(std::get<2>(NormalNodesTmp[j]) - std::get<2>(point)) < tol))
-                            locats[j] = true;
-            }
-            int firstOccurance = 0;
-            for(int j = 0; j < NormalNodesTmp.size(); j++) // find the first occurance of the point
-                if(locats[j] == true)
-                {
-                    firstOccurance=j;
-                    break;
-                }
-            for(int j = NormalNodesTmp.size(); j > firstOccurance; j--) // erase duplicates
-                if(locats[j] == true)
-                    NormalNodesTmp.erase(NormalNodesTmp.begin()+j);
-            i = NormalNodesTmp.size()-1;
         }
     }
 
-    // Write information into NodeIDs
-    for(int i = 0; i < NormalNodesTmp.size(); i++)
-    {
-        NodeIDs[NormalNodesTmp[i]]=i;
-    }
+    //v5 faster but uses a lot more memory
+    oxleytimer.toc("\tmain loop");
+
+// #ifdef ESYS_MPI 
+//     // Do the calculation    
+//     std::vector<double> treevecX;
+//     std::vector<double> treevecY;
+//     std::vector<double> treevecZ;
+//     std::vector<DoubleTuple> localNodes;
+//     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
+//         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+//         sc_array_t * tquadrants = &tree->quadrants;
+//         p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+//         for(int q = 0; q < Q; ++q) { 
+//             p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
+//             p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
+//             for(int n = 0; n < 8; n++) {
+//                 double xyzB[3];
+//                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyzB);
+//                 if(m_mpiInfo->rank == 0)
+//                 {
+//                     std::tuple<double,double,double> point = std::make_tuple(xyzB[0],xyzB[1],xyzB[2]);
+//                     if(!hasDuplicate(point,NormalNodesTmp, true))
+//                     {
+//                         NormalNodesTmp.push_back(point);
+//                     }
+//                 }
+//                 else
+//                 {
+//                     std::tuple<double,double,double> point = std::make_tuple(xyzB[0],xyzB[1],xyzB[2]);
+//                     if(!hasDuplicate(point,localNodes, true))
+//                     {
+//                         localNodes.push_back(point);
+//                         treevecX.push_back(xyzB[0]);
+//                         treevecY.push_back(xyzB[1]);
+//                         treevecZ.push_back(xyzB[2]);
+//                     }
+//                 }
+//             }
+//         }
+//     }
+
+//     // ae tmp
+//     MPI_Barrier(m_mpiInfo->comm);
+//     if(m_mpiInfo->size > 1)
+//     {
+//         // Send all the information to rank 0
+//         if(m_mpiInfo->rank != 0)
+//         {
+//             // broadcast
+//             int numPoints = treevecX.size();
+//             MPI_Send(&numPoints, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
+//             MPI_Send(treevecX.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm);
+//             MPI_Send(treevecY.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm);
+//             MPI_Send(treevecZ.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm);
+//         }
+//         else if(m_mpiInfo->rank == 0)
+//         {
+//             for(int i = 1; i < m_mpiInfo->size; i++)
+//             {   
+//                 std::vector<double> tmpX;
+//                 std::vector<double> tmpY;
+//                 std::vector<double> tmpZ;
+//                 int numPoints = 0;
+//                 MPI_Status * status;
+//                 MPI_Recv(&numPoints, 1, MPI_INT, i, 0, m_mpiInfo->comm, status);
+//                 MPI_Recv(tmpX.data(), numPoints, MPI_DOUBLE, i, 0, m_mpiInfo->comm, status);
+//                 MPI_Recv(tmpY.data(), numPoints, MPI_DOUBLE, i, 0, m_mpiInfo->comm, status);
+//                 MPI_Recv(tmpZ.data(), numPoints, MPI_DOUBLE, i, 0, m_mpiInfo->comm, status);
+
+//                 for(int j = 0; j++; j < numPoints)
+//                     NormalNodesTmp.push_back(std::make_tuple(tmpX[j],tmpY[j],tmpZ[j]));
+//             }
+//         }
+//     }
+//     oxleytimer.toc("\t\tchecking for duplicates");
+//     if(m_mpiInfo->size > 1 && m_mpiInfo->rank == 0) // Redundant for mpi size = 1
+//     {
+//         //check for duplicates
+//         for(int i = NormalNodesTmp.size()-1; i > 0 ; i--)
+//         {
+//             auto point = NormalNodesTmp[i];
+//             double tol = 1e-12;
+//             bool duplicatePoint = hasDuplicate(point,NormalNodesTmp, false);
+//             if(duplicatePoint)
+//             {
+//                 bool locats[NormalNodesTmp.size()] = {false};
+//             #pragma omp parallel
+//             {
+//             #pragma omp parallel for shared(locats)
+//                 for(int j = 0; j < NormalNodesTmp.size(); j++) // find location of duplicate points
+//                 {
+//                     if((std::abs(std::get<0>(NormalNodesTmp[j]) - std::get<0>(point)) < 1e-12)
+//                         && (std::abs(std::get<1>(NormalNodesTmp[j]) - std::get<1>(point)) < 1e-12) 
+//                             && (std::abs(std::get<2>(NormalNodesTmp[j]) - std::get<2>(point)) < 1e-12))
+//                                 locats[j] = true;
+//                 }
+//             } // omp parallel
+//                 int firstOccurance = 0;
+//                 for(int j = 0; j < NormalNodesTmp.size(); j++) // find the first occurance of the point
+//                     if(locats[j] == true)
+//                     {
+//                         firstOccurance=j;
+//                         break;
+//                     }
+//                 for(int j = NormalNodesTmp.size(); j > firstOccurance; j--) // erase duplicates
+//                     if(locats[j] == true)
+//                         NormalNodesTmp.erase(NormalNodesTmp.begin()+j);
+//                 i = NormalNodesTmp.size()-1;
+//             }
+//         }
+//         // Write information into NodeIDs
+//         for(int i = 0; i < NormalNodesTmp.size(); i++)
+//             NodeIDs[NormalNodesTmp[i]]=i;
+//     }
+//     oxleytimer.toc("\t\t\t...done");
+
+// #else // no mpi
+//     #ifdef OPENMPFLAG
+//     omp_set_num_threads(omp_get_max_threads());
+//     #endif
+//     // Do the calculation
+//     int numOfTrees=m_NE[0]*m_NE[1]*m_NE[2];
+//     std::vector<std::vector<std::tuple<double,double,double>>> storage;
+//     storage.resize(numOfTrees+1);
+//     #pragma omp parallel shared(storage)
+//     {
+//         #pragma omp parallel for
+//         for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
+//             std::vector<std::tuple<double,double,double>> treevec;
+//             p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+//             sc_array_t * tquadrants = &tree->quadrants;
+//             p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+//             for(int q = 0; q < Q; ++q) { 
+//                 p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
+//                 p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
+//                 for(int n = 0; n < 8; n++) {
+//                     double xyzB[3];
+//                     p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyzB);
+//                     treevec.push_back(std::make_tuple(xyzB[0],xyzB[1],xyzB[2]));
+//                 }
+//             }
+//             storage[treeid]=treevec;
+//         }
+//     } // parallel
+//     // Copy the data to NormalNodesTmp
+//     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
+//         std::vector<std::tuple<double,double,double>> treevec = storage[treeid];
+//         for(int i = 0; i < treevec.size(); i++)
+//             NormalNodesTmp.push_back(treevec[i]);
+//     }
+//     //check for duplicates
+//     for(int i = NormalNodesTmp.size()-1; i > 0 ; i--)
+//     {
+//         auto point = NormalNodesTmp[i];
+//         double tol = 1e-12;
+//         bool duplicatePoint = hasDuplicate(point,NormalNodesTmp,false);
+//         if(duplicatePoint)
+//         {
+//             bool locats[NormalNodesTmp.size()] = {false};
+//         #pragma omp parallel shared(locats)
+//         {
+//         #pragma omp parallel for
+//             for(int j = 0; j < NormalNodesTmp.size(); j++) // find location of duplicate points
+//             {
+//                 if((std::abs(std::get<0>(NormalNodesTmp[j]) - std::get<0>(point)) < tol)
+//                     && (std::abs(std::get<1>(NormalNodesTmp[j]) - std::get<1>(point)) < tol) 
+//                         && (std::abs(std::get<2>(NormalNodesTmp[j]) - std::get<2>(point)) < tol))
+//                             locats[j] = true;
+//             }
+//         } // #pragma omp parallel shared(locats)
+//             int firstOccurance = 0;
+//             for(int j = 0; j < NormalNodesTmp.size(); j++) // find the first occurance of the point
+//                 if(locats[j] == true)
+//                 {
+//                     firstOccurance=j;
+//                     break;
+//                 }
+//             for(int j = NormalNodesTmp.size(); j > firstOccurance; j--) // erase duplicates
+//                 if(locats[j] == true)
+//                     NormalNodesTmp.erase(NormalNodesTmp.begin()+j);
+//             i = NormalNodesTmp.size()-1;
+//         }
+//     }
+//     // Write information into NodeIDs
+//     for(int i = 0; i < NormalNodesTmp.size(); i++)
+//         NodeIDs[NormalNodesTmp[i]]=i;
+// #endif
+
+
+
 
     oxleytimer.toc("\tinformation loop");
 
@@ -2457,83 +2498,94 @@ void Brick::renumberNodes()
 }
 
 
-bool Brick::hasDuplicate(DoubleTuple point, std::vector<DoubleTuple> vec )
+bool Brick::hasDuplicate(DoubleTuple point, std::vector<DoubleTuple> vec, bool serial)
 {
-#ifdef ESYS_MPI
-
-    int rank;// = m_mpiInfo->rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    int size; // = m_mpiInfo->size;
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-    //compiled with MPI but currently being run on a single process
-    if(size==1) 
+    if(serial)
     {
-        int thread_num = omp_get_thread_num();
-        bool gotPoint[omp_get_num_threads()]={false};
         double tol = 1e-12;
-        // double tol = 0.0;
-    #pragma omp parallel for 
+        int count=0;
         for(int i = 0 ; i < vec.size(); i++)
-            if( (std::abs(std::get<0>(vec[i]) - std::get<0>(point)) < tol)
+            if((std::abs(std::get<0>(vec[i]) - std::get<0>(point)) < tol)
                 && (std::abs(std::get<1>(vec[i]) - std::get<1>(point)) < tol) 
                     && (std::abs(std::get<2>(vec[i]) - std::get<2>(point)) < tol))
-                        gotPoint[thread_num] = true;
-    #pragma omp barrier
-        int count=0;
-        for(int i = 0; i < omp_get_num_threads(); i++ )
-            if(gotPoint[i])
-                count++;
+                        count++;
         if(count > 1)
             return true;
         else
             return false;
     }
-    else // more than one mpi process
-    {
-        bool PointInVector=false;
-        bool foundPoint;
 
-        // search our part of the vector for point
-        for(int i = 0 ; i < vec.size(); i++)
-        {
-            if(i % size != rank)
-                continue;
+// #ifdef ESYS_MPI
 
-            bool foundPoint = (std::abs(std::get<0>(vec[i]) - std::get<0>(point)) < tol)
-                                && (std::abs(std::get<1>(vec[i]) - std::get<1>(point)) < tol) 
-                                    && (std::abs(std::get<2>(vec[i]) - std::get<2>(point)) < tol);
+//     int rank;// = m_mpiInfo->rank;
+//     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//     int size; // = m_mpiInfo->size;
+//     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-            if(foundPoint==true)
-                break;
-        }
+//     //compiled with MPI but currently being run on a single process
+//     if(size==1) 
+//     {
+//         int thread_num = omp_get_thread_num();
+//         bool gotPoint[omp_get_num_threads()]={false};
+//         // double tol = 0.0;
+//     #pragma omp parallel for 
+//         for(int i = 0 ; i < vec.size(); i++)
+//             if( (std::abs(std::get<0>(vec[i]) - std::get<0>(point)) < 1e-12)
+//                 && (std::abs(std::get<1>(vec[i]) - std::get<1>(point)) < 1e-12) 
+//                     && (std::abs(std::get<2>(vec[i]) - std::get<2>(point)) < 1e-12))
+//                         gotPoint[thread_num] = true;
+//     #pragma omp barrier
+//         int count=0;
+//         for(int i = 0; i < omp_get_num_threads(); i++ )
+//             if(gotPoint[i])
+//                 count++;
+//         if(count > 1)
+//             return true;
+//         else
+//             return false;
+//     }
+//     else // more than one mpi process
+//     {
+//         bool PointInVector=false;
+//         int foundPoint = 0;
+//         // search our part of the vector for point
+//         for(int i = 0 ; i < vec.size(); i++)
+//         {
+//             if(i % size != rank)
+//                 continue;
 
-        MPI_Barrier(m_mpiInfo->comm);
+//             bool test = (std::abs(std::get<0>(vec[i]) - std::get<0>(point)) < 1e-12)
+//                                 && (std::abs(std::get<1>(vec[i]) - std::get<1>(point)) < 1e-12) 
+//                                     && (std::abs(std::get<2>(vec[i]) - std::get<2>(point)) < 1e-12);
 
-        // communicate/recieve results
-        bool somoneElseFoundPoint=false;
-        if(rank != 0)
-        {
-            MPI_Send(&foundPoint, 1,  MPI::BOOL, 0, 0, m_mpiInfo->comm);
-        }
-        else
-        {
-            // check to see if someone else found it
-            for(int j = 1; j < size ; j++)
-            {
-                MPI_Status *status;
-                bool temp=false;
-                MPI_Recv(&temp, 1, MPI::BOOL, j, 0, m_mpiInfo->comm, status);
-                if(temp == true)
-                    somoneElseFoundPoint=true;                
-            }
-        }
-
-        MPI_Barrier(m_mpiInfo->comm);
-
-        return somoneElseFoundPoint || foundPoint;
-    }
-#else // NOMPI
+//             if(test==true)
+//             {
+//                 foundPoint = 1;
+//                 break;
+//             }
+//         }
+//         MPI_Barrier(m_mpiInfo->comm);
+//         // relay results to 0
+//         bool somoneElseFoundPoint=false;
+//         if(rank != 0)
+//         {
+//             MPI_Send(&foundPoint, 1,  MPI_INT, 0, 0, m_mpiInfo->comm);
+//         }
+//         else
+//         {
+//             // check to see if someone else found it
+//             for(int j = 1; j < size ; j++)
+//             {
+//                 MPI_Status *status;
+//                 int temp=0;
+//                 MPI_Recv(&temp, 1, MPI_INT, j, 0, m_mpiInfo->comm, status);
+//                 if(temp == 1)
+//                     somoneElseFoundPoint=true;
+//             }
+//         }
+//         return somoneElseFoundPoint || foundPoint;
+//     }
+// #else // NOMPI
     #ifdef OPENMPFLAG
         int thread_num = omp_get_thread_num();
         bool gotPoint[omp_get_num_threads()]={false};
@@ -2566,7 +2618,7 @@ bool Brick::hasDuplicate(DoubleTuple point, std::vector<DoubleTuple> vec )
             return false;
     #endif //OPENMPFLAG
 
-#endif
+// #endif
 }
 
 // A faster version of p8est_qcoord_to_vertex
@@ -2624,38 +2676,25 @@ void Brick::assembleCoordinates(escript::Data& arg) const
 
     std::vector<bool> duplicates(getNumNodes(),false);
 
-    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
+    {
         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
         p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-
-// #pragma omp parallel for
-        for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
+        for(int q = 0; q < Q; ++q) 
+        {
             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-            p8est_qcoord_t length = P8EST_QUADRANT_LEN(quad->level);
-
-            // Loop over the four corners of the quadrant
-            for(int n = 0; n < 4; ++n){
-                // int k = q - Q + nodeIncrements[treeid - p8est->first_local_tree];
-                double lx = length * ((int) (n % 2) == 1);
-                double ly = length * ((int) (n / 2) == 1);
-                //TODO fix 
-                double lz = length * ((int) (n / 2) == 1);
+            p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
+            int dxyz[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},{0,0,l},{l,0,l},{0,l,l},{l,l,l}};
+            for(int n = 0; n < 8; ++n)
+            {
                 double xy[3];
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
-
-                // if( (n == 0) 
-                //   || isHangingNode(nodes->face_code[q], n)
-                //   || isUpperBoundaryNode(quad, n, treeid, length) 
-                // )
-                // {
+                p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+dxyz[n][0], quad->y+dxyz[n][1], quad->z+dxyz[n][2], xy);
                 long lni = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
-
                 if(duplicates[lni] == true)
                     continue;
                 else
                     duplicates[lni] = true;
-
                 double * point = arg.getSampleDataRW(lni);
                 point[0] = xy[0];
                 point[1] = xy[1];
@@ -5467,6 +5506,8 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
             default:
                 throw OxleyException("Unknown refinement algorithm.");
         }
+
+        newDomain->updateMeshBackend();
     }
 
     newDomain->updateMesh();

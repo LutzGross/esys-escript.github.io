@@ -572,7 +572,7 @@ protected:
        \brief
        Returns true if vector has point. 
     */
-    bool hasDuplicate(DoubleTuple point, std::vector<DoubleTuple> vector );
+    bool hasDuplicate(DoubleTuple point, std::vector<DoubleTuple> vector, bool serial );
 
     /**
        \brief
@@ -606,6 +606,13 @@ protected:
      * Updates the mesh after refinement
    */
    void updateMesh();
+
+   /**
+     * \brief
+     * Updates the mesh after refinement
+   */
+   void updateMeshBackend();
+
 
    /**
     * \brief
