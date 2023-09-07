@@ -1998,6 +1998,29 @@ void Brick::renumberNodes()
     MPI_Barrier(m_mpiInfo->comm);
     oxleytimer.toc("\t\t\t...done");
 
+    // Send info to the other ranks
+    oxleytimer.toc("\tcommunicating");
+    if(m_mpiInfo->size > 1)
+    {
+        if(m_mpiInfo->rank == 0)
+        {
+            for(int i = 1; i < m_mpiInfo->size; i++)
+            {
+                int numPoints = NormalNodesTmp.size();
+                MPI_Send(&numPoints, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                MPI_Send(NormalNodesTmp.data(), 3*NormalNodesTmp.size(), MPI_DOUBLE, i, 0, m_mpiInfo->comm);
+            }
+        }
+        else
+        {
+            int numPoints = 0;
+            MPI_Recv(&numPoints, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+            NormalNodesTmp.resize(numPoints);
+            MPI_Recv(NormalNodesTmp.data(), 3*numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE );
+        }
+    }
+    oxleytimer.toc("\t\t\t...done");
+
 #else // no mpi
     #ifdef OPENMPFLAG
     omp_set_num_threads(omp_get_max_threads());
