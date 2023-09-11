@@ -2132,10 +2132,12 @@ void Brick::renumberNodes()
     if(m_mpiInfo->rank == 0)
     {
         k=0;
-        for(p8est_topidx_t treeid = 0; treeid <= m_NE[0]*m_NE[1]*m_NE[2]; ++treeid) {
+        // Do this process's nodes first
+        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
             p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
             sc_array_t * tquadrants = &tree->quadrants;
             p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+
             // Loop over octants
             for(int q = 0; q < Q; ++q) { 
                 p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
@@ -2436,7 +2438,354 @@ void Brick::renumberNodes()
                 }
             }
         }
+        // Now do the remainder
+        if(m_mpiInfo->size > 1)
+        {
+            for(int r = 1; r < m_mpiInfo->size; r++)       
+            {
+                int num_of_iterations;
+                MPI_Recv(&num_of_iterations, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                for(int it = 0; it < num_of_iterations; it++)
+                {
+                    p8est_quadrant_t * oct;
+                    MPI_Recv(&oct->x, 1, MPI_LONG, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE); //check
+                    MPI_Recv(&oct->y, 1, MPI_LONG, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                    MPI_Recv(&oct->z, 1, MPI_LONG, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                    MPI_Recv(&oct->level, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                    MPI_Recv(&oct->pad8, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                    MPI_Recv(&oct->pad16, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                    int treeid;
+                    MPI_Recv(&treeid, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+
+                    // Save octant information
+                    p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
+                    double xyz[3];
+                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyz);
+
+                    octantIDs.push_back(NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second);
+                    oct_info tmp;
+                    tmp.x=xyz[0];
+                    tmp.y=xyz[1];
+                    tmp.z=xyz[2];
+                    tmp.level=oct->level;
+                    octantInfo.push_back(tmp);
+
+                    // Get the hanging edge and face information for this octant
+                    int hanging_faces[6];
+                    int hanging_edges[12];
+                    getHangingInfo(nodes->face_code[k++], hanging_faces, hanging_edges);
+
+                    #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
+                        std::cout << "Octant  " << k-1 << ":" << std::endl;
+                        int faceCount=6, edgeCount=12;
+                        for(int i=0;i<6;i++) faceCount+=hanging_faces[i];
+                        for(int i=0;i<12;i++) edgeCount+=hanging_edges[i];
+                        std::cout << "\tHanging faces : ";
+                        if(faceCount==0)
+                            std::cout << "[none]";
+                        else
+                            for(int i=0; i<6;i++)
+                                if(hanging_faces[i]!=-1)
+                                    std::cout << i << "(" << hanging_faces[i] << "), " ;
+                        std::cout << std::endl;
+                        std::cout << "\tHanging edges : ";
+                        if(edgeCount==0)
+                            std::cout << "[none]";
+                        else
+                            for(int i=0; i<12;i++)
+                                if(hanging_edges[i]!=-1)
+                                    std::cout << i << "(" << hanging_edges[i] << "), " ;
+
+                        std::cout << std::endl;
+                    #endif
+                
+                    // Record hanging node information
+                    // Loop over faces
+                    for(int n = 0; n < 6; n++)
+                    {
+                        // If the face does not have any hanging nodes then skip ahead
+                        if(hanging_faces[n]==-1)
+                            continue;
+
+                        // *******************************************************************
+                        // Corner node
+                        // *******************************************************************
+                        double xyzC[3];
+                        p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyzC);
+                        auto cornerPoint = std::make_tuple(xyzC[0],xyzC[1],xyzC[2]);
+                        long nodeidC = NodeIDs.find(cornerPoint)->second;
+
+                        // *******************************************************************
+                        // Face node
+                        // *******************************************************************
+                        // shift to the corner of the face
+                        signed long x_corner = ((int) xface[n][hanging_faces[n]]) * l;
+                        signed long y_corner = ((int) yface[n][hanging_faces[n]]) * l;
+                        signed long z_corner = ((int) zface[n][hanging_faces[n]]) * l;
+
+                        double xyz[3];
+                        p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
+                                                oct->x+x_corner, 
+                                                oct->y+y_corner, 
+                                                oct->z+z_corner, xyz);
+
+                        // Add to list of nodes
+                        DoubleTuple point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
+                        long nodeid = NodeIDs.find(point)->second;
+                        std::vector<long>::iterator have_node = std::find(HangingFaceNodesTmp.begin(), HangingFaceNodesTmp.end(),nodeid);
+                        if(have_node == HangingFaceNodesTmp.end())
+                              HangingFaceNodesTmp.push_back(nodeid);
+
+                        // *******************************************************************
+                        // Get the parent octant
+                        // *******************************************************************
+                        p8est_quadrant_t parentOct;
+                        p8est_quadrant_t * parent = &parentOct;
+                        p8est_quadrant_parent(oct, parent);
+                        
+                        // *******************************************************************
+                        // Get the octant neighbouring this face
+                        // *******************************************************************
+                        // Get the neighbouring face
+                        p8est_quadrant_t neighbourOct;
+                        p8est_quadrant_t * neighbour = &neighbourOct;
+                        // p8est_quadrant_face_neighbor(parent, n, neighbour);
+                        int faceNeighbourTree=p8est_quadrant_face_neighbor_extra(parent,treeid,n,neighbour,NULL,connectivity);
+
+                        // Save this information
+                        hangingFaceInfo tmp;
+                        tmp.x=oct->x;
+                        tmp.y=oct->y;
+                        tmp.z=oct->z;
+                        tmp.level=oct->level;
+                        tmp.treeid=treeid;
+                        tmp.face_type=n;
+                        tmp.neighbour_x=neighbour->x;
+                        tmp.neighbour_y=neighbour->y;
+                        tmp.neighbour_z=neighbour->z;
+                        tmp.neighbour_level=neighbour->level;
+                        tmp.neighbour_tree=faceNeighbourTree;
+                        hanging_face_orientation.push_back(tmp);
+
+                        // *******************************************************************
+                        // Calculate the edge nodes
+                        // *******************************************************************
+                        signed long x_e_corner[2] = {((int) xedge[n][hanging_faces[n]][0]) * l,((int) xedge[n][hanging_faces[n]][1]) * l};
+                        signed long y_e_corner[2] = {((int) yedge[n][hanging_faces[n]][0]) * l,((int) yedge[n][hanging_faces[n]][1]) * l};
+                        signed long z_e_corner[2] = {((int) zedge[n][hanging_faces[n]][0]) * l,((int) zedge[n][hanging_faces[n]][1]) * l};
+                        double xyzA[2][3];
+                        p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_e_corner[0], oct->y+y_e_corner[0], oct->z+z_e_corner[0], xyzA[0]);
+                        p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_e_corner[1], oct->y+y_e_corner[1], oct->z+z_e_corner[1], xyzA[1]);
+                        DoubleTuple pointB[2] = {{std::make_tuple(xyzA[0][0],xyzA[0][1],xyzA[0][2])},{std::make_tuple(xyzA[1][0],xyzA[1][1],xyzA[1][2])}};
+                        long nodeidB[2]= {NodeIDs.find(pointB[0])->second,NodeIDs.find(pointB[1])->second};
+
+                        // Add to list of nodes
+                        std::vector<long>::iterator have_edge;
+                        have_edge = std::find(HangingEdgeNodesTmp.begin(), HangingEdgeNodesTmp.end(), nodeidB[0]);
+                        if(have_edge == HangingEdgeNodesTmp.end())
+                              HangingEdgeNodesTmp.push_back(nodeidB[0]);
+                        have_edge = std::find(HangingEdgeNodesTmp.begin(), HangingEdgeNodesTmp.end(), nodeidB[1]);
+                        if(have_edge == HangingEdgeNodesTmp.end())
+                              HangingEdgeNodesTmp.push_back(nodeidB[1]);
+
+                        // *******************************************************************
+                        // Get the neighbouring edge(s)
+                        // *******************************************************************
+                        // Get the neighbours
+                        p8est_quadrant_t EdgeNeighbourOct;
+                        p8est_quadrant_t * EdgeNeighbour = &EdgeNeighbourOct;
+                        int edge_number[2]={edge_lookup[n][hanging_faces[n]][0],edge_lookup[n][hanging_faces[n]][1]};
+                        sc_array_t quads[2];
+                        sc_array_t treeids[2];
+                        sc_array_t nedges[2];
+                        sc_array_t * pQuads[2] = {&quads[0],&quads[1]};
+                        sc_array_t * pTreeids[2] = {&treeids[0],&treeids[1]};
+                        sc_array_t * pNEdges[2] = {&nedges[0],&nedges[1]};
+                        sc_array_init(pQuads[0], (size_t) sizeof(p4est_quadrant_t));
+                        sc_array_init(pQuads[1], (size_t) sizeof(p4est_quadrant_t));
+                        sc_array_init(pTreeids[0], (size_t) sizeof(p4est_topidx_t));
+                        sc_array_init(pTreeids[1], (size_t) sizeof(p4est_topidx_t));
+                        sc_array_init(pNEdges[0], (size_t) sizeof(int));
+                        sc_array_init(pNEdges[1], (size_t) sizeof(int));
+
+                        // Check for boundaries            
+                        bool onBoundary[2];
+                        onBoundary[0] = xyzA[0][0]<=0 || xyzA[0][0]>=forestData.m_length[0] ||
+                                        xyzA[0][1]<=0 || xyzA[0][1]>=forestData.m_length[1] ||
+                                        xyzA[0][2]<=0 || xyzA[0][2]>=forestData.m_length[2];
+                        onBoundary[1] = xyzA[1][0]<=0 || xyzA[1][0]>=forestData.m_length[0] ||
+                                        xyzA[1][1]<=0 || xyzA[1][1]>=forestData.m_length[1] ||
+                                        xyzA[1][2]<=0 || xyzA[1][2]>=forestData.m_length[2];
+
+                        hangingEdgeInfo temp;
+                        if(!onBoundary[0])
+                        {
+                            p8est_quadrant_edge_neighbor_extra(parent,treeid,edge_number[0],pQuads[0],pTreeids[0],pNEdges[0],connectivity);
+                            temp.nodeid=nodeidC;
+                            temp.x=oct->x;
+                            temp.y=oct->y;
+                            temp.z=oct->z;
+                            temp.level=oct->level;
+                            temp.treeid=treeid;
+                            temp.edge_type=n;
+                            p8est_quadrant_t * tempB = (p8est_quadrant_t *) (*pQuads[0]).array;
+                            temp.neighbour_x=tempB->x;
+                            temp.neighbour_y=tempB->y;
+                            temp.neighbour_z=tempB->z;
+                            temp.neighbour_level=tempB->level;
+                            p8est_topidx_t * tempC = (p8est_topidx_t *) (*pTreeids[0]).array;
+                            temp.neighbour_tree=*tempC;
+                            hanging_edge_orientation.push_back(temp);
+                        }
+                        if(!onBoundary[1])
+                        {
+                            p8est_quadrant_edge_neighbor_extra(parent,treeid,edge_number[1],pQuads[1],pTreeids[1],pNEdges[1],connectivity);
+                            temp.nodeid=nodeidC;
+                            temp.x=oct->x;
+                            temp.y=oct->y;
+                            temp.z=oct->z;
+                            temp.level=oct->level;
+                            temp.treeid=treeid;
+                            temp.edge_type=n;
+                            p8est_quadrant_t * tempB = (p8est_quadrant_t *) (*pQuads[1]).array;
+                            temp.neighbour_x=tempB->x;
+                            temp.neighbour_y=tempB->y;
+                            temp.neighbour_z=tempB->z;
+                            temp.neighbour_level=tempB->level;
+                            p8est_topidx_t * tempC = (p8est_topidx_t *) (*pTreeids[1]).array;
+                            temp.neighbour_tree=*tempC;
+                            hanging_edge_orientation.push_back(temp);
+                        }
+
+                        // *******************************************************************
+                        // Store connection information for updateRowsColumns
+                        // *******************************************************************
+
+                        signed long x_corner0 = xface0[n][hanging_faces[n]] * l;
+                        signed long y_corner0 = yface0[n][hanging_faces[n]] * l;
+                        signed long z_corner0 = zface0[n][hanging_faces[n]] * l;
+                    
+                        double xyzD[3];
+                        p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner0, oct->y+y_corner0, oct->z+z_corner0, xyzD);
+                        auto otherCornerPoint = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
+                        long nodeA = NodeIDs.find(otherCornerPoint)->second;
+
+                        p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner, oct->y+y_corner, oct->z+z_corner, xyzC);
+                        auto facecornerPoint = std::make_tuple(xyzC[0],xyzC[1],xyzC[2]);
+                        long facenodeidB = NodeIDs.find(facecornerPoint)->second;
+
+                        long need_edgeA[4] = {std::count(hanging_edge_node_connections.begin(), hanging_edge_node_connections.end(), std::make_pair(nodeA,nodeidB[0])),
+                                             std::count(hanging_edge_node_connections.begin(), hanging_edge_node_connections.end(), std::make_pair(nodeidB[0],nodeA)),
+                                             std::count(hanging_edge_node_connections.begin(), hanging_edge_node_connections.end(), std::make_pair(nodeA,nodeidB[1])),
+                                             std::count(hanging_edge_node_connections.begin(), hanging_edge_node_connections.end(), std::make_pair(nodeidB[1],nodeA))};
+                        long need_edgeB[4] = {std::count(hanging_face_node_connections.begin(), hanging_face_node_connections.end(), std::make_pair(facenodeidB,nodeidB[0])),
+                                             std::count(hanging_face_node_connections.begin(), hanging_face_node_connections.end(), std::make_pair(nodeidB[0],facenodeidB)),
+                                             std::count(hanging_face_node_connections.begin(), hanging_face_node_connections.end(), std::make_pair(facenodeidB,nodeidB[1])),
+                                             std::count(hanging_face_node_connections.begin(), hanging_face_node_connections.end(), std::make_pair(nodeidB[1],facenodeidB))};
+
+                        
+                        // std::cout << " index[" << n << "][" << hanging_faces[n] << "]" << std::endl;
+
+                        if(need_edgeA[0]+need_edgeA[1] == 0)
+                        {
+                            // Calculate fallacious node connection that was generated by p8est
+                            signed long x_corner1 = xface1[n][hanging_faces[n]] * l;
+                            signed long y_corner1 = yface1[n][hanging_faces[n]] * l;
+                            signed long z_corner1 = zface1[n][hanging_faces[n]] * l;
+                            p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner1, oct->y+y_corner1, oct->z+z_corner1, xyzD);
+                            auto otherCornerPoint1 = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
+                            long defunct1 = NodeIDs.find(otherCornerPoint1)->second;
+
+                            // std::cout << " defunct connection1 = " << nodeA << ", " << nodeidB[0] << ", " << defunct1 << std::endl;
+
+                            hanging_edge_node_connections.push_back(std::make_pair(nodeA,nodeidB[0]));
+                            false_node_connections.push_back(std::make_pair(nodeA,defunct1));
+
+                            hanging_edge_node_connections.push_back(std::make_pair(nodeidB[0],defunct1));
+                            false_node_connections.push_back(std::make_pair(defunct1,nodeA));
+                        }
+                        if(need_edgeA[2]+need_edgeA[3] == 0)
+                        {
+                            // Calculate fallacious node connection that was generated by p8est
+                            signed long x_corner2 = xface2[n][hanging_faces[n]] * l;
+                            signed long y_corner2 = yface2[n][hanging_faces[n]] * l;
+                            signed long z_corner2 = zface2[n][hanging_faces[n]] * l;
+                            p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner2, oct->y+y_corner2, oct->z+z_corner2, xyzD);
+                            auto otherCornerPoint2 = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
+                            long defunct2 = NodeIDs.find(otherCornerPoint2)->second;
+
+                            // std::cout << " defunct connection2 = " << nodeA << ", " << nodeidB[1] << ", " << defunct2 << std::endl;
+
+                            hanging_edge_node_connections.push_back(std::make_pair(nodeA,nodeidB[1]));
+                            false_node_connections.push_back(std::make_pair(nodeA,defunct2));
+
+                            hanging_edge_node_connections.push_back(std::make_pair(nodeidB[1],defunct2));
+                            false_node_connections.push_back(std::make_pair(defunct2,nodeA));
+                        }
+                        if(need_edgeB[0]+need_edgeB[1] == 0)
+                        {
+                            hanging_face_node_connections.push_back(std::make_pair(nodeidB[0],facenodeidB));
+                        }
+                        if(need_edgeB[2]+need_edgeB[3] == 0)
+                        {
+                            hanging_face_node_connections.push_back(std::make_pair(nodeidB[1],facenodeidB));
+                        }
+
+
+                        // *******************************************************************
+                        // Debuging output
+                        // *******************************************************************
+                        #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
+                            std::cout << "\t\toctant = \033[1;36m" << k-1 << "\033[0m, corner node = " << nodeidC << std::endl;
+                            std::cout << "\t\tface node = \033[1;36m" << facenodeidB << "\033[0m" << std::endl;
+                            std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "]" << std::endl;
+                            // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_corner << ", " << y_corner << ", " << z_corner << ")" << std::endl;
+                            std::cout << "\t\tedge nodes: \033[1;36m" << nodeidB[0] << " & " << nodeidB[1] << "\033[0m" << std::endl;
+                            std::cout << "\t\t    index[" << (int) n << "][" << (int) hanging_faces[n] << "][-]" << std::endl;
+                            // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[0] << " ," << y_e_corner[0] << ", " << z_e_corner[0] << ")" << std::endl;
+                            // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[1] << " ," << y_e_corner[1] << ", " << z_e_corner[1] << ")" << std::endl;
+                            std::cout << "\t\tcorner nodes: \033[1;36m" << nodeA << "\033[0m" << std::endl;
+                            std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "][-]" << std::endl;
+                            std::cout << "\t\tFace nodes: \033[1;36m" << facenodeidB << "--" << nodeidB[1] << "--" << nodeA << "--" << nodeidB[0] << "\033[0m" << std::endl;
+                            std::cout << "\t\tedge numbers: \033[1;36m" << edge_number[0] << " & " << edge_number[1] << "\033[0m" << std::endl;
+                            std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "][-]" << std::endl;
+                        #endif
+                    }
+                }
+            }
+        }
+
         oxleytimer.toc("\t\tdone");
+    }
+    else
+    {
+        int num_of_iterations=0;
+        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
+            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+            sc_array_t * tquadrants = &tree->quadrants;
+            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+            num_of_iterations+=Q;
+        }
+
+        MPI_Send(&num_of_iterations, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
+
+        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
+            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+            sc_array_t * tquadrants = &tree->quadrants;
+            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+
+            // Loop over octants
+            for(int q = 0; q < Q; ++q) { 
+                p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
+                MPI_Send(&oct->x, 1, MPI_LONG, 0, 0, m_mpiInfo->comm); //check
+                MPI_Send(&oct->y, 1, MPI_LONG, 0, 0, m_mpiInfo->comm);
+                MPI_Send(&oct->z, 1, MPI_LONG, 0, 0, m_mpiInfo->comm);
+                MPI_Send(&oct->level, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
+                MPI_Send(&oct->pad8, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
+                MPI_Send(&oct->pad16, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
+                MPI_Send(&treeid, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
+            }
+        }
     }
     oxleytimer.toc("communicating");
     if(m_mpiInfo->rank == 0 && m_mpiInfo->size > 1)
