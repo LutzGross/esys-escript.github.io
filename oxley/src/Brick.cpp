@@ -898,122 +898,294 @@ escript::Data Brick::randomFill(const escript::DataTypes::ShapeType& shape,
     throw OxleyException("randomFill"); //TODO this is temporary
 }
 
-void Brick::dump(const std::string& fileName) const //TODO Not working
+void Brick::dump(const std::string& fileName) const 
 {
 #ifdef ESYS_HAVE_SILO
-    
-#ifdef OXLEY_ENABLE_DEBUG_DUMP
-        std::cout << "Inside dump........" << std::endl;
-#endif
-
-    // Add the suffix to the filename if required
-    std::string fn = fileName;
-    if (fileName.length() < 6 || fileName.compare(fileName.length()-5, 5, ".silo") != 0) {
-        fn+=".silo";
-    }
-
-    // int driver=DB_HDF5;
-
-    // Silo file pointer
-    DBfile* dbfile = NULL; 
-
-    // The coordinate arrays
-    float *pNodex = nullptr;
-    float *pNodey = nullptr;
-    float *pNodez = nullptr;
-    long int *pNode_ids = nullptr;
-    double * pValues = nullptr;
-
-    pNodex = new float[MAXP4ESTNODES];
-    pNodey = new float[MAXP4ESTNODES];
-    pNodez = new float[MAXP4ESTNODES];
-    pNode_ids = new long int [MAXP4ESTNODES];
-
-    int counter=0;
-    for(std::pair<DoubleTuple,long> element : NodeIDs)
-    {
-        pNodex[element.second]=std::get<0>(element.first);
-        pNodey[element.second]=std::get<1>(element.first);
-        pNodez[element.second]=std::get<2>(element.first);
-        pNode_ids[element.second]=element.second;
-#ifdef OXLEY_ENABLE_DEBUG_DUMP
-        std::cout << "Adding " << element.second << ": (" << std::get<0>(element.first) << ", " 
-                                                          << std::get<1>(element.first) << ", "  
-                                                          << std::get<2>(element.first) << ") " << counter++ << std::endl;
-#endif
-    }
-
-    // Array of the coordinate arrays
-    float * pCoordinates[3];
-    pCoordinates[0]=pNodex;
-    pCoordinates[1]=pNodey;
-    pCoordinates[2]=pNodez;
 
     #ifdef ESYS_MPI
-    if(m_mpiInfo->rank == 0)
-    {
-    #endif
-
-    // Create the file
-    dbfile = DBCreate(fn.c_str(), DB_CLOBBER, DB_LOCAL, getDescription().c_str(), DB_HDF5);
-    if (!dbfile)
-        throw escript::IOError("dump: Could not create Silo file");
-
-    // create the nodelist
-    std::vector<int> nodelist;
-    long ids[8]={0};
-    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
-        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-        for(long q = 0; q < Q; q++)
-        {
-            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);          
-            getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
-            nodelist.push_back(ids[2]); // Silo uses a different node ordering to p4est
-            nodelist.push_back(ids[0]);
-            nodelist.push_back(ids[1]);
-            nodelist.push_back(ids[3]);
-            nodelist.push_back(ids[6]);
-            nodelist.push_back(ids[4]);
-            nodelist.push_back(ids[5]);
-            nodelist.push_back(ids[7]);
-        }
-    }
-
-    // write mesh
-    int ndims = 3;
-    int* nodelistarray = &nodelist[0];
-    int lnodelist = nodelist.size();
-    int shapecounts[] = {getNumElements()};
-    int shapetype[1] = {DB_ZONETYPE_HEX};
-    int shapesize[1] = {8}; // Number of nodes used by each zone
-    int nshapetypes = 1;
-    int nzones = getNumElements();
-
-    // This is deprecated
-    DBPutZonelist2(dbfile, "p8est", nzones, ndims, nodelistarray, lnodelist, 
-                0, 0, 0,  shapetype, shapesize,  shapecounts, nshapetypes, NULL); 
         
+        // Add the suffix to the filename if required
+        std::string fn = fileName;
+        if (fileName.length() < 6 || fileName.compare(fileName.length()-5, 5, ".silo") != 0) {
+            fn+=".silo";
+        }
 
-    DBPutUcdmesh(dbfile, "mesh", ndims, NULL, pCoordinates, getNumNodes(), getNumElements(), 
-                    "p8est", NULL, DB_FLOAT, NULL);
+        // Silo file pointer
+        DBfile* dbfile = NULL; 
 
-    // Coordinates
-    DBPutPointmesh(dbfile, "nodes", ndims, pCoordinates, getNumNodes(), DB_FLOAT, NULL) ;
+        // The coordinate arrays
+        float *pNodex = nullptr;
+        float *pNodey = nullptr;
+        float *pNodez = nullptr;
+        long int *pNode_ids = nullptr;
+        double * pValues = nullptr;
 
-    // Node IDs
-    DBPutPointvar1(dbfile, "id", "nodes", pNode_ids, getNumNodes(), DB_LONG, NULL);
+        pNodex = new float[MAXP4ESTNODES];
+        pNodey = new float[MAXP4ESTNODES];
+        pNodez = new float[MAXP4ESTNODES];
+        pNode_ids = new long int [MAXP4ESTNODES];
 
-    DBClose(dbfile);
+        int counter=0;
+        for(std::pair<DoubleTuple,long> element : NodeIDs)
+        {
+            #ifdef OXLEY_ENABLE_DEBUG_DUMP
+                std::cout << "Adding " << element.second << ": (" << std::get<0>(element.first) << ", " 
+                                                                  << std::get<1>(element.first) << ", "  
+                                                                  << std::get<2>(element.first) << ") " << counter << std::endl;
+            #endif
 
-    delete [] pNodex;
-    delete [] pNodey;
-    delete [] pNodez;
-    delete [] pNode_ids;
+            pNodex[element.second]=std::get<0>(element.first);
+            pNodey[element.second]=std::get<1>(element.first);
+            pNodez[element.second]=std::get<2>(element.first);
+            pNode_ids[element.second]=element.second;
+            counter++;
+        }
 
-    #ifdef ESYS_MPI
-    }
+        // Array of the coordinate arrays
+        float * pCoordinates[3];
+        pCoordinates[0]=pNodex;
+        pCoordinates[1]=pNodey;
+        pCoordinates[2]=pNodez;
+
+        // Create the file
+        if(m_mpiInfo->rank == 0)
+        {
+            dbfile = DBCreate(fn.c_str(), DB_CLOBBER, DB_LOCAL, getDescription().c_str(), DB_HDF5);
+            if (!dbfile)
+                throw escript::IOError("dump: Could not create Silo file");
+        }
+
+        // create the nodelist
+        std::vector<int> nodelist;
+        long ids[8]={0};
+        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
+            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+            sc_array_t * tquadrants = &tree->quadrants;
+            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+            for(long q = 0; q < Q; q++)
+            {
+                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);          
+                getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
+                nodelist.push_back(ids[2]); // Silo uses a different node ordering to p4est
+                nodelist.push_back(ids[0]);
+                nodelist.push_back(ids[1]);
+                nodelist.push_back(ids[3]);
+                nodelist.push_back(ids[6]);
+                nodelist.push_back(ids[4]);
+                nodelist.push_back(ids[5]);
+                nodelist.push_back(ids[7]);
+            }
+        }
+
+        //communication
+        std::cout << "communicating " << std::endl;
+        if(m_mpiInfo->size > 1)
+        {
+            if(m_mpiInfo->rank != 0)
+            {
+                int num = nodelist.size();
+
+                // std::cout << "sending num = " << num << std::endl;
+
+                MPI_Send(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
+
+                // std::cout << "sending nodelist" << std::endl;
+
+                MPI_Send(nodelist.data(), num, MPI_INT, 0, 0, m_mpiInfo->comm);
+
+                // std::cout << "done" << std::endl;
+            }
+            else
+            {
+                for(int r = 1; r < m_mpiInfo->size; r++)
+                {
+                    int num;
+                    MPI_Recv(&num, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+
+                    // std::cout << "got num  = " << num << std::endl;
+
+                    std::vector<int> tempnodelist;
+                    tempnodelist.resize(num);
+                    MPI_Recv(tempnodelist.data(), num, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+
+                    // std::cout << "got the tempnodelist "<< std::endl;
+
+                    std::vector<int>::iterator it;
+                    it=nodelist.begin();
+                    nodelist.insert(it, tempnodelist.begin(), tempnodelist.end());
+                }
+            }
+        }
+        // std::cout << "done " << std::endl;
+
+        if(m_mpiInfo->rank == 0)
+        {
+            // write mesh
+            int ndims = 3;
+            int* nodelistarray = &nodelist[0];  // check
+            int lnodelist = nodelist.size();    // check
+
+            // ae tmp
+            // std::cout << "nodelist.size() " << nodelist.size() << std::endl;
+
+
+            int shapecounts[] = {getNumElements()};
+            int shapetype[1] = {DB_ZONETYPE_HEX};
+            int shapesize[1] = {8}; // Number of nodes used by each zone
+            int nshapetypes = 1;
+            int nzones = getNumElements();
+
+            // std::cout << "ae 1" << std::endl;
+
+            // This is deprecated
+            DBPutZonelist2(dbfile, "p8est", nzones, ndims, nodelistarray, lnodelist, 
+                        0, 0, 0,  shapetype, shapesize,  shapecounts, nshapetypes, NULL); 
+
+            // std::cout << "ae 2" << std::endl;
+                
+
+            DBPutUcdmesh(dbfile, "mesh", ndims, NULL, pCoordinates, getNumNodes(), getNumElements(), 
+                            "p8est", NULL, DB_FLOAT, NULL);
+
+            // std::cout << "ae 3" << std::endl;
+
+            // Coordinates
+            DBPutPointmesh(dbfile, "nodes", ndims, pCoordinates, getNumNodes(), DB_FLOAT, NULL) ;
+
+            // std::cout << "ae 4" << std::endl;
+
+            // Node IDs
+            DBPutPointvar1(dbfile, "id", "nodes", pNode_ids, getNumNodes(), DB_LONG, NULL);
+
+            // std::cout << "ae 5" << std::endl;
+
+            DBClose(dbfile);
+
+            // std::cout << "ae 6" << std::endl;
+
+            // delete [] pNodex;
+            // delete [] pNodey;
+            // delete [] pNodez;
+            // delete [] pNode_ids;
+        }
+
+        delete [] pNodex;
+        delete [] pNodey;
+        delete [] pNodez;
+        delete [] pNode_ids;
+
+        // std::cout << "ae at barrier" << std::endl;
+        // oxleytimer.toc("done");
+
+        MPI_Barrier(m_mpiInfo->comm);
+
+    #else // no MPI
+
+        #ifdef OXLEY_ENABLE_DEBUG_DUMP
+                std::cout << "Inside dump........" << std::endl;
+        #endif
+
+        // Add the suffix to the filename if required
+        std::string fn = fileName;
+        if (fileName.length() < 6 || fileName.compare(fileName.length()-5, 5, ".silo") != 0) {
+            fn+=".silo";
+        }
+
+        // int driver=DB_HDF5;
+
+        // Silo file pointer
+        DBfile* dbfile = NULL; 
+
+        // The coordinate arrays
+        float *pNodex = nullptr;
+        float *pNodey = nullptr;
+        float *pNodez = nullptr;
+        long int *pNode_ids = nullptr;
+        double * pValues = nullptr;
+
+        pNodex = new float[MAXP4ESTNODES];
+        pNodey = new float[MAXP4ESTNODES];
+        pNodez = new float[MAXP4ESTNODES];
+        pNode_ids = new long int [MAXP4ESTNODES];
+
+        int counter=0;
+        for(std::pair<DoubleTuple,long> element : NodeIDs)
+        {
+            pNodex[element.second]=std::get<0>(element.first);
+            pNodey[element.second]=std::get<1>(element.first);
+            pNodez[element.second]=std::get<2>(element.first);
+            pNode_ids[element.second]=element.second;
+        #ifdef OXLEY_ENABLE_DEBUG_DUMP
+            std::cout << "Adding " << element.second << ": (" << std::get<0>(element.first) << ", " 
+                                                              << std::get<1>(element.first) << ", "  
+                                                              << std::get<2>(element.first) << ") " << counter++ << std::endl;
+        #endif
+        }
+
+        // Array of the coordinate arrays
+        float * pCoordinates[3];
+        pCoordinates[0]=pNodex;
+        pCoordinates[1]=pNodey;
+        pCoordinates[2]=pNodez;
+
+        // Create the file
+        dbfile = DBCreate(fn.c_str(), DB_CLOBBER, DB_LOCAL, getDescription().c_str(), DB_HDF5);
+        if (!dbfile)
+            throw escript::IOError("dump: Could not create Silo file");
+
+        // create the nodelist
+        std::vector<int> nodelist;
+        long ids[8]={0};
+        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
+            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+            sc_array_t * tquadrants = &tree->quadrants;
+            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+            for(long q = 0; q < Q; q++)
+            {
+                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);          
+                getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
+                nodelist.push_back(ids[2]); // Silo uses a different node ordering to p4est
+                nodelist.push_back(ids[0]);
+                nodelist.push_back(ids[1]);
+                nodelist.push_back(ids[3]);
+                nodelist.push_back(ids[6]);
+                nodelist.push_back(ids[4]);
+                nodelist.push_back(ids[5]);
+                nodelist.push_back(ids[7]);
+            }
+        }
+
+        // write mesh
+        int ndims = 3;
+        int* nodelistarray = &nodelist[0];
+        int lnodelist = nodelist.size();
+        int shapecounts[] = {getNumElements()};
+        int shapetype[1] = {DB_ZONETYPE_HEX};
+        int shapesize[1] = {8}; // Number of nodes used by each zone
+        int nshapetypes = 1;
+        int nzones = getNumElements();
+
+        // This is deprecated
+        DBPutZonelist2(dbfile, "p8est", nzones, ndims, nodelistarray, lnodelist, 
+                    0, 0, 0,  shapetype, shapesize,  shapecounts, nshapetypes, NULL); 
+            
+
+        DBPutUcdmesh(dbfile, "mesh", ndims, NULL, pCoordinates, getNumNodes(), getNumElements(), 
+                        "p8est", NULL, DB_FLOAT, NULL);
+
+        // Coordinates
+        DBPutPointmesh(dbfile, "nodes", ndims, pCoordinates, getNumNodes(), DB_FLOAT, NULL) ;
+
+        // Node IDs
+        DBPutPointvar1(dbfile, "id", "nodes", pNode_ids, getNumNodes(), DB_LONG, NULL);
+
+        DBClose(dbfile);
+
+        delete [] pNodex;
+        delete [] pNodey;
+        delete [] pNodez;
+        delete [] pNode_ids;
+
     #endif
 
 #else // ESYS_HAVE_SILO
@@ -2865,9 +3037,9 @@ void Brick::renumberNodes()
                     MPI_Send(&t.x, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
                     MPI_Send(&t.y, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
                     MPI_Send(&t.z, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.level, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.level, 1, MPI_INT8_T, i, 0, m_mpiInfo->comm);
                     MPI_Send(&t.treeid, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.face_type, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.face_type, 1, MPI_INT8_T, i, 0, m_mpiInfo->comm);
                     MPI_Send(&t.neighbour_x, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
                     MPI_Send(&t.neighbour_y, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
                     MPI_Send(&t.neighbour_z, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
@@ -2888,9 +3060,9 @@ void Brick::renumberNodes()
                     MPI_Send(&t.x, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
                     MPI_Send(&t.y, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
                     MPI_Send(&t.z, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.level, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.level, 1, MPI_INT8_T, i, 0, m_mpiInfo->comm);
                     MPI_Send(&t.treeid, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.edge_type, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.edge_type, 1, MPI_INT8_T, i, 0, m_mpiInfo->comm);
                     MPI_Send(&t.neighbour_x, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
                     MPI_Send(&t.neighbour_y, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
                     MPI_Send(&t.neighbour_z, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
@@ -2928,19 +3100,20 @@ void Brick::renumberNodes()
             MPI_Recv(octantIDs.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
             MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
             hanging_face_orientation.clear();
+
             for(int j = 0; j < num; j++ )
             {
                 hangingFaceInfo t;
                 MPI_Recv(&t.x, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
                 MPI_Recv(&t.y, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
                 MPI_Recv(&t.z, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.level, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.level, 1, MPI_INT8_T, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
                 MPI_Recv(&t.treeid, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.face_type, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.face_type, 1, MPI_INT8_T, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
                 MPI_Recv(&t.neighbour_x, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
                 MPI_Recv(&t.neighbour_y, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
                 MPI_Recv(&t.neighbour_z, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.neighbour_level, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.neighbour_level, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
                 MPI_Recv(&t.neighbour_tree, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
                 hanging_face_orientation.push_back(t);
             }
@@ -2950,49 +3123,49 @@ void Brick::renumberNodes()
             temp_face_node_connections.resize(num);
             MPI_Recv(temp_face_node_connections.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
             hanging_face_node_connections=temp_face_node_connections;
-
             MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
             hanging_edge_orientation.clear();
             for(int j = 0; j < num; j++ )
             {
                 hangingEdgeInfo t;
+                MPI_Recv(&t.nodeid, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
                 MPI_Recv(&t.x, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
                 MPI_Recv(&t.y, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
                 MPI_Recv(&t.z, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.level, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.level, 1, MPI_INT8_T, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
                 MPI_Recv(&t.treeid, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.edge_type, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.edge_type, 1, MPI_INT8_T, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
                 MPI_Recv(&t.neighbour_x, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
                 MPI_Recv(&t.neighbour_y, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
                 MPI_Recv(&t.neighbour_z, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.neighbour_level, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.neighbour_level, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
                 MPI_Recv(&t.neighbour_tree, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
                 hanging_edge_orientation.push_back(t);
             }
 
             MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
             hanging_edge_node_connections.clear();
-            hanging_edge_node_connections.resize(num);
+            hanging_edge_node_connections.resize(0.5*num);
             MPI_Recv(hanging_edge_node_connections.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
 
             MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
             false_node_connections.clear();
-            false_node_connections.resize(num);
+            false_node_connections.resize(0.5*num);
             MPI_Recv(false_node_connections.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
 
             MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
             NormalNodesTmp.clear();
-            NormalNodesTmp.resize(num);
+            NormalNodesTmp.resize(num/3);
             MPI_Recv(NormalNodesTmp.data(), num, MPI_DOUBLE, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
 
             MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
             HangingFaceNodesTmp.clear();
-            HangingFaceNodesTmp.resize(num);
+            HangingFaceNodesTmp.resize(0.5*num);
             MPI_Recv(HangingFaceNodesTmp.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
 
             MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
             HangingEdgeNodesTmp.clear();
-            HangingEdgeNodesTmp.resize(num);
+            HangingEdgeNodesTmp.resize(0.5*num);
             MPI_Recv(HangingEdgeNodesTmp.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
         }
     }
@@ -3314,6 +3487,8 @@ void Brick::renumberNodes()
     std::vector<bool> is_hanging_tmp;
     int num_nodes=NormalNodesTmp.size();
     is_hanging_tmp.resize(getNumNodes(),false);
+    NodeIDs.clear();
+
     for(int i=0;i<num_nodes;i++)
         NodeIDs[NormalNodesTmp[i]]=i;
     for(int i=0;i<HangingFaceNodesTmp.size();i++)
@@ -3326,27 +3501,37 @@ void Brick::renumberNodes()
     std::vector<int> new_node_ids(getNumNodes(),-1);
     int count1=0;
     int count2=getNumNodes()-num_hanging;
-    for(int i=0;i<getNumNodes();i++)
+    for(int i = 0; i < getNumNodes(); i++)
     {
         if(!is_hanging_tmp[i])
             new_node_ids[i]=count1++;
         else
             new_node_ids[i]=count2++;
     }
-    
+    #ifdef OXLEY_ENABLE_DEBUG
+    ESYS_ASSERT(count1==getNumNodes()-num_hanging, "Unknown error (count1)");
+    ESYS_ASSERT(count2==getNumNodes(), "Unknown error (count2)");
+    #endif
+
     // TODO vectorise
 
     for(std::pair<DoubleTuple,long> e : NodeIDs)
+    {
         NodeIDs[e.first]=new_node_ids[e.second];
+    }
 
     for(int i = 0; i<getNumNodes(); i++)
         NormalNodes.push_back(NormalNodesTmp[new_node_ids[i]]);
 
+    HangingFaceNodes.clear();
+    HangingFaceNodes.resize(HangingFaceNodesTmp.size());
     for(int i = 0; i<HangingFaceNodesTmp.size();i++)
-        HangingFaceNodes.push_back(new_node_ids[HangingFaceNodesTmp[i]]);
+        HangingFaceNodes[i]=new_node_ids[HangingFaceNodesTmp[i]]; 
 
+    HangingEdgeNodes.clear();
+    HangingEdgeNodes.resize(HangingEdgeNodesTmp.size());
     for(int i = 0; i<HangingEdgeNodesTmp.size();i++)
-        HangingEdgeNodes.push_back(new_node_ids[HangingEdgeNodesTmp[i]]);
+        HangingEdgeNodes[i]=new_node_ids[HangingEdgeNodesTmp[i]];
 
     is_hanging.clear();
     is_hanging.resize(getNumNodes(),false);
@@ -3395,14 +3580,15 @@ void Brick::renumberNodes()
 
 #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_PRINT_NODEIDS
     std::cout << "Printing NodeIDs " << std::endl;
-    double xyf[NodeIDs.size()][2]={{0}};
+    double xyf[NodeIDs.size()][3]={{0}};
     for(std::pair<DoubleTuple,long> e : NodeIDs)
     {
         xyf[e.second][0]=std::get<0>(e.first);
         xyf[e.second][1]=std::get<1>(e.first);
+        xyf[e.second][2]=std::get<2>(e.first);
     }
     for(int i=0; i<NodeIDs.size(); i++)
-        std::cout << i << ": " << xyf[i][0] << ", " << xyf[i][1] << std::endl;
+        std::cout << i << ": " << xyf[i][0] << ", " << xyf[i][1] << ", " << xyf[i][2] << std::endl;
     std::cout << "-------------------------------" << std::endl;
 #endif
 
