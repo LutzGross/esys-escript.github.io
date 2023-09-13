@@ -1965,21 +1965,6 @@ void Brick::renumberNodes()
         }
     }
 
-
-    // ae tmp
-    std::cout << "Printing orig NodeIDs " << std::endl;
-    for(int i=0; i<NormalNodesTmp.size(); i++)
-        std::cout << i << ": " << std::get<0>(NormalNodesTmp[i]) << ", " << std::get<1>(NormalNodesTmp[i]) << ", " << std::get<2>(NormalNodesTmp[i]) << std::endl;
-    std::cout << "-------------------------------" << std::endl;
-    if(m_mpiInfo->rank > 0)
-    {
-        for(int i=0; i<treevecX.size(); i++)
-            std::cout << i << ": " << treevecX[i] << ", " << treevecY[i] << ", " << treevecZ[i] << std::endl;
-    }
-
-
-
-
     oxleytimer.toc("\t\tchecking for duplicates");
     if(m_mpiInfo->rank == 0) // Redundant for mpi size = 1
     {
