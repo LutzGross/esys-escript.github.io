@@ -1836,40 +1836,39 @@ void Brick::renumberNodes()
 
     const float lxy_nodes[8][3] = {{0,0,0},{1,0,0},{0,1,0},{1,1,0},{0,0,1},{1,0,1},{0,1,1},{1,1,1}};
 
-    // ae tmp
     // // v1
     // Assign numbers to the nodes
-    oxleytimer.toc("\tmain loop"); 
-    std::vector<DoubleTuple> checkList;
-    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
-        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+    // oxleytimer.toc("\tmain loop (slow version)"); 
+    // std::vector<DoubleTuple> checkList;
+    // for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
+    //     p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+    //     sc_array_t * tquadrants = &tree->quadrants;
+    //     p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
 
-        // Loop over octants
-        for(int q = 0; q < Q; ++q) { 
-            p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
-            p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
+    //     // Loop over octants
+    //     for(int q = 0; q < Q; ++q) { 
+    //         p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
+    //         p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
 
-            // Assign numbers to the vertix nodes
-            double xyz[3];
-            for(int n = 0; n < 8; n++)
-            {
-                // Get the first coordinate
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
-                                            oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
-                auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-                if(std::find(checkList.begin(), checkList.end(), point)==checkList.end())
-                {
-                    checkList.push_back(point);
-                    NodeIDs[checkList[checkList.size()-1]]=checkList.size()-1;
-                }
-            }
-        }
-    }
-    std::cout << "checklist" << std::endl;
-    for(int i = 0; i < checkList.size(); i++)
-        std::cout << i << ": " << std::get<0>(checkList[i]) << ", " << std::get<1>(checkList[i]) << ", " << std::get<2>(checkList[i]) << std::endl;
+    //         // Assign numbers to the vertix nodes
+    //         double xyz[3];
+    //         for(int n = 0; n < 8; n++)
+    //         {
+    //             // Get the first coordinate
+    //             p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
+    //                                         oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
+    //             auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
+    //             if(std::find(checkList.begin(), checkList.end(), point)==checkList.end())
+    //             {
+    //                 checkList.push_back(point);
+    //                 NodeIDs[checkList[checkList.size()-1]]=checkList.size()-1;
+    //             }
+    //         }
+    //     }
+    // }
+    // std::cout << "checklist" << std::endl;
+    // for(int i = 0; i < checkList.size(); i++)
+    //     std::cout << i << ": " << std::get<0>(checkList[i]) << ", " << std::get<1>(checkList[i]) << ", " << std::get<2>(checkList[i]) << std::endl;
 
     // NormalNodesTmp=checkList;
 
@@ -1927,10 +1926,15 @@ void Brick::renumberNodes()
         {
             // broadcast
             int numPoints = treevecX.size();
-            MPI_Send(&numPoints, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
-            MPI_Send(treevecX.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm);
-            MPI_Send(treevecY.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm);
-            MPI_Send(treevecZ.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm);
+            MPI_Request request;
+            MPI_Isend(&numPoints, 1, MPI_INT, 0, 0, m_mpiInfo->comm, &request);
+            MPI_Wait(&request, MPI_STATUS_IGNORE);
+            MPI_Isend(treevecX.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm, &request);
+            MPI_Wait(&request, MPI_STATUS_IGNORE);
+            MPI_Isend(treevecY.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm, &request);
+            MPI_Wait(&request, MPI_STATUS_IGNORE);
+            MPI_Isend(treevecZ.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm, &request);
+            MPI_Wait(&request, MPI_STATUS_IGNORE);
         }
         else if(m_mpiInfo->rank == 0)
         {
@@ -1941,16 +1945,21 @@ void Brick::renumberNodes()
                 std::vector<double> tmpZ;
                 
                 int numPoints = 0;
-                MPI_Recv(&numPoints, 1, MPI_INT, i, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Request request;
+                MPI_Irecv(&numPoints, 1, MPI_INT, i, 0, m_mpiInfo->comm, &request);
+                MPI_Wait(&request, MPI_STATUS_IGNORE);
 
                 tmpX.resize(numPoints);
                 tmpY.resize(numPoints);
                 tmpZ.resize(numPoints);
 
-                MPI_Recv(tmpX.data(), numPoints, MPI_DOUBLE, i, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(tmpY.data(), numPoints, MPI_DOUBLE, i, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(tmpZ.data(), numPoints, MPI_DOUBLE, i, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                for(int j = 0; j++; j < numPoints)
+                MPI_Irecv(tmpX.data(), numPoints, MPI_DOUBLE, i, 0, m_mpiInfo->comm, &request);
+                MPI_Wait(&request, MPI_STATUS_IGNORE);
+                MPI_Irecv(tmpY.data(), numPoints, MPI_DOUBLE, i, 0, m_mpiInfo->comm, &request);
+                MPI_Wait(&request, MPI_STATUS_IGNORE);
+                MPI_Irecv(tmpZ.data(), numPoints, MPI_DOUBLE, i, 0, m_mpiInfo->comm, &request);
+                MPI_Wait(&request, MPI_STATUS_IGNORE);
+                for(int j = 0; j < numPoints; j++)
                     NormalNodesTmp.push_back(std::make_tuple(tmpX[j],tmpY[j],tmpZ[j]));
             }
         }
@@ -1959,17 +1968,14 @@ void Brick::renumberNodes()
 
     // ae tmp
     std::cout << "Printing orig NodeIDs " << std::endl;
-    // double xyg[NormalNodesTmp.size()][3]={{0}};
-    // for(std::pair<DoubleTuple,long> e : NormalNodesTmp)
-    // {
-    //     xyg[e.second][0]=std::get<0>(e.first);
-    //     xyg[e.second][1]=std::get<1>(e.first);
-    //     xyg[e.second][2]=std::get<2>(e.first);
-    // }
     for(int i=0; i<NormalNodesTmp.size(); i++)
         std::cout << i << ": " << std::get<0>(NormalNodesTmp[i]) << ", " << std::get<1>(NormalNodesTmp[i]) << ", " << std::get<2>(NormalNodesTmp[i]) << std::endl;
     std::cout << "-------------------------------" << std::endl;
-
+    if(m_mpiInfo->rank > 0)
+    {
+        for(int i=0; i<treevecX.size(); i++)
+            std::cout << i << ": " << treevecX[i] << ", " << treevecY[i] << ", " << treevecZ[i] << std::endl;
+    }
 
 
 
@@ -2133,20 +2139,21 @@ void Brick::renumberNodes()
     {
         k=0;
         // Do this process's nodes first
+        oxleytimer.toc("\tdoing rank 0 nodes");
         for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
             p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
             sc_array_t * tquadrants = &tree->quadrants;
             p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
 
             // Loop over octants
-            for(int q = 0; q < Q; ++q) { 
+            for(int q = 0; q < Q; ++q) 
+            { 
                 p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
                 p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
 
                 // Save octant information
                 double xyz[3];
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyz);
-
                 octantIDs.push_back(NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second);
                 oct_info tmp;
                 tmp.x=xyz[0];
@@ -2438,30 +2445,124 @@ void Brick::renumberNodes()
                 }
             }
         }
-        // Now do the remainder
-        if(m_mpiInfo->size > 1)
+    }
+
+    MPI_Barrier(m_mpiInfo->comm);
+
+    std::vector<int> treeidVec;
+    std::vector<p8est_quadrant_t> octantVec;
+    int num_of_iterations=0;
+    if(m_mpiInfo->size > 1)
+    {
+        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
         {
-            for(int r = 1; r < m_mpiInfo->size; r++)       
+            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+            sc_array_t * tquadrants = &tree->quadrants;
+            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+            num_of_iterations+= ((int) Q);
+        }
+
+        octantVec.resize(num_of_iterations);
+        treeidVec.resize(num_of_iterations);
+        int count = 0;
+        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
+        {
+            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+            sc_array_t * tquadrants = &tree->quadrants;
+            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+            for(int q=0; q<Q; q++)
             {
-                int num_of_iterations;
-                MPI_Recv(&num_of_iterations, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                for(int it = 0; it < num_of_iterations; it++)
+                p8est_quadrant_t * octant = p8est_quadrant_array_index(tquadrants, q);
+                octantVec[count] = *octant;
+                treeidVec[count++]=treeid;
+            }
+        }
+    }
+
+    if(m_mpiInfo->size > 1)
+        MPI_Barrier(m_mpiInfo->comm);
+
+    int num_iter[m_mpiInfo->size] = {0};
+    if(m_mpiInfo->size > 1)
+    {
+        if(m_mpiInfo->rank == 0)
+        {
+            for(int r = 1; r < m_mpiInfo->size; r++)
+                MPI_Recv(&num_iter[r], 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+        }
+        else
+        {
+            MPI_Send(&num_of_iterations, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
+        }
+    }
+
+    if(m_mpiInfo->size > 1)
+        MPI_Barrier(m_mpiInfo->comm);
+
+    if(m_mpiInfo->size > 1)
+    {
+        if(m_mpiInfo->rank == 0)
+        {
+            for(int r = 1; r < m_mpiInfo->size; r++)
+                MPI_Send(&num_iter[0], m_mpiInfo->size, MPI_INT, r, 0, m_mpiInfo->comm);
+        }
+        else
+        {
+            MPI_Recv(&num_iter[0], m_mpiInfo->size, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+        }
+    }
+
+    if(m_mpiInfo->size > 1)
+        MPI_Barrier(m_mpiInfo->comm);
+
+
+
+    int total_iter = 0;
+    for(int i = 0; i < m_mpiInfo->size ; i++)
+        total_iter += num_iter[i];
+
+    if(m_mpiInfo->size > 1)
+    {
+        oxleytimer.toc("Doing other ranks...");
+        for(int r = 1; r < m_mpiInfo->size; r++)
+        {
+            for(int j = 0; j < num_iter[r]; j++) 
+            {
+                MPI_Barrier(m_mpiInfo->comm);
+                if(m_mpiInfo->rank == r)
+                {
+                    int treeid = treeidVec[j];
+                    p8est_quadrant_t oct = octantVec[j];
+                    MPI_Send(&oct.x, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
+                    MPI_Send(&oct.y, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
+                    MPI_Send(&oct.z, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
+                    MPI_Send(&oct.level, 1, MPI_INT8_T, 0, 0, m_mpiInfo->comm);
+                    MPI_Send(&oct.pad8, 1, MPI_INT8_T, 0, 0, m_mpiInfo->comm);
+                    MPI_Send(&oct.pad16, 1, MPI_INT16_T, 0, 0, m_mpiInfo->comm);
+                    MPI_Send(&treeid, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
+                    int hanging_code=nodes->face_code[k++];
+                    MPI_Send(&hanging_code, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
+                }
+                else if(m_mpiInfo->rank == 0)
                 {
                     p8est_quadrant_t * oct;
-                    MPI_Recv(&oct->x, 1, MPI_LONG, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE); //check
-                    MPI_Recv(&oct->y, 1, MPI_LONG, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                    MPI_Recv(&oct->z, 1, MPI_LONG, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                    MPI_Recv(&oct->level, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                    MPI_Recv(&oct->pad8, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                    MPI_Recv(&oct->pad16, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                    int treeid;
+                    p8est_quadrant_t octant;
+                    int x, y, z, treeid;
+                    MPI_Recv(&octant.x, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                    MPI_Recv(&octant.y, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                    MPI_Recv(&octant.z, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                    MPI_Recv(&octant.level, 1, MPI_INT8_T, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                    MPI_Recv(&octant.pad8, 1, MPI_INT8_T, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                    MPI_Recv(&octant.pad16, 1, MPI_INT16_T, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
                     MPI_Recv(&treeid, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                    oct = &octant;
+                    int hanging_code;
+                    MPI_Recv(&hanging_code, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
 
                     // Save octant information
                     p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
                     double xyz[3];
                     p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyz);
-
                     octantIDs.push_back(NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second);
                     oct_info tmp;
                     tmp.x=xyz[0];
@@ -2473,7 +2574,8 @@ void Brick::renumberNodes()
                     // Get the hanging edge and face information for this octant
                     int hanging_faces[6];
                     int hanging_edges[12];
-                    getHangingInfo(nodes->face_code[k++], hanging_faces, hanging_edges);
+                    // getHangingInfo(nodes->face_code[k++], hanging_faces, hanging_edges);
+                    getHangingInfo(hanging_code, hanging_faces, hanging_edges);
 
                     #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
                         std::cout << "Octant  " << k-1 << ":" << std::endl;
@@ -2754,198 +2856,163 @@ void Brick::renumberNodes()
                 }
             }
         }
-
-        oxleytimer.toc("\t\tdone");
     }
-    else
-    {
-        int num_of_iterations=0;
-        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
-            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-            sc_array_t * tquadrants = &tree->quadrants;
-            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-            num_of_iterations+=Q;
-        }
 
-        MPI_Send(&num_of_iterations, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
 
-        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
-            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-            sc_array_t * tquadrants = &tree->quadrants;
-            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-
-            // Loop over octants
-            for(int q = 0; q < Q; ++q) { 
-                p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
-                MPI_Send(&oct->x, 1, MPI_LONG, 0, 0, m_mpiInfo->comm); //check
-                MPI_Send(&oct->y, 1, MPI_LONG, 0, 0, m_mpiInfo->comm);
-                MPI_Send(&oct->z, 1, MPI_LONG, 0, 0, m_mpiInfo->comm);
-                MPI_Send(&oct->level, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
-                MPI_Send(&oct->pad8, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
-                MPI_Send(&oct->pad16, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
-                MPI_Send(&treeid, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
-            }
-        }
-    }
+    MPI_Barrier(m_mpiInfo->comm);
     oxleytimer.toc("communicating");
-    if(m_mpiInfo->rank == 0 && m_mpiInfo->size > 1)
+    if(m_mpiInfo->size > 1)
     {
-        for(int i = 0; i < m_mpiInfo->size; i++)
+        if(m_mpiInfo->rank == 0)
         {
-            int num = HangingEdgeNodes.size();
-            MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-            MPI_Send(HangingEdgeNodes.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
-            num = HangingFaceNodes.size();
-            MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-            MPI_Send(HangingFaceNodes.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
-            num = octantIDs.size();
-            MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-            MPI_Send(octantIDs.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
-
-            num=hanging_face_orientation.size();
-            MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-            for(int j = 0; j < hanging_face_orientation.size(); j++ )
+            for(int i = 1; i < m_mpiInfo->size; i++)
             {
-                hangingFaceInfo t = hanging_face_orientation[j];
-                MPI_Send(&t.x, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.y, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.z, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.level, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.treeid, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.face_type, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.neighbour_x, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.neighbour_y, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.neighbour_z, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.neighbour_level, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.neighbour_tree, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                int num;
+                num = octantIDs.size();
+                MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                MPI_Send(octantIDs.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
+
+                num=hanging_face_orientation.size();
+                MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                for(int j = 0; j < hanging_face_orientation.size(); j++ )
+                {
+                    hangingFaceInfo t = hanging_face_orientation[j];
+                    MPI_Send(&t.x, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.y, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.z, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.level, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.treeid, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.face_type, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.neighbour_x, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.neighbour_y, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.neighbour_z, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.neighbour_level, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.neighbour_tree, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                }
+
+                num=2*hanging_face_node_connections.size();
+                MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                MPI_Send(hanging_face_node_connections.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
+                
+                num=hanging_edge_orientation.size();
+                MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                for(int j = 0; j < hanging_edge_orientation.size(); j++ )
+                {
+                    hangingEdgeInfo t = hanging_edge_orientation[j];
+                    MPI_Send(&t.nodeid, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.x, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.y, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.z, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.level, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.treeid, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.edge_type, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.neighbour_x, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.neighbour_y, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.neighbour_z, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.neighbour_level, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                    MPI_Send(&t.neighbour_tree, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                }
+
+                num=2*hanging_edge_node_connections.size();
+                MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                MPI_Send(hanging_edge_node_connections.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
+
+                num=2*false_node_connections.size();
+                MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                MPI_Send(false_node_connections.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
+
+                num=3*NormalNodesTmp.size();
+                MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                MPI_Send(NormalNodesTmp.data(), num, MPI_DOUBLE, i, 0, m_mpiInfo->comm);
+
+                num=2*HangingFaceNodesTmp.size();
+                MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                MPI_Send(HangingFaceNodesTmp.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
+
+                num=2*HangingEdgeNodesTmp.size();
+                MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                MPI_Send(HangingEdgeNodesTmp.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
+            }        
+        }
+        else
+        {
+            int num;
+            MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+
+            octantIDs.resize(num);
+            MPI_Recv(octantIDs.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+            MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+            hanging_face_orientation.clear();
+            for(int j = 0; j < num; j++ )
+            {
+                hangingFaceInfo t;
+                MPI_Recv(&t.x, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.y, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.z, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.level, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.treeid, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.face_type, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.neighbour_x, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.neighbour_y, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.neighbour_z, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.neighbour_level, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.neighbour_tree, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                hanging_face_orientation.push_back(t);
             }
 
-            num=2*hanging_face_node_connections.size();
-            MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-            MPI_Send(hanging_face_node_connections.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
-            
-            num=hanging_edge_orientation.size();
-            MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-            for(int j = 0; j < hanging_edge_orientation.size(); j++ )
+            MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+            std::vector<std::pair<long,long>> temp_face_node_connections;
+            temp_face_node_connections.resize(num);
+            MPI_Recv(temp_face_node_connections.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+            hanging_face_node_connections=temp_face_node_connections;
+
+            MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+            hanging_edge_orientation.clear();
+            for(int j = 0; j < num; j++ )
             {
-                hangingEdgeInfo t = hanging_edge_orientation[j];
-                MPI_Send(&t.nodeid, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.x, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.y, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.z, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.level, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.treeid, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.edge_type, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.neighbour_x, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.neighbour_y, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.neighbour_z, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.neighbour_level, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                MPI_Send(&t.neighbour_tree, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                hangingEdgeInfo t;
+                MPI_Recv(&t.x, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.y, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.z, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.level, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.treeid, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.edge_type, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.neighbour_x, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.neighbour_y, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.neighbour_z, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.neighbour_level, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&t.neighbour_tree, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                hanging_edge_orientation.push_back(t);
             }
 
-            num=2*hanging_edge_node_connections.size();
-            MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-            MPI_Send(hanging_edge_node_connections.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
+            MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+            hanging_edge_node_connections.clear();
+            hanging_edge_node_connections.resize(num);
+            MPI_Recv(hanging_edge_node_connections.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
 
-            num=2*false_node_connections.size();
-            MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-            MPI_Send(false_node_connections.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
+            MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+            false_node_connections.clear();
+            false_node_connections.resize(num);
+            MPI_Recv(false_node_connections.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
 
-            num=3*NormalNodesTmp.size();
-            MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-            MPI_Send(NormalNodesTmp.data(), num, MPI_DOUBLE, i, 0, m_mpiInfo->comm);
+            MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+            NormalNodesTmp.clear();
+            NormalNodesTmp.resize(num);
+            MPI_Recv(NormalNodesTmp.data(), num, MPI_DOUBLE, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
 
-            num=2*HangingFaceNodesTmp.size();
-            MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-            MPI_Send(HangingFaceNodesTmp.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
+            MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+            HangingFaceNodesTmp.clear();
+            HangingFaceNodesTmp.resize(num);
+            MPI_Recv(HangingFaceNodesTmp.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
 
-            num=2*HangingEdgeNodesTmp.size();
-            MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-            MPI_Send(HangingEdgeNodesTmp.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
-        }        
-    }
-    else
-    {
-        int num;
-        MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-        HangingEdgeNodes.resize(num);
-        MPI_Recv(HangingEdgeNodes.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-        MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-        HangingFaceNodes.resize(num);
-        MPI_Recv(HangingFaceNodes.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-        MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-        octantIDs.resize(num);
-        MPI_Recv(octantIDs.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-
-        MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-        hanging_face_orientation.clear();
-        for(int j = 0; j < num; j++ )
-        {
-            hangingFaceInfo t;
-            MPI_Recv(&t.x, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&t.y, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&t.z, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&t.level, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&t.treeid, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&t.face_type, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&t.neighbour_x, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&t.neighbour_y, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&t.neighbour_z, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&t.neighbour_level, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&t.neighbour_tree, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            hanging_face_orientation.push_back(t);
+            MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+            HangingEdgeNodesTmp.clear();
+            HangingEdgeNodesTmp.resize(num);
+            MPI_Recv(HangingEdgeNodesTmp.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
         }
-
-        MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-        std::vector<std::pair<long,long>> temp_face_node_connections;
-        temp_face_node_connections.resize(num);
-        MPI_Recv(temp_face_node_connections.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-        hanging_face_node_connections=temp_face_node_connections;
-
-        MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-        hanging_edge_orientation.clear();
-        for(int j = 0; j < num; j++ )
-        {
-            hangingEdgeInfo t;
-            MPI_Recv(&t.x, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&t.y, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&t.z, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&t.level, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&t.treeid, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&t.edge_type, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&t.neighbour_x, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&t.neighbour_y, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&t.neighbour_z, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&t.neighbour_level, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&t.neighbour_tree, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            hanging_edge_orientation.push_back(t);
-        }
-
-        MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-        hanging_edge_node_connections.clear();
-        hanging_edge_node_connections.resize(num);
-        MPI_Recv(hanging_edge_node_connections.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-
-        MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-        false_node_connections.clear();
-        false_node_connections.resize(num);
-        MPI_Recv(false_node_connections.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-
-        MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-        NormalNodesTmp.clear();
-        NormalNodesTmp.resize(num);
-        MPI_Recv(NormalNodesTmp.data(), num, MPI_DOUBLE, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-
-        MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-        HangingFaceNodesTmp.clear();
-        HangingFaceNodesTmp.resize(num);
-        MPI_Recv(HangingFaceNodesTmp.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-
-        MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-        HangingEdgeNodesTmp.clear();
-        HangingEdgeNodesTmp.resize(num);
-        MPI_Recv(HangingEdgeNodesTmp.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
     }
+    oxleytimer.toc("Finished communicating");
+    MPI_Barrier(m_mpiInfo->comm);
 #else
     k=0;
     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
