@@ -4414,11 +4414,32 @@ void Brick::updateRowsColumns()
 #ifdef ESYS_MPI
     MPI_Barrier(m_mpiInfo->comm);
 #endif
-    p8est_iterate(p8est, NULL, data, NULL, NULL, update_RC, NULL);
+
+    // update_RC_data_brick * ghost_data;
+    // ghost_data = (update_RC_data_brick *) malloc(ghost->ghosts.elem_count);
+    // p8est_ghost_exchange_data(p8est, ghost, ghost_data);
+    reset_ghost();
+    // p8est_ghost_exchange_data(p8est, ghost, NULL);
+    p8est_iterate_ext(p8est, ghost, data, NULL, NULL, update_RC, NULL, true);
     oxleytimer.toc("\t\tdone");
     delete data;
 
 #ifdef ESYS_MPI
+
+#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
+    std::cout << "Indices before communicating (first)" << std::endl;
+    for(int i = 0; i < indices->size(); i++)
+    {
+        std::cout << i << ": ";
+        std::vector<int> * idx = &indices[0][i];
+        for(int j = 0; j < 7; j++)
+        {
+            std::cout << idx[0][j] << ", ";
+        }
+        std::cout << std::endl;
+    }
+#endif
+
     MPI_Barrier(m_mpiInfo->comm);
     if(m_mpiInfo->size > 1)
     {
@@ -4432,12 +4453,25 @@ void Brick::updateRowsColumns()
                 {
                     std::vector<int> idx_tmp(7,-1);
                     MPI_Recv(idx_tmp.data(),7,MPI_LONG,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
-                    if(idx_tmp[0]!=0)
+                    std::vector<int> * idx = &indices[0][i];
+                 
+                    for(int j = 1; j < 7; j++)
                     {
-                        std::vector<int> * idx = &indices[0][i];
-                        for(int j = 0; j < 7; j++)
+                        if(idx_tmp[j] == -1)
+                            break;
+
+                        bool duplicate = false;
+                        for(int k = 0; k < 7; k++)
                         {
-                            idx[0][j] = idx_tmp[j];
+                            if(idx[0][k] == idx_tmp[j])
+                                duplicate = true;
+                        }
+                        
+                        if(!duplicate)
+                        {
+                            idx[0][0]++;
+                            ESYS_ASSERT(idx[0][0]<=6, "updateRowsColumns index out of bound ");
+                            idx[0][idx[0][0]]=idx_tmp[j];
                         }
                     }
                 }
@@ -4490,9 +4524,10 @@ void Brick::updateRowsColumns()
     }
 
 #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-    std::cout << "Indices after communicating" << std::endl;
+    std::cout << "Indices after communicating (first)" << std::endl;
     for(int i = 0; i < indices->size(); i++)
     {
+        std::cout << i << ": ";
         std::vector<int> * idx = &indices[0][i];
         for(int j = 0; j < 7; j++)
         {
@@ -4697,6 +4732,120 @@ void Brick::updateRowsColumns()
         ESYS_ASSERT(idx1[0][0]<=6, "updateRowsColumns index out of bound ");
         idx1[0][idx1[0][0]]=node[0];
     }
+
+#ifdef ESYS_MPI
+
+#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
+    std::cout << "Indices before communicating (second)" << std::endl;
+    for(int i = 0; i < indices->size(); i++)
+    {
+        std::cout << i << ": ";
+        std::vector<int> * idx = &indices[0][i];
+        for(int j = 0; j < 7; j++)
+        {
+            std::cout << idx[0][j] << ", ";
+        }
+        std::cout << std::endl;
+    }
+#endif
+
+    MPI_Barrier(m_mpiInfo->comm);
+    if(m_mpiInfo->size > 1)
+    {
+        if(m_mpiInfo->rank == 0)
+        {
+            for(int r = 1; r < m_mpiInfo->size; r++)
+            {
+                int num;
+                MPI_Recv(&num,1,MPI_INT,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+                for(int i = 0; i < num; i++)
+                {
+                    std::vector<int> idx_tmp(7,-1);
+                    MPI_Recv(idx_tmp.data(),7,MPI_LONG,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+                    std::vector<int> * idx = &indices[0][i];
+                 
+                    for(int j = 1; j < 7; j++)
+                    {
+                        if(idx_tmp[j] == -1)
+                            break;
+
+                        bool duplicate = false;
+                        for(int k = 0; k < 7; k++)
+                        {
+                            if(idx[0][k] == idx_tmp[j])
+                                duplicate = true;
+                        }
+                        
+                        if(!duplicate)
+                        {
+                            idx[0][0]++;
+                            idx[0][idx[0][0]]=idx_tmp[j];
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            int num = indices->size();
+            MPI_Send(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
+            for(int i = 0; i < indices->size(); i++)
+            {
+                MPI_Send(&indices[0][i][0], 7, MPI_LONG, 0, 0, m_mpiInfo->comm);
+            }
+        }
+    }
+
+    MPI_Barrier(m_mpiInfo->comm);
+    if(m_mpiInfo->size > 1)
+    {
+        if(m_mpiInfo->rank == 0)
+        {
+            for(int r = 1; r < m_mpiInfo->size; r++)
+            {
+                int num = indices->size();
+                MPI_Send(&num, 1, MPI_INT, r, 0, m_mpiInfo->comm);
+                for(int i = 0; i < indices->size(); i++)
+                {
+                    MPI_Send(&indices[0][i][0], 7, MPI_INT, r, 0, m_mpiInfo->comm);                    
+                }
+            }
+        }
+        else
+        {
+            int num;
+            MPI_Recv(&num,1,MPI_INT,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+            for(int i = 0; i < num; i++)
+            {
+                std::vector<int> idx_tmp(7,-1);
+                MPI_Recv(idx_tmp.data(),7,MPI_INT,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+                if(idx_tmp[0]!=0)
+                {
+                    std::vector<int> * idx = &indices[0][i];
+                    for(int j = 0; j < 7; j++)
+                    {
+                        idx[0][j] = idx_tmp[j];
+                    }
+                }
+            }
+        }
+    }
+
+#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
+    std::cout << "Indices after communicating (second)" << std::endl;
+    for(int i = 0; i < indices->size(); i++)
+    {
+        std::cout << i << ": ";
+        std::vector<int> * idx = &indices[0][i];
+        for(int j = 0; j < 7; j++)
+        {
+            std::cout << idx[0][j] << ", ";
+        }
+        std::cout << std::endl;
+    }
+#endif
+
+#endif // ESYS_MPI
 
 
     // *******************************************************************
