@@ -1212,57 +1212,23 @@ void update_RC(p4est_iter_face_info_t *info, void *user_data)
 
 void update_RC(p8est_iter_edge_info *info, void *user_data)
 {
-    //TODO 
-    #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC
-        std::cout << "Running update_RC...";
-    #endif
-
     //Get some pointers
     update_RC_data_brick * data = (update_RC_data_brick *) user_data;
     sc_array_t * sides = &(info->sides);
 
     p8est_iter_edge_side_t * side = p8est_iter_eside_array_index_int(sides, 0); 
-    
-    p8est_quadrant_t * oct;
-    if(side->is_hanging)
-    {
-        #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC
-            std::cout << " [hanging]" << std::endl;
-        #endif
+    if(side->is_hanging!='\000')
         return;
-    }
-    oct = side->is.full.quad;
-
+    p8est_quadrant_t * oct = side->is.full.quad;
+    if(oct == nullptr) // oct is allocated to another MPI process(?) 
+        return;
     double xy0[3], xyA[3], xyB[3];
-    
-    // Do nothing if this isn't a lower quadrant
     p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, oct->x, oct->y, oct->z, xy0);
-    oct_info tmp;
-    tmp.x=xy0[0];
-    tmp.y=xy0[1];
-    tmp.z=xy0[2];
-    tmp.level=oct->level;
-    bool lower_quadrant=false;
-    for(int i = 0; i < data->pOctInfo->size() ; i++)
-    {
-        if((tmp.x     == data->pOctInfo[0][i].x)
-        && (tmp.y     == data->pOctInfo[0][i].y)
-        && (tmp.z     == data->pOctInfo[0][i].z)
-        && (tmp.level == data->pOctInfo[0][i].level))
-        {
-            lower_quadrant=true;
-            break;
-        }
-    }
-    if(!lower_quadrant)
-        return;
 
     // Calculate the length of the side
     p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
     int fn = (int) side->edge;
 
-    // long lx[4][2] = {{0,0},{l,l},{0,l},{0,l}};
-    // long ly[4][2] = {{0,l},{0,l},{0,0},{l,l}};
     //                           0     1     2     3     4     5     6     7     8     9     10    11       
     p8est_qcoord_t lx[12][2] = {{0,l},{0,l},{0,l},{0,l},{0,0},{l,l},{0,0},{l,l},{0,0},{l,l},{0,0},{l,l}};
     p8est_qcoord_t ly[12][2] = {{0,0},{l,l},{0,0},{l,l},{0,l},{0,l},{0,l},{0,l},{0,0},{0,0},{l,l},{l,l}};

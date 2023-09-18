@@ -408,20 +408,20 @@ Brick::Brick(oxley::Brick& B, int order, bool update):
 */
 Brick::~Brick(){
 #ifdef OXLEY_ENABLE_DEBUG_CHECKS
-    std::cout << "\033[1;31m[oxley]\033[0m In Brick() destructor" << std::endl;
-    std::cout << "\033[1;31m[oxley]\033[0m checking p8est ... " << std::endl;
+    std::cout << "\033[1;34m[oxley]\033[0m In Brick() destructor" << std::endl;
+    std::cout << "\033[1;34m[oxley]\033[0m checking p8est ... " << std::endl;
     if(!p8est_is_valid(p8est))
         std::cout << "\t\tbroken" << std::endl;
     else
         std::cout << "\t\tOK" << std::endl;
     #ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS
-    std::cout << "\033[1;31m[oxley]\033[0m checking connectivity ... " << std::endl;
+    std::cout << "\033[1;34m[oxley]\033[0m checking connectivity ... " << std::endl;
     if(!p8est_connectivity_is_valid(connectivity))
         std::cout << "\t\tbroken" << std::endl;
     else
         std::cout << "\t\tOK" << std::endl;
     #endif
-    std::cout << "\033[1;31m[oxley]\033[0m checking ghost ... " << std::endl;
+    std::cout << "\033[1;34m[oxley]\033[0m checking ghost ... " << std::endl;
     if(!p8est_ghost_is_valid(p8est,ghost))
         std::cout << "\t\tbroken" << std::endl;
     else
@@ -1579,12 +1579,12 @@ void Brick::refinePoint(double x0, double y0, double z0)
     if(p8est_is_valid(p8est)!=1)
         throw OxleyException("p8est broke during refinement");
     else
-        std::cout << "\033[1;31m[oxley]\033[0m refinePoint: valid p8est" << std::endl;
+        std::cout << "\033[1;34m[oxley]\033[0m refinePoint: valid p8est" << std::endl;
     #ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS
     if(p8est_connectivity_is_valid(connectivity)!=1)
         throw OxleyException("connectivity broke during refinement");
     else
-        std::cout << "\033[1;31m[oxley]\033[0m refinePoint: valid connectivity" << std::endl;
+        std::cout << "\033[1;34m[oxley]\033[0m refinePoint: valid connectivity" << std::endl;
     #endif
 #endif
 
@@ -1908,9 +1908,9 @@ void Brick::reset_ghost()
     ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
 #ifdef OXLEY_ENABLE_DEBUG
     if(p8est_ghost_is_valid(p8est,ghost)!=1)
-        throw OxleyException("\033[1;31m[oxley]\033[0m ghost is broken");
+        throw OxleyException("\033[1;34m[oxley]\033[0m ghost is broken");
     else
-        std::cout << "\033[1;31m[oxley]\033[0m valid ghost" << std::endl;
+        std::cout << "\033[1;34m[oxley]\033[0m valid ghost" << std::endl;
 #endif
 }
 
@@ -1931,7 +1931,7 @@ void Brick::renumberNodes()
     oxleytimer.toc("Starting renumberNodes...");
 
     #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES
-    std::cout << "\033[1;31m[oxley]\033[0m Renumbering nodes...." << std::endl;
+    std::cout << "\033[1;34m[oxley]\033[0m Renumbering nodes...." << std::endl;
     #endif
 
     // Clear some variables
@@ -3619,6 +3619,10 @@ void Brick::renumberNodes()
     std::cout << std::endl;
 #endif
 
+#ifdef ESYS_MPI
+    MPI_Barrier(m_mpiInfo->comm);
+#endif
+
     oxleytimer.toc("Nodes renumbered");
 }
 
@@ -4363,8 +4367,8 @@ void Brick::updateRowsColumns()
     indices->resize(getNumNodes(), IndexVector(initial, initial+7));
 
     #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-        std::cout << "\033[1;31m[oxley]\033[0m updateRowsColumns..." << std::endl;
-        std::cout << "\033[1;31m[oxley]\033[0m Allocated memory for " << getNumNodes() << " nodes. " << std::endl;
+        std::cout << "\033[1;34m[oxley]\033[0m updateRowsColumns..." << std::endl;
+        std::cout << "\033[1;34m[oxley]\033[0m Allocated memory for " << getNumNodes() << " nodes. " << std::endl;
     #endif
 
     // *******************************************************************
@@ -4376,52 +4380,136 @@ void Brick::updateRowsColumns()
     // *******************************************************************
 
     #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-        std::cout << "\033[1;31m[oxley]\033[0m....looping over internal edges" << std::endl;
+        std::cout << "\033[1;34m[oxley]\033[0m....looping over internal edges" << std::endl;
     #endif
 
-    // // Initialise info needed by p4est
-    // update_RC_data_brick * data;
-    // data = new update_RC_data_brick;
-    // data->indices = indices;
-    // data->pNodeIDs = &NodeIDs;
-    // data->p8est = p8est;
-    // data->m_origin[0]=forestData.m_origin[0];
-    // data->m_origin[1]=forestData.m_origin[1];
-    // data->m_origin[2]=forestData.m_origin[2];
-    // data->pOctInfo = &octantInfo;
 
-    // #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-    // std::cout << "\033[1;31m[oxley]\033[0m checking p8est ..." ;
-    // p8est_t * p8esttmp0=p8est_copy(p8est,0);
-    // p8est_t * p8esttmp1=p8est_copy(p8est,1); // already broken
-    // if(p8est_is_valid(p8esttmp1)!=1)
-    //     std::cout << "\033[1;31mp8est is invalid\033[0m" << std::endl;
-    // else
-    //     std::cout << "p8est is valid ..." << std::endl;
-    // #endif
+
+    // old
+    // Initialise info needed by p4est
+    update_RC_data_brick * data;
+    data = new update_RC_data_brick;
+    data->indices = indices;
+    data->pNodeIDs = &NodeIDs;
+    data->m_origin[0]=forestData.m_origin[0];
+    data->m_origin[1]=forestData.m_origin[1];
+    data->m_origin[2]=forestData.m_origin[2];
+    data->pOctInfo = &octantInfo;
+
+    p8est_t * tempP8est;
+    tempP8est = p8est_copy(p8est,1);
+    data->p8est = tempP8est;
+    // p8est_connectivity_t tempConnect(connectivity);
+    // data->connectivity = &tempConnect;
+
+
+
+#ifdef ESYS_MPI
     
-    // #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-    // std::cout << "\033[1;31m[oxley]\033[0m checking ghost ..." ;
-    // if(p8est_ghost_is_valid(p8est,ghost)!=1)
-    //     std::cout << "\033[1;31mghost is invalid\033[0m" << std::endl;
-    // else
-    //     std::cout << "ghost is valid ..." << std::endl;
-    // #endif
+    MPI_Barrier(m_mpiInfo->comm);
 
-    // // TODO
-    // update_RC_data_brick * ghost_data;
-    // ghost_data = (update_RC_data_brick *) malloc(ghost->ghosts.elem_count);
-    // p8est_ghost_exchange_data(p8est, ghost, ghost_data);
-    // p8est_iterate_ext(p8est, ghost, data, NULL, NULL, update_RC, NULL, true);
+#endif
 
-    // delete data;
+    oxleytimer.toc("\tBackend loop...");
+#ifdef ESYS_MPI
+    MPI_Barrier(m_mpiInfo->comm);
+#endif
+    p8est_iterate(p8est, NULL, data, NULL, NULL, update_RC, NULL);
+    oxleytimer.toc("\t\tdone");
+    delete data;
+
+#ifdef ESYS_MPI
+    MPI_Barrier(m_mpiInfo->comm);
+    if(m_mpiInfo->size > 1)
+    {
+        if(m_mpiInfo->rank == 0)
+        {
+            for(int r = 1; r < m_mpiInfo->size; r++)
+            {
+                int num;
+                MPI_Recv(&num,1,MPI_INT,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+                for(int i = 0; i < num; i++)
+                {
+                    std::vector<int> idx_tmp(7,-1);
+                    MPI_Recv(idx_tmp.data(),7,MPI_LONG,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+                    if(idx_tmp[0]!=0)
+                    {
+                        std::vector<int> * idx = &indices[0][i];
+                        for(int j = 0; j < 7; j++)
+                        {
+                            idx[0][j] = idx_tmp[j];
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            int num = indices->size();
+            MPI_Send(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
+            for(int i = 0; i < indices->size(); i++)
+            {
+                MPI_Send(&indices[0][i][0], 7, MPI_LONG, 0, 0, m_mpiInfo->comm);
+            }
+        }
+    }
+
+    MPI_Barrier(m_mpiInfo->comm);
+    if(m_mpiInfo->size > 1)
+    {
+        if(m_mpiInfo->rank == 0)
+        {
+            for(int r = 1; r < m_mpiInfo->size; r++)
+            {
+                int num = indices->size();
+                MPI_Send(&num, 1, MPI_INT, r, 0, m_mpiInfo->comm);
+                for(int i = 0; i < indices->size(); i++)
+                {
+                    MPI_Send(&indices[0][i][0], 7, MPI_INT, r, 0, m_mpiInfo->comm);                    
+                }
+            }
+        }
+        else
+        {
+            int num;
+            MPI_Recv(&num,1,MPI_INT,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+            for(int i = 0; i < num; i++)
+            {
+                std::vector<int> idx_tmp(7,-1);
+                MPI_Recv(idx_tmp.data(),7,MPI_INT,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+                if(idx_tmp[0]!=0)
+                {
+                    std::vector<int> * idx = &indices[0][i];
+                    for(int j = 0; j < 7; j++)
+                    {
+                        idx[0][j] = idx_tmp[j];
+                    }
+                }
+            }
+        }
+    }
+
+#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
+    std::cout << "Indices after communicating" << std::endl;
+    for(int i = 0; i < indices->size(); i++)
+    {
+        std::vector<int> * idx = &indices[0][i];
+        for(int j = 0; j < 7; j++)
+        {
+            std::cout << idx[0][j] << ", ";
+        }
+        std::cout << std::endl;
+    }
+#endif
+
+#endif // ESYS_MPI
 
     // *******************************************************************
     // Boundary edges
     // *******************************************************************
 
     #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-        std::cout << "\033[1;31m[oxley]\033[0m....looping over boundaries edges" << std::endl;
+        std::cout << "\033[1;34m[oxley]\033[0m....looping over boundaries edges" << std::endl;
     #endif
 
     // Find the indices of the nodes on the boundaries x = Lx and y = Ly
@@ -4546,7 +4634,7 @@ void Brick::updateRowsColumns()
     // *******************************************************************
 
     #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-        std::cout << "\033[1;31m[oxley]\033[0m....looping over hanging nodes on edges" << std::endl;
+        std::cout << "\033[1;34m[oxley]\033[0m....looping over hanging nodes on edges" << std::endl;
     #endif
 
     // Nodes on hanging edges
@@ -4616,7 +4704,7 @@ void Brick::updateRowsColumns()
     // *******************************************************************
 
     #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-        std::cout << "\033[1;31m[oxley]\033[0m....sorting indices" << std::endl;
+        std::cout << "\033[1;34m[oxley]\033[0m....sorting indices" << std::endl;
     #endif
 
     // Sorting
@@ -4628,7 +4716,7 @@ void Brick::updateRowsColumns()
     }
 
 #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-    std::cout << "\033[1;31m[oxley]\033[0mNode connections: " << std::endl;
+    std::cout << "\033[1;34m[oxley]\033[0mNode connections: " << std::endl;
     for(int i = 0; i < getNumNodes(); i++){
         std::vector<int> * idx0 = &indices[0][i];
         std::cout << i << ": ";
@@ -4643,7 +4731,7 @@ void Brick::updateRowsColumns()
     // *******************************************************************
 
     #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-        std::cout << "\033[1;31m[oxley]\033[0m....converting information to CRS format" << std::endl;
+        std::cout << "\033[1;34m[oxley]\033[0m....converting information to CRS format" << std::endl;
     #endif
 
     // Convert to CRS format
@@ -4673,7 +4761,7 @@ void Brick::updateRowsColumns()
     myRows.push_back(myColumns.size());
 
 #ifdef OXLEY_ENABLE_DEBUG_NODES
-    std::cout << "\033[1;31m[oxley]\033[0m Converted to Yale format... "<< std::endl;
+    std::cout << "\033[1;34m[oxley]\033[0m Converted to Yale format... "<< std::endl;
     std::cout << "COL_INDEX [";
     for(auto i = myColumns.begin(); i < myColumns.end(); i++)
         std::cout << *i << " ";
