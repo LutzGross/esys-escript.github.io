@@ -4831,19 +4831,19 @@ void Brick::updateRowsColumns()
         }
     }
 
-#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-    std::cout << "Indices after communicating (second)" << std::endl;
-    for(int i = 0; i < indices->size(); i++)
-    {
-        std::cout << i << ": ";
-        std::vector<int> * idx = &indices[0][i];
-        for(int j = 0; j < 7; j++)
-        {
-            std::cout << idx[0][j] << ", ";
-        }
-        std::cout << std::endl;
-    }
-#endif
+// #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
+//     std::cout << "Indices after communicating (second)" << std::endl;
+//     for(int i = 0; i < indices->size(); i++)
+//     {
+//         std::cout << i << ": ";
+//         std::vector<int> * idx = &indices[0][i];
+//         for(int j = 0; j < 7; j++)
+//         {
+//             std::cout << idx[0][j] << ", ";
+//         }
+//         std::cout << std::endl;
+//     }
+// #endif
 
 #endif // ESYS_MPI
 
@@ -4875,15 +4875,58 @@ void Brick::updateRowsColumns()
     }
 #endif
 
+
+#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
+    std::cout << "Final set of indices" << std::endl;
+    for(int i = 0; i < indices->size(); i++)
+    {
+        std::cout << i << ": ";
+        std::vector<int> * idx = &indices[0][i];
+        for(int j = 0; j < 7; j++)
+        {
+            std::cout << idx[0][j] << ", ";
+        }
+        std::cout << std::endl;
+    }
+#endif
+
+
     // *******************************************************************
     // Convert to CRS
     // *******************************************************************
+    oxleytimer.toc("converting to CRS format");
 
-    #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-        std::cout << "\033[1;34m[oxley]\033[0m....converting information to CRS format" << std::endl;
-    #endif
+    // orig working
+    // // Convert to CRS format
+    // myRows->clear();
+    // myRows->push_back(0);
+    // myColumns->clear();
+    // m_dofMap->assign(getNumNodes(), 0);
+    // long counter = 0;
+    // for(int i = 0; i < getNumNodes(); i++)
+    // {
+    //     std::vector<int> * idx0 = &indices[0][i];
+    //     std::vector<int> temp; 
+    //     for(int j = 1; j < idx0[0][0]+1; j++)
+    //     {
+    //         temp.push_back(idx0[0][j]);
+    //         counter++;
+    //     }
+    //     std::sort(temp.begin(),temp.end());
+    //     for(int i = 0; i < temp.size(); i++)
+    //     {
+    //         myColumns->push_back(temp[i]);
+    //     }
+    //     // m_dofMap[i] = counter-myRows[i];
+    //     *(m_dofMap->data() + i) = counter - *(myRows->data() + i);
+    //     if(i < getNumNodes()-1)
+    //         myRows->push_back(counter);
+    // }
+    // myRows->push_back(myColumns->size());
 
     // Convert to CRS format
+    // ESYS_ASSERT(!(myRows == nullptr), "myRows is null");
+    // ESYS_ASSERT(!(myColumns == nullptr), "myColumns is null");
     myRows.clear();
     myRows.push_back(0);
     myColumns.clear();
@@ -4909,7 +4952,7 @@ void Brick::updateRowsColumns()
     }
     myRows.push_back(myColumns.size());
 
-#ifdef OXLEY_ENABLE_DEBUG_NODES
+#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
     std::cout << "\033[1;34m[oxley]\033[0m Converted to Yale format... "<< std::endl;
     std::cout << "COL_INDEX [";
     for(auto i = myColumns.begin(); i < myColumns.end(); i++)
@@ -4924,15 +4967,6 @@ void Brick::updateRowsColumns()
         std::cout << *i << " ";
     std::cout << "]" << std::endl;
 #endif
-
-    // try
-    // {
-    //     delete indices;
-    // }
-    // catch(...)
-    // {
-    //     throw OxleyException("Broken pointer");
-    // }
 
     oxleytimer.toc("Finished updating rows and columns");
 }
