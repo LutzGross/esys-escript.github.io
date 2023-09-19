@@ -221,11 +221,14 @@ Brick::Brick(int order,
     // Dirac points and tags
     oxleytimer.toc("\t adding Dirac points...");
     addPoints(points, tags);
+    oxleytimer.toc("\t\tdone");
 
     // To prevent segmentation faults when using numpy ndarray
 #ifdef ESYS_HAVE_BOOST_NUMPY
+    oxleytimer.toc("\tpy_initialise");
     Py_Initialize();
-    boost::python::numpy::initialize();
+    oxleytimer.toc("\tboost numpy initialise");
+    boost::python::numpy::initialize(); // Not MPI safe?
 #endif
 
 #ifdef ESYS_HAVE_PASO
@@ -251,7 +254,6 @@ Brick::Brick(int order,
     IndexVector sendShared, recvShared;
 
     createPasoConnector(neighbour, offsetInShared, offsetInShared, sendShared, recvShared);
-
 #endif
 
     oxleytimer.toc("Brick initialised");
@@ -260,9 +262,9 @@ Brick::Brick(int order,
 Brick::Brick(oxley::Brick& B, int order, bool update): 
     OxleyDomain(3, order)
 {
-    oxleytimer.setTime(B.oxleytimer.getTime());
-
     oxleytimer.toc("In Brick copy constructor");
+
+    oxleytimer.setTime(B.oxleytimer.getTime());
 
     // This information is needed by the assembler
     m_NE[0] = B.m_NE[0];
@@ -349,8 +351,10 @@ Brick::Brick(oxley::Brick& B, int order, bool update):
     // Nodes numbering
     oxleytimer.toc("\t creating ghost...");
     ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
+    oxleytimer.toc("\t creating lnodes...");
     nodes = p8est_lnodes_new(p8est, ghost, 1);
     
+    oxleytimer.toc("\t populating forestData...");
     // Find the grid spacing for each level of refinement in the mesh
 #pragma omp parallel for
     for(int i = 0; i <= P8EST_MAXLEVEL; i++)
@@ -4450,19 +4454,19 @@ void Brick::updateRowsColumns()
 
 #ifdef ESYS_MPI
 
-#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-    std::cout << "Indices before communicating (first)" << std::endl;
-    for(int i = 0; i < indices->size(); i++)
-    {
-        std::cout << i << ": ";
-        std::vector<int> * idx = &indices[0][i];
-        for(int j = 0; j < 7; j++)
-        {
-            std::cout << idx[0][j] << ", ";
-        }
-        std::cout << std::endl;
-    }
-#endif
+// #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
+//     std::cout << "Indices before communicating (first)" << std::endl;
+//     for(int i = 0; i < indices->size(); i++)
+//     {
+//         std::cout << i << ": ";
+//         std::vector<int> * idx = &indices[0][i];
+//         for(int j = 0; j < 7; j++)
+//         {
+//             std::cout << idx[0][j] << ", ";
+//         }
+//         std::cout << std::endl;
+//     }
+// #endif
 
     MPI_Barrier(m_mpiInfo->comm);
     if(m_mpiInfo->size > 1)
@@ -4546,21 +4550,6 @@ void Brick::updateRowsColumns()
             }
         }
     }
-
-#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-    std::cout << "Indices after communicating (first)" << std::endl;
-    for(int i = 0; i < indices->size(); i++)
-    {
-        std::cout << i << ": ";
-        std::vector<int> * idx = &indices[0][i];
-        for(int j = 0; j < 7; j++)
-        {
-            std::cout << idx[0][j] << ", ";
-        }
-        std::cout << std::endl;
-    }
-#endif
-
 #endif // ESYS_MPI
 
     // *******************************************************************
@@ -4881,23 +4870,23 @@ void Brick::updateRowsColumns()
     #endif
 
     // Sorting
-#pragma omp for
     for(int i = 0; i < getNumNodes(); i++)
     {
-        std::vector<int> * idx0 = &indices[0][i];
-        std::sort(indices[0][i].begin()+1, indices[0][i].begin()+idx0[0][0]+1);
+        int * point1 = indices[0][i].data()+1;
+        int * point2 = indices[0][i].data()+indices[0][i][0]+1;
+        std::sort(point1, point2);
     }
 
-#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-    std::cout << "\033[1;34m[oxley]\033[0mNode connections: " << std::endl;
-    for(int i = 0; i < getNumNodes(); i++){
-        std::vector<int> * idx0 = &indices[0][i];
-        std::cout << i << ": ";
-        for(int j = 1; j < idx0[0][0]+1; j++)
-            std::cout << idx0[0][j] << ", ";
-        std::cout << std::endl;
-    }
-#endif
+// #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
+//     std::cout << "\033[1;34m[oxley]\033[0mNode connections: " << std::endl;
+//     for(int i = 0; i < getNumNodes(); i++){
+//         std::vector<int> * idx0 = &indices[0][i];
+//         std::cout << i << ": ";
+//         for(int j = 1; j < idx0[0][0]+1; j++)
+//             std::cout << idx0[0][j] << ", ";
+//         std::cout << std::endl;
+//     }
+// #endif
 
 
 #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
@@ -6791,6 +6780,8 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
     oxleytimer.toc("Applying the refinement zone...");
 
     bool update=false; // Update after the refinement zones have been applied to save time
+
+    oxleytimer.toc("\tcreating a new Brick...");
     oxley::Brick * newDomain = new Brick(*this, m_order, update);
 
 #ifdef OXLEY_ENABLE_DEBUG_CHECKS 
@@ -6828,6 +6819,7 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
 
     int numberOfRefinements = R.getNumberOfOperations();
 
+    oxleytimer.toc("\tapplying individual refinements");
     for(int n = 0; n < numberOfRefinements; n++)
     {
         // #ifdef OXLEY_ENABLE_PROFILE_TIMERS_INFORMATIONAL
@@ -6933,6 +6925,7 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
         newDomain->updateMeshBackend();
     }
 
+    oxleytimer.toc("\tupdating the mesh");
     newDomain->updateMesh();
     newDomain->AutomaticMeshUpdateOnOff(true);
 
