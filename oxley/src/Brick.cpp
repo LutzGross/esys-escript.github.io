@@ -1321,17 +1321,41 @@ void Brick::updateMesh()
     oxleytimer.toc("Brick::updateMesh ...");
     oxleytimer.toc("\t balancing...");    
     p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
+    #ifdef ESYS_MPI
+    MPI_Barrier(m_mpiInfo->comm);
+    #endif
+
     oxleytimer.toc("\t partitioning...");    
     bool partition_for_coarsening = true;
     p8est_partition_ext(p8est, partition_for_coarsening, NULL);
+    #ifdef ESYS_MPI
+    MPI_Barrier(m_mpiInfo->comm);
+    #endif
+
     oxleytimer.toc("\t destroying old ghost..."); 
     p8est_ghost_destroy(ghost);
+    #ifdef ESYS_MPI
+    MPI_Barrier(m_mpiInfo->comm);
+    #endif
+
     oxleytimer.toc("\t creating new ghost..."); 
     ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
+    #ifdef ESYS_MPI
+    MPI_Barrier(m_mpiInfo->comm);
+    #endif
+
     oxleytimer.toc("\t destroying old lnodes...");   
     p8est_lnodes_destroy(nodes);
+    #ifdef ESYS_MPI
+    MPI_Barrier(m_mpiInfo->comm);
+    #endif
+
     oxleytimer.toc("\t creating new lnodes..."); 
     nodes = p8est_lnodes_new(p8est, ghost, 1);
+    #ifdef ESYS_MPI
+    MPI_Barrier(m_mpiInfo->comm);
+    #endif
+
 
     // addition information
     oxleytimer.toc("\t updating node increments");
