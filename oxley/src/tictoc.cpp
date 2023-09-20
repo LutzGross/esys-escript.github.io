@@ -17,7 +17,7 @@ void TicTocClock::toc(std::string message)
 	time_t currenttime;
 	time(&currenttime);
 
-	std::cout << "\033[1;31m[" << difftime(currenttime,starttime) << " seconds]\033[0m: " << message << std::endl;
+	std::cout << "\033[1;34m[" << difftime(currenttime,starttime) << " seconds]\033[0m: " << message << std::endl;
 #endif
 }
 

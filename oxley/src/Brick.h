@@ -419,7 +419,7 @@ private:
 
     // This structure records the node numbering information
     p8est_lnodes * nodes;
-    long nodeIncrements[MAXTREES] = {0};
+    long * nodeIncrements;
 
     // Indices
     std::vector<IndexVector> * indices;

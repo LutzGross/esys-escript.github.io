@@ -205,6 +205,8 @@ Brick::Brick(int order,
     // Indices
     indices = new std::vector<IndexVector>;
 
+    nodeIncrements = new long[MAXTREES];
+
     // Number the nodes
     updateMesh();
 
@@ -401,6 +403,8 @@ Brick::Brick(oxley::Brick& B, int order, bool update):
     boost::python::numpy::initialize();
 #endif
 
+    nodeIncrements = new long[MAXTREES];
+
     updateMesh();
 
     oxleytimer.toc("Brick initialised");
@@ -431,6 +435,9 @@ Brick::~Brick(){
     else
         std::cout << "\t\tOK" << std::endl;
 #endif
+
+    delete[] indices;
+    delete[] nodeIncrements;
 }
 
 /**
@@ -4448,26 +4455,13 @@ void Brick::updateRowsColumns()
     // p8est_ghost_exchange_data(p8est, ghost, ghost_data);
     reset_ghost();
     // p8est_ghost_exchange_data(p8est, ghost, NULL);
-    p8est_iterate_ext(p8est, ghost, data, NULL, NULL, update_RC, NULL, true);
+    p8est_iterate_ext(p8est, ghost, data, NULL, NULL, update_RC, NULL, true);           //ae tmp mem error
     oxleytimer.toc("\t\tdone");
     delete data;
 
 #ifdef ESYS_MPI
-
-// #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-//     std::cout << "Indices before communicating (first)" << std::endl;
-//     for(int i = 0; i < indices->size(); i++)
-//     {
-//         std::cout << i << ": ";
-//         std::vector<int> * idx = &indices[0][i];
-//         for(int j = 0; j < 7; j++)
-//         {
-//             std::cout << idx[0][j] << ", ";
-//         }
-//         std::cout << std::endl;
-//     }
-// #endif
-
+    oxleytimer.toc("communicating");
+    oxleytimer.toc("\trelaying info to 0");
     MPI_Barrier(m_mpiInfo->comm);
     if(m_mpiInfo->size > 1)
     {
@@ -4480,9 +4474,9 @@ void Brick::updateRowsColumns()
                 for(int i = 0; i < num; i++)
                 {
                     std::vector<int> idx_tmp(7,-1);
-                    MPI_Recv(idx_tmp.data(),7,MPI_LONG,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+                    MPI_Recv(idx_tmp.data(),7,MPI_INT,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
                     std::vector<int> * idx = &indices[0][i];
-                 
+                    ESYS_ASSERT(!(idx==nullptr), "idx nullptr");
                     for(int j = 1; j < 7; j++)
                     {
                         if(idx_tmp[j] == -1)
@@ -4511,11 +4505,12 @@ void Brick::updateRowsColumns()
             MPI_Send(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
             for(int i = 0; i < indices->size(); i++)
             {
-                MPI_Send(&indices[0][i][0], 7, MPI_LONG, 0, 0, m_mpiInfo->comm);
+                MPI_Send(&indices[0][i][0], 7, MPI_INT, 0, 0, m_mpiInfo->comm);
             }
         }
     }
 
+    oxleytimer.toc("\tcollecting info from 0");
     MPI_Barrier(m_mpiInfo->comm);
     if(m_mpiInfo->size > 1)
     {
@@ -4550,15 +4545,15 @@ void Brick::updateRowsColumns()
             }
         }
     }
+
+    oxleytimer.toc("\t\tdone");
 #endif // ESYS_MPI
 
     // *******************************************************************
     // Boundary edges
     // *******************************************************************
 
-    #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-        std::cout << "\033[1;34m[oxley]\033[0m....looping over boundaries edges" << std::endl;
-    #endif
+    oxleytimer.toc("....looping over boundary edges");
 
     // Find the indices of the nodes on the boundaries x = Lx and y = Ly
     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
@@ -4680,10 +4675,7 @@ void Brick::updateRowsColumns()
     // *******************************************************************
     // Hanging nodes on edges
     // *******************************************************************
-
-    #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-        std::cout << "\033[1;34m[oxley]\033[0m....looping over hanging nodes on edges" << std::endl;
-    #endif
+    oxleytimer.toc("looping over hanging nodes on edges");
 
     // Nodes on hanging edges
     // hanging_edges.clear();
@@ -4722,6 +4714,7 @@ void Brick::updateRowsColumns()
 
     // Nodes on hanging faces
     // hanging_edges.clear();
+    oxleytimer.toc("looping over hanging nodes on faces");
     for(int i = 0; i < hanging_face_node_connections.size(); i++)
     {
         // The two nodes
@@ -4747,21 +4740,8 @@ void Brick::updateRowsColumns()
     }
 
 #ifdef ESYS_MPI
-
-#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-    std::cout << "Indices before communicating (second)" << std::endl;
-    for(int i = 0; i < indices->size(); i++)
-    {
-        std::cout << i << ": ";
-        std::vector<int> * idx = &indices[0][i];
-        for(int j = 0; j < 7; j++)
-        {
-            std::cout << idx[0][j] << ", ";
-        }
-        std::cout << std::endl;
-    }
-#endif
-
+    oxleytimer.toc("communicating");
+    oxleytimer.toc("\trelaying info to 0");
     MPI_Barrier(m_mpiInfo->comm);
     if(m_mpiInfo->size > 1)
     {
@@ -4774,9 +4754,9 @@ void Brick::updateRowsColumns()
                 for(int i = 0; i < num; i++)
                 {
                     std::vector<int> idx_tmp(7,-1);
-                    MPI_Recv(idx_tmp.data(),7,MPI_LONG,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+                    MPI_Recv(idx_tmp.data(),7,MPI_INT,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
                     std::vector<int> * idx = &indices[0][i];
-                 
+                    ESYS_ASSERT(!(idx==nullptr), "idx nullptr");
                     for(int j = 1; j < 7; j++)
                     {
                         if(idx_tmp[j] == -1)
@@ -4792,6 +4772,7 @@ void Brick::updateRowsColumns()
                         if(!duplicate)
                         {
                             idx[0][0]++;
+                            ESYS_ASSERT(idx[0][0]<=6, "updateRowsColumns index out of bound ");
                             idx[0][idx[0][0]]=idx_tmp[j];
                         }
                     }
@@ -4804,11 +4785,12 @@ void Brick::updateRowsColumns()
             MPI_Send(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
             for(int i = 0; i < indices->size(); i++)
             {
-                MPI_Send(&indices[0][i][0], 7, MPI_LONG, 0, 0, m_mpiInfo->comm);
+                MPI_Send(&indices[0][i][0], 7, MPI_INT, 0, 0, m_mpiInfo->comm);
             }
         }
     }
 
+    oxleytimer.toc("\tcollecting info from 0");
     MPI_Barrier(m_mpiInfo->comm);
     if(m_mpiInfo->size > 1)
     {
@@ -4844,20 +4826,7 @@ void Brick::updateRowsColumns()
         }
     }
 
-// #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-//     std::cout << "Indices after communicating (second)" << std::endl;
-//     for(int i = 0; i < indices->size(); i++)
-//     {
-//         std::cout << i << ": ";
-//         std::vector<int> * idx = &indices[0][i];
-//         for(int j = 0; j < 7; j++)
-//         {
-//             std::cout << idx[0][j] << ", ";
-//         }
-//         std::cout << std::endl;
-//     }
-// #endif
-
+    oxleytimer.toc("\t\tdone");
 #endif // ESYS_MPI
 
 
@@ -4889,25 +4858,25 @@ void Brick::updateRowsColumns()
 // #endif
 
 
-#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-    std::cout << "Final set of indices" << std::endl;
-    for(int i = 0; i < indices->size(); i++)
-    {
-        std::cout << i << ": ";
-        std::vector<int> * idx = &indices[0][i];
-        for(int j = 0; j < 7; j++)
-        {
-            std::cout << idx[0][j] << ", ";
-        }
-        std::cout << std::endl;
-    }
-#endif
+// #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
+//     std::cout << "Final set of indices" << std::endl;
+//     for(int i = 0; i < indices->size(); i++)
+//     {
+//         std::cout << i << ": ";
+//         std::vector<int> * idx = &indices[0][i];
+//         for(int j = 0; j < 7; j++)
+//         {
+//             std::cout << idx[0][j] << ", ";
+//         }
+//         std::cout << std::endl;
+//     }
+// #endif
 
 
     // *******************************************************************
     // Convert to CRS
     // *******************************************************************
-    oxleytimer.toc("converting to CRS format");
+    // oxleytimer.toc("converting to CRS format");
 
     // orig working
     // // Convert to CRS format
