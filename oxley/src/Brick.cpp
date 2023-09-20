@@ -436,7 +436,6 @@ Brick::~Brick(){
         std::cout << "\t\tOK" << std::endl;
 #endif
 
-    delete[] indices;
     delete[] nodeIncrements;
 }
 
