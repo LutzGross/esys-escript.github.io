@@ -2714,7 +2714,7 @@ void Brick::renumberNodes()
 
     if(m_mpiInfo->size > 1)
     {
-        oxleytimer.toc("Doing other ranks...");
+        oxleytimer.toc("\tDoing other ranks...");
         for(int r = 1; r < m_mpiInfo->size; r++)
         {
             for(int j = 0; j < num_iter[r]; j++) 
@@ -3051,7 +3051,7 @@ void Brick::renumberNodes()
 
 
     MPI_Barrier(m_mpiInfo->comm);
-    oxleytimer.toc("communicating");
+    oxleytimer.toc("\tcommunicating");
     if(m_mpiInfo->size > 1)
     {
         if(m_mpiInfo->rank == 0)
@@ -3120,7 +3120,7 @@ void Brick::renumberNodes()
                 MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
                 MPI_Send(HangingFaceNodesTmp.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
 
-                num=2*HangingEdgeNodesTmp.size();
+                num=HangingEdgeNodesTmp.size();
                 MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
                 MPI_Send(HangingEdgeNodesTmp.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
             }        
@@ -3199,11 +3199,11 @@ void Brick::renumberNodes()
 
             MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
             HangingEdgeNodesTmp.clear();
-            HangingEdgeNodesTmp.resize(0.5*num);
+            HangingEdgeNodesTmp.resize(num);
             MPI_Recv(HangingEdgeNodesTmp.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
         }
     }
-    oxleytimer.toc("Finished communicating");
+    oxleytimer.toc("\t\t\t....done 3");
     MPI_Barrier(m_mpiInfo->comm);
 #else
     k=0;
