@@ -2042,48 +2042,6 @@ void Brick::renumberNodes()
 
     const float lxy_nodes[8][3] = {{0,0,0},{1,0,0},{0,1,0},{1,1,0},{0,0,1},{1,0,1},{0,1,1},{1,1,1}};
 
-    // // v1
-    // Assign numbers to the nodes
-    // oxleytimer.toc("\tmain loop (slow version)"); 
-    // std::vector<DoubleTuple> checkList;
-    // for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
-    //     p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-    //     sc_array_t * tquadrants = &tree->quadrants;
-    //     p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-
-    //     // Loop over octants
-    //     for(int q = 0; q < Q; ++q) { 
-    //         p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
-    //         p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
-
-    //         // Assign numbers to the vertix nodes
-    //         double xyz[3];
-    //         for(int n = 0; n < 8; n++)
-    //         {
-    //             // Get the first coordinate
-    //             p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
-    //                                         oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
-    //             auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-    //             if(std::find(checkList.begin(), checkList.end(), point)==checkList.end())
-    //             {
-    //                 checkList.push_back(point);
-    //                 NodeIDs[checkList[checkList.size()-1]]=checkList.size()-1;
-    //             }
-    //         }
-    //     }
-    // }
-    // std::cout << "checklist" << std::endl;
-    // for(int i = 0; i < checkList.size(); i++)
-    //     std::cout << i << ": " << std::get<0>(checkList[i]) << ", " << std::get<1>(checkList[i]) << ", " << std::get<2>(checkList[i]) << std::endl;
-
-    // NormalNodesTmp=checkList;
-
-
-
-
-//     //v5 faster but uses a lot more memory
-//     oxleytimer.toc("\tmain loop2");
-
 #ifdef ESYS_MPI 
     // Do the calculation    
     std::vector<double> treevecX;
@@ -2132,15 +2090,10 @@ void Brick::renumberNodes()
         {
             // broadcast
             int numPoints = treevecX.size();
-            MPI_Request request;
-            MPI_Isend(&numPoints, 1, MPI_INT, 0, 0, m_mpiInfo->comm, &request);
-            MPI_Wait(&request, MPI_STATUS_IGNORE);
-            MPI_Isend(treevecX.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm, &request);
-            MPI_Wait(&request, MPI_STATUS_IGNORE);
-            MPI_Isend(treevecY.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm, &request);
-            MPI_Wait(&request, MPI_STATUS_IGNORE);
-            MPI_Isend(treevecZ.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm, &request);
-            MPI_Wait(&request, MPI_STATUS_IGNORE);
+            MPI_Send(&numPoints, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
+            MPI_Send(treevecX.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm);
+            MPI_Send(treevecY.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm);
+            MPI_Send(treevecZ.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm);
         }
         else if(m_mpiInfo->rank == 0)
         {
@@ -2151,20 +2104,15 @@ void Brick::renumberNodes()
                 std::vector<double> tmpZ;
                 
                 int numPoints = 0;
-                MPI_Request request;
-                MPI_Irecv(&numPoints, 1, MPI_INT, i, 0, m_mpiInfo->comm, &request);
-                MPI_Wait(&request, MPI_STATUS_IGNORE);
+                MPI_Recv(&numPoints, 1, MPI_INT, i, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
 
                 tmpX.resize(numPoints);
                 tmpY.resize(numPoints);
                 tmpZ.resize(numPoints);
 
-                MPI_Irecv(tmpX.data(), numPoints, MPI_DOUBLE, i, 0, m_mpiInfo->comm, &request);
-                MPI_Wait(&request, MPI_STATUS_IGNORE);
-                MPI_Irecv(tmpY.data(), numPoints, MPI_DOUBLE, i, 0, m_mpiInfo->comm, &request);
-                MPI_Wait(&request, MPI_STATUS_IGNORE);
-                MPI_Irecv(tmpZ.data(), numPoints, MPI_DOUBLE, i, 0, m_mpiInfo->comm, &request);
-                MPI_Wait(&request, MPI_STATUS_IGNORE);
+                MPI_Recv(tmpX.data(), numPoints, MPI_DOUBLE, i, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(tmpY.data(), numPoints, MPI_DOUBLE, i, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(tmpZ.data(), numPoints, MPI_DOUBLE, i, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
                 for(int j = 0; j < numPoints; j++)
                     NormalNodesTmp.push_back(std::make_tuple(tmpX[j],tmpY[j],tmpZ[j]));
             }
@@ -2175,7 +2123,6 @@ void Brick::renumberNodes()
     if(m_mpiInfo->rank == 0) // Redundant for mpi size = 1
     {
         //check for duplicates
-        // bool locats[NormalNodesTmp.size()] = {false};
         std::vector<bool> locats(NormalNodesTmp.size(),false);
         for(int i = 0; i < NormalNodesTmp.size(); i++)
         {
@@ -2195,24 +2142,24 @@ void Brick::renumberNodes()
                     if((std::abs(std::get<0>(NormalNodesTmp[j]) - std::get<0>(point)) < 1e-12)
                         && (std::abs(std::get<1>(NormalNodesTmp[j]) - std::get<1>(point)) < 1e-12) 
                             && (std::abs(std::get<2>(NormalNodesTmp[j]) - std::get<2>(point)) < 1e-12))
-                                {
-                                    if(firstOccurance)
-                                    {
-                                        firstOccurance = false;
-                                        continue;
-                                    }
-                                    else
-                                    {
-                                        locats[j] = true;
-                                    }
-                                }
+                    {
+                        if(firstOccurance)
+                        {
+                            firstOccurance = false;
+                            continue;
+                        }
+                        else
+                        {
+                            locats[j] = true;
+                        }
+                    }
                 }
             }
         }
         // erase duplicates
         for(int j = NormalNodesTmp.size(); j > 0; j--)
             if(locats[j] == true)
-                NormalNodesTmp.erase(NormalNodesTmp.begin()+j); // here
+                NormalNodesTmp.erase(NormalNodesTmp.begin()+j);
 
         // Write information into NodeIDs
         for(int i = 0; i < NormalNodesTmp.size(); i++)
@@ -2705,8 +2652,6 @@ void Brick::renumberNodes()
 
     if(m_mpiInfo->size > 1)
         MPI_Barrier(m_mpiInfo->comm);
-
-
 
     int total_iter = 0;
     for(int i = 0; i < m_mpiInfo->size ; i++)
@@ -3657,7 +3602,7 @@ void Brick::renumberNodes()
     MPI_Barrier(m_mpiInfo->comm);
 #endif
 
-    oxleytimer.toc("Nodes renumbered");
+    oxleytimer.toc("Nodes renumbered"); //here
 }
 
 
@@ -4417,9 +4362,6 @@ void Brick::updateRowsColumns()
         std::cout << "\033[1;34m[oxley]\033[0m....looping over internal edges" << std::endl;
     #endif
 
-
-
-    // old
     // Initialise info needed by p4est
     update_RC_data_brick * data;
     data = new update_RC_data_brick;
@@ -4436,25 +4378,14 @@ void Brick::updateRowsColumns()
     // p8est_connectivity_t tempConnect(connectivity);
     // data->connectivity = &tempConnect;
 
-
-
-#ifdef ESYS_MPI
-    
-    MPI_Barrier(m_mpiInfo->comm);
-
-#endif
-
     oxleytimer.toc("\tBackend loop...");
-#ifdef ESYS_MPI
-    MPI_Barrier(m_mpiInfo->comm);
-#endif
 
     // update_RC_data_brick * ghost_data;
     // ghost_data = (update_RC_data_brick *) malloc(ghost->ghosts.elem_count);
     // p8est_ghost_exchange_data(p8est, ghost, ghost_data);
     reset_ghost();
     // p8est_ghost_exchange_data(p8est, ghost, NULL);
-    p8est_iterate_ext(p8est, ghost, data, NULL, NULL, update_RC, NULL, true);           //ae tmp mem error
+    p8est_iterate_ext(p8est, ghost, data, NULL, NULL, update_RC, NULL, true);
     oxleytimer.toc("\t\tdone");
     delete data;
 
@@ -4491,7 +4422,7 @@ void Brick::updateRowsColumns()
                         if(!duplicate)
                         {
                             idx[0][0]++;
-                            ESYS_ASSERT(idx[0][0]<=6, "updateRowsColumns index out of bound ");
+                            ESYS_ASSERT(idx[0][0]<7, "updateRowsColumns index out of bound ");
                             idx[0][idx[0][0]]=idx_tmp[j];
                         }
                     }
@@ -4596,8 +4527,8 @@ void Brick::updateRowsColumns()
                 {
                     idx0[0][0]++;
                     idx1[0][0]++;
-                    ESYS_ASSERT(idx0[0][0]<=6, "updateRowsColumns index out of bound ");
-                    ESYS_ASSERT(idx1[0][0]<=6, "updateRowsColumns index out of bound ");
+                    ESYS_ASSERT(idx0[0][0]<7, "updateRowsColumns index out of bound ");
+                    ESYS_ASSERT(idx1[0][0]<7, "updateRowsColumns index out of bound ");
                     idx0[0][idx0[0][0]]=lni1;
                     idx1[0][idx1[0][0]]=lni0;
                 }
@@ -4629,8 +4560,8 @@ void Brick::updateRowsColumns()
                 {
                     idx0[0][0]++;
                     idx1[0][0]++;
-                    ESYS_ASSERT(idx0[0][0]<=6, "updateRowsColumns index out of bound ");
-                    ESYS_ASSERT(idx1[0][0]<=6, "updateRowsColumns index out of bound ");
+                    ESYS_ASSERT(idx0[0][0]<7, "updateRowsColumns index out of bound ");
+                    ESYS_ASSERT(idx1[0][0]<7, "updateRowsColumns index out of bound ");
                     idx0[0][idx0[0][0]]=lni1;
                     idx1[0][idx1[0][0]]=lni0;
                 }
@@ -4662,8 +4593,8 @@ void Brick::updateRowsColumns()
                 {
                     idx0[0][0]++;
                     idx1[0][0]++;
-                    ESYS_ASSERT(idx0[0][0]<=6, "updateRowsColumns index out of bound ");
-                    ESYS_ASSERT(idx1[0][0]<=6, "updateRowsColumns index out of bound ");
+                    ESYS_ASSERT(idx0[0][0]<7, "updateRowsColumns index out of bound ");
+                    ESYS_ASSERT(idx1[0][0]<7, "updateRowsColumns index out of bound ");
                     idx0[0][idx0[0][0]]=lni1;
                     idx1[0][idx1[0][0]]=lni0;
                 }
@@ -4683,30 +4614,32 @@ void Brick::updateRowsColumns()
         // The two nodes
         long node[2]={hanging_edge_node_connections[i].first,hanging_edge_node_connections[i].second};
 
-        // Get pointers to the appropriate section of the indices vector
         std::vector<int> * idx0 = &indices[0][node[0]];
         std::vector<int> * idx1 = &indices[0][node[1]];
         
-        bool failed_to_find_node=true;
-        
+        bool newconnection=true;
+
+        int false_node = (node[0] == false_node_connections[i].second) 
+                ? false_node_connections[i].second : false_node_connections[i].first;
+
         // Find the index of the defunct connection
         for(int j = 1; j < idx0[0][0]+1; j++)
-            if(idx0[0][j]==false_node_connections[i].second)
+            if(idx0[0][j]==false_node)
             {
+                int tmp = 
                 idx0[0][j]=node[1];
-                idx1[0][0]++;
                 idx1[0][idx1[0][0]]=node[0];
-                #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-                failed_to_find_node=false;
-                #endif
+                newconnection=false;
                 break;
             }
 
-        if(failed_to_find_node==true)
+        if(newconnection==true)
         {
             idx0[0][0]++;
+            ESYS_ASSERT(idx0[0][0]<7,"Index out of bounds");
             idx0[0][idx0[0][0]]=node[1];
             idx1[0][0]++;
+            ESYS_ASSERT(idx1[0][0]<7,"Index out of bounds");
             idx1[0][idx1[0][0]]=node[0];
         }
     }
@@ -4714,7 +4647,7 @@ void Brick::updateRowsColumns()
     // Nodes on hanging faces
     // hanging_edges.clear();
     oxleytimer.toc("looping over hanging nodes on faces");
-    for(int i = 0; i < hanging_face_node_connections.size(); i++)
+    for(int i = 0; i < hanging_face_node_connections.size(); i++) 
     {
         // The two nodes
         long node[2]={hanging_face_node_connections[i].first,hanging_face_node_connections[i].second};
@@ -4723,18 +4656,13 @@ void Brick::updateRowsColumns()
         std::vector<int> * idx0 = &indices[0][node[0]];
         std::vector<int> * idx1 = &indices[0][node[1]];
 
-        #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-            for(int i=1; i < idx0[0][0]; i++)
-                ESYS_ASSERT(idx0[0][i]!=node[1],"Found a duplicate hanging node");
-        #endif
-
         // If they are new then add them to the vectors
         idx0[0][0]++;
-        ESYS_ASSERT(idx0[0][0]<=6, "updateRowsColumns index out of bound ");
+        ESYS_ASSERT(idx0[0][0]<7, "updateRowsColumns index out of bound ");
         idx0[0][idx0[0][0]]=node[1];
 
         idx1[0][0]++;
-        ESYS_ASSERT(idx1[0][0]<=6, "updateRowsColumns index out of bound ");
+        ESYS_ASSERT(idx1[0][0]<7, "updateRowsColumns index out of bound ");
         idx1[0][idx1[0][0]]=node[0];
     }
 
@@ -4771,7 +4699,7 @@ void Brick::updateRowsColumns()
                         if(!duplicate)
                         {
                             idx[0][0]++;
-                            ESYS_ASSERT(idx[0][0]<=6, "updateRowsColumns index out of bound ");
+                            ESYS_ASSERT(idx[0][0]<7, "updateRowsColumns index out of bound ");
                             idx[0][idx[0][0]]=idx_tmp[j];
                         }
                     }
@@ -4816,6 +4744,7 @@ void Brick::updateRowsColumns()
                 if(idx_tmp[0]!=0)
                 {
                     std::vector<int> * idx = &indices[0][i];
+                    ESYS_ASSERT(idx[0][0]<7, "unknown error");
                     for(int j = 0; j < 7; j++)
                     {
                         idx[0][j] = idx_tmp[j];
@@ -4871,43 +4800,9 @@ void Brick::updateRowsColumns()
 //     }
 // #endif
 
-
     // *******************************************************************
     // Convert to CRS
     // *******************************************************************
-    // oxleytimer.toc("converting to CRS format");
-
-    // orig working
-    // // Convert to CRS format
-    // myRows->clear();
-    // myRows->push_back(0);
-    // myColumns->clear();
-    // m_dofMap->assign(getNumNodes(), 0);
-    // long counter = 0;
-    // for(int i = 0; i < getNumNodes(); i++)
-    // {
-    //     std::vector<int> * idx0 = &indices[0][i];
-    //     std::vector<int> temp; 
-    //     for(int j = 1; j < idx0[0][0]+1; j++)
-    //     {
-    //         temp.push_back(idx0[0][j]);
-    //         counter++;
-    //     }
-    //     std::sort(temp.begin(),temp.end());
-    //     for(int i = 0; i < temp.size(); i++)
-    //     {
-    //         myColumns->push_back(temp[i]);
-    //     }
-    //     // m_dofMap[i] = counter-myRows[i];
-    //     *(m_dofMap->data() + i) = counter - *(myRows->data() + i);
-    //     if(i < getNumNodes()-1)
-    //         myRows->push_back(counter);
-    // }
-    // myRows->push_back(myColumns->size());
-
-    // Convert to CRS format
-    // ESYS_ASSERT(!(myRows == nullptr), "myRows is null");
-    // ESYS_ASSERT(!(myColumns == nullptr), "myColumns is null");
     myRows.clear();
     myRows.push_back(0);
     myColumns.clear();
@@ -4927,7 +4822,13 @@ void Brick::updateRowsColumns()
         {
             myColumns.push_back(temp[i]);
         }
+
         m_dofMap[i] = counter-myRows[i];
+
+        //ae tmp
+        if(m_dofMap[i] > 6 )
+            int k = 100;
+
         if(i < getNumNodes()-1)
             myRows.push_back(counter);
     }
