@@ -939,9 +939,10 @@ void Brick::dump(const std::string& fileName) const
         for(std::pair<DoubleTuple,long> element : NodeIDs)
         {
             #ifdef OXLEY_ENABLE_DEBUG_DUMP
-                std::cout << "Adding " << element.second << ": (" << std::get<0>(element.first) << ", " 
-                                                                  << std::get<1>(element.first) << ", "  
-                                                                  << std::get<2>(element.first) << ") " << counter << std::endl;
+                std::cout << "Adding " << element.second << ": (" 
+                                       << std::get<0>(element.first) << ", " 
+                                       << std::get<1>(element.first) << ", "  
+                                       << std::get<2>(element.first) << ") " << counter << std::endl;
             #endif
 
             pNodex[element.second]=std::get<0>(element.first);
@@ -1035,10 +1036,6 @@ void Brick::dump(const std::string& fileName) const
             int* nodelistarray = &nodelist[0];  // check
             int lnodelist = nodelist.size();    // check
 
-            // ae tmp
-            // std::cout << "nodelist.size() " << nodelist.size() << std::endl;
-
-
             int shapecounts[] = {getNumElements()};
             int shapetype[1] = {DB_ZONETYPE_HEX};
             int shapesize[1] = {8}; // Number of nodes used by each zone
@@ -1090,10 +1087,6 @@ void Brick::dump(const std::string& fileName) const
         MPI_Barrier(m_mpiInfo->comm);
 
     #else // no MPI
-
-        #ifdef OXLEY_ENABLE_DEBUG_DUMP
-                std::cout << "Inside dump........" << std::endl;
-        #endif
 
         // Add the suffix to the filename if required
         std::string fn = fileName;
@@ -1979,56 +1972,59 @@ void Brick::renumberNodes()
 
     //                                                                              
     //                       0         1         2         3         4         5
-    const bool xface[6][4]={{0,0,0,0},{1,1,1,1},{1,0,1,0},{1,0,1,0},{1,0,1,0},{1,0,1,0}};
-    const bool yface[6][4]={{1,0,1,0},{1,0,1,0},{0,0,0,0},{1,1,1,1},{1,1,0,0},{1,1,0,0}};
-    const bool zface[6][4]={{1,1,0,0},{1,1,0,0},{1,1,0,0},{1,1,0,0},{0,0,0,0},{1,1,1,1}};
-
+    std::vector<std::vector<int>> xface = {{0,0,0,0},{1,1,1,1},{1,0,1,0},{1,0,1,0},{1,0,1,0},{1,0,1,0}};
+    std::vector<std::vector<int>> yface = {{1,0,1,0},{1,0,1,0},{0,0,0,0},{1,1,1,1},{1,1,0,0},{1,1,0,0}};
+    std::vector<std::vector<int>> zface = {{1,1,0,0},{1,1,0,0},{1,1,0,0},{1,1,0,0},{0,0,0,0},{1,1,1,1}};
+    
     // used to calculate up the coordinate of the final node in each octant
     //                       0         1         2         3         4         5
-    const int xface0[6][4]={{0,0,0,0},{1,1,1,1},{0,1,0,1},{0,1,0,1},{0,1,0,1},{0,1,0,1}};
-    const int yface0[6][4]={{0,1,0,1},{0,1,0,1},{0,0,0,0},{1,1,1,1},{0,0,1,1},{0,0,1,1}};
-    const int zface0[6][4]={{0,0,1,1},{0,0,1,1},{0,0,1,1},{0,0,1,1},{0,0,0,0},{1,1,1,1}};
-
+    std::vector<std::vector<int>> xface0 = {{0,0,0,0},{1,1,1,1},{0,1,0,1},{0,1,0,1},{0,1,0,1},{0,1,0,1}};
+    std::vector<std::vector<int>> yface0 = {{0,1,0,1},{0,1,0,1},{0,0,0,0},{1,1,1,1},{0,0,1,1},{0,0,1,1}};
+    std::vector<std::vector<int>> zface0 = {{0,0,1,1},{0,0,1,1},{0,0,1,1},{0,0,1,1},{0,0,0,0},{1,1,1,1}};
+    
     // used to look up the coordinate of the final node in each octant
     //                              0            1            2           3            4          5
-    const signed int xface1[6][4]={{0, 0, 0, 0},{1, 1, 1, 1},{2,-1,0, 1},{2,-1, 0, 1},{0,0,0, 1},{2,-1, 0,0}};
-    const signed int yface1[6][4]={{2,-1, 0, 1},{2,-1, 0, 1},{0, 0,0, 0},{1, 1, 1, 1},{0,0,0,-1},{0, 0,-1,0}};
-    const signed int zface1[6][4]={{0, 0,-1,-1},{0, 0,-1,-1},{0, 0,0,-1},{0, 0,-1, 1},{0,0,0, 0},{1, 1, 1,0}};
-    const signed int xface2[6][4]={{0, 0, 0, 0},{1, 1, 1, 1},{0, 1,2,-1},{0, 0, 2,-1},{0,1,2,-1},{0, 0, 0,0}};
-    const signed int yface2[6][4]={{0, 1, 2,-1},{0, 1, 2,-1},{0, 0,0, 0},{1, 0, 1, 1},{0,2,1, 1},{2, 0, 0,0}};
-    const signed int zface2[6][4]={{2, 2, 1, 1},{2, 2, 1, 1},{0, 2,1, 1},{2, 0, 1, 1},{0,0,0, 0},{1, 0, 0,0}};
+    std::vector<std::vector<signed int>> xface1 = {{0, 0, 0, 0},{1, 1, 1, 1},{2,-1,0, 1},{2,-1, 0, 1},{0,0,0, 1},{2,-1, 0,0}};
+    std::vector<std::vector<signed int>> yface1 = {{2,-1, 0, 1},{2,-1, 0, 1},{0, 0,0, 0},{1, 1, 1, 1},{0,0,0,-1},{0, 0,-1,0}};
+    std::vector<std::vector<signed int>> zface1 = {{0, 0,-1,-1},{0, 0,-1,-1},{0, 0,0,-1},{0, 0,-1, 1},{0,0,0, 0},{1, 1, 1,0}};
+    std::vector<std::vector<signed int>> xface2 = {{0, 0, 0, 0},{1, 1, 1, 1},{0, 1,2,-1},{0, 0, 2,-1},{0,1,2,-1},{0, 0, 0,0}};
+    std::vector<std::vector<signed int>> yface2 = {{0, 1, 2,-1},{0, 1, 2,-1},{0, 0,0, 0},{1, 0, 1, 1},{0,2,1, 1},{2, 0, 0,0}};
+    std::vector<std::vector<signed int>> zface2 = {{2, 2, 1, 1},{2, 2, 1, 1},{0, 2,1, 1},{2, 0, 1, 1},{0,0,0, 0},{1, 0, 0,0}};
 
     // three dimensions, six octant faces, four orientations (relative to parent octant), two edge nodes
     //                           0     1     2     3
-    const bool xedge[6][4][2]={{{0,0},{0,0},{0,0},{0,0}}, //0
-                               {{1,1},{1,1},{1,1},{1,1}}, //1
-                               {{1,0},{0,1},{0,1},{1,0}}, //2
-                               {{1,0},{0,1},{0,1},{1,0}}, //3
-                               {{1,0},{0,1},{0,1},{1,0}}, //4
-                               {{1,0},{0,1},{0,1},{1,0}}};//5
+    std::vector<std::vector<std::vector<int>>> xedge =
+                                                 {{{0,0},{0,0},{0,0},{0,0}}, //0
+                                                {{1,1},{1,1},{1,1},{1,1}}, //1
+                                                {{1,0},{0,1},{0,1},{1,0}}, //2
+                                                {{1,0},{0,1},{0,1},{1,0}}, //3
+                                                {{1,0},{0,1},{0,1},{1,0}}, //4
+                                                {{1,0},{0,1},{0,1},{1,0}}};//5
     //                           0     1     2     3
-    const bool yedge[6][4][2]={{{1,0},{0,1},{0,1},{1,0}}, //0
-                               {{1,0},{0,1},{0,1},{1,0}}, //1
-                               {{0,0},{0,0},{0,0},{0,0}}, //2
-                               {{1,1},{1,1},{1,1},{1,1}}, //3
-                               {{0,1},{0,1},{0,1},{0,1}}, //4
-                               {{0,1},{0,1},{0,1},{0,1}}};//5
+    std::vector<std::vector<std::vector<int>>> yedge =
+                                                 {{{1,0},{0,1},{0,1},{1,0}}, //0
+                                                {{1,0},{0,1},{0,1},{1,0}}, //1
+                                                {{0,0},{0,0},{0,0},{0,0}}, //2
+                                                {{1,1},{1,1},{1,1},{1,1}}, //3
+                                                {{0,1},{0,1},{0,1},{0,1}}, //4
+                                                {{0,1},{0,1},{0,1},{0,1}}};//5
     //                           0     1     2     3
-    const bool zedge[6][4][2]={{{0,1},{0,1},{0,1},{0,1}}, //0
-                               {{0,1},{0,1},{0,1},{0,1}}, //1
-                               {{0,1},{0,1},{0,1},{0,1}}, //2
-                               {{0,1},{0,1},{0,1},{0,1}}, //3
-                               {{0,0},{0,0},{0,0},{0,0}}, //4
-                               {{1,1},{1,1},{1,1},{1,1}}};//5
+    std::vector<std::vector<std::vector<int>>> zedge =
+                                                 {{{0,1},{0,1},{0,1},{0,1}}, //0
+                                                {{0,1},{0,1},{0,1},{0,1}}, //1
+                                                {{0,1},{0,1},{0,1},{0,1}}, //2
+                                                {{0,1},{0,1},{0,1},{0,1}}, //3
+                                                {{0,0},{0,0},{0,0},{0,0}}, //4
+                                                {{1,1},{1,1},{1,1},{1,1}}};//5
 
     // six faces, four orientations (relative to parent octant), two edges
     //                                0       1       2       3
-    const int edge_lookup[6][4][2]={{{4,8},  {4,10}, {8,6},  {10,6}}, //0
-                                    {{5,9},  {5,11}, {9,7},  {11,7}}, //1
-                                    {{0,8},  {0,9},  {8,2},  {9,2}},  //2
-                                    {{1,10}, {1,11}, {10,3}, {11,3}}, //3
-                                    {{0,4},  {0,5},  {4,1},  {5,1}},  //4
-                                    {{2,6},  {2,7},  {6,3},  {7,3}}}; //5
+    std::vector<std::vector<std::vector<int>>> edge_lookup = {{{4,8},  {4,10}, {8,6},  {10,6}}, //0
+                                                              {{5,9},  {5,11}, {9,7},  {11,7}}, //1
+                                                              {{0,8},  {0,9},  {8,2},  {9,2}},  //2
+                                                              {{1,10}, {1,11}, {10,3}, {11,3}}, //3
+                                                              {{0,4},  {0,5},  {4,1},  {5,1}},  //4
+                                                              {{2,6},  {2,7},  {6,3},  {7,3}}}; //5
 
     // Write in NodeIDs
 // #pragma omp for
@@ -2040,15 +2036,31 @@ void Brick::renumberNodes()
     std::vector<long> HangingEdgeNodesTmp;
     HangingEdgeNodes.clear();
 
-    const float lxy_nodes[8][3] = {{0,0,0},{1,0,0},{0,1,0},{1,1,0},{0,0,1},{1,0,1},{0,1,1},{1,1,1}};
+    std::vector<std::vector<float>> lxy_nodes = {{0,0,0},{1,0,0},{0,1,0},{1,1,0},{0,0,1},{1,0,1},{0,1,1},{1,1,1}};
 
 #ifdef ESYS_MPI 
-    // Do the calculation    
-    std::vector<double> treevecX;
-    std::vector<double> treevecY;
-    std::vector<double> treevecZ;
-    std::vector<DoubleTuple> localNodes;
-    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
+    // Do the calculation   
+    oxleytimer.toc("\tDoing the calculation");
+    int overestimateSize = 0;
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
+    {
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+        overestimateSize+=Q;
+    }
+
+    // std::vector<double> treevecX;
+    // std::vector<double> treevecY;
+    // std::vector<double> treevecZ;
+    // std::vector<DoubleTuple> localNodes;
+    std::vector<double> treevecX(overestimateSize, -1.0);
+    std::vector<double> treevecY(overestimateSize, -1.0);
+    std::vector<double> treevecZ(overestimateSize, -1.0);
+    std::vector<DoubleTuple> localNodes(overestimateSize, std::make_tuple(-1.0,-1.0,-1.0));
+    int actualSize = 0;
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
+    {
         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
         p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
@@ -2071,10 +2083,11 @@ void Brick::renumberNodes()
                     std::tuple<double,double,double> point = std::make_tuple(xyzB[0],xyzB[1],xyzB[2]);
                     if(!hasDuplicate(point,localNodes, true))
                     {
-                        localNodes.push_back(point);
-                        treevecX.push_back(xyzB[0]);
-                        treevecY.push_back(xyzB[1]);
-                        treevecZ.push_back(xyzB[2]);
+                        localNodes[actualSize] = point;
+                        treevecX[actualSize] = xyzB[0];
+                        treevecY[actualSize] = xyzB[1];
+                        treevecZ[actualSize] = xyzB[2];
+                        actualSize++;
                     }
                 }
             }
@@ -2089,7 +2102,8 @@ void Brick::renumberNodes()
         if(m_mpiInfo->rank != 0)
         {
             // broadcast
-            int numPoints = treevecX.size();
+            // int numPoints = treevecX.size();
+            int numPoints = actualSize;
             MPI_Send(&numPoints, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
             MPI_Send(treevecX.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm);
             MPI_Send(treevecY.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm);
@@ -2118,13 +2132,48 @@ void Brick::renumberNodes()
             }
         }
     }
+    oxleytimer.toc("\t\t\t....done");
 
-    oxleytimer.toc("\t\tchecking for duplicates");
-    if(m_mpiInfo->rank == 0) // Redundant for mpi size = 1
+    if(m_mpiInfo->size > 1)
     {
-        //check for duplicates
-        std::vector<bool> locats(NormalNodesTmp.size(),false);
+        // Send info to the other ranks
+        oxleytimer.toc("\tcommunicating");
+        if(m_mpiInfo->size > 1)
+        {
+            if(m_mpiInfo->rank == 0)
+            {
+                int numPoints = NormalNodesTmp.size();
+                for(int i = 1; i < m_mpiInfo->size; i++)
+                {
+                    MPI_Send(&numPoints, 1, MPI_INT, i, 0, m_mpiInfo->comm);
+                    MPI_Send(NormalNodesTmp.data(), 3*NormalNodesTmp.size(), MPI_DOUBLE, i, 0, m_mpiInfo->comm);
+                }
+            }
+            else
+            {
+                int numPoints = 0;
+                MPI_Recv(&numPoints, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);        
+                std::vector<DoubleTuple> temp(numPoints, std::make_tuple(-1.,-1.,-1.));
+                MPI_Recv(temp.data(), 3*numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE );
+                NormalNodesTmp = temp;
+            }
+        }
+        oxleytimer.toc("\t\t\t...done");
+
+        oxleytimer.toc("\twriting NodeIDs");
+        NodeIDs.clear();
         for(int i = 0; i < NormalNodesTmp.size(); i++)
+            NodeIDs[NormalNodesTmp[i]]=i;        
+
+        oxleytimer.toc("\tsearching for duplicates");
+        int proportion = NormalNodesTmp.size() / m_mpiInfo->size;
+        int first_point = m_mpiInfo->rank * proportion;
+        int last_point = ((m_mpiInfo->rank + 1) * proportion) - 1;
+        if(m_mpiInfo->rank == m_mpiInfo->size - 1)
+            last_point = NormalNodesTmp.size();
+
+        std::vector<int> locats(NormalNodesTmp.size(),false);
+        for(int i = first_point; i < last_point; i++)
         {
             // skip points already tagged as duplicates
             if(locats[i]==true)
@@ -2133,7 +2182,7 @@ void Brick::renumberNodes()
             // get point
             auto point = NormalNodesTmp[i];
             double tol = 1e-12;
-            bool duplicatePoint = hasDuplicate(point,NormalNodesTmp, false);
+            bool duplicatePoint = hasDuplicate(point,NormalNodesTmp, true);
             if(duplicatePoint)
             {
                 bool firstOccurance = true;
@@ -2150,22 +2199,143 @@ void Brick::renumberNodes()
                         }
                         else
                         {
-                            locats[j] = true;
+                            locats[j] = 1;
+                            break;
                         }
                     }
                 }
             }
         }
-        // erase duplicates
-        for(int j = NormalNodesTmp.size(); j > 0; j--)
-            if(locats[j] == true)
-                NormalNodesTmp.erase(NormalNodesTmp.begin()+j);
+        int num_local_duplicate_points = 0;
+        for(int i = first_point; i < last_point; i++)
+            if(locats[i] == true)
+                num_local_duplicate_points++;
+
+        // copy of local collection of points
+        oxleytimer.toc("\terasing duplicates");
+        std::vector<DoubleTuple> points_to_send(last_point - first_point - num_local_duplicate_points,std::make_tuple(-10.,-10.,-10.));
+        int counter=0;
+        for(int i = first_point; i < last_point; i++)
+        {
+            if(locats[i] != 1) //if not duplicate
+                points_to_send[counter++]=NormalNodesTmp[i];
+        }
+
+        oxleytimer.toc("communicating");
+        oxleytimer.toc("\ttalking to 0");
+        if(m_mpiInfo->rank == 0)
+        {
+            NormalNodesTmp=points_to_send;
+
+            //ae tmp
+            // std::cout << "num nodes = " << NormalNodesTmp.size() << std::endl;
+
+            for(int r = 1; r < m_mpiInfo->size; r++)
+            {
+                int num;
+                MPI_Recv(&num,1,MPI_INT,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+                std::vector<DoubleTuple> temp;
+                temp.assign(num,std::make_tuple(-1.,-1.,-1.));
+                MPI_Recv(temp.data(),3*num,MPI_DOUBLE,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+                std::vector<DoubleTuple> temp2;
+                temp2.reserve(NormalNodesTmp.size()+temp.size());
+                temp2.insert(temp2.end(),NormalNodesTmp.begin(),NormalNodesTmp.end());
+                temp2.insert(temp2.end(),temp.begin(),temp.end());
+                NormalNodesTmp=temp2;
+            }
+
+            //ae tmp
+            // std::cout << "num nodes = " << NormalNodesTmp.size() << std::endl;
+            // for(int i =0;i<NormalNodesTmp.size();i++)
+            //     std::cout << i << ": (" << std::abs(std::get<0>(NormalNodesTmp[i])) << ", "
+            //                         << std::abs(std::get<1>(NormalNodesTmp[i])) << ", "
+            //                         << std::abs(std::get<2>(NormalNodesTmp[i])) << ")" << std::endl;;
+            // std::cout << std::endl;
+        }
+        else
+        {
+            int num = points_to_send.size();
+            MPI_Send(&num,1,MPI_INT,0,0,m_mpiInfo->comm);
+            MPI_Send(points_to_send.data(),3*num,MPI_DOUBLE,0,0,m_mpiInfo->comm);
+        }
+        oxleytimer.toc("\t\t\t....done");
+        oxleytimer.toc("\tlistening to 0");
+        MPI_Barrier(m_mpiInfo->comm);
+        if(m_mpiInfo->rank == 0)
+        {
+            int num = NormalNodesTmp.size();
+            for(int r = 1; r < m_mpiInfo->size; r++)
+            {
+                MPI_Send(&num,1,MPI_INT,r,0,m_mpiInfo->comm);
+                MPI_Send(NormalNodesTmp.data(),3*num,MPI_DOUBLE,r,0,m_mpiInfo->comm);
+            }
+        }
+        else
+        {
+            int num;
+            MPI_Recv(&num,1,MPI_INT,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+            // ESYS_ASSERT(num==NormalNodesTmp.size(),"A point got lost (or added) somehow");
+            MPI_Recv(NormalNodesTmp.data(),3*num,MPI_DOUBLE,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+        }
+        oxleytimer.toc("\t\t\t....done");
 
         // Write information into NodeIDs
+        oxleytimer.toc("Writing NodeIDs");
         for(int i = 0; i < NormalNodesTmp.size(); i++)
             NodeIDs[NormalNodesTmp[i]]=i;
+
     }
-    oxleytimer.toc("\t\t\t...done");
+    else // being run on a single process
+    {
+        oxleytimer.toc("\t\tchecking for duplicates");
+        if(m_mpiInfo->rank == 0) // Redundant for mpi size = 1
+        {
+            //check for duplicates
+            std::vector<bool> locats(NormalNodesTmp.size(),false);
+            for(int i = 0; i < NormalNodesTmp.size(); i++)
+            {
+                // skip points already tagged as duplicates
+                if(locats[i]==true)
+                    continue;
+
+                // get point
+                auto point = NormalNodesTmp[i];
+                double tol = 1e-12;
+                bool duplicatePoint = hasDuplicate(point,NormalNodesTmp, false);
+                if(duplicatePoint)
+                {
+                    bool firstOccurance = true;
+                    for(int j = 0; j < NormalNodesTmp.size(); j++) // find location of duplicate points
+                    {
+                        if((std::abs(std::get<0>(NormalNodesTmp[j]) - std::get<0>(point)) < 1e-12)
+                            && (std::abs(std::get<1>(NormalNodesTmp[j]) - std::get<1>(point)) < 1e-12) 
+                                && (std::abs(std::get<2>(NormalNodesTmp[j]) - std::get<2>(point)) < 1e-12))
+                        {
+                            if(firstOccurance)
+                            {
+                                firstOccurance = false;
+                                continue;
+                            }
+                            else
+                            {
+                                locats[j] = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            // erase duplicates
+            for(int j = NormalNodesTmp.size(); j > 0; j--)
+                if(locats[j] == true)
+                    NormalNodesTmp.erase(NormalNodesTmp.begin()+j);
+
+            // Write information into NodeIDs
+            for(int i = 0; i < NormalNodesTmp.size(); i++)
+                NodeIDs[NormalNodesTmp[i]]=i;
+        }
+        oxleytimer.toc("\t\t\t...done");
+    }
 
     // Send info to the other ranks
     oxleytimer.toc("\tcommunicating");
@@ -3026,9 +3196,9 @@ void Brick::renumberNodes()
                     MPI_Send(&t.neighbour_tree, 1, MPI_INT, i, 0, m_mpiInfo->comm);
                 }
 
-                num=2*hanging_face_node_connections.size();
+                num=hanging_face_node_connections.size();
                 MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                MPI_Send(hanging_face_node_connections.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
+                MPI_Send(hanging_face_node_connections.data(), 2*num, MPI_LONG, i, 0, m_mpiInfo->comm);
                 
                 num=hanging_edge_orientation.size();
                 MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
@@ -3100,7 +3270,7 @@ void Brick::renumberNodes()
             MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
             std::vector<std::pair<long,long>> temp_face_node_connections;
             temp_face_node_connections.resize(num);
-            MPI_Recv(temp_face_node_connections.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+            MPI_Recv(temp_face_node_connections.data(), 2*num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
             hanging_face_node_connections=temp_face_node_connections;
             MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
             hanging_edge_orientation.clear();
@@ -3602,6 +3772,25 @@ void Brick::renumberNodes()
     MPI_Barrier(m_mpiInfo->comm);
 #endif
 
+    // delete[] xface;
+    // delete[] yface;
+    // delete[] zface;
+    // delete[] xface0;
+    // delete[] yface0;
+    // delete[] zface0;
+    // delete[] xface1;
+    // delete[] yface1;
+    // delete[] zface1;
+    // delete[] xface2;
+    // delete[] yface2;
+    // delete[] zface2;
+    // delete[] xedge;
+    // delete[] yedge;
+    // delete[] zedge;
+    // delete[] edge_lookup;
+    // delete[] lxy_nodes;
+
+
     oxleytimer.toc("Nodes renumbered"); //here
 }
 
@@ -3616,11 +3805,12 @@ bool Brick::hasDuplicate(DoubleTuple point, std::vector<DoubleTuple> vec, bool s
             if((std::abs(std::get<0>(vec[i]) - std::get<0>(point)) < tol)
                 && (std::abs(std::get<1>(vec[i]) - std::get<1>(point)) < tol) 
                     && (std::abs(std::get<2>(vec[i]) - std::get<2>(point)) < tol))
-                        count++;
-        if(count >= 1)
-            return true;
-        else
-            return false;
+            {
+                count++;
+                if(count > 1)
+                    return true;
+            }
+        return false;
     }
 
 // #ifdef ESYS_MPI
@@ -3697,12 +3887,15 @@ bool Brick::hasDuplicate(DoubleTuple point, std::vector<DoubleTuple> vec, bool s
     #ifdef OPENMPFLAG
         int thread_num = omp_get_thread_num();
         bool gotPoint[omp_get_num_threads()]={false};
+        #pragma omp parallel shared(vec, gotPoint)
+        {
         #pragma omp parallel for 
             for(int i = 0 ; i < vec.size(); i++)
                 if((std::abs(std::get<0>(vec[i]) - std::get<0>(point)) < tol)
                     && (std::abs(std::get<1>(vec[i]) - std::get<1>(point)) < tol) 
                         && (std::abs(std::get<2>(vec[i]) - std::get<2>(point)) < tol))
                             gotPoint[thread_num] = true;
+        }
         #pragma omp barrier
         int count = 0;
         for(int i = 0; i < omp_get_num_threads(); i++ )
@@ -3719,11 +3912,12 @@ bool Brick::hasDuplicate(DoubleTuple point, std::vector<DoubleTuple> vec, bool s
             if((std::abs(std::get<0>(vec[i]) - std::get<0>(point)) < tol)
                 && (std::abs(std::get<1>(vec[i]) - std::get<1>(point)) < tol) 
                     && (std::abs(std::get<2>(vec[i]) - std::get<2>(point)) < tol))
-                        count++;
-        if(count > 1)
-            return true;
-        else
-            return false;
+            {
+                count++;
+                if(count > 1)
+                    return true;
+            }
+        return false;
     #endif //OPENMPFLAG
 
 // #endif
@@ -4378,19 +4572,20 @@ void Brick::updateRowsColumns()
     // p8est_connectivity_t tempConnect(connectivity);
     // data->connectivity = &tempConnect;
 
-    oxleytimer.toc("\tBackend loop...");
-
     // update_RC_data_brick * ghost_data;
     // ghost_data = (update_RC_data_brick *) malloc(ghost->ghosts.elem_count);
     // p8est_ghost_exchange_data(p8est, ghost, ghost_data);
+    oxleytimer.toc("\tresetting the ghost...");
     reset_ghost();
     // p8est_ghost_exchange_data(p8est, ghost, NULL);
+
+    oxleytimer.toc("\tBackend loop...");
     p8est_iterate_ext(p8est, ghost, data, NULL, NULL, update_RC, NULL, true);
     oxleytimer.toc("\t\tdone");
     delete data;
 
 #ifdef ESYS_MPI
-    oxleytimer.toc("communicating");
+    oxleytimer.toc("communicating A");
     oxleytimer.toc("\trelaying info to 0");
     MPI_Barrier(m_mpiInfo->comm);
     if(m_mpiInfo->size > 1)
@@ -4605,7 +4800,7 @@ void Brick::updateRowsColumns()
     // *******************************************************************
     // Hanging nodes on edges
     // *******************************************************************
-    oxleytimer.toc("looping over hanging nodes on edges");
+    oxleytimer.toc("....looping over hanging nodes on edges");
 
     // Nodes on hanging edges
     // hanging_edges.clear();
@@ -4646,7 +4841,7 @@ void Brick::updateRowsColumns()
 
     // Nodes on hanging faces
     // hanging_edges.clear();
-    oxleytimer.toc("looping over hanging nodes on faces");
+    oxleytimer.toc("....looping over hanging nodes on faces");
     for(int i = 0; i < hanging_face_node_connections.size(); i++) 
     {
         // The two nodes
@@ -4667,7 +4862,7 @@ void Brick::updateRowsColumns()
     }
 
 #ifdef ESYS_MPI
-    oxleytimer.toc("communicating");
+    oxleytimer.toc("communicating B");
     oxleytimer.toc("\trelaying info to 0");
     MPI_Barrier(m_mpiInfo->comm);
     if(m_mpiInfo->size > 1)
@@ -4824,10 +5019,6 @@ void Brick::updateRowsColumns()
         }
 
         m_dofMap[i] = counter-myRows[i];
-
-        //ae tmp
-        if(m_dofMap[i] > 6 )
-            int k = 100;
 
         if(i < getNumNodes()-1)
             myRows.push_back(counter);
