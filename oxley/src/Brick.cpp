@@ -2398,12 +2398,34 @@ void Brick::renumberNodes()
     #endif
     // Do the calculation
     int numOfTrees=m_NE[0]*m_NE[1]*m_NE[2];
-    std::vector<std::vector<std::tuple<double,double,double>>> storage;
-    storage.resize(numOfTrees+1);
-    #pragma omp parallel shared(storage)
+    // std::vector<std::vector<std::tuple<double,double,double>>> storage;
+    // storage.resize(numOfTrees+1);
+
+
+    int numOfPoints=0;
+    int * increment = new int[numOfTrees+1];
+    increment[0]=0;
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
+    {
+        std::vector<std::tuple<double,double,double>> treevec;
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+        numOfPoints+=8*Q;
+        increment[treeid+1]=numOfPoints;
+    }
+
+    double * x = new double [numOfPoints];
+    double * y = new double [numOfPoints];
+    double * z = new double [numOfPoints];
+
+
+    oxleytimer.toc("\tdoing the calculation");
+    #pragma omp parallel shared(x,y,z)
     {
         #pragma omp parallel for
-        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
+        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
+        {
             std::vector<std::tuple<double,double,double>> treevec;
             p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
             sc_array_t * tquadrants = &tree->quadrants;
@@ -2414,19 +2436,29 @@ void Brick::renumberNodes()
                 for(int n = 0; n < 8; n++) {
                     double xyzB[3];
                     p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyzB);
-                    treevec.push_back(std::make_tuple(xyzB[0],xyzB[1],xyzB[2]));
+
+                    x[increment[treeid]+8*q+n]=xyzB[0];
+                    y[increment[treeid]+8*q+n]=xyzB[1];
+                    z[increment[treeid]+8*q+n]=xyzB[2];
                 }
             }
-            storage[treeid]=treevec;
         }
     } // parallel
     // Copy the data to NormalNodesTmp
-    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
-        std::vector<std::tuple<double,double,double>> treevec = storage[treeid];
-        for(int i = 0; i < treevec.size(); i++)
-            NormalNodesTmp.push_back(treevec[i]);
+    oxleytimer.toc("\tcopying data");
+    NormalNodesTmp.assign(numOfPoints,std::make_tuple(-1.,-1.,-1.));
+    for(int i = 0; i < numOfPoints; i++)
+    {
+        NormalNodesTmp[i] = std::make_tuple(x[i],y[i],z[i]);
     }
+    delete[] x;
+    delete[] y;
+    delete[] z;
+    delete[] increment;
+    oxleytimer.toc("\t\tdone");
+
     //check for duplicates
+    oxleytimer.toc("\tchecking for duplicates");
     for(int i = NormalNodesTmp.size()-1; i > 0 ; i--)
     {
         auto point = NormalNodesTmp[i];
@@ -2459,6 +2491,7 @@ void Brick::renumberNodes()
             i = NormalNodesTmp.size()-1;
         }
     }
+    oxleytimer.toc("\t\tdone");
     // Write information into NodeIDs
     for(int i = 0; i < NormalNodesTmp.size(); i++)
         NodeIDs[NormalNodesTmp[i]]=i;
