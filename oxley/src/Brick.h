@@ -245,7 +245,7 @@ public:
     */
     virtual void setRefinementLevels(int refinementlevels)
     {
-        forestData.max_levels_refinement = refinementlevels;
+        forestData->max_levels_refinement = refinementlevels;
     };
 
     /**
@@ -254,7 +254,7 @@ public:
     */
     virtual int getRefinementLevels() const
     {
-        return forestData.max_levels_refinement;
+        return forestData->max_levels_refinement;
     };
 
     /**
@@ -292,7 +292,7 @@ public:
     // These functions are used internally
     p8est_t * borrow_p8est() const { return p8est;};
 
-    p8estData * borrow_forestData() { return &forestData;};
+    p8estData * borrow_forestData() { return forestData;};
 
     p8est_connectivity_t * borrow_connectivity() const { return connectivity; };
 
@@ -412,7 +412,7 @@ private:
     p8est_ghost_t * ghost;
 
     // The data structure in p8est
-    p8estData forestData;
+    p8estData * forestData;
 
     // This object records the connectivity of the p8est octants
     p8est_connectivity_t * connectivity;
@@ -442,7 +442,7 @@ private:
     std::vector<DoubleTuple> NormalNodes;
     std::vector<long> HangingFaceNodes;
     std::vector<long> HangingEdgeNodes;
-    std::vector<bool> is_hanging; // element x is true if node id x is a hanging node
+    std::vector<int> is_hanging; // element x is true if node id x is a hanging node
 
     std::vector<hangingFaceInfo> hanging_face_orientation;
     std::vector<hangingEdgeInfo> hanging_edge_orientation;

@@ -126,6 +126,9 @@ Brick::Brick(int order,
         std::cout << "\t\tOK" << std::endl;
 #endif
 
+    // create the forestdata
+    forestData = new p8estData;
+
     // Create the p8est
     p8est_locidx_t min_quadrants = n0*n1*n2;
     int min_level = 0;
@@ -157,35 +160,35 @@ Brick::Brick(int order,
     m_NX[2] = (z1-z0)/n2;
 
     // Record the physical dimensions of the domain and the location of the origin
-    forestData.m_origin[0] = x0;
-    forestData.m_origin[1] = y0;
-    forestData.m_origin[2] = z0;
-    forestData.m_lxyz[0] = x1;
-    forestData.m_lxyz[1] = y1;
-    forestData.m_lxyz[2] = z1;
-    forestData.m_length[0] = x1-x0;
-    forestData.m_length[1] = y1-y0;
-    forestData.m_length[2] = z1-z0;
-    // forestData.m_lxyz[0] = (x1-x0)/n0;
-    // forestData.m_lxyz[1] = (y1-y0)/n1;
-    // forestData.m_lxyz[2] = (z1-z0)/n2;
+    forestData->m_origin[0] = x0;
+    forestData->m_origin[1] = y0;
+    forestData->m_origin[2] = z0;
+    forestData->m_lxyz[0] = x1;
+    forestData->m_lxyz[1] = y1;
+    forestData->m_lxyz[2] = z1;
+    forestData->m_length[0] = x1-x0;
+    forestData->m_length[1] = y1-y0;
+    forestData->m_length[2] = z1-z0;
+    // forestData->m_lxyz[0] = (x1-x0)/n0;
+    // forestData->m_lxyz[1] = (y1-y0)/n1;
+    // forestData->m_lxyz[2] = (z1-z0)/n2;
 
     // Whether or not we have periodic boundaries
-    forestData.periodic[0] = periodic0;
-    forestData.periodic[1] = periodic1;
-    forestData.periodic[2] = periodic2;
+    forestData->periodic[0] = periodic0;
+    forestData->periodic[1] = periodic1;
+    forestData->periodic[2] = periodic2;
 
     // Find the grid spacing for each level of refinement in the mesh
 #pragma omp parallel for
     for(int i = 0; i <= P8EST_MAXLEVEL; i++){
         double numberOfSubDivisions = (p8est_qcoord_t) (1 << (P8EST_MAXLEVEL - i));
-        forestData.m_dx[0][i] = forestData.m_length[0] / numberOfSubDivisions;
-        forestData.m_dx[1][i] = forestData.m_length[1] / numberOfSubDivisions;
-        forestData.m_dx[2][i] = forestData.m_length[2] / numberOfSubDivisions;
+        forestData->m_dx[0][i] = forestData->m_length[0] / numberOfSubDivisions;
+        forestData->m_dx[1][i] = forestData->m_length[1] / numberOfSubDivisions;
+        forestData->m_dx[2][i] = forestData->m_length[2] / numberOfSubDivisions;
     }
 
     // max levels of refinement
-    forestData.max_levels_refinement = MAXREFINEMENTLEVELS;
+    forestData->max_levels_refinement = MAXREFINEMENTLEVELS;
 
     // element order
     m_order = order;
@@ -275,35 +278,38 @@ Brick::Brick(oxley::Brick& B, int order, bool update):
     m_NX[0] = B.m_NX[0];
     m_NX[1] = B.m_NX[1];
     m_NX[2] = B.m_NX[2];
-    forestData.m_origin[0] = B.forestData.m_origin[0];
-    forestData.m_origin[1] = B.forestData.m_origin[1];
-    forestData.m_origin[2] = B.forestData.m_origin[2];
-    forestData.m_lxyz[0] = B.forestData.m_lxyz[0];
-    forestData.m_lxyz[1] = B.forestData.m_lxyz[1];
-    forestData.m_lxyz[2] = B.forestData.m_lxyz[2];
-    forestData.m_length[0] = B.forestData.m_length[0];
-    forestData.m_length[1] = B.forestData.m_length[1];
-    forestData.m_length[2] = B.forestData.m_length[2];
-    forestData.m_NX[0] = B.forestData.m_NX[0];
-    forestData.m_NX[1] = B.forestData.m_NX[1];
-    forestData.m_NX[2] = B.forestData.m_NX[2];
-    forestData.m_gNE[0] = B.forestData.m_gNE[0];
-    forestData.m_gNE[1] = B.forestData.m_gNE[1];
-    forestData.m_gNE[2] = B.forestData.m_gNE[2];
-    forestData.m_NE[0] = B.forestData.m_NE[0];
-    forestData.m_NE[1] = B.forestData.m_NE[1];
-    forestData.m_NE[2] = B.forestData.m_NE[2];
-    forestData.periodic[0] = B.forestData.periodic[0];
-    forestData.periodic[1] = B.forestData.periodic[1];
-    forestData.periodic[2] = B.forestData.periodic[2];
-    forestData.max_levels_refinement = B.forestData.max_levels_refinement;
-    forestData.refinement_depth = B.forestData.refinement_depth;
-    forestData.refinement_boundaries[0] = B.forestData.refinement_boundaries[0];
-    forestData.refinement_boundaries[1] = B.forestData.refinement_boundaries[1];
-    forestData.refinement_boundaries[2] = B.forestData.refinement_boundaries[2];
-    forestData.refinement_boundaries[3] = B.forestData.refinement_boundaries[3];
-    forestData.refinement_boundaries[4] = B.forestData.refinement_boundaries[4];
-    forestData.refinement_boundaries[5] = B.forestData.refinement_boundaries[5];
+
+    // create the forestdata
+    forestData = new p8estData;
+    forestData->m_origin[0] = B.forestData->m_origin[0];
+    forestData->m_origin[1] = B.forestData->m_origin[1];
+    forestData->m_origin[2] = B.forestData->m_origin[2];
+    forestData->m_lxyz[0] = B.forestData->m_lxyz[0];
+    forestData->m_lxyz[1] = B.forestData->m_lxyz[1];
+    forestData->m_lxyz[2] = B.forestData->m_lxyz[2];
+    forestData->m_length[0] = B.forestData->m_length[0];
+    forestData->m_length[1] = B.forestData->m_length[1];
+    forestData->m_length[2] = B.forestData->m_length[2];
+    forestData->m_NX[0] = B.forestData->m_NX[0];
+    forestData->m_NX[1] = B.forestData->m_NX[1];
+    forestData->m_NX[2] = B.forestData->m_NX[2];
+    forestData->m_gNE[0] = B.forestData->m_gNE[0];
+    forestData->m_gNE[1] = B.forestData->m_gNE[1];
+    forestData->m_gNE[2] = B.forestData->m_gNE[2];
+    forestData->m_NE[0] = B.forestData->m_NE[0];
+    forestData->m_NE[1] = B.forestData->m_NE[1];
+    forestData->m_NE[2] = B.forestData->m_NE[2];
+    forestData->periodic[0] = B.forestData->periodic[0];
+    forestData->periodic[1] = B.forestData->periodic[1];
+    forestData->periodic[2] = B.forestData->periodic[2];
+    forestData->max_levels_refinement = B.forestData->max_levels_refinement;
+    forestData->refinement_depth = B.forestData->refinement_depth;
+    forestData->refinement_boundaries[0] = B.forestData->refinement_boundaries[0];
+    forestData->refinement_boundaries[1] = B.forestData->refinement_boundaries[1];
+    forestData->refinement_boundaries[2] = B.forestData->refinement_boundaries[2];
+    forestData->refinement_boundaries[3] = B.forestData->refinement_boundaries[3];
+    forestData->refinement_boundaries[4] = B.forestData->refinement_boundaries[4];
+    forestData->refinement_boundaries[5] = B.forestData->refinement_boundaries[5];
 
     m_mpiInfo=B.m_mpiInfo;
 
@@ -311,9 +317,9 @@ Brick::Brick(oxley::Brick& B, int order, bool update):
     // p8est_connectivity_t tempConnectivity(*B.connectivity);
     connectivity = new_brick_connectivity(m_NE[0], m_NE[1], m_NE[2], 
                                           false, false, false, 
-                                          forestData.m_origin[0], forestData.m_lxyz[0], 
-                                          forestData.m_origin[1], forestData.m_lxyz[1], 
-                                          forestData.m_origin[2], forestData.m_lxyz[2]);    
+                                          forestData->m_origin[0], forestData->m_lxyz[0], 
+                                          forestData->m_origin[1], forestData->m_lxyz[1], 
+                                          forestData->m_origin[2], forestData->m_lxyz[2]);    
 
     p8est_locidx_t min_quadrants = B.m_NE[0]*B.m_NE[1]*B.m_NE[2];
     int min_level = 0;
@@ -362,9 +368,9 @@ Brick::Brick(oxley::Brick& B, int order, bool update):
     for(int i = 0; i <= P8EST_MAXLEVEL; i++)
     {
         double numberOfSubDivisions = (p8est_qcoord_t) (1 << (P8EST_MAXLEVEL - i));
-        forestData.m_dx[0][i] = forestData.m_length[0] / numberOfSubDivisions;
-        forestData.m_dx[1][i] = forestData.m_length[1] / numberOfSubDivisions;
-        forestData.m_dx[2][i] = forestData.m_length[2] / numberOfSubDivisions;
+        forestData->m_dx[0][i] = forestData->m_length[0] / numberOfSubDivisions;
+        forestData->m_dx[1][i] = forestData->m_length[1] / numberOfSubDivisions;
+        forestData->m_dx[2][i] = forestData->m_length[2] / numberOfSubDivisions;
     }
 
     // element order
@@ -436,6 +442,7 @@ Brick::~Brick(){
         std::cout << "\t\tOK" << std::endl;
 #endif
 
+    delete forestData;
     delete[] nodeIncrements;
 }
 
@@ -753,8 +760,8 @@ void Brick::setToSize(escript::Data& out) const
         std::vector<double> size_vect(max_level+1, -1.0);
         for(int i = 0 ; i <= max_level ; i++)
         {
-            size_vect[i] = sqrt((forestData.m_dx[0][P8EST_MAXLEVEL-i]*forestData.m_dx[0][P8EST_MAXLEVEL-i]
-                                                    +forestData.m_dx[1][P8EST_MAXLEVEL-i]*forestData.m_dx[1][P8EST_MAXLEVEL-i]));
+            size_vect[i] = sqrt((forestData->m_dx[0][P8EST_MAXLEVEL-i]*forestData->m_dx[0][P8EST_MAXLEVEL-i]
+                                                    +forestData->m_dx[1][P8EST_MAXLEVEL-i]*forestData->m_dx[1][P8EST_MAXLEVEL-i]));
         }
 
         const dim_t numQuad=out.getNumDataPointsPerSample();
@@ -786,7 +793,7 @@ void Brick::setToSize(escript::Data& out) const
             for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsLeft[k];
                 double* o = out.getSampleDataRW(m_faceOffset[0]+k);
-                std::fill(o, o+numQuad, forestData.m_dx[1][P8EST_MAXLEVEL-tmp.level]);
+                std::fill(o, o+numQuad, forestData->m_dx[1][P8EST_MAXLEVEL-tmp.level]);
             }
         }
 
@@ -794,7 +801,7 @@ void Brick::setToSize(escript::Data& out) const
             for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsRight[k];
                 double* o = out.getSampleDataRW(m_faceOffset[1]+k);
-                std::fill(o, o+numQuad, forestData.m_dx[1][P8EST_MAXLEVEL-tmp.level]);
+                std::fill(o, o+numQuad, forestData->m_dx[1][P8EST_MAXLEVEL-tmp.level]);
             }
         }
 
@@ -802,7 +809,7 @@ void Brick::setToSize(escript::Data& out) const
             for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsBottom[k];
                 double* o = out.getSampleDataRW(m_faceOffset[2]+k);
-                std::fill(o, o+numQuad, forestData.m_dx[0][P8EST_MAXLEVEL-tmp.level]);
+                std::fill(o, o+numQuad, forestData->m_dx[0][P8EST_MAXLEVEL-tmp.level]);
             }
         }
 
@@ -810,7 +817,7 @@ void Brick::setToSize(escript::Data& out) const
             for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsTop[k];
                 double* o = out.getSampleDataRW(m_faceOffset[3]+k);
-                std::fill(o, o+numQuad, forestData.m_dx[0][P8EST_MAXLEVEL-tmp.level]);
+                std::fill(o, o+numQuad, forestData->m_dx[0][P8EST_MAXLEVEL-tmp.level]);
             }
         }
 
@@ -818,7 +825,7 @@ void Brick::setToSize(escript::Data& out) const
             for (index_t k=0; k<NodeIDsAbove.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsAbove[k];
                 double* o = out.getSampleDataRW(m_faceOffset[4]+k);
-                std::fill(o, o+numQuad, forestData.m_dx[2][P8EST_MAXLEVEL-tmp.level]);
+                std::fill(o, o+numQuad, forestData->m_dx[2][P8EST_MAXLEVEL-tmp.level]);
             }
         }
 
@@ -826,7 +833,7 @@ void Brick::setToSize(escript::Data& out) const
             for (index_t k=0; k<NodeIDsBelow.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsBelow[k];
                 double* o = out.getSampleDataRW(m_faceOffset[5]+k);
-                std::fill(o, o+numQuad, forestData.m_dx[2][P8EST_MAXLEVEL-tmp.level]);
+                std::fill(o, o+numQuad, forestData->m_dx[2][P8EST_MAXLEVEL-tmp.level]);
             }
         }
     } 
@@ -1443,7 +1450,7 @@ void Brick::refineMesh(std::string algorithmname)
     z_needs_update=true;
     iz_needs_update=true;
 
-    forestData.NodeIDs = &NodeIDs;
+    forestData->NodeIDs = &NodeIDs;
 
     if(!algorithmname.compare("uniform"))
     {
@@ -1488,7 +1495,7 @@ void Brick::refineBoundary(std::string boundaryname, double dx)
     z_needs_update=true;
     iz_needs_update=true;
 
-    forestData.refinement_depth = dx;
+    forestData->refinement_depth = dx;
 
     if(!boundaryname.compare("north") || !boundaryname.compare("North")
         || !boundaryname.compare("n") || !boundaryname.compare("N")
@@ -1557,12 +1564,12 @@ void Brick::refineRegion(double x0, double x1, double y0, double y1, double z0, 
     iz_needs_update=true;
 
     // If the boundaries were not specified by the user, default to the border of the domain
-    forestData.refinement_boundaries[0] = x0 == -1 ? forestData.m_origin[0] : x0; 
-    forestData.refinement_boundaries[1] = x1 == -1 ? forestData.m_origin[1] : x1;
-    forestData.refinement_boundaries[2] = y0 == -1 ? forestData.m_lxyz[0] : y0;
-    forestData.refinement_boundaries[3] = y1 == -1 ? forestData.m_lxyz[1] : y1;
-    forestData.refinement_boundaries[4] = z0 == -1 ? forestData.m_lxyz[0] : z0;
-    forestData.refinement_boundaries[5] = z1 == -1 ? forestData.m_lxyz[1] : z1;
+    forestData->refinement_boundaries[0] = x0 == -1 ? forestData->m_origin[0] : x0; 
+    forestData->refinement_boundaries[1] = x1 == -1 ? forestData->m_origin[1] : x1;
+    forestData->refinement_boundaries[2] = y0 == -1 ? forestData->m_lxyz[0] : y0;
+    forestData->refinement_boundaries[3] = y1 == -1 ? forestData->m_lxyz[1] : y1;
+    forestData->refinement_boundaries[4] = z0 == -1 ? forestData->m_lxyz[0] : z0;
+    forestData->refinement_boundaries[5] = z1 == -1 ? forestData->m_lxyz[1] : z1;
 
     p8est_refine_ext(p8est, true, -1, refine_region, init_brick_data, refine_copy_parent_octant);
     
@@ -1587,9 +1594,9 @@ void Brick::refinePoint(double x0, double y0, double z0)
     iz_needs_update=true;
 
     // Check that the point is inside the domain
-    if(    x0 < forestData.m_origin[0] || x0 > forestData.m_lxyz[0] 
-        || y0 < forestData.m_origin[1] || y0 > forestData.m_lxyz[1] 
-        || z0 < forestData.m_origin[2] || z0 > forestData.m_lxyz[2] )
+    if(    x0 < forestData->m_origin[0] || x0 > forestData->m_lxyz[0] 
+        || y0 < forestData->m_origin[1] || y0 > forestData->m_lxyz[1] 
+        || z0 < forestData->m_origin[2] || z0 > forestData->m_lxyz[2] )
     {
         std::string message = "INFORMATION: Coordinates lie outside the domain. (" + std::to_string(x0) + ", " + std::to_string(y0) + ", " + std::to_string(z0) + ") skipping point";
         std::cout << message << std::endl;
@@ -1597,9 +1604,9 @@ void Brick::refinePoint(double x0, double y0, double z0)
     }
 
     // Copy over information required by the backend
-    forestData.refinement_boundaries[0] = x0;
-    forestData.refinement_boundaries[1] = y0;
-    forestData.refinement_boundaries[2] = z0;
+    forestData->refinement_boundaries[0] = x0;
+    forestData->refinement_boundaries[1] = y0;
+    forestData->refinement_boundaries[2] = z0;
 
     // Make sure that nothing went wrong
 #ifdef OXLEY_ENABLE_DEBUG_REFINEPOINT
@@ -1628,18 +1635,18 @@ void Brick::refineSphere(double x0, double y0, double z0, double r)
     iz_needs_update=true;
     
     // Check that the point is inside the domain
-    if(x0 < forestData.m_origin[0] || x0 > forestData.m_lxyz[0] 
-        || y0 < forestData.m_origin[1] || y0 > forestData.m_lxyz[1] 
-        || z0 < forestData.m_origin[2] || z0 > forestData.m_lxyz[2] )
+    if(x0 < forestData->m_origin[0] || x0 > forestData->m_lxyz[0] 
+        || y0 < forestData->m_origin[1] || y0 > forestData->m_lxyz[1] 
+        || z0 < forestData->m_origin[2] || z0 > forestData->m_lxyz[2] )
     {
         throw OxleyException("Coordinates lie outside the domain.");
     }
 
     // If the boundaries were not specified by the user, default to the border of the domain
-    forestData.refinement_boundaries[0] = x0;
-    forestData.refinement_boundaries[1] = y0;
-    forestData.refinement_boundaries[2] = z0;
-    forestData.refinement_boundaries[3] = r;
+    forestData->refinement_boundaries[0] = x0;
+    forestData->refinement_boundaries[1] = y0;
+    forestData->refinement_boundaries[2] = z0;
+    forestData->refinement_boundaries[3] = r;
     p8est_refine_ext(p8est, true, -1, refine_sphere, init_brick_data, refine_copy_parent_octant);
     p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
 
@@ -1665,7 +1672,7 @@ void Brick::refineMask(escript::Data mask)
     iz_needs_update=true;
 
     // If the boundaries were not specified by the user, default to the border of the domain
-    forestData.mask = mask;
+    forestData->mask = mask;
     p8est_refine_ext(p8est, true, -1, refine_mask, init_brick_data, refine_copy_parent_octant);
     p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
 
@@ -1737,9 +1744,9 @@ bool Brick::isBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid
     double lz = length * ((int) (n / 2) == 1); //TODO
     double xy[3];
     p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
-    return (xy[0] == forestData.m_origin[0]) || (xy[0] == forestData.m_lxyz[0]) 
-        || (xy[1] == forestData.m_origin[1]) || (xy[1] == forestData.m_lxyz[1])
-        || (xy[2] == forestData.m_origin[2]) || (xy[3] == forestData.m_lxyz[2]);
+    return (xy[0] == forestData->m_origin[0]) || (xy[0] == forestData->m_lxyz[0]) 
+        || (xy[1] == forestData->m_origin[1]) || (xy[1] == forestData->m_lxyz[1])
+        || (xy[2] == forestData->m_origin[2]) || (xy[3] == forestData->m_lxyz[2]);
 }
 
 // returns True for a boundary node on the north or east of the domain
@@ -1750,7 +1757,7 @@ bool Brick::isUpperBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t t
     double lz = length * ((int) (n / 2) == 1); //TODO
     double xy[3];
     p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
-    return (xy[0] == forestData.m_lxyz[0]) || (xy[1] == forestData.m_lxyz[1]) || (xy[2] == forestData.m_lxyz[2]);
+    return (xy[0] == forestData->m_lxyz[0]) || (xy[1] == forestData->m_lxyz[1]) || (xy[2] == forestData->m_lxyz[2]);
 }
 
 // returns True for a boundary node on the south or west of the domain
@@ -1761,9 +1768,9 @@ bool Brick::isLowerBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t t
     double lz = length * ((int) (n / 2) == 1); //TODO
     double xy[3];
     p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
-    return (xy[0] == forestData.m_origin[0]) 
-        || (xy[1] == forestData.m_origin[1])
-        || (xy[2] == forestData.m_origin[2]);
+    return (xy[0] == forestData->m_origin[0]) 
+        || (xy[1] == forestData->m_origin[1])
+        || (xy[2] == forestData->m_origin[2]);
 }
 
 // returns True for a boundary node on the left boundary
@@ -1774,7 +1781,7 @@ bool Brick::isLeftBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t tr
     double lz = length * ((int) (n / 2) == 1); //TODO
     double xy[3];
     p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
-    return (xy[0] == forestData.m_origin[0]);
+    return (xy[0] == forestData->m_origin[0]);
 }
 
 // returns True for a boundary node on the right boundary
@@ -1785,7 +1792,7 @@ bool Brick::isRightBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t t
     double lz = length * ((int) (n / 2) == 1); //TODO
     double xy[3];
     p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
-    return (xy[0] == forestData.m_lxyz[0]);
+    return (xy[0] == forestData->m_lxyz[0]);
 }
 
 // returns True for a boundary node on the bottom boundary
@@ -1796,7 +1803,7 @@ bool Brick::isBottomBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t 
     double lz = length * ((int) (n / 2) == 1); //TODO
     double xy[3];
     p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
-    return (xy[1] == forestData.m_origin[1]);
+    return (xy[1] == forestData->m_origin[1]);
 }
 
 // returns True for a boundary node on the top boundary
@@ -1807,7 +1814,7 @@ bool Brick::isTopBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t tre
     double lz = length * ((int) (n / 2) == 1); //TODO
     double xy[3];
     p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
-    return (xy[1] == forestData.m_lxyz[1]);
+    return (xy[1] == forestData->m_lxyz[1]);
 }
 
 // returns True for a boundary node on the top boundary
@@ -1818,7 +1825,7 @@ bool Brick::isAboveBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t t
     double lz = length * ((int) (n / 2) == 1); //TODO
     double xy[3];
     p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
-    return (xy[2] == forestData.m_lxyz[3]); //todo check
+    return (xy[2] == forestData->m_lxyz[3]); //todo check
 }
 
 // returns True for a boundary node on the top boundary
@@ -1829,7 +1836,7 @@ bool Brick::isBelowBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t t
     double lz = length * ((int) (n / 2) == 1); //TODO
     double xy[3];
     p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
-    return (xy[2] == forestData.m_lxyz[4]); //todo check
+    return (xy[2] == forestData->m_lxyz[4]); //todo check
 }
 
 
@@ -1922,9 +1929,9 @@ bool Brick::hasHanging(p8est_lnodes_code_t face_code) const
 */
 bool Brick::onUpperBoundary(double x, double y, double z) const
 {
-    // return (forestData.m_origin[0] == x) || (forestData.m_origin[1] == y) || (forestData.m_origin[2] == z) 
-    //     || (forestData.m_lxyz[0] == x) || (forestData.m_lxyz[1] == y) || (forestData.m_lxyz[2] == z);
-    return (forestData.m_lxyz[0] == x) || (forestData.m_lxyz[1] == y) || (forestData.m_lxyz[2] == z);
+    // return (forestData->m_origin[0] == x) || (forestData->m_origin[1] == y) || (forestData->m_origin[2] == z) 
+    //     || (forestData->m_lxyz[0] == x) || (forestData->m_lxyz[1] == y) || (forestData->m_lxyz[2] == z);
+    return (forestData->m_lxyz[0] == x) || (forestData->m_lxyz[1] == y) || (forestData->m_lxyz[2] == z);
 
 }
 
@@ -2047,13 +2054,9 @@ void Brick::renumberNodes()
         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
         p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-        overestimateSize+=Q;
+        overestimateSize+=8*Q;
     }
 
-    // std::vector<double> treevecX;
-    // std::vector<double> treevecY;
-    // std::vector<double> treevecZ;
-    // std::vector<DoubleTuple> localNodes;
     std::vector<double> treevecX(overestimateSize, -1.0);
     std::vector<double> treevecY(overestimateSize, -1.0);
     std::vector<double> treevecZ(overestimateSize, -1.0);
@@ -2094,16 +2097,33 @@ void Brick::renumberNodes()
         }
     }
 
-    oxleytimer.toc("\tcommunicating");
-    MPI_Barrier(m_mpiInfo->comm);
+    //ae tmp
+    std::cout << "overestimateSize = " << overestimateSize << std::endl;
+    std::cout << "actualSize = " << actualSize << std::endl;
+
+    oxleytimer.toc("\tcommunicating A");
+    // MPI_Barrier(m_mpiInfo->comm);
+
+    // ae tmp
+    // std::cout << "ae1 " << std::endl;
+
     if(m_mpiInfo->size > 1)
     {
         // Send info to rank 0
         if(m_mpiInfo->rank != 0)
         {
+
+            // ae tmp
+            // std::cout << "ae2 " << std::endl;
+
+
             // broadcast
             // int numPoints = treevecX.size();
             int numPoints = actualSize;
+
+            std::cout << "rank 0 sending " << numPoints << " points " << std::endl;
+
+
             MPI_Send(&numPoints, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
             MPI_Send(treevecX.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm);
             MPI_Send(treevecY.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm);
@@ -2111,6 +2131,10 @@ void Brick::renumberNodes()
         }
         else if(m_mpiInfo->rank == 0)
         {
+
+            // ae tmp
+            // std::cout << "ae3 " << std::endl;
+
             for(int i = 1; i < m_mpiInfo->size; i++)
             {   
                 std::vector<double> tmpX;
@@ -2119,6 +2143,9 @@ void Brick::renumberNodes()
                 
                 int numPoints = 0;
                 MPI_Recv(&numPoints, 1, MPI_INT, i, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+
+
+                std::cout << "rank " << m_mpiInfo->rank << " got " << numPoints << std::endl;
 
                 tmpX.resize(numPoints);
                 tmpY.resize(numPoints);
@@ -2610,12 +2637,12 @@ void Brick::renumberNodes()
 
                     // Check for boundaries            
                     bool onBoundary[2];
-                    onBoundary[0] = xyzA[0][0]<=0 || xyzA[0][0]>=forestData.m_length[0] ||
-                                    xyzA[0][1]<=0 || xyzA[0][1]>=forestData.m_length[1] ||
-                                    xyzA[0][2]<=0 || xyzA[0][2]>=forestData.m_length[2];
-                    onBoundary[1] = xyzA[1][0]<=0 || xyzA[1][0]>=forestData.m_length[0] ||
-                                    xyzA[1][1]<=0 || xyzA[1][1]>=forestData.m_length[1] ||
-                                    xyzA[1][2]<=0 || xyzA[1][2]>=forestData.m_length[2];
+                    onBoundary[0] = xyzA[0][0]<=0 || xyzA[0][0]>=forestData->m_length[0] ||
+                                    xyzA[0][1]<=0 || xyzA[0][1]>=forestData->m_length[1] ||
+                                    xyzA[0][2]<=0 || xyzA[0][2]>=forestData->m_length[2];
+                    onBoundary[1] = xyzA[1][0]<=0 || xyzA[1][0]>=forestData->m_length[0] ||
+                                    xyzA[1][1]<=0 || xyzA[1][1]>=forestData->m_length[1] ||
+                                    xyzA[1][2]<=0 || xyzA[1][2]>=forestData->m_length[2];
 
                     hangingEdgeInfo temp;
                     if(!onBoundary[0])
@@ -3018,12 +3045,12 @@ void Brick::renumberNodes()
 
                         // Check for boundaries            
                         bool onBoundary[2];
-                        onBoundary[0] = xyzA[0][0]<=0 || xyzA[0][0]>=forestData.m_length[0] ||
-                                        xyzA[0][1]<=0 || xyzA[0][1]>=forestData.m_length[1] ||
-                                        xyzA[0][2]<=0 || xyzA[0][2]>=forestData.m_length[2];
-                        onBoundary[1] = xyzA[1][0]<=0 || xyzA[1][0]>=forestData.m_length[0] ||
-                                        xyzA[1][1]<=0 || xyzA[1][1]>=forestData.m_length[1] ||
-                                        xyzA[1][2]<=0 || xyzA[1][2]>=forestData.m_length[2];
+                        onBoundary[0] = xyzA[0][0]<=0 || xyzA[0][0]>=forestData->m_length[0] ||
+                                        xyzA[0][1]<=0 || xyzA[0][1]>=forestData->m_length[1] ||
+                                        xyzA[0][2]<=0 || xyzA[0][2]>=forestData->m_length[2];
+                        onBoundary[1] = xyzA[1][0]<=0 || xyzA[1][0]>=forestData->m_length[0] ||
+                                        xyzA[1][1]<=0 || xyzA[1][1]>=forestData->m_length[1] ||
+                                        xyzA[1][2]<=0 || xyzA[1][2]>=forestData->m_length[2];
 
                         hangingEdgeInfo temp;
                         if(!onBoundary[0])
@@ -3483,12 +3510,12 @@ void Brick::renumberNodes()
 
                 // Check for boundaries            
                 bool onBoundary[2];
-                onBoundary[0] = xyzA[0][0]<=0 || xyzA[0][0]>=forestData.m_length[0] ||
-                                xyzA[0][1]<=0 || xyzA[0][1]>=forestData.m_length[1] ||
-                                xyzA[0][2]<=0 || xyzA[0][2]>=forestData.m_length[2];
-                onBoundary[1] = xyzA[1][0]<=0 || xyzA[1][0]>=forestData.m_length[0] ||
-                                xyzA[1][1]<=0 || xyzA[1][1]>=forestData.m_length[1] ||
-                                xyzA[1][2]<=0 || xyzA[1][2]>=forestData.m_length[2];
+                onBoundary[0] = xyzA[0][0]<=0 || xyzA[0][0]>=forestData->m_length[0] ||
+                                xyzA[0][1]<=0 || xyzA[0][1]>=forestData->m_length[1] ||
+                                xyzA[0][2]<=0 || xyzA[0][2]>=forestData->m_length[2];
+                onBoundary[1] = xyzA[1][0]<=0 || xyzA[1][0]>=forestData->m_length[0] ||
+                                xyzA[1][1]<=0 || xyzA[1][1]>=forestData->m_length[1] ||
+                                xyzA[1][2]<=0 || xyzA[1][2]>=forestData->m_length[2];
 
                 hangingEdgeInfo temp;
                 if(!onBoundary[0])
@@ -4561,9 +4588,9 @@ void Brick::updateRowsColumns()
     data = new update_RC_data_brick;
     data->indices = indices;
     data->pNodeIDs = &NodeIDs;
-    data->m_origin[0]=forestData.m_origin[0];
-    data->m_origin[1]=forestData.m_origin[1];
-    data->m_origin[2]=forestData.m_origin[2];
+    data->m_origin[0]=forestData->m_origin[0];
+    data->m_origin[1]=forestData->m_origin[1];
+    data->m_origin[2]=forestData->m_origin[2];
     data->pOctInfo = &octantInfo;
 
     p8est_t * tempP8est;
@@ -4697,7 +4724,7 @@ void Brick::updateRowsColumns()
             #endif
 
             // If the node is on the boundary x=Lx
-            if(xyz0[0] == forestData.m_lxyz[0])
+            if(xyz0[0] == forestData->m_lxyz[0])
             {
                 // Get the node IDs
                 double xyz[3];
@@ -4730,7 +4757,7 @@ void Brick::updateRowsColumns()
             }
 
             //If the node is on the boundary  y=Ly
-            if(xyz0[1] == forestData.m_lxyz[1])
+            if(xyz0[1] == forestData->m_lxyz[1])
             {
                 // Get the node IDs
                 double xyz[3];
@@ -4763,7 +4790,7 @@ void Brick::updateRowsColumns()
             }
 
             //If the node is on the boundary z=Lz
-            if(xyz0[2] == forestData.m_lxyz[2])
+            if(xyz0[2] == forestData->m_lxyz[2])
             {
                 // Get the node IDs
                 double xyz[3];
@@ -5157,11 +5184,11 @@ void Brick::updateFaceElementCount()
 //                 //TODO
 //                 if(n==0)
 //                     do_check_yes_no[n]=true;
-//                 else if(n==1 && xyz[n][0]==forestData.m_lxyz[0])
+//                 else if(n==1 && xyz[n][0]==forestData->m_lxyz[0])
 //                     do_check_yes_no[n]=true;
-//                 else if(n==2 && xyz[n][1]==forestData.m_lxyz[1])
+//                 else if(n==2 && xyz[n][1]==forestData->m_lxyz[1])
 //                     do_check_yes_no[n]=true;
-//                 else if(n==3 && xyz[n][0]==forestData.m_lxyz[0] && xyz[n][1]==forestData.m_lxyz[1])
+//                 else if(n==3 && xyz[n][0]==forestData->m_lxyz[0] && xyz[n][1]==forestData->m_lxyz[1])
 //                     do_check_yes_no[n]=true;
 //                 else
 //                     do_check_yes_no[n]=false;
@@ -5418,9 +5445,9 @@ void Brick::assembleGradientImpl(escript::Data& out,
 // #pragma omp parallel for
 //     for(int i=0; i<= max_level; i++)
 //     {
-//         double m_dx[3]={forestData.m_dx[0][P4EST_MAXLEVEL-i], 
-//                         forestData.m_dx[1][P4EST_MAXLEVEL-i],
-//                         forestData.m_dx[2][P4EST_MAXLEVEL-i]};
+//         double m_dx[3]={forestData->m_dx[0][P4EST_MAXLEVEL-i], 
+//                         forestData->m_dx[1][P4EST_MAXLEVEL-i],
+//                         forestData->m_dx[2][P4EST_MAXLEVEL-i]};
 
 //         cx[0][i] = .044658198738520451079/m_dx[];
 //         cx[1][i] = .16666666666666666667/m_dx[];
@@ -5472,18 +5499,18 @@ void Brick::assembleGradientImpl(escript::Data& out,
                 Scalar* o = out.getSampleDataRW(e, zero);
 
                 for (index_t i=0; i < numComp; ++i) {
-                    const Scalar V0 =((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData.m_dx[0][l];
-                    const Scalar V1 =((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData.m_dx[0][l];
-                    const Scalar V2 =((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData.m_dx[0][l];
-                    const Scalar V3 =((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData.m_dx[0][l];
-                    const Scalar V4 =((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData.m_dx[1][l];
-                    const Scalar V5 =((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData.m_dx[1][l];
-                    const Scalar V6 =((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData.m_dx[1][l];
-                    const Scalar V7 =((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData.m_dx[1][l];
-                    const Scalar V8 =((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData.m_dx[2][l];
-                    const Scalar V9 =((f_101[i]-f_100[i])*C5 + (f_011[i]-f_010[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData.m_dx[2][l];
-                    const Scalar V10=((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData.m_dx[2][l];
-                    const Scalar V11=((f_111[i]-f_110[i])*C5 + (f_001[i]-f_000[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData.m_dx[2][l];
+                    const Scalar V0 =((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData->m_dx[0][l];
+                    const Scalar V1 =((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData->m_dx[0][l];
+                    const Scalar V2 =((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData->m_dx[0][l];
+                    const Scalar V3 =((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData->m_dx[0][l];
+                    const Scalar V4 =((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData->m_dx[1][l];
+                    const Scalar V5 =((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData->m_dx[1][l];
+                    const Scalar V6 =((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData->m_dx[1][l];
+                    const Scalar V7 =((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData->m_dx[1][l];
+                    const Scalar V8 =((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData->m_dx[2][l];
+                    const Scalar V9 =((f_101[i]-f_100[i])*C5 + (f_011[i]-f_010[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData->m_dx[2][l];
+                    const Scalar V10=((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData->m_dx[2][l];
+                    const Scalar V11=((f_111[i]-f_110[i])*C5 + (f_001[i]-f_000[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData->m_dx[2][l];
 
                     o[INDEX3(i,0,0,numComp,3)] = V0;
                     o[INDEX3(i,1,0,numComp,3)] = V4;
@@ -5550,9 +5577,9 @@ void Brick::assembleGradientImpl(escript::Data& out,
                 memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                 Scalar* o = out.getSampleDataRW(e, zero);
                 for (index_t i=0; i < numComp; ++i) {
-                    o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / forestData.m_dx[0][l];
-                    o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / forestData.m_dx[1][l];
-                    o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C3 / forestData.m_dx[2][l];
+                    o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / forestData->m_dx[0][l];
+                    o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / forestData->m_dx[1][l];
+                    o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C3 / forestData->m_dx[2][l];
                 } // end of component loop i
             }
         }
@@ -5599,20 +5626,20 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     Scalar* o = out.getSampleDataRW(e, zero);
 
                     for (index_t i=0; i < numComp; ++i) {
-                        const Scalar V0=((f_010[i]-f_000[i])*C6 + (f_011[i]-f_001[i])*C2) / forestData.m_dx[1][l];
-                        const Scalar V1=((f_010[i]-f_000[i])*C2 + (f_011[i]-f_001[i])*C6) / forestData.m_dx[1][l];
-                        const Scalar V2=((f_001[i]-f_000[i])*C6 + (f_010[i]-f_011[i])*C2) / forestData.m_dx[2][l];
-                        const Scalar V3=((f_001[i]-f_000[i])*C2 + (f_011[i]-f_010[i])*C6) / forestData.m_dx[2][l];
-                        o[INDEX3(i,0,0,numComp,3)] = ((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData.m_dx[0][l];
+                        const Scalar V0=((f_010[i]-f_000[i])*C6 + (f_011[i]-f_001[i])*C2) / forestData->m_dx[1][l];
+                        const Scalar V1=((f_010[i]-f_000[i])*C2 + (f_011[i]-f_001[i])*C6) / forestData->m_dx[1][l];
+                        const Scalar V2=((f_001[i]-f_000[i])*C6 + (f_010[i]-f_011[i])*C2) / forestData->m_dx[2][l];
+                        const Scalar V3=((f_001[i]-f_000[i])*C2 + (f_011[i]-f_010[i])*C6) / forestData->m_dx[2][l];
+                        o[INDEX3(i,0,0,numComp,3)] = ((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData->m_dx[0][l];
                         o[INDEX3(i,1,0,numComp,3)] = V0;
                         o[INDEX3(i,2,0,numComp,3)] = V2;
-                        o[INDEX3(i,0,1,numComp,3)] = ((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData.m_dx[0][l];
+                        o[INDEX3(i,0,1,numComp,3)] = ((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData->m_dx[0][l];
                         o[INDEX3(i,1,1,numComp,3)] = V0;
                         o[INDEX3(i,2,1,numComp,3)] = V3;
-                        o[INDEX3(i,0,2,numComp,3)] = ((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData.m_dx[0][l];
+                        o[INDEX3(i,0,2,numComp,3)] = ((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData->m_dx[0][l];
                         o[INDEX3(i,1,2,numComp,3)] = V1;
                         o[INDEX3(i,2,2,numComp,3)] = V2;
-                        o[INDEX3(i,0,3,numComp,3)] = ((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData.m_dx[0][l];
+                        o[INDEX3(i,0,3,numComp,3)] = ((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData->m_dx[0][l];
                         o[INDEX3(i,1,3,numComp,3)] = V1;
                         o[INDEX3(i,2,3,numComp,3)] = V3;
                     } 
@@ -5631,20 +5658,20 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     Scalar* o = out.getSampleDataRW(e, zero);
 
                     for (index_t i=0; i < numComp; ++i) {
-                        const Scalar V0=((f_110[i]-f_100[i])*C6 + (f_111[i]-f_101[i])*C2) / forestData.m_dx[1][l];
-                        const Scalar V1=((f_110[i]-f_100[i])*C2 + (f_111[i]-f_101[i])*C6) / forestData.m_dx[1][l];
-                        const Scalar V2=((f_101[i]-f_100[i])*C6 + (f_111[i]-f_110[i])*C2) / forestData.m_dx[2][l];
-                        const Scalar V3=((f_101[i]-f_100[i])*C2 + (f_111[i]-f_110[i])*C6) / forestData.m_dx[2][l];
-                        o[INDEX3(i,0,0,numComp,3)] = ((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData.m_dx[0][l];
+                        const Scalar V0=((f_110[i]-f_100[i])*C6 + (f_111[i]-f_101[i])*C2) / forestData->m_dx[1][l];
+                        const Scalar V1=((f_110[i]-f_100[i])*C2 + (f_111[i]-f_101[i])*C6) / forestData->m_dx[1][l];
+                        const Scalar V2=((f_101[i]-f_100[i])*C6 + (f_111[i]-f_110[i])*C2) / forestData->m_dx[2][l];
+                        const Scalar V3=((f_101[i]-f_100[i])*C2 + (f_111[i]-f_110[i])*C6) / forestData->m_dx[2][l];
+                        o[INDEX3(i,0,0,numComp,3)] = ((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData->m_dx[0][l];
                         o[INDEX3(i,1,0,numComp,3)] = V0;
                         o[INDEX3(i,2,0,numComp,3)] = V2;
-                        o[INDEX3(i,0,1,numComp,3)] = ((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData.m_dx[0][l];
+                        o[INDEX3(i,0,1,numComp,3)] = ((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData->m_dx[0][l];
                         o[INDEX3(i,1,1,numComp,3)] = V0;
                         o[INDEX3(i,2,1,numComp,3)] = V3;
-                        o[INDEX3(i,0,2,numComp,3)] = ((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData.m_dx[0][l];
+                        o[INDEX3(i,0,2,numComp,3)] = ((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData->m_dx[0][l];
                         o[INDEX3(i,1,2,numComp,3)] = V1;
                         o[INDEX3(i,2,2,numComp,3)] = V2;
-                        o[INDEX3(i,0,3,numComp,3)] = ((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData.m_dx[0][l];
+                        o[INDEX3(i,0,3,numComp,3)] = ((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData->m_dx[0][l];
                         o[INDEX3(i,1,3,numComp,3)] = V1;
                         o[INDEX3(i,2,3,numComp,3)] = V3;
                     } // end of component loop i
@@ -5663,20 +5690,20 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     Scalar* o = out.getSampleDataRW(e, zero);
 
                     for (index_t i=0; i < numComp; ++i) {
-                        const Scalar V0=((f_100[i]-f_000[i])*C6 + (f_101[i]-f_001[i])*C2) / forestData.m_dx[0][l];
-                        const Scalar V1=((f_001[i]-f_000[i])*C6 + (f_101[i]-f_100[i])*C2) / forestData.m_dx[2][l];
-                        const Scalar V2=((f_001[i]-f_000[i])*C2 + (f_101[i]-f_100[i])*C6) / forestData.m_dx[2][l];
+                        const Scalar V0=((f_100[i]-f_000[i])*C6 + (f_101[i]-f_001[i])*C2) / forestData->m_dx[0][l];
+                        const Scalar V1=((f_001[i]-f_000[i])*C6 + (f_101[i]-f_100[i])*C2) / forestData->m_dx[2][l];
+                        const Scalar V2=((f_001[i]-f_000[i])*C2 + (f_101[i]-f_100[i])*C6) / forestData->m_dx[2][l];
                         o[INDEX3(i,0,0,numComp,3)] = V0;
-                        o[INDEX3(i,1,0,numComp,3)] = ((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData.m_dx[1][l];
+                        o[INDEX3(i,1,0,numComp,3)] = ((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData->m_dx[1][l];
                         o[INDEX3(i,2,0,numComp,3)] = V1;
                         o[INDEX3(i,0,1,numComp,3)] = V0;
-                        o[INDEX3(i,1,1,numComp,3)] = ((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData.m_dx[1][l];
+                        o[INDEX3(i,1,1,numComp,3)] = ((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData->m_dx[1][l];
                         o[INDEX3(i,2,1,numComp,3)] = V2;
                         o[INDEX3(i,0,2,numComp,3)] = V0;
-                        o[INDEX3(i,1,2,numComp,3)] = ((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData.m_dx[1][l];
+                        o[INDEX3(i,1,2,numComp,3)] = ((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData->m_dx[1][l];
                         o[INDEX3(i,2,2,numComp,3)] = V1;
                         o[INDEX3(i,0,3,numComp,3)] = V0;
-                        o[INDEX3(i,1,3,numComp,3)] = ((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData.m_dx[1][l];
+                        o[INDEX3(i,1,3,numComp,3)] = ((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData->m_dx[1][l];
                         o[INDEX3(i,2,3,numComp,3)] = V2;
                     } // end of component loop i
                 } // end of face 2
@@ -5694,21 +5721,21 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     Scalar* o = out.getSampleDataRW(e, zero);
 
                     for (index_t i=0; i < numComp; ++i) {
-                        const Scalar V0=((f_110[i]-f_010[i])*C6 + (f_111[i]-f_011[i])*C2) / forestData.m_dx[0][l];
-                        const Scalar V1=((f_110[i]-f_010[i])*C2 + (f_111[i]-f_011[i])*C6) / forestData.m_dx[0][l];
-                        const Scalar V2=((f_011[i]-f_010[i])*C6 + (f_111[i]-f_110[i])*C2) / forestData.m_dx[2][l];
-                        const Scalar V3=((f_011[i]-f_010[i])*C2 + (f_111[i]-f_110[i])*C6) / forestData.m_dx[2][l];
+                        const Scalar V0=((f_110[i]-f_010[i])*C6 + (f_111[i]-f_011[i])*C2) / forestData->m_dx[0][l];
+                        const Scalar V1=((f_110[i]-f_010[i])*C2 + (f_111[i]-f_011[i])*C6) / forestData->m_dx[0][l];
+                        const Scalar V2=((f_011[i]-f_010[i])*C6 + (f_111[i]-f_110[i])*C2) / forestData->m_dx[2][l];
+                        const Scalar V3=((f_011[i]-f_010[i])*C2 + (f_111[i]-f_110[i])*C6) / forestData->m_dx[2][l];
                         o[INDEX3(i,0,0,numComp,3)] = V0;
-                        o[INDEX3(i,1,0,numComp,3)] = ((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData.m_dx[1][l];
+                        o[INDEX3(i,1,0,numComp,3)] = ((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData->m_dx[1][l];
                         o[INDEX3(i,2,0,numComp,3)] = V2;
                         o[INDEX3(i,0,1,numComp,3)] = V0;
-                        o[INDEX3(i,1,1,numComp,3)] = ((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData.m_dx[1][l];
+                        o[INDEX3(i,1,1,numComp,3)] = ((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData->m_dx[1][l];
                         o[INDEX3(i,2,1,numComp,3)] = V3;
                         o[INDEX3(i,0,2,numComp,3)] = V1;
-                        o[INDEX3(i,1,2,numComp,3)] = ((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData.m_dx[1][l];
+                        o[INDEX3(i,1,2,numComp,3)] = ((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData->m_dx[1][l];
                         o[INDEX3(i,2,2,numComp,3)] = V2;
                         o[INDEX3(i,0,3,numComp,3)] = V1;
-                        o[INDEX3(i,1,3,numComp,3)] = ((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData.m_dx[1][l];
+                        o[INDEX3(i,1,3,numComp,3)] = ((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData->m_dx[1][l];
                         o[INDEX3(i,2,3,numComp,3)] = V3;
                     } // end of component loop i
                 } // end of face 3
@@ -5725,22 +5752,22 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     Scalar* o = out.getSampleDataRW(e, zero);
                     for (index_t i=0; i < numComp; ++i) {
-                        const Scalar V0=((f_100[i]-f_000[i])*C6 + (f_110[i]-f_010[i])*C2) / forestData.m_dx[0][l];
-                        const Scalar V1=((f_100[i]-f_000[i])*C2 + (f_110[i]-f_010[i])*C6) / forestData.m_dx[0][l];
-                        const Scalar V2=((f_010[i]-f_000[i])*C6 + (f_110[i]-f_100[i])*C2) / forestData.m_dx[1][l];
-                        const Scalar V3=((f_010[i]-f_000[i])*C2 + (f_110[i]-f_100[i])*C6) / forestData.m_dx[1][l];
+                        const Scalar V0=((f_100[i]-f_000[i])*C6 + (f_110[i]-f_010[i])*C2) / forestData->m_dx[0][l];
+                        const Scalar V1=((f_100[i]-f_000[i])*C2 + (f_110[i]-f_010[i])*C6) / forestData->m_dx[0][l];
+                        const Scalar V2=((f_010[i]-f_000[i])*C6 + (f_110[i]-f_100[i])*C2) / forestData->m_dx[1][l];
+                        const Scalar V3=((f_010[i]-f_000[i])*C2 + (f_110[i]-f_100[i])*C6) / forestData->m_dx[1][l];
                         o[INDEX3(i,0,0,numComp,3)] = V0;
                         o[INDEX3(i,1,0,numComp,3)] = V2;
-                        o[INDEX3(i,2,0,numComp,3)] = ((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData.m_dx[2][l];
+                        o[INDEX3(i,2,0,numComp,3)] = ((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData->m_dx[2][l];
                         o[INDEX3(i,0,1,numComp,3)] = V0;
                         o[INDEX3(i,1,1,numComp,3)] = V3;
-                        o[INDEX3(i,2,1,numComp,3)] = ((f_101[i]-f_100[i])*C5 + (f_011[i]-f_010[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData.m_dx[2][l];
+                        o[INDEX3(i,2,1,numComp,3)] = ((f_101[i]-f_100[i])*C5 + (f_011[i]-f_010[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData->m_dx[2][l];
                         o[INDEX3(i,0,2,numComp,3)] = V1;
                         o[INDEX3(i,1,2,numComp,3)] = V2;
-                        o[INDEX3(i,2,2,numComp,3)] = ((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData.m_dx[2][l];
+                        o[INDEX3(i,2,2,numComp,3)] = ((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData->m_dx[2][l];
                         o[INDEX3(i,0,3,numComp,3)] = V1;
                         o[INDEX3(i,1,3,numComp,3)] = V3;
-                        o[INDEX3(i,2,3,numComp,3)] = ((f_111[i]-f_110[i])*C5 + (f_001[i]-f_000[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData.m_dx[2][l];
+                        o[INDEX3(i,2,3,numComp,3)] = ((f_111[i]-f_110[i])*C5 + (f_001[i]-f_000[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData->m_dx[2][l];
                     } // end of component loop i
                 } // end of face 4
 
@@ -5756,22 +5783,22 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     Scalar* o = out.getSampleDataRW(e, zero);
                     for (index_t i=0; i < numComp; ++i) {
-                        const Scalar V0=((f_101[i]-f_001[i])*C6 + (f_111[i]-f_011[i])*C2) / forestData.m_dx[0][l];
-                        const Scalar V1=((f_101[i]-f_001[i])*C2 + (f_111[i]-f_011[i])*C6) / forestData.m_dx[0][l];
-                        const Scalar V2=((f_011[i]-f_001[i])*C6 + (f_111[i]-f_101[i])*C2) / forestData.m_dx[1][l];
-                        const Scalar V3=((f_011[i]-f_001[i])*C2 + (f_111[i]-f_101[i])*C6) / forestData.m_dx[1][l];
+                        const Scalar V0=((f_101[i]-f_001[i])*C6 + (f_111[i]-f_011[i])*C2) / forestData->m_dx[0][l];
+                        const Scalar V1=((f_101[i]-f_001[i])*C2 + (f_111[i]-f_011[i])*C6) / forestData->m_dx[0][l];
+                        const Scalar V2=((f_011[i]-f_001[i])*C6 + (f_111[i]-f_101[i])*C2) / forestData->m_dx[1][l];
+                        const Scalar V3=((f_011[i]-f_001[i])*C2 + (f_111[i]-f_101[i])*C6) / forestData->m_dx[1][l];
                         o[INDEX3(i,0,0,numComp,3)] = V0;
                         o[INDEX3(i,1,0,numComp,3)] = V2;
-                        o[INDEX3(i,2,0,numComp,3)] = ((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData.m_dx[2][l];
+                        o[INDEX3(i,2,0,numComp,3)] = ((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData->m_dx[2][l];
                         o[INDEX3(i,0,1,numComp,3)] = V0;
                         o[INDEX3(i,1,1,numComp,3)] = V3;
-                        o[INDEX3(i,2,1,numComp,3)] = ((f_011[i]-f_010[i])*C0 + (f_101[i]-f_100[i])*C5 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData.m_dx[2][l];
+                        o[INDEX3(i,2,1,numComp,3)] = ((f_011[i]-f_010[i])*C0 + (f_101[i]-f_100[i])*C5 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData->m_dx[2][l];
                         o[INDEX3(i,0,2,numComp,3)] = V1;
                         o[INDEX3(i,1,2,numComp,3)] = V2;
-                        o[INDEX3(i,2,2,numComp,3)] = ((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData.m_dx[2][l];
+                        o[INDEX3(i,2,2,numComp,3)] = ((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData->m_dx[2][l];
                         o[INDEX3(i,0,3,numComp,3)] = V1;
                         o[INDEX3(i,1,3,numComp,3)] = V3;
-                        o[INDEX3(i,2,3,numComp,3)] = ((f_001[i]-f_000[i])*C0 + (f_111[i]-f_110[i])*C5 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData.m_dx[2][l];
+                        o[INDEX3(i,2,3,numComp,3)] = ((f_001[i]-f_000[i])*C0 + (f_111[i]-f_110[i])*C5 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData->m_dx[2][l];
                     } // end of component loop i
                 } // end of face 5
             }
@@ -5817,9 +5844,9 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     Scalar* o = out.getSampleDataRW(e, zero);
                     for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / forestData.m_dx[0][l];
-                        o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]-f_000[i]-f_001[i])*C4 / forestData.m_dx[1][l];
-                        o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]-f_000[i]-f_010[i])*C4 / forestData.m_dx[2][l];
+                        o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / forestData->m_dx[0][l];
+                        o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]-f_000[i]-f_001[i])*C4 / forestData->m_dx[1][l];
+                        o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]-f_000[i]-f_010[i])*C4 / forestData->m_dx[2][l];
                     } // end of component loop i
                 } // end of face 0
 
@@ -5836,9 +5863,9 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     Scalar* o = out.getSampleDataRW(e, zero);
                     for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / forestData.m_dx[0][l];
-                        o[INDEX3(i,1,0,numComp,3)] = (f_110[i]+f_111[i]-f_100[i]-f_101[i])*C4 / forestData.m_dx[1][l];
-                        o[INDEX3(i,2,0,numComp,3)] = (f_101[i]+f_111[i]-f_100[i]-f_110[i])*C4 / forestData.m_dx[2][l];
+                        o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / forestData->m_dx[0][l];
+                        o[INDEX3(i,1,0,numComp,3)] = (f_110[i]+f_111[i]-f_100[i]-f_101[i])*C4 / forestData->m_dx[1][l];
+                        o[INDEX3(i,2,0,numComp,3)] = (f_101[i]+f_111[i]-f_100[i]-f_110[i])*C4 / forestData->m_dx[2][l];
                     } // end of component loop i
                 } // end of face 1
 
@@ -5854,9 +5881,9 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     Scalar* o = out.getSampleDataRW(e, zero);
                     for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]-f_000[i]-f_001[i])*C4 / forestData.m_dx[0][l];
-                        o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / forestData.m_dx[1][l];
-                        o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_101[i]-f_000[i]-f_100[i])*C4 / forestData.m_dx[2][l];
+                        o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]-f_000[i]-f_001[i])*C4 / forestData->m_dx[0][l];
+                        o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / forestData->m_dx[1][l];
+                        o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_101[i]-f_000[i]-f_100[i])*C4 / forestData->m_dx[2][l];
                     } // end of component loop i
                 } // end of face 2
 
@@ -5873,9 +5900,9 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     Scalar* o = out.getSampleDataRW(e, zero);
                     for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_110[i]+f_111[i]-f_010[i]-f_011[i])*C4 / forestData.m_dx[0][l];
-                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / forestData.m_dx[1][l];
-                            o[INDEX3(i,2,0,numComp,3)] = (f_011[i]+f_111[i]-f_010[i]-f_110[i])*C4 / forestData.m_dx[2][l];
+                            o[INDEX3(i,0,0,numComp,3)] = (f_110[i]+f_111[i]-f_010[i]-f_011[i])*C4 / forestData->m_dx[0][l];
+                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / forestData->m_dx[1][l];
+                            o[INDEX3(i,2,0,numComp,3)] = (f_011[i]+f_111[i]-f_010[i]-f_110[i])*C4 / forestData->m_dx[2][l];
                     } // end of component loop i
                 } // end of face 3
     
@@ -5891,9 +5918,9 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     Scalar* o = out.getSampleDataRW(e, zero);
                     for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_110[i]-f_000[i]-f_010[i])*C4 / forestData.m_dx[0][l];
-                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_110[i]-f_000[i]-f_100[i])*C4 / forestData.m_dx[1][l];
-                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C4 / forestData.m_dx[2][l];
+                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_110[i]-f_000[i]-f_010[i])*C4 / forestData->m_dx[0][l];
+                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_110[i]-f_000[i]-f_100[i])*C4 / forestData->m_dx[1][l];
+                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C4 / forestData->m_dx[2][l];
                     } // end of component loop i
                 } // end of face 4
 
@@ -5909,9 +5936,9 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     Scalar* o = out.getSampleDataRW(e, zero);
                     for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_101[i]+f_111[i]-f_001[i]-f_011[i])*C4 / forestData.m_dx[0][l];
-                            o[INDEX3(i,1,0,numComp,3)] = (f_011[i]+f_111[i]-f_001[i]-f_101[i])*C4 / forestData.m_dx[1][l];
-                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C3 / forestData.m_dx[2][l];
+                            o[INDEX3(i,0,0,numComp,3)] = (f_101[i]+f_111[i]-f_001[i]-f_011[i])*C4 / forestData->m_dx[0][l];
+                            o[INDEX3(i,1,0,numComp,3)] = (f_011[i]+f_111[i]-f_001[i]-f_101[i])*C4 / forestData->m_dx[1][l];
+                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C3 / forestData->m_dx[2][l];
                     } // end of component loop i
                 } // end of face 5
             }

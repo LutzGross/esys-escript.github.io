@@ -1220,7 +1220,7 @@ void update_RC(p8est_iter_edge_info *info, void *user_data)
     if(side->is_hanging!='\000')
         return;
     p8est_quadrant_t * oct = side->is.full.quad;
-    if(oct == nullptr) // oct is allocated to another MPI process(?) 
+    if(oct == nullptr) // oct is allocated to another MPI process by p4est but p4est still calls this function of the octant(?) 
         return;
     double xy0[3], xyA[3], xyB[3];
     p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, oct->x, oct->y, oct->z, xy0);
@@ -1230,21 +1230,15 @@ void update_RC(p8est_iter_edge_info *info, void *user_data)
     int fn = (int) side->edge;
 
     //                           0     1     2     3     4     5     6     7     8     9     10    11       
-    p8est_qcoord_t lx[12][2] = {{0,l},{0,l},{0,l},{0,l},{0,0},{l,l},{0,0},{l,l},{0,0},{l,l},{0,0},{l,l}};
-    p8est_qcoord_t ly[12][2] = {{0,0},{l,l},{0,0},{l,l},{0,l},{0,l},{0,l},{0,l},{0,0},{0,0},{l,l},{l,l}};
-    p8est_qcoord_t lz[12][2] = {{0,0},{0,0},{l,l},{l,l},{0,0},{0,0},{l,l},{l,l},{0,l},{0,l},{0,l},{0,l}};
+    std::vector<std::vector<p8est_qcoord_t>> lx = {{0,l},{0,l},{0,l},{0,l},{0,0},{l,l},{0,0},{l,l},{0,0},{l,l},{0,0},{l,l}};
+    std::vector<std::vector<p8est_qcoord_t>> ly = {{0,0},{l,l},{0,0},{l,l},{0,l},{0,l},{0,l},{0,l},{0,0},{0,0},{l,l},{l,l}};
+    std::vector<std::vector<p8est_qcoord_t>> lz = {{0,0},{0,0},{l,l},{l,l},{0,0},{0,0},{l,l},{l,l},{0,l},{0,l},{0,l},{0,l}};
 
     // Get the neighbouring coordinates
     p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, oct->x+lx[fn][0], oct->y+ly[fn][0], oct->z+lz[fn][0], xyA);
     long lni0 = data->pNodeIDs->find(std::make_tuple(xyA[0],xyA[1],xyA[2]))->second;
     p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, oct->x+lx[fn][1], oct->y+ly[fn][1], oct->z+lz[fn][1], xyB);
     long lni1 = data->pNodeIDs->find(std::make_tuple(xyB[0],xyB[1],xyB[2]))->second;
-
-    #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC
-        std::cout << "(" << xyA[0] << ", " << xyA[1] << ", " << xyA[2] << ")--";
-        std::cout << "(" << xyB[0] << ", " << xyB[1] << ", " << xyB[2] << ")";
-        // std::cout << std::endl;
-    #endif
 
     IndexVector * idx0 = &data->indices[0][lni0];
     IndexVector * idx1 = &data->indices[0][lni1];
@@ -1258,29 +1252,9 @@ void update_RC(p8est_iter_edge_info *info, void *user_data)
             break;
         }
 
-    #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC_EXTRA
-        std::cout << "level= " << (int) oct->level ;
-        std::cout << "; hanging side " << (int) side->is_hanging;
-        std::cout << "; face= " << fn;
-        std::cout << "; (x,y)=(" << xy0[0] << ", " << xy0[1] << ")      \t";
-        if(dup)
-        {
-            std::cout << " connection " << lni0 << "---" << lni1;
-            std::cout << "\t(dupliate)" << std::endl;
-        }
-        else
-        {
-            std::cout << " connection " << lni0 << "---" << lni1;
-            std::cout << "\t(not dupliate)" << std::endl;    
-        }        
-    #endif
-
     // If this is a new coordinate, add it to the index
     if(dup == false)
     {
-#ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC
-        std::cout << " connecting node " << lni0 << " to " << lni1 << std::endl;
-#endif
         idx0[0][0]++;
         idx1[0][0]++;
         ESYS_ASSERT(idx0[0][0]<=6, "update_RC index out of bound");
