@@ -2098,8 +2098,8 @@ void Brick::renumberNodes()
     }
 
     //ae tmp
-    std::cout << "overestimateSize = " << overestimateSize << std::endl;
-    std::cout << "actualSize = " << actualSize << std::endl;
+    // std::cout << "overestimateSize = " << overestimateSize << std::endl;
+    // std::cout << "actualSize = " << actualSize << std::endl;
 
     oxleytimer.toc("\tcommunicating A");
     // MPI_Barrier(m_mpiInfo->comm);
@@ -2121,7 +2121,7 @@ void Brick::renumberNodes()
             // int numPoints = treevecX.size();
             int numPoints = actualSize;
 
-            std::cout << "rank 0 sending " << numPoints << " points " << std::endl;
+            // std::cout << "rank 0 sending " << numPoints << " points " << std::endl;
 
 
             MPI_Send(&numPoints, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
@@ -2145,7 +2145,7 @@ void Brick::renumberNodes()
                 MPI_Recv(&numPoints, 1, MPI_INT, i, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
 
 
-                std::cout << "rank " << m_mpiInfo->rank << " got " << numPoints << std::endl;
+                // std::cout << "rank " << m_mpiInfo->rank << " got " << numPoints << std::endl;
 
                 tmpX.resize(numPoints);
                 tmpY.resize(numPoints);
