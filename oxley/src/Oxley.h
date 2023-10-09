@@ -35,6 +35,7 @@
 #define MAXTAGS 100 // Maximum allowed number of tags in a domain
 
 #define MARE2DEM_TOL 0.25 
+#define TOLERANCE 1e-8
 
 #ifdef OXLEY_ENABLE_DEBUG
 #define LOG_BACKTRACE 1  // Print a backtrace if p4est aborts prematurely
@@ -64,6 +65,38 @@
 typedef std::pair<long,long> LongPair;
 typedef std::pair<double,double> DoublePair;
 typedef std::tuple<double,double,double> DoubleTuple;
+// struct DoubleTuple
+// {
+//     double x, y, z;
+
+//     DoubleTuple()
+//     {
+//         x=-1.;y=-1.;z=-1.;
+//     }
+//     ~DoubleTuple();
+
+//     double get(int n)
+//     {
+//         if(n == 0)
+//             return x;
+//         else if(n == 1)
+//             return y;
+//         else if(n == 2)
+//             return z;
+//         else
+//             return NAN;
+//     }
+// };
+
+// bool operator==(DoubleTuple& A, DoubleTuple& B)
+// {
+//     if(    (std::abs(A.get(1)-B.get(1)) < TOLERANCE)
+//         && (std::abs(A.get(2)-B.get(2)) < TOLERANCE)
+//         && (std::abs(A.get(3)-B.get(3)) < TOLERANCE))
+//         return true;
+//     else
+//         return false;
+// }
 
 namespace oxley {
 

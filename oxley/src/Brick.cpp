@@ -178,6 +178,19 @@ Brick::Brick(int order,
     forestData->periodic[1] = periodic1;
     forestData->periodic[2] = periodic2;
 
+
+    double multiplier =  sqrt(x0*x0+y0*y0+z0*z0);
+    if(multiplier == 0.0)
+        multiplier = 1.0;
+
+    tuple_tolerance = TOLERANCE * multiplier;
+
+
+
+
+
+
+
     // Find the grid spacing for each level of refinement in the mesh
 #pragma omp parallel for
     for(int i = 0; i <= P8EST_MAXLEVEL; i++){
@@ -310,6 +323,14 @@ Brick::Brick(oxley::Brick& B, int order, bool update):
     forestData->refinement_boundaries[3] = B.forestData->refinement_boundaries[3];
     forestData->refinement_boundaries[4] = B.forestData->refinement_boundaries[4];
     forestData->refinement_boundaries[5] = B.forestData->refinement_boundaries[5];
+
+    double multiplier = sqrt(forestData->m_length[0]*forestData->m_length[0]
+                           + forestData->m_length[1]*forestData->m_length[1] 
+                           + forestData->m_length[2]*forestData->m_length[2]);
+    if(multiplier == 0.0)
+        multiplier = 1.0;
+
+    tuple_tolerance = TOLERANCE * multiplier;
 
     m_mpiInfo=B.m_mpiInfo;
 
@@ -945,13 +966,6 @@ void Brick::dump(const std::string& fileName) const
         int counter=0;
         for(std::pair<DoubleTuple,long> element : NodeIDs)
         {
-            #ifdef OXLEY_ENABLE_DEBUG_DUMP
-                std::cout << "Adding " << element.second << ": (" 
-                                       << std::get<0>(element.first) << ", " 
-                                       << std::get<1>(element.first) << ", "  
-                                       << std::get<2>(element.first) << ") " << counter << std::endl;
-            #endif
-
             pNodex[element.second]=std::get<0>(element.first);
             pNodey[element.second]=std::get<1>(element.first);
             pNodez[element.second]=std::get<2>(element.first);
@@ -996,22 +1010,13 @@ void Brick::dump(const std::string& fileName) const
         }
 
         //communication
-        std::cout << "communicating " << std::endl;
         if(m_mpiInfo->size > 1)
         {
             if(m_mpiInfo->rank != 0)
             {
                 int num = nodelist.size();
-
-                // std::cout << "sending num = " << num << std::endl;
-
                 MPI_Send(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
-
-                // std::cout << "sending nodelist" << std::endl;
-
                 MPI_Send(nodelist.data(), num, MPI_INT, 0, 0, m_mpiInfo->comm);
-
-                // std::cout << "done" << std::endl;
             }
             else
             {
@@ -1019,22 +1024,15 @@ void Brick::dump(const std::string& fileName) const
                 {
                     int num;
                     MPI_Recv(&num, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-
-                    // std::cout << "got num  = " << num << std::endl;
-
                     std::vector<int> tempnodelist;
                     tempnodelist.resize(num);
                     MPI_Recv(tempnodelist.data(), num, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-
-                    // std::cout << "got the tempnodelist "<< std::endl;
-
                     std::vector<int>::iterator it;
                     it=nodelist.begin();
                     nodelist.insert(it, tempnodelist.begin(), tempnodelist.end());
                 }
             }
         }
-        // std::cout << "done " << std::endl;
 
         if(m_mpiInfo->rank == 0)
         {
@@ -1043,53 +1041,33 @@ void Brick::dump(const std::string& fileName) const
             int* nodelistarray = &nodelist[0];  // check
             int lnodelist = nodelist.size();    // check
 
-            int shapecounts[] = {getNumElements()};
+            int shapecounts[] = {octantIDs.size()};
             int shapetype[1] = {DB_ZONETYPE_HEX};
             int shapesize[1] = {8}; // Number of nodes used by each zone
             int nshapetypes = 1;
-            int nzones = getNumElements();
-
-            // std::cout << "ae 1" << std::endl;
+            int nzones = octantIDs.size();
 
             // This is deprecated
             DBPutZonelist2(dbfile, "p8est", nzones, ndims, nodelistarray, lnodelist, 
                         0, 0, 0,  shapetype, shapesize,  shapecounts, nshapetypes, NULL); 
-
-            // std::cout << "ae 2" << std::endl;
-                
+            
 
             DBPutUcdmesh(dbfile, "mesh", ndims, NULL, pCoordinates, getNumNodes(), getNumElements(), 
                             "p8est", NULL, DB_FLOAT, NULL);
 
-            // std::cout << "ae 3" << std::endl;
-
             // Coordinates
             DBPutPointmesh(dbfile, "nodes", ndims, pCoordinates, getNumNodes(), DB_FLOAT, NULL) ;
-
-            // std::cout << "ae 4" << std::endl;
 
             // Node IDs
             DBPutPointvar1(dbfile, "id", "nodes", pNode_ids, getNumNodes(), DB_LONG, NULL);
 
-            // std::cout << "ae 5" << std::endl;
-
             DBClose(dbfile);
-
-            // std::cout << "ae 6" << std::endl;
-
-            // delete [] pNodex;
-            // delete [] pNodey;
-            // delete [] pNodez;
-            // delete [] pNode_ids;
         }
 
         delete [] pNodex;
         delete [] pNodey;
         delete [] pNodez;
         delete [] pNode_ids;
-
-        // std::cout << "ae at barrier" << std::endl;
-        // oxleytimer.toc("done");
 
         MPI_Barrier(m_mpiInfo->comm);
 
@@ -1496,6 +1474,7 @@ void Brick::refineBoundary(std::string boundaryname, double dx)
     iz_needs_update=true;
 
     forestData->refinement_depth = dx;
+    p8est->user_pointer=forestData;
 
     if(!boundaryname.compare("north") || !boundaryname.compare("North")
         || !boundaryname.compare("n") || !boundaryname.compare("N")
@@ -1570,6 +1549,7 @@ void Brick::refineRegion(double x0, double x1, double y0, double y1, double z0, 
     forestData->refinement_boundaries[3] = y1 == -1 ? forestData->m_lxyz[1] : y1;
     forestData->refinement_boundaries[4] = z0 == -1 ? forestData->m_lxyz[0] : z0;
     forestData->refinement_boundaries[5] = z1 == -1 ? forestData->m_lxyz[1] : z1;
+    p8est->user_pointer=forestData;
 
     p8est_refine_ext(p8est, true, -1, refine_region, init_brick_data, refine_copy_parent_octant);
     
@@ -1600,13 +1580,14 @@ void Brick::refinePoint(double x0, double y0, double z0)
     {
         std::string message = "INFORMATION: Coordinates lie outside the domain. (" + std::to_string(x0) + ", " + std::to_string(y0) + ", " + std::to_string(z0) + ") skipping point";
         std::cout << message << std::endl;
-        // throw OxleyException(message);
+        throw OxleyException(message);
     }
 
     // Copy over information required by the backend
     forestData->refinement_boundaries[0] = x0;
     forestData->refinement_boundaries[1] = y0;
     forestData->refinement_boundaries[2] = z0;
+    p8est->user_pointer=forestData;
 
     // Make sure that nothing went wrong
 #ifdef OXLEY_ENABLE_DEBUG_REFINEPOINT
@@ -1647,6 +1628,7 @@ void Brick::refineSphere(double x0, double y0, double z0, double r)
     forestData->refinement_boundaries[1] = y0;
     forestData->refinement_boundaries[2] = z0;
     forestData->refinement_boundaries[3] = r;
+    p8est->user_pointer=forestData;
     p8est_refine_ext(p8est, true, -1, refine_sphere, init_brick_data, refine_copy_parent_octant);
     p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
 
@@ -1673,6 +1655,7 @@ void Brick::refineMask(escript::Data mask)
 
     // If the boundaries were not specified by the user, default to the border of the domain
     forestData->mask = mask;
+    p8est->user_pointer=forestData;
     p8est_refine_ext(p8est, true, -1, refine_mask, init_brick_data, refine_copy_parent_octant);
     p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
 
@@ -2079,6 +2062,7 @@ void Brick::renumberNodes()
                     if(!hasDuplicate(point,NormalNodesTmp, true))
                     {
                         NormalNodesTmp.push_back(point);
+                        actualSize++;
                     }
                 }
                 else
@@ -2097,33 +2081,18 @@ void Brick::renumberNodes()
         }
     }
 
-    //ae tmp
-    // std::cout << "overestimateSize = " << overestimateSize << std::endl;
-    // std::cout << "actualSize = " << actualSize << std::endl;
-
-    oxleytimer.toc("\tcommunicating A");
-    // MPI_Barrier(m_mpiInfo->comm);
-
-    // ae tmp
-    // std::cout << "ae1 " << std::endl;
+    #ifdef OXLEY_ENABLE_DEBUG_RENUMBERNODES_INFORMATIONAL
+        std::cout << "actualSize = " << actualSize << std::endl;
+    #endif
 
     if(m_mpiInfo->size > 1)
     {
+        oxleytimer.toc("\tcommunicating A");
         // Send info to rank 0
         if(m_mpiInfo->rank != 0)
         {
-
-            // ae tmp
-            // std::cout << "ae2 " << std::endl;
-
-
             // broadcast
-            // int numPoints = treevecX.size();
             int numPoints = actualSize;
-
-            // std::cout << "rank 0 sending " << numPoints << " points " << std::endl;
-
-
             MPI_Send(&numPoints, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
             MPI_Send(treevecX.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm);
             MPI_Send(treevecY.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm);
@@ -2131,10 +2100,6 @@ void Brick::renumberNodes()
         }
         else if(m_mpiInfo->rank == 0)
         {
-
-            // ae tmp
-            // std::cout << "ae3 " << std::endl;
-
             for(int i = 1; i < m_mpiInfo->size; i++)
             {   
                 std::vector<double> tmpX;
@@ -2143,9 +2108,6 @@ void Brick::renumberNodes()
                 
                 int numPoints = 0;
                 MPI_Recv(&numPoints, 1, MPI_INT, i, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-
-
-                // std::cout << "rank " << m_mpiInfo->rank << " got " << numPoints << std::endl;
 
                 tmpX.resize(numPoints);
                 tmpY.resize(numPoints);
@@ -2158,8 +2120,9 @@ void Brick::renumberNodes()
                     NormalNodesTmp.push_back(std::make_tuple(tmpX[j],tmpY[j],tmpZ[j]));
             }
         }
+        oxleytimer.toc("\t\t\t....done");
     }
-    oxleytimer.toc("\t\t\t....done");
+    
 
     if(m_mpiInfo->size > 1)
     {
@@ -2186,12 +2149,7 @@ void Brick::renumberNodes()
             }
         }
         oxleytimer.toc("\t\t\t...done");
-
-        oxleytimer.toc("\twriting NodeIDs");
-        NodeIDs.clear();
-        for(int i = 0; i < NormalNodesTmp.size(); i++)
-            NodeIDs[NormalNodesTmp[i]]=i;        
-
+ 
         oxleytimer.toc("\tsearching for duplicates");
         int proportion = NormalNodesTmp.size() / m_mpiInfo->size;
         int first_point = m_mpiInfo->rank * proportion;
@@ -2208,16 +2166,15 @@ void Brick::renumberNodes()
 
             // get point
             auto point = NormalNodesTmp[i];
-            double tol = 1e-12;
             bool duplicatePoint = hasDuplicate(point,NormalNodesTmp, true);
             if(duplicatePoint)
             {
                 bool firstOccurance = true;
                 for(int j = 0; j < NormalNodesTmp.size(); j++) // find location of duplicate points
                 {
-                    if((std::abs(std::get<0>(NormalNodesTmp[j]) - std::get<0>(point)) < 1e-12)
-                        && (std::abs(std::get<1>(NormalNodesTmp[j]) - std::get<1>(point)) < 1e-12) 
-                            && (std::abs(std::get<2>(NormalNodesTmp[j]) - std::get<2>(point)) < 1e-12))
+                    if(     (std::abs(std::get<0>(NormalNodesTmp[j]) - std::get<0>(point)) < tuple_tolerance)
+                         && (std::abs(std::get<1>(NormalNodesTmp[j]) - std::get<1>(point)) < tuple_tolerance) 
+                         && (std::abs(std::get<2>(NormalNodesTmp[j]) - std::get<2>(point)) < tuple_tolerance))
                     {
                         if(firstOccurance)
                         {
@@ -2227,67 +2184,51 @@ void Brick::renumberNodes()
                         else
                         {
                             locats[j] = 1;
-                            break;
                         }
                     }
                 }
             }
         }
-        int num_local_duplicate_points = 0;
-        for(int i = first_point; i < last_point; i++)
-            if(locats[i] == true)
-                num_local_duplicate_points++;
 
-        // copy of local collection of points
-        oxleytimer.toc("\terasing duplicates");
-        std::vector<DoubleTuple> points_to_send(last_point - first_point - num_local_duplicate_points,std::make_tuple(-10.,-10.,-10.));
-        int counter=0;
-        for(int i = first_point; i < last_point; i++)
-        {
-            if(locats[i] != 1) //if not duplicate
-                points_to_send[counter++]=NormalNodesTmp[i];
-        }
-
-        oxleytimer.toc("communicating");
-        oxleytimer.toc("\ttalking to 0");
+        // tell rank 0 which points need to be erased
         if(m_mpiInfo->rank == 0)
         {
-            NormalNodesTmp=points_to_send;
-
-            //ae tmp
-            // std::cout << "num nodes = " << NormalNodesTmp.size() << std::endl;
-
             for(int r = 1; r < m_mpiInfo->size; r++)
             {
-                int num;
-                MPI_Recv(&num,1,MPI_INT,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
-                std::vector<DoubleTuple> temp;
-                temp.assign(num,std::make_tuple(-1.,-1.,-1.));
-                MPI_Recv(temp.data(),3*num,MPI_DOUBLE,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
-                std::vector<DoubleTuple> temp2;
-                temp2.reserve(NormalNodesTmp.size()+temp.size());
-                temp2.insert(temp2.end(),NormalNodesTmp.begin(),NormalNodesTmp.end());
-                temp2.insert(temp2.end(),temp.begin(),temp.end());
-                NormalNodesTmp=temp2;
+                std::vector<int> new_locats(NormalNodesTmp.size(),false);
+                MPI_Recv(new_locats.data(),NormalNodesTmp.size(),MPI_INT,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+
+                for(int i = 0; i < locats.size(); i++)
+                {
+                    if(new_locats[i] == 1)
+                        locats[i] = 1;
+                }
             }
 
-            //ae tmp
-            // std::cout << "num nodes = " << NormalNodesTmp.size() << std::endl;
-            // for(int i =0;i<NormalNodesTmp.size();i++)
-            //     std::cout << i << ": (" << std::abs(std::get<0>(NormalNodesTmp[i])) << ", "
-            //                         << std::abs(std::get<1>(NormalNodesTmp[i])) << ", "
-            //                         << std::abs(std::get<2>(NormalNodesTmp[i])) << ")" << std::endl;;
-            // std::cout << std::endl;
+            // erase duplicates
+            int num_duplicates = 0;
+            for(int i = 0; i < locats.size(); i++)
+                if(locats[i] == 1)
+                    num_duplicates++;
+            std::vector<DoubleTuple> NormalNodes_NoDuplicates(NormalNodesTmp.size()-num_duplicates,std::make_tuple(-1.,-1.,-1));
+            int duplicatecounter=0;
+            for(int i = 0; i < NormalNodesTmp.size(); i++)
+            {
+                if(locats[i] == 0)
+                {
+                    NormalNodes_NoDuplicates[duplicatecounter]=NormalNodesTmp[i];
+                    duplicatecounter++;
+                }
+            }
+            NormalNodesTmp=NormalNodes_NoDuplicates;
         }
         else
         {
-            int num = points_to_send.size();
-            MPI_Send(&num,1,MPI_INT,0,0,m_mpiInfo->comm);
-            MPI_Send(points_to_send.data(),3*num,MPI_DOUBLE,0,0,m_mpiInfo->comm);
+            MPI_Send(locats.data(),locats.size(),MPI_INT,0,0,m_mpiInfo->comm);
         }
-        oxleytimer.toc("\t\t\t....done");
-        oxleytimer.toc("\tlistening to 0");
+
         MPI_Barrier(m_mpiInfo->comm);
+        // send info to the other ranks
         if(m_mpiInfo->rank == 0)
         {
             int num = NormalNodesTmp.size();
@@ -2301,12 +2242,69 @@ void Brick::renumberNodes()
         {
             int num;
             MPI_Recv(&num,1,MPI_INT,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
-            // ESYS_ASSERT(num==NormalNodesTmp.size(),"A point got lost (or added) somehow");
             MPI_Recv(NormalNodesTmp.data(),3*num,MPI_DOUBLE,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
         }
-        oxleytimer.toc("\t\t\t....done");
 
-        // Write information into NodeIDs
+
+        // // copy of local collection of points
+        // oxleytimer.toc("\terasing duplicates");
+        // std::vector<DoubleTuple> points_to_send(last_point - first_point - num_local_duplicate_points,std::make_tuple(-10.,-10.,-10.));
+        // int counter=0;
+        // for(int i = first_point; i < last_point; i++)
+        // {
+        //     if(locats[i] != 1) //if not duplicate
+        //         points_to_send[counter++]=NormalNodesTmp[i];
+        // }
+
+        // oxleytimer.toc("communicating");
+        // oxleytimer.toc("\ttalking to 0");
+        // if(m_mpiInfo->rank == 0)
+        // {
+        //     NormalNodesTmp=points_to_send;
+
+
+        //     for(int r = 1; r < m_mpiInfo->size; r++)
+        //     {
+        //         int num;
+        //         MPI_Recv(&num,1,MPI_INT,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+        //         std::vector<DoubleTuple> temp;
+        //         temp.assign(num,std::make_tuple(-1.,-1.,-1.));
+        //         MPI_Recv(temp.data(),3*num,MPI_DOUBLE,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+        //         std::vector<DoubleTuple> temp2;
+        //         temp2.reserve(NormalNodesTmp.size()+temp.size());
+        //         temp2.insert(temp2.end(),NormalNodesTmp.begin(),NormalNodesTmp.end());
+        //         temp2.insert(temp2.end(),temp.begin(),temp.end());
+        //         NormalNodesTmp=temp2;
+        //     }
+        // }
+        // else
+        // {
+        //     int num = points_to_send.size();
+        //     MPI_Send(&num,1,MPI_INT,0,0,m_mpiInfo->comm);
+        //     MPI_Send(points_to_send.data(),3*num,MPI_DOUBLE,0,0,m_mpiInfo->comm);
+        // }
+        // oxleytimer.toc("\t\t\t....done");
+        // oxleytimer.toc("\tlistening to 0");
+        // MPI_Barrier(m_mpiInfo->comm);
+        // if(m_mpiInfo->rank == 0)
+        // {
+        //     int num = NormalNodesTmp.size();
+        //     for(int r = 1; r < m_mpiInfo->size; r++)
+        //     {
+        //         MPI_Send(&num,1,MPI_INT,r,0,m_mpiInfo->comm);
+        //         MPI_Send(NormalNodesTmp.data(),3*num,MPI_DOUBLE,r,0,m_mpiInfo->comm);
+        //     }
+        // }
+        // else
+        // {
+        //     int num;
+        //     MPI_Recv(&num,1,MPI_INT,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+        //     // ESYS_ASSERT(num==NormalNodesTmp.size(),"A point got lost (or added) somehow");
+        //     MPI_Recv(NormalNodesTmp.data(),3*num,MPI_DOUBLE,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+        // }
+        // oxleytimer.toc("\t\t\t....done");
+
+        // // Write information into NodeIDs
         oxleytimer.toc("Writing NodeIDs");
         for(int i = 0; i < NormalNodesTmp.size(); i++)
             NodeIDs[NormalNodesTmp[i]]=i;
@@ -2317,6 +2315,8 @@ void Brick::renumberNodes()
         oxleytimer.toc("\t\tchecking for duplicates");
         if(m_mpiInfo->rank == 0) // Redundant for mpi size = 1
         {
+            int num_duplicates = 0;
+
             //check for duplicates
             std::vector<bool> locats(NormalNodesTmp.size(),false);
             for(int i = 0; i < NormalNodesTmp.size(); i++)
@@ -2327,16 +2327,17 @@ void Brick::renumberNodes()
 
                 // get point
                 auto point = NormalNodesTmp[i];
-                double tol = 1e-12;
                 bool duplicatePoint = hasDuplicate(point,NormalNodesTmp, false);
                 if(duplicatePoint)
                 {
+                    num_duplicates++;
+
                     bool firstOccurance = true;
                     for(int j = 0; j < NormalNodesTmp.size(); j++) // find location of duplicate points
                     {
-                        if((std::abs(std::get<0>(NormalNodesTmp[j]) - std::get<0>(point)) < 1e-12)
-                            && (std::abs(std::get<1>(NormalNodesTmp[j]) - std::get<1>(point)) < 1e-12) 
-                                && (std::abs(std::get<2>(NormalNodesTmp[j]) - std::get<2>(point)) < 1e-12))
+                        if((std::abs(std::get<0>(NormalNodesTmp[j]) - std::get<0>(point)) < tuple_tolerance)
+                            && (std::abs(std::get<1>(NormalNodesTmp[j]) - std::get<1>(point)) < tuple_tolerance) 
+                                && (std::abs(std::get<2>(NormalNodesTmp[j]) - std::get<2>(point)) < tuple_tolerance))
                         {
                             if(firstOccurance)
                             {
@@ -2352,10 +2353,21 @@ void Brick::renumberNodes()
                     }
                 }
             }
+
             // erase duplicates
-            for(int j = NormalNodesTmp.size(); j > 0; j--)
-                if(locats[j] == true)
-                    NormalNodesTmp.erase(NormalNodesTmp.begin()+j);
+            std::vector<DoubleTuple> NormalNodes_NoDuplicates(NormalNodesTmp.size()-num_duplicates,std::make_tuple(-1.,-1.,-1));
+            int nodecounter=0;
+            for(int j = 0; j < NormalNodesTmp.size(); j++)
+                if(locats[j] == false)
+                {
+                    NormalNodes_NoDuplicates[nodecounter]=NormalNodesTmp[j];
+                    nodecounter++;
+                }
+            NormalNodesTmp=NormalNodes_NoDuplicates;
+
+            #ifdef OXLEY_ENABLE_DEBUG_RENUMBERNODES_INFORMATIONAL
+            std::cout << "Size after duplicates erased = " << NormalNodesTmp.size() << std::endl;
+            #endif
 
             // Write information into NodeIDs
             for(int i = 0; i < NormalNodesTmp.size(); i++)
@@ -2393,15 +2405,8 @@ void Brick::renumberNodes()
     oxleytimer.toc("\t\t\t...done");
 
 #else // no mpi
-    #ifdef OPENMPFLAG
-    omp_set_num_threads(omp_get_max_threads());
-    #endif
     // Do the calculation
     int numOfTrees=m_NE[0]*m_NE[1]*m_NE[2];
-    // std::vector<std::vector<std::tuple<double,double,double>>> storage;
-    // storage.resize(numOfTrees+1);
-
-
     int numOfPoints=0;
     int * increment = new int[numOfTrees+1];
     increment[0]=0;
@@ -2421,29 +2426,25 @@ void Brick::renumberNodes()
 
 
     oxleytimer.toc("\tdoing the calculation");
-    #pragma omp parallel shared(x,y,z)
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
     {
-        #pragma omp parallel for
-        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
-        {
-            std::vector<std::tuple<double,double,double>> treevec;
-            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-            sc_array_t * tquadrants = &tree->quadrants;
-            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-            for(int q = 0; q < Q; ++q) { 
-                p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
-                p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
-                for(int n = 0; n < 8; n++) {
-                    double xyzB[3];
-                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyzB);
+        std::vector<std::tuple<double,double,double>> treevec;
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; ++q) { 
+            p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
+            p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
+            for(int n = 0; n < 8; n++) {
+                double xyzB[3];
+                p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyzB);
 
-                    x[increment[treeid]+8*q+n]=xyzB[0];
-                    y[increment[treeid]+8*q+n]=xyzB[1];
-                    z[increment[treeid]+8*q+n]=xyzB[2];
-                }
+                x[increment[treeid]+8*q+n]=xyzB[0];
+                y[increment[treeid]+8*q+n]=xyzB[1];
+                z[increment[treeid]+8*q+n]=xyzB[2];
             }
         }
-    } // parallel
+    }
     // Copy the data to NormalNodesTmp
     oxleytimer.toc("\tcopying data");
     NormalNodesTmp.assign(numOfPoints,std::make_tuple(-1.,-1.,-1.));
@@ -2459,38 +2460,55 @@ void Brick::renumberNodes()
 
     //check for duplicates
     oxleytimer.toc("\tchecking for duplicates");
-    for(int i = NormalNodesTmp.size()-1; i > 0 ; i--)
+    bool locats[NormalNodesTmp.size()] = {false};
+    int num_duplicate_points = 0;
+    for(int i = 0; i < NormalNodesTmp.size(); i++)
     {
+        // skip points already tagged as duplicates
+        if(locats[i] == true)
+            continue;
+
         auto point = NormalNodesTmp[i];
-        double tol = 1e-12;
         bool duplicatePoint = hasDuplicate(point,NormalNodesTmp,false);
         if(duplicatePoint)
         {
-            bool locats[NormalNodesTmp.size()] = {false};
-        #pragma omp parallel shared(locats)
-        {
-        #pragma omp parallel for
-            for(int j = 0; j < NormalNodesTmp.size(); j++) // find location of duplicate points
+            num_duplicate_points++;
+            
+            // tag duplicates
+            bool firstOccurance = true;
+            for(int j = 0; j < NormalNodesTmp.size(); j++) 
             {
-                if((std::abs(std::get<0>(NormalNodesTmp[j]) - std::get<0>(point)) < tol)
-                    && (std::abs(std::get<1>(NormalNodesTmp[j]) - std::get<1>(point)) < tol) 
-                        && (std::abs(std::get<2>(NormalNodesTmp[j]) - std::get<2>(point)) < tol))
-                            locats[j] = true;
-            }
-        } // #pragma omp parallel shared(locats)
-            int firstOccurance = 0;
-            for(int j = 0; j < NormalNodesTmp.size(); j++) // find the first occurance of the point
-                if(locats[j] == true)
+                if(     (std::abs(std::get<0>(NormalNodesTmp[j]) - std::get<0>(point)) < tuple_tolerance)
+                     && (std::abs(std::get<1>(NormalNodesTmp[j]) - std::get<1>(point)) < tuple_tolerance) 
+                     && (std::abs(std::get<2>(NormalNodesTmp[j]) - std::get<2>(point)) < tuple_tolerance))
                 {
-                    firstOccurance=j;
-                    break;
+                    if(firstOccurance)
+                    {
+                        firstOccurance=false;
+                        continue;
+                    }
+                    else
+                    {
+                        locats[j] = true;
+                    }
                 }
-            for(int j = NormalNodesTmp.size(); j > firstOccurance; j--) // erase duplicates
-                if(locats[j] == true)
-                    NormalNodesTmp.erase(NormalNodesTmp.begin()+j);
-            i = NormalNodesTmp.size()-1;
+            }
         }
     }
+    
+    // remove duplicates
+    std::vector<DoubleTuple> NormalNodes_NoDuplicates(NormalNodesTmp.size()-num_duplicate_points,std::make_tuple(-1.,-1.,-1.))
+    int duplicatecounter=0;
+    for(int i = 0; i < NormalNodesTmp.size(); i++)
+    {
+        if(locats[i] == false)
+        {
+            NormalNodes_NoDuplicates[duplicatecounter]=NormalNodesTmp[i];
+            duplicatecounter++;
+        }
+    }
+    NormalNodesTmp=NormalNodes_NoDuplicates;
+    
     oxleytimer.toc("\t\tdone");
     // Write information into NodeIDs
     for(int i = 0; i < NormalNodesTmp.size(); i++)
@@ -3692,34 +3710,48 @@ void Brick::renumberNodes()
     // Update num_hanging
     num_hanging=HangingFaceNodesTmp.size()+HangingEdgeNodesTmp.size();
 
+#ifdef OXLEY_ENABLE_DEBUG_RENUMBERNODES_INFORMATIONAL
+    std::cout << "Informational: " << std::endl;
+    std::cout << "\tNormal nodes = " << NormalNodesTmp.size() << std::endl;
+    std::cout << "\tHanging face nodes = " << HangingFaceNodesTmp.size() << std::endl;
+    std::cout << "\tHanging edge nodes = " << HangingEdgeNodesTmp.size() << std::endl;
+    std::cout << "\tTotal nodes = " << NormalNodesTmp.size()+HangingFaceNodesTmp.size()+HangingEdgeNodesTmp.size() << std::endl;
+#endif
+
     // Populate NodeIDs
-    std::vector<bool> is_hanging_tmp;
-    int num_nodes=NormalNodesTmp.size();
-    is_hanging_tmp.resize(getNumNodes(),false);
+    std::vector<int> is_hanging_tmp;
+    int num_nodes=NormalNodesTmp.size()+HangingFaceNodesTmp.size()+HangingEdgeNodesTmp.size();
+    is_hanging_tmp.resize(num_nodes,0);
     NodeIDs.clear();
 
-    for(int i=0;i<num_nodes;i++)
+    for(int i=0;i<NormalNodesTmp.size();i++)
         NodeIDs[NormalNodesTmp[i]]=i;
+
+
+    // for(int i=0;i<HangingFaceNodesTmp.size();i++)
+    //     NodeIDs[HangingFaceNodesTmp[i]]=i;
+    // for(int i=0;i<HangingEdgeNodesTmp.size();i++)
+    //     NodeIDs[HangingEdgeNodesTmp[i]]=i;
     for(int i=0;i<HangingFaceNodesTmp.size();i++)
-        is_hanging_tmp[HangingFaceNodesTmp[i]]=true;
+        is_hanging_tmp[HangingFaceNodesTmp[i]]=1;
     for(int i=0;i<HangingEdgeNodesTmp.size();i++)
-        is_hanging_tmp[HangingEdgeNodesTmp[i]]=true;
+        is_hanging_tmp[HangingEdgeNodesTmp[i]]=1;
 
     // Renumber hanging nodes
     // By custom, hanging numbers are numbered last
-    std::vector<int> new_node_ids(getNumNodes(),-1);
+    std::vector<int> new_node_ids(num_nodes,-1);
     int count1=0;
-    int count2=getNumNodes()-num_hanging;
-    for(int i = 0; i < getNumNodes(); i++)
+    int count2=num_nodes-num_hanging;
+    for(int i = 0; i < num_nodes; i++)
     {
-        if(!is_hanging_tmp[i])
+        if(is_hanging_tmp[i]==0)
             new_node_ids[i]=count1++;
         else
             new_node_ids[i]=count2++;
     }
     #ifdef OXLEY_ENABLE_DEBUG
-    ESYS_ASSERT(count1==getNumNodes()-num_hanging, "Unknown error (count1)");
-    ESYS_ASSERT(count2==getNumNodes(), "Unknown error (count2)");
+    ESYS_ASSERT(count1==num_nodes-num_hanging, "Unknown error (count1)");
+    ESYS_ASSERT(count2==num_nodes, "Unknown error (count2)");
     #endif
 
     // TODO vectorise
@@ -3729,7 +3761,55 @@ void Brick::renumberNodes()
         NodeIDs[e.first]=new_node_ids[e.second];
     }
 
-    for(int i = 0; i<getNumNodes(); i++)
+#ifdef ESYS_MPI
+    if(m_mpiInfo->size > 0)
+    {
+        oxleytimer.toc("communicating... ");
+        if(m_mpiInfo->rank == 0)
+        {
+            for(int r = 1; r < m_mpiInfo->size; r++)
+            {
+                int num = NodeIDs.size();
+                MPI_Send(&num, 1, MPI_INT, r, 0, m_mpiInfo->comm);
+
+                for(std::pair<DoubleTuple,long> e : NodeIDs)
+                {
+                    int k = e.second;
+                    double a=std::get<0>(e.first);
+                    double b=std::get<1>(e.first);
+                    double c=std::get<2>(e.first);
+
+                    MPI_Send(&k, 1, MPI_LONG, r, 0, m_mpiInfo->comm);
+                    MPI_Send(&a, 1, MPI_DOUBLE,r,0,m_mpiInfo->comm);
+                    MPI_Send(&b, 1, MPI_DOUBLE,r,0,m_mpiInfo->comm);
+                    MPI_Send(&c, 1, MPI_DOUBLE,r,0,m_mpiInfo->comm);                
+                }
+            }
+        }
+        else
+        {
+            NodeIDs.clear();
+            int num; 
+            MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+
+            long k;
+            double a, b, c;
+            for(int i = 0; i < num; i++)
+            {
+                MPI_Recv(&k, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&a, 1, MPI_DOUBLE, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&b, 1, MPI_DOUBLE, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+                MPI_Recv(&c, 1, MPI_DOUBLE, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
+
+                NodeIDs[std::make_tuple(a,b,c)]=k;
+            }
+        }
+        oxleytimer.toc("\t\t\tdone 4");
+    }
+#endif
+
+    NormalNodes.resize(NormalNodesTmp.size(),std::make_tuple(-1.,-1.,-1));
+    for(int i = 0; i<NormalNodesTmp.size(); i++)
         NormalNodes.push_back(NormalNodesTmp[new_node_ids[i]]);
 
     HangingFaceNodes.clear();
@@ -3743,8 +3823,8 @@ void Brick::renumberNodes()
         HangingEdgeNodes[i]=new_node_ids[HangingEdgeNodesTmp[i]];
 
     is_hanging.clear();
-    is_hanging.resize(getNumNodes(),false);
-    for(int i = 0; i<getNumNodes(); i++)
+    is_hanging.resize(num_nodes,false);
+    for(int i = 0; i<num_nodes; i++)
         is_hanging[i]=is_hanging_tmp[new_node_ids[i]];
 
     // hanging_face_orientation
@@ -3775,8 +3855,9 @@ void Brick::renumberNodes()
     m_nodeId.resize(NodeIDs.size());
     long count=0;
     for(std::pair<DoubleTuple,long> e : NodeIDs)
+    {
         m_nodeId[count++]=e.second;
-
+    }
 
 #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_PRINT_OCTANT_INFO
     std::cout << "There are " << quadrantIDs.size() << " octants" << std::endl;
@@ -3790,15 +3871,16 @@ void Brick::renumberNodes()
 #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_PRINT_NODEIDS
     std::cout << "Printing NodeIDs " << std::endl;
     double xyf[NodeIDs.size()][3]={{0}};
+
     for(std::pair<DoubleTuple,long> e : NodeIDs)
     {
         xyf[e.second][0]=std::get<0>(e.first);
         xyf[e.second][1]=std::get<1>(e.first);
         xyf[e.second][2]=std::get<2>(e.first);
     }
+
     for(int i=0; i<NodeIDs.size(); i++)
         std::cout << i << ": " << xyf[i][0] << ", " << xyf[i][1] << ", " << xyf[i][2] << std::endl;
-    std::cout << "-------------------------------" << std::endl;
 #endif
 
 #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_PRINT_NODEIDS_HANGING
@@ -3829,29 +3911,11 @@ void Brick::renumberNodes()
 #endif
 
 #ifdef ESYS_MPI
+    oxleytimer.toc("waiting at barrier");
     MPI_Barrier(m_mpiInfo->comm);
 #endif
 
-    // delete[] xface;
-    // delete[] yface;
-    // delete[] zface;
-    // delete[] xface0;
-    // delete[] yface0;
-    // delete[] zface0;
-    // delete[] xface1;
-    // delete[] yface1;
-    // delete[] zface1;
-    // delete[] xface2;
-    // delete[] yface2;
-    // delete[] zface2;
-    // delete[] xedge;
-    // delete[] yedge;
-    // delete[] zedge;
-    // delete[] edge_lookup;
-    // delete[] lxy_nodes;
-
-
-    oxleytimer.toc("Nodes renumbered"); //here
+    oxleytimer.toc("Nodes renumbered"); 
 }
 
 
@@ -3859,17 +3923,23 @@ bool Brick::hasDuplicate(DoubleTuple point, std::vector<DoubleTuple> vec, bool s
 {
     if(serial)
     {
-        double tol = 1e-12;
         int count=0;
-        for(int i = 0 ; i < vec.size(); i++)
-            if((std::abs(std::get<0>(vec[i]) - std::get<0>(point)) < tol)
-                && (std::abs(std::get<1>(vec[i]) - std::get<1>(point)) < tol) 
-                    && (std::abs(std::get<2>(vec[i]) - std::get<2>(point)) < tol))
+
+        double a = std::get<0>(point);
+        double b = std::get<1>(point);
+        double c = std::get<2>(point);
+
+        for(int i = 0; i < vec.size(); i++)
+        {
+            if(    (std::abs(std::get<0>(vec[i]) - a) < tuple_tolerance)
+                && (std::abs(std::get<1>(vec[i]) - b) < tuple_tolerance) 
+                && (std::abs(std::get<2>(vec[i]) - c) < tuple_tolerance))
             {
                 count++;
                 if(count > 1)
                     return true;
             }
+        }
         return false;
     }
 
@@ -3951,9 +4021,9 @@ bool Brick::hasDuplicate(DoubleTuple point, std::vector<DoubleTuple> vec, bool s
         {
         #pragma omp parallel for 
             for(int i = 0 ; i < vec.size(); i++)
-                if((std::abs(std::get<0>(vec[i]) - std::get<0>(point)) < tol)
-                    && (std::abs(std::get<1>(vec[i]) - std::get<1>(point)) < tol) 
-                        && (std::abs(std::get<2>(vec[i]) - std::get<2>(point)) < tol))
+                if((std::abs(std::get<0>(vec[i]) - std::get<0>(point)) < tuple_tolerance)
+                    && (std::abs(std::get<1>(vec[i]) - std::get<1>(point)) < tuple_tolerance) 
+                        && (std::abs(std::get<2>(vec[i]) - std::get<2>(point)) < tuple_tolerance))
                             gotPoint[thread_num] = true;
         }
         #pragma omp barrier
@@ -3966,12 +4036,11 @@ bool Brick::hasDuplicate(DoubleTuple point, std::vector<DoubleTuple> vec, bool s
         else
             return false;
     #else // No MPI or OPENMP
-        double tol = 1e-12;
         int count=0;
         for(int i = 0 ; i < vec.size(); i++)
-            if((std::abs(std::get<0>(vec[i]) - std::get<0>(point)) < tol)
-                && (std::abs(std::get<1>(vec[i]) - std::get<1>(point)) < tol) 
-                    && (std::abs(std::get<2>(vec[i]) - std::get<2>(point)) < tol))
+            if((std::abs(std::get<0>(vec[i]) - std::get<0>(point)) < tuple_tolerance)
+                && (std::abs(std::get<1>(vec[i]) - std::get<1>(point)) < tuple_tolerance) 
+                    && (std::abs(std::get<2>(vec[i]) - std::get<2>(point)) < tuple_tolerance))
             {
                 count++;
                 if(count > 1)
@@ -4638,6 +4707,38 @@ void Brick::updateRowsColumns()
     oxleytimer.toc("\tresetting the ghost...");
     reset_ghost();
     // p8est_ghost_exchange_data(p8est, ghost, NULL);
+
+#ifdef ESYS_MPI
+    if(m_mpiInfo->size > 1)
+    {
+        if(m_mpiInfo->rank == 0)
+        {
+            for(int r = 1; r < m_mpiInfo->size; r++)
+            {
+                // int num=indices.size();
+                // MPI_Send(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
+                // for(int i = 0; i < num; i++)
+                // {
+
+
+
+                // }
+            }
+        }
+        else
+        {
+            // int num;
+            // MPI_Recv(&num,1,MPI_INT,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+            // for(int i = 0; i < num; i++)
+            // {
+
+
+
+
+            // }
+        }
+    }
+#endif
 
     oxleytimer.toc("\tBackend loop...");
     p8est_iterate_ext(p8est, ghost, data, NULL, NULL, update_RC, NULL, true);
@@ -6903,6 +7004,7 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
 
     oxleytimer.toc("\tcreating a new Brick...");
     oxley::Brick * newDomain = new Brick(*this, m_order, update);
+    oxleytimer.toc("\t\t\t Brick created...");
 
 #ifdef OXLEY_ENABLE_DEBUG_CHECKS 
     std::cout << "In apply_refinementzone debug checks..." << std::endl;
@@ -6942,10 +7044,10 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
     oxleytimer.toc("\tapplying individual refinements");
     for(int n = 0; n < numberOfRefinements; n++)
     {
-        // #ifdef OXLEY_ENABLE_PROFILE_TIMERS_INFORMATIONAL
+        #ifdef OXLEY_ENABLE_PROFILE_TIMERS_INFORMATIONAL
         if(n % 200 == 0)
             oxleytimer.toc("apply_refinementZone: Updating Mesh (" + std::to_string(n) + " of " + std::to_string(numberOfRefinements) + ")");
-        // #endif
+        #endif
 
         RefinementType Refinement = R.getRefinement(n);
         newDomain->setRefinementLevels(Refinement.levels);
@@ -6956,6 +7058,7 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
                 double x=Refinement.x0;
                 double y=Refinement.y0;
                 double z=Refinement.z0;
+                oxleytimer.toc("\trefining point ("+std::to_string(x)+","+std::to_string(y)+","+std::to_string(z)+")");
                 newDomain->refinePoint(x,y,z);
                 break;
             }

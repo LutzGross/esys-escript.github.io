@@ -463,6 +463,9 @@ private:
     // 
     IndexVector m_nodeId;
 
+    // tolerance used when comparing doubletuples
+    double tuple_tolerance=0.0;
+
     p8est_connectivity_t *
     new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int periodic_b, int periodic_c,
                                double x0, double x1, double y0, double y1, double z0, double z1);

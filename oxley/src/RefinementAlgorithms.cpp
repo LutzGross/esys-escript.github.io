@@ -1210,6 +1210,45 @@ void update_RC(p4est_iter_face_info_t *info, void *user_data)
     }
 }
 
+// ae tmp
+void get_coords(p8est_connectivity_t * connectivity,
+                        p4est_topidx_t treeid,
+                        p4est_qcoord_t x, p4est_qcoord_t y, p4est_qcoord_t z,
+                        double vxyz[3])
+{
+    const double       *vertices = connectivity->vertices;
+    const p4est_topidx_t *vindices;
+    // int                 xi, yi, zi;
+    double              wx[2], wy[2], wz[2];
+
+    vindices = connectivity->tree_to_vertex + 8 * treeid;
+
+    vxyz[0] = vxyz[1] = vxyz[2] = 0.;
+
+    double divisor = ((p4est_qcoord_t) 1 << P8EST_MAXLEVEL);
+
+    wx[1] = (double) x / divisor;
+    wx[0] = 1. - wx[1];
+
+    wy[1] = (double) y / divisor;
+    wy[0] = 1. - wy[1];
+
+    wz[1] = (double) z / divisor;
+    wz[0] = 1. - wz[1];
+
+    // double w[6] = {x/divisor, (1-x)/divisor, y/divisor, (1-y)/divisor, z/divisor, (1-z)/divisor};
+
+    int ii[8][3] ={{0,0,0},{0,0,1},{0,1,0},{0,1,1},{1,0,0},{1,0,1},{1,1,0},{1,1,1}};
+
+    for(int i = 0; i < 8; i++) {
+        double xfactor = wz[ii[i][0]] * wy[ii[i][1]] * wx[ii[i][2]];
+        p4est_topidx_t vindex = 3 * (*vindices++);
+        vxyz[0] += xfactor * vertices[vindex++];
+        vxyz[1] += xfactor * vertices[vindex++];
+        vxyz[2] += xfactor * vertices[vindex++];
+    }
+}
+
 void update_RC(p8est_iter_edge_info *info, void *user_data)
 {
     //Get some pointers
@@ -1235,10 +1274,24 @@ void update_RC(p8est_iter_edge_info *info, void *user_data)
     std::vector<std::vector<p8est_qcoord_t>> lz = {{0,0},{0,0},{l,l},{l,l},{0,0},{0,0},{l,l},{l,l},{0,l},{0,l},{0,l},{0,l}};
 
     // Get the neighbouring coordinates
-    p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, oct->x+lx[fn][0], oct->y+ly[fn][0], oct->z+lz[fn][0], xyA);
+    // p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, oct->x+lx[fn][0], oct->y+ly[fn][0], oct->z+lz[fn][0], xyA);
+    // long lni0 = data->pNodeIDs->find(std::make_tuple(xyA[0],xyA[1],xyA[2]))->second;
+    // p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, oct->x+lx[fn][1], oct->y+ly[fn][1], oct->z+lz[fn][1], xyB);
+    // long lni1 = data->pNodeIDs->find(std::make_tuple(xyB[0],xyB[1],xyB[2]))->second;
+
+    get_coords(data->p8est->connectivity, side->treeid, oct->x+lx[fn][0], oct->y+ly[fn][0], oct->z+lz[fn][0], xyA);
     long lni0 = data->pNodeIDs->find(std::make_tuple(xyA[0],xyA[1],xyA[2]))->second;
-    p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, oct->x+lx[fn][1], oct->y+ly[fn][1], oct->z+lz[fn][1], xyB);
+    get_coords(data->p8est->connectivity, side->treeid, oct->x+lx[fn][1], oct->y+ly[fn][1], oct->z+lz[fn][1], xyB);
     long lni1 = data->pNodeIDs->find(std::make_tuple(xyB[0],xyB[1],xyB[2]))->second;
+
+    // ae tmp
+    // std::cout << "lni01 = " << lni0 << ", " << lni1 << std::endl;
+
+
+
+
+
+
 
     IndexVector * idx0 = &data->indices[0][lni0];
     IndexVector * idx1 = &data->indices[0][lni1];
@@ -1257,8 +1310,8 @@ void update_RC(p8est_iter_edge_info *info, void *user_data)
     {
         idx0[0][0]++;
         idx1[0][0]++;
-        ESYS_ASSERT(idx0[0][0]<=6, "update_RC index out of bound");
-        ESYS_ASSERT(idx1[0][0]<=6, "update_RC index out of bound");
+        ESYS_ASSERT(idx0[0][0]<7, "update_RC index out of bound");
+        ESYS_ASSERT(idx1[0][0]<7, "update_RC index out of bound");
         idx0[0][idx0[0][0]]=lni1;
         idx1[0][idx1[0][0]]=lni0;
     }
