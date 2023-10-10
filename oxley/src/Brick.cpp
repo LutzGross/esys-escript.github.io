@@ -3850,6 +3850,47 @@ void Brick::renumberNodes()
         false_node_connections[i].second=new_node_ids[false_node_connections[i].second];
     }
 
+#ifdef ESYS_MPI
+    if(m_mpiInfo->size > 0)
+    {
+        if(m_mpiInfo->rank == 0)
+        {
+            for(int r = 1; r < m_mpiInfo->size; r++)
+            {
+                int num = NodeIDs.size();
+                MPI_Send(&num,1,MPI_INT,r,0,m_mpiInfo->comm);
+                for(std::pair<DoubleTuple,long> e : NodeIDs)
+                {
+                    int k = e.second;
+                    double a = std::get<0>(e.first);
+                    double b = std::get<1>(e.first);
+                    double c = std::get<2>(e.first);
+                    MPI_Send(&k,1,MPI_INT,r,0,m_mpiInfo->comm);
+                    MPI_Send(&a,1,MPI_DOUBLE,r,0,m_mpiInfo->comm);
+                    MPI_Send(&b,1,MPI_DOUBLE,r,0,m_mpiInfo->comm);
+                    MPI_Send(&c,1,MPI_DOUBLE,r,0,m_mpiInfo->comm);
+                }
+            }
+        }
+        else
+        {
+            int num;
+            MPI_Recv(&num,1,MPI_INT,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+            NodeIDs.clear();
+            for(int i = 0; i < num; i++)
+            {
+                int k;
+                double a, b, c;
+                MPI_Recv(&k,1,MPI_INT,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+                MPI_Recv(&a,1,MPI_DOUBLE,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+                MPI_Recv(&b,1,MPI_DOUBLE,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+                MPI_Recv(&c,1,MPI_DOUBLE,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
+                NodeIDs[std::make_tuple(a,b,c)] = k;
+            }
+        }
+    }
+#endif
+
     // Populate m_nodeIDs
     m_nodeId.clear();
     m_nodeId.resize(NodeIDs.size());
@@ -4704,7 +4745,7 @@ void Brick::updateRowsColumns()
     // update_RC_data_brick * ghost_data;
     // ghost_data = (update_RC_data_brick *) malloc(ghost->ghosts.elem_count);
     // p8est_ghost_exchange_data(p8est, ghost, ghost_data);
-    oxleytimer.toc("\tresetting the ghost...");
+    oxleytimer.toc("\treseting the ghost...");
     reset_ghost();
     // p8est_ghost_exchange_data(p8est, ghost, NULL);
 
