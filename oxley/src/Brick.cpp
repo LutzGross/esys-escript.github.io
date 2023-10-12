@@ -2497,7 +2497,7 @@ void Brick::renumberNodes()
     }
     
     // remove duplicates
-    std::vector<DoubleTuple> NormalNodes_NoDuplicates(NormalNodesTmp.size()-num_duplicate_points,std::make_tuple(-1.,-1.,-1.))
+    std::vector<DoubleTuple> NormalNodes_NoDuplicates(NormalNodesTmp.size()-num_duplicate_points,std::make_tuple(-1.,-1.,-1.));
     int duplicatecounter=0;
     for(int i = 0; i < NormalNodesTmp.size(); i++)
     {
