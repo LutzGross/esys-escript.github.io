@@ -573,9 +573,21 @@ protected:
 
     /**
        \brief
-       Returns true if vector has point. 
+       Returns true if vector has duplicate point. 
+    */
+    bool gotPoint(DoubleTuple point, std::vector<DoubleTuple> vector);
+
+    /**
+       \brief
+       Returns true if vector has duplicate point. 
     */
     bool hasDuplicate(DoubleTuple point, std::vector<DoubleTuple> vector, bool serial );
+
+    /**
+       \brief
+       Returns true if vector has point. 
+    */
+    bool gotAlready(DoubleTuple point, std::vector<DoubleTuple> vector);
 
     /**
        \brief
