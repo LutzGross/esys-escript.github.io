@@ -1,52 +1,33 @@
-FROM jupyter/base-notebook
+FROM jupyter/base-notebook:python-3.8
 
 LABEL maintainer="a.ellery@uq.edu.au"
 
-USER root
-
-RUN cat /etc/os-release
-RUN apt-get update
-RUN apt-get -y install texlive-binaries
-RUN apt-get -y install x11vnc xvfb libglvnd-dev tzdata libasound2
-
-# gmsh
-RUN apt-get -y install cmake gfortran g++
-RUN apt-get -y install libfltk1.3-dev liblapack-dev libblas-dev \
-             libhdf5-dev libfreetype6-dev libgmp-dev
-RUN wget http://gmsh.info/src/gmsh-4.4.1-source.tgz
-RUN tar zxvf gmsh-4.4.1-source.tgz
-RUN cd gmsh-4.4.1-source \
-    && cmake . -DENABLE_OPENMP=OFF -DENABLE_OCC=OFF -DENABLE_MPI=OFF \
-    && sudo make -j`nproc` install
-RUN apt-get -y remove cmake gfortran g++
-RUN rm -rf /home/jovyan/gmsh-4.4.1-source
-
-# This fixes the '404 GET react-dom' bug
-RUN pip install notebook==6.0.1
-
+USER jovyan
 RUN conda update -n base conda
-RUN conda install --yes ipython
-RUN conda install --yes spyder
-RUN conda install --yes esys-escript -c aellery -c conda-forge
-RUN conda install --yes mayavi -c conda-forge
+RUN conda install --yes esys-escript -c conda-forge
 RUN conda install --yes jupyter_contrib_nbextensions -c conda-forge
-
-# This fixes the '404 GET nbextension' bug
 RUN conda install --yes widgetsnbextension -c conda-forge
 RUN jupyter nbextension enable --py widgetsnbextension
-
 RUN UBUNTU_FRONTEND=noninteractive
 
+USER root
 RUN export uid=1000 gid=1000
 RUN mkdir -p /home/jovyan
 RUN echo "jovyan:x:${uid}:${gid}:Developer,,,:/home/jovyan:/bin/bash" >> /etc/passwd
 RUN echo "jovyan:x:${uid}:" >> /etc/group
 RUN echo "jovyan ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/jovyan
 RUN chmod 0440 /etc/sudoers.d/jovyan
-RUN chown ${uid}:${gid} -R /home/jovyan
 
-# USER jovyan
-USER $NB_UID
+
+RUN mkdir /opt/conda/lib/python3.8/site-packages/esys_escript_lib
+RUN /opt/conda/bin/run-escript -c >> /opt/conda/lib/python3.8/site-packages/esys_escript_lib/buildvars.in
+RUN /opt/conda/bin/run-escript -c >> /opt/conda/lib/python3.8/site-packages/esys_escript_lib/buildvars
+RUN chown jovyan:${gid} -R /home/jovyan
+RUN chown jovyan:${gid} -R /opt/conda/lib/python3.8/site-packages/esys_escript_lib/buildvars.in
+RUN chown jovyan:${gid} -R /opt/conda/lib/python3.8/site-packages/esys_escript_lib/buildvars
+
+# USER $NB_UID
+USER jovyan
 
 EXPOSE 8888
 ENTRYPOINT ["tini", "-g", "--"]

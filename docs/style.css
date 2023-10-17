@@ -11,3 +11,14 @@ h1 {
 	text-align:center;
 }
 
+
+.row {
+  display: flex;
+  align-items: center;
+}
+
+.column {
+  flex: 50.00%;
+  padding: 5px;
+  align-items: center;
+}
