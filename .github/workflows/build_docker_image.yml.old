@@ -1,4 +1,4 @@
-name: Debian PASO unit testing
+name: Build Docker Image
 
 on:
   push:
@@ -10,10 +10,9 @@ jobs:
 
   build:
 
-    runs-on: [self-hosted, linux, x64, meerkat]
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
     - name: Building the Docker image...
-      run: docker build . --file ./tools/unittesting/debian_py3 --tag esys-escript:$(date +%s)
-
+      run: docker build . --file ./tools/docker/docker_trilinos --tag esys-escript:$(date +%s)

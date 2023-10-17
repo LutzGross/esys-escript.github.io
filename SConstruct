@@ -70,6 +70,7 @@ build_trilinos_flavours = ( "check",      # check for unsuccessful make before s
                             "always",    # always build
                             "never", "False"  # never build
                             )
+
 #Note that scons construction vars the the following purposes:
 #  CPPFLAGS -> to the preprocessor
 #  CCFLAGS  -> flags for _both_ C and C++
@@ -441,7 +442,7 @@ elif cxx_name == 'mpic++':
     cc_debug     = "-g3 -O0  -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
     #Removed because new netcdf doesn't seem to like it
     #cc_debug += ' -D_GLIBCXX_DEBUG  '
-    ld_extra += " -fPIC -lmpi "
+    ld_extra = " -fPIC -lmpi "
     if env['openmp']:
       ld_extra += " -lgomp"
     omp_flags    = "-fopenmp"

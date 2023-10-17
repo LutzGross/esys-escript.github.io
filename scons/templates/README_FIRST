@@ -55,6 +55,9 @@ build_dir = '/tmp/escriptbuild'
 verbose = True
   Set to True to print the full compiler/linker command line.  DEFAULT: False
 
+build_trilinos = True
+   Set to True to build trilinos
+
 cxx = 'g++'
   C++ compiler command name or full path. DEFAULT: auto-detected
 

@@ -31,7 +31,7 @@ Further documentation including examples and a user guide for the latest release
 https://esys-escript.github.io/
 
 ## The project is funded by the
-   - [AuScope National Collaborative Research Infrastructure Strategy (NCRIS)](https://www.auscope.org.au/) (until mid of 2022),
+   - [AuScope National Collaborative Research Infrastructure Strategy (NCRIS)](https://www.auscope.org.au/) (until mid of 2023),
    - Australian Geophysical Observing System (AGOS) (ended 2014),
    - [The University of Queensland](https://www.uq.edu.au)
 
@@ -66,6 +66,10 @@ For information on a specific Linux distrobution, please consult the install gui
 
 To get started using escript please consult the user guide (user.pdf) and the (cookbook.pdf) cookbook. 
 All of these documents are available here and at https://esys-escript.github.io/
+
+Click on this button to try out escript in your web browser:
+
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/esys-escript/esys-escript.github.io/HEAD)
 
 ## Questions & Bugs 
 

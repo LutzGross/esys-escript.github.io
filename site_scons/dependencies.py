@@ -230,6 +230,11 @@ def checkPython(env):
         else:
             (python_lib_path, python_libs,verstring, python_inc_path)=call_python_config(env['pythoncmd'])
     
+    if isinstance(python_inc_path, bytes):
+        python_inc_path=python_inc_path.decode()
+    if isinstance(python_lib_path, bytes):
+        python_lib_path=python_lib_path.decode()
+
     if sys.version_info[0] == 3:
         if isinstance(verstring, str) is False:
             verstring = str(verstring, 'utf-8')
@@ -273,9 +278,10 @@ def checkPython(env):
     if not conf.CheckCXXHeader('Python.h'):
         print("Cannot find python include files (tried 'Python.h' in directory %s)" % (python_inc_path))
         env.Exit(1)
-    if not conf.CheckFunc('Py_Exit', language='c++'):
-        print("Cannot find python library method Py_Exit (tried %s in directory %s)" % (python_libs, python_lib_path))
-        env.Exit(1)
+    if not env['IS_WINDOWS']:
+        if not conf.CheckFunc('Py_Exit', language='c++'):
+            print("Cannot find python library method Py_Exit (tried %s in directory %s)" % (python_libs, python_lib_path))
+            env.Exit(1)
 
     return conf.Finish()
 
