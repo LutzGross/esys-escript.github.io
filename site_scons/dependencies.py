@@ -465,7 +465,9 @@ def checkOptionalModules(env):
     return env
 
 def checkForTrilinos(env):
-
+    if env['trilinos'] == False:
+        trilinos_version='none'
+        return env
 
     trilinos_inc_path=''
     trilinos_lib_path=''
