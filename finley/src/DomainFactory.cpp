@@ -18,7 +18,6 @@
 #include <finley/DomainFactory.h>
 
 #include <escript/index.h>
-#include <escript/SubWorld.h>
 
 #ifdef ESYS_HAVE_NETCDF
  #ifdef NETCDF4
@@ -41,7 +40,8 @@
 
 using namespace std;
 using namespace escript;
-namespace bp = boost::python;
+
+
 
 #ifdef NETCDF4
 using namespace netCDF;
@@ -447,7 +447,7 @@ Domain_ptr FinleyDomain::load(const string& fileName)
         nc_var_temp.getVar(&Tags_keys[0]); // num_Tags
         for (i=0; i<num_Tags; i++) {
           // Retrieve tag name
-          sprintf(name_temp, "Tags_name_%d", i);
+          snprintf(name_temp, 4096, "Tags_name_%d", i);
           if ((attr=dataFile.getAtt(name_temp)), attr.isNull() ) {
               delete[] Tags_keys;
               stringstream msg;
@@ -860,7 +860,7 @@ Domain_ptr FinleyDomain::load(const string& fileName)
         }
         for (i=0; i<num_Tags; i++) {
           // Retrieve tag name
-          sprintf(name_temp, "Tags_name_%d", i);
+          snprintf(name_temp, 4096, "Tags_name_%d", i);
           if (! (attr=dataFile.get_att(name_temp)) ) {
               delete[] Tags_keys;
               stringstream msg;
@@ -920,17 +920,7 @@ Domain_ptr readMesh_driver(const bp::list& args)
     int numpts = bp::extract<int>(pypoints.attr("__len__")());
     int numtags = bp::extract<int>(pytags.attr("__len__")());
 
-    bp::object pworld = args[6];
-    JMPI info;
-    if (!pworld.is_none()) {
-        bp::extract<SubWorld_ptr> ex(pworld);
-        if (!ex.check()) {
-            throw ValueError("Invalid escriptWorld parameter.");
-        }
-        info = ex()->getMPI();
-    } else {
-        info = makeInfo(MPI_COMM_WORLD);
-    }
+    JMPI info = makeInfo(MPI_COMM_WORLD);
     Domain_ptr dom(FinleyDomain::read(info, fileName, integrationOrder,
                                       reducedIntegrationOrder, optimize));
 
@@ -1002,17 +992,7 @@ Domain_ptr readGmsh_driver(const bp::list& args)
     bp::list pytags = bp::extract<bp::list>(args[7]);
     int numpts = bp::extract<int>(pypoints.attr("__len__")());
     int numtags = bp::extract<int>(pytags.attr("__len__")());
-    bp::object pworld = args[8];
-    JMPI info;
-    if (!pworld.is_none()) {
-        bp::extract<SubWorld_ptr> ex(pworld);
-        if (!ex.check()) {
-            throw ValueError("Invalid escriptWorld parameter.");
-        }
-        info = ex()->getMPI();
-    } else {
-        info = makeInfo(MPI_COMM_WORLD);
-    }
+    JMPI info = makeInfo(MPI_COMM_WORLD);
     Domain_ptr dom(FinleyDomain::readGmsh(info, fileName, numDim,
                                      integrationOrder, reducedIntegrationOrder,
                                      optimize, useMacroElements));
@@ -1144,17 +1124,17 @@ Domain_ptr brick_driver(const bp::list& args)
             throw FinleyException("Unable to extract tag value.");
         }
     }
-    bp::object pworld = args[17];
-    JMPI info;
-    if (!pworld.is_none()) {
-        bp::extract<SubWorld_ptr> ex(pworld);
-        if (!ex.check()) {
-            throw ValueError("Invalid escriptWorld parameter.");
-        }
-        info = ex()->getMPI();
-    } else {
-        info = makeInfo(MPI_COMM_WORLD);
-    }
+    bp::object pworld = args[16];
+#ifdef ESYS_MPI 
+    int mpi_init = 0;
+    MPI_Initialized(&mpi_init);
+    if(!mpi_init)
+        MPI_Init(NULL,NULL);
+#endif
+    JMPI info = makeInfo(MPI_COMM_WORLD);
+
+
+
     return brick(info, static_cast<dim_t>(bp::extract<float>(args[0])),
                  static_cast<dim_t>(bp::extract<float>(args[1])),
                  static_cast<dim_t>(bp::extract<float>(args[2])),
@@ -1165,6 +1145,74 @@ Domain_ptr brick_driver(const bp::list& args)
                  bp::extract<int>(args[11]), bp::extract<int>(args[12]),
                  bp::extract<int>(args[13]), bp::extract<int>(args[14]),
                  points, tags, namestonums);
+}
+
+Domain_ptr brick_driver_MPI(const bp::list& args)
+{
+#ifdef ESYS_MPI
+    // we need to convert lists to stl vectors
+    bp::list pypoints = bp::extract<bp::list>(args[15]);
+    bp::list pytags = bp::extract<bp::list>(args[16]);
+    int numpts = bp::extract<int>(pypoints.attr("__len__")());
+    int numtags = bp::extract<int>(pytags.attr("__len__")());
+    vector<double> points;
+    vector<int> tags;
+    tags.resize(numtags, -1);
+    for (int i = 0; i < numpts; ++i) {
+        bp::object temp = pypoints[i];
+        int l = bp::extract<int>(temp.attr("__len__")());
+        for (int k = 0; k < l; ++k) {
+            points.push_back(bp::extract<double>(temp[k]));
+        }
+    }
+    map<string, int> namestonums;
+    int curmax = 40; // bricks use up to 30
+    for (int i = 0; i < numtags; ++i) {
+        bp::extract<int> ex_int(pytags[i]);
+        bp::extract<string> ex_str(pytags[i]);
+        if (ex_int.check()) {
+            tags[i] = ex_int();
+            if (tags[i] >= curmax) {
+                curmax = tags[i]+1;
+            }
+        } else if (ex_str.check()) {
+            string s = ex_str();
+            TagMap::iterator it = namestonums.find(s);
+            if (it != namestonums.end()) {
+                // we have the tag already so look it up
+                tags[i] = it->second;
+            } else {
+                namestonums[s] = curmax;
+                tags[i] = curmax;
+                curmax++;
+            }
+        } else {
+            throw FinleyException("Unable to extract tag value.");
+        }
+    }
+    bp::object pworld = args[16];
+    // PyObject* py_obj = py_comm.ptr();
+    //bp::extract<bp::object > py_comm(args[17]);
+    //if ( py_comm.check() ) {
+        MPI_Comm *comm_p  = extractMPICommunicator(args[17]);
+        JMPI info = makeInfo(*comm_p);
+    //} else {
+    //     throw FinleyException("Unable to obtain MPI communicator.");
+    //}
+
+    return brick(info, static_cast<dim_t>(bp::extract<float>(args[0])),
+                 static_cast<dim_t>(bp::extract<float>(args[1])),
+                 static_cast<dim_t>(bp::extract<float>(args[2])),
+                 bp::extract<int>(args[3]), bp::extract<double>(args[4]),
+                 bp::extract<double>(args[5]), bp::extract<double>(args[6]),
+                 bp::extract<int>(args[7]), bp::extract<int>(args[8]),
+                 bp::extract<int>(args[9]), bp::extract<int>(args[10]),
+                 bp::extract<int>(args[11]), bp::extract<int>(args[12]),
+                 bp::extract<int>(args[13]), bp::extract<int>(args[14]),
+                 points, tags, namestonums);
+#else
+    throw FinleyException("escript was not compiled with MPI");
+#endif
 }
 
 Domain_ptr rectangle(JMPI info, dim_t n0, dim_t n1, int order,
@@ -1209,6 +1257,77 @@ Domain_ptr rectangle_driver(const bp::list& args)
     // we need to convert lists to stl vectors
     bp::list pypoints = bp::extract<bp::list>(args[12]);
     bp::list pytags = bp::extract<bp::list>(args[13]);
+    int numpts = bp::len(pypoints);
+    int numtags = bp::len(pytags);
+
+    // int numpts = bp::extract<int>(pypoints.attr("__len__")());
+    // int numtags = bp::extract<int>(pytags.attr("__len__")());
+    vector<double> points;
+    vector<int> tags;
+    tags.resize(numtags, -1);
+    for (int i = 0; i < numpts; ++i) {
+        bp::object temp = pypoints[i];
+        int l = bp::extract<int>(temp.attr("__len__")());
+        for (int k = 0; k < l; ++k) {
+            points.push_back(bp::extract<double>(temp[k]));
+        }
+    }
+    TagMap tagstonames;
+    int curmax = 40;
+    // but which order to assign tags to names?????
+    for (int i = 0; i < numtags; ++i) {
+        bp::extract<int> ex_int(pytags[i]);
+        bp::extract<string> ex_str(pytags[i]);
+        if (ex_int.check()) {
+            tags[i] = ex_int();
+            if (tags[i] >= curmax) {
+                curmax = tags[i]+1;
+            }
+        } else if (ex_str.check()) {
+            string s = ex_str();
+            TagMap::iterator it = tagstonames.find(s);
+            if (it != tagstonames.end()) {
+                // we have the tag already so look it up
+                tags[i] = it->second;
+            } else {
+                tagstonames[s] = curmax;
+                tags[i] = curmax;
+                curmax++;
+            }
+        } else {
+            throw FinleyException("Unable to extract tag value.");
+        }
+    }
+
+//if ( bp::len(args) > 14 ) {
+//
+//} else {
+//
+//}
+#ifdef ESYS_MPI 
+    int mpi_init = 0;
+    MPI_Initialized(&mpi_init);
+    if(!mpi_init)
+        MPI_Init(NULL,NULL);
+#endif
+    JMPI info = makeInfo(MPI_COMM_WORLD);
+
+    return rectangle(info, static_cast<dim_t>(bp::extract<float>(args[0])),
+                     static_cast<dim_t>(bp::extract<float>(args[1])),
+                     bp::extract<int>(args[2]), bp::extract<double>(args[3]),
+                     bp::extract<double>(args[4]), bp::extract<int>(args[5]),
+                     bp::extract<int>(args[6]), bp::extract<int>(args[7]),
+                     bp::extract<int>(args[8]), bp::extract<int>(args[9]),
+                     bp::extract<int>(args[10]), bp::extract<int>(args[11]),
+                     points, tags, tagstonames);
+}
+
+Domain_ptr rectangle_driver_MPI(const bp::list& args)
+{
+#if defined(ESYS_MPI) && defined(ESYS_HAVE_MPI4PY)
+    // we need to convert lists to stl vectors
+    bp::list pypoints = bp::extract<bp::list>(args[12]);
+    bp::list pytags = bp::extract<bp::list>(args[13]);
     int numpts = bp::extract<int>(pypoints.attr("__len__")());
     int numtags = bp::extract<int>(pytags.attr("__len__")());
     vector<double> points;
@@ -1247,17 +1366,30 @@ Domain_ptr rectangle_driver(const bp::list& args)
             throw FinleyException("Unable to extract tag value.");
         }
     }
-    bp::object pworld = args[14];
-    JMPI info;
-    if (!pworld.is_none()) {
-        bp::extract<SubWorld_ptr> ex(pworld);
-        if (!ex.check()) {
-            throw ValueError("Invalid escriptWorld parameter.");
-        }
-        info = ex()->getMPI();
-    } else {
-        info = makeInfo(MPI_COMM_WORLD);
-    }
+
+    //bp::extract<bp::object > py_comm(bp::extract<bp::object>(args[14]));
+    //if ( py_comm.check() ) {
+    std::cout << "TEST A1 \n";
+    std::cout << bp::extract<int>(args[14].attr("size")) << "\n";
+
+bp::extract<bp::object> py_comm(args[14]);
+if (import_mpi4py() < 0) {
+return NULL;
+}
+         PyObject* py_obj = py_comm().ptr();
+        std::cout << "TEST A" << py_obj <<  "\n";
+
+ MPI_Comm *comm_p  = PyMPIComm_Get(py_obj);
+
+  //      MPI_Comm *comm_p  = extractMPICommunicator(py_comm());
+
+
+    std::cout << "TEST A2 \n";
+        JMPI info = makeInfo(*comm_p);
+    std::cout << "TEST A3 \n";
+    //} else {
+    //     throw FinleyException("Unable to obtain MPI communicator.");
+    //}
 
     return rectangle(info, static_cast<dim_t>(bp::extract<float>(args[0])),
                      static_cast<dim_t>(bp::extract<float>(args[1])),
@@ -1267,6 +1399,9 @@ Domain_ptr rectangle_driver(const bp::list& args)
                      bp::extract<int>(args[8]), bp::extract<int>(args[9]),
                      bp::extract<int>(args[10]), bp::extract<int>(args[11]),
                      points, tags, tagstonames);
+#else
+    throw FinleyException("escript was not compiled with mpi4py");
+#endif
 }
 
 Domain_ptr meshMerge(const bp::list& meshList)

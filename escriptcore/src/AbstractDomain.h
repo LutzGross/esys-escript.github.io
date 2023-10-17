@@ -29,6 +29,11 @@
 #include <boost/python/numpy.hpp>
 #endif
 
+#ifdef ESYS_HAVE_MPI4PY
+#include <mpi4py/mpi4py.h>
+#include <mpi4py/mpi4py.MPI.h>
+#include <mpi4py/mpi4py.MPI_api.h>
+#endif
 
 #include <vector>
 #include <string>
@@ -288,6 +293,11 @@ public:
      Returns locations in the domain as a numpy ndarray. The function space is chosen appropriately.
     */
     virtual boost::python::numpy::ndarray getNumpyX() const = 0;
+#endif
+
+#if defined(ESYS_MPI) && defined(ESYS_HAVE_MPI4PY)
+    // Changes the communicator
+   // void setMPIComm(boost::python::object py_comm);
 #endif
 
     /**

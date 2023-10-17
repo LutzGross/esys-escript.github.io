@@ -78,51 +78,54 @@ def checkCompiler(env):
     return conf.Finish()
 
 def get_external_python_sympy(env,bin):
-    import subprocess
-    cmd=''
-    cmd+='import sympy\n'
-    cmd+='print(sympy.__version__)\n'
-    sp=subprocess.Popen([bin, '-c', cmd], stdin=None, stderr=None, stdout=subprocess.PIPE)
-    # spVer=sp.stdout.readline().strip().split('.')
-    import sys
-    if sys.version_info[0] >= 3:
-        spVer = str(sp.stdout.readline().strip(), 'utf-8')
-    else:
-        spVer = sp.stdout.readline().strip().split('.')
-    quit=False
-    ver1=''
-    ver2=''
-    count=0;
-    for i in range(0,len(spVer)):
-        x=spVer[i]
-        if x.isdigit() is True:
-            if count == 0:
-                ver1=ver1+spVer[i]
-            else:
-                ver2=ver2+spVer[i]
+    if env['use_sympy'] is True:
+        import subprocess
+        cmd=''
+        cmd+='import sympy\n'
+        cmd+='print(sympy.__version__)\n'
+        sp=subprocess.Popen([bin, '-c', cmd], stdin=None, stderr=None, stdout=subprocess.PIPE)
+        spVer=sp.stdout.readline()
+        if hasattr(spVer, 'decode'):
+            spVer=spVer.decode()
+        import sys
+        if sys.version_info[0] >= 3:
+            spVer = spVer.strip()
         else:
-            count=count+1
-            if quit is True:
-                break
+            spVer = spVer.strip().split('.')
+        quit=False
+        ver1=''
+        ver2=''
+        count=0;
+        for i in range(0,len(spVer)):
+            x=spVer[i]
+            if x.isdigit() is True:
+                if count == 0:
+                    ver1=ver1+spVer[i]
+                else:
+                    ver2=ver2+spVer[i]
             else:
-                quit=True
-                continue
-    version1=float(ver1)
-    version2=float(ver2)
-    if version1 == 0 and version2 < 7:
-        env['sympy']=False
-        env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
-        env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
-    elif version1 == 1 and version2 > 2:
-        env['sympy']=False
-        env['warnings'].append("escript does not support sympy version 1.2 and higher. Found %s" % spVer)
-        env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
+                count=count+1
+                if quit is True:
+                    break
+                else:
+                    quit=True
+                    continue
+        version1=float(ver1)
+        version2=float(ver2)
+        if version1 == 0 and version2 < 7:
+            env['sympy']=False
+            env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
+            env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
+        #elif version1 == 1 and version2 > 2:
+                                              #    env['sympy']=False
+        #    env['warnings'].append("escript does not support sympy version 1.2 and higher. Found %s" % spVer)
+        #    env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
+        else:
+            env['sympy']=True
+            env['warnings'].append("Found sympy version %s" % spVer)
+        return env
     else:
-        env['sympy']=True
-        env['warnings'].append("Found sympy version %s" % spVer)
-
-
-    return env
+        return env
 
 def call_python_config(bin=None):
     import subprocess
@@ -137,14 +140,19 @@ def call_python_config(bin=None):
     cmd+='except:\n'
     cmd+='  pythonroot=sys.exec_prefix+"/bin/"\n'
     cmd+='  sp=subprocess.Popen([pythonroot+"python"+pyversion+"-config","--ldflags"], stdout=subprocess.PIPE)\n'
-    cmd+='d=sp.stdout.readline().split()\n'
-    cmd+="libdirs=[z[2:] for z in d if z.startswith(b'-L')]\n"
-    cmd+="libs=[z[2:] for z in d if z.startswith(b'-lpython')]\n"
+    cmd+='d=sp.stdout.readline()\n'
+    cmd+='if hasattr(d, "decode"):\n'
+    cmd+='    d=d.decode()\n'
+    cmd+='d=d.split()\n'
+    cmd+="libdirs=[z[2:] for z in d if z.startswith('-L')]\n"
+    cmd+="libs=[z[2:] for z in d if z.startswith('-lpython')]\n"
+    cmd+="if len(libs) == 0:\n"
+    cmd+='   libs = [ "python"+pyversion]\n'
     cmd+="target=''\n"
     cmd+="libname=''\n"
     cmd+="for d in libdirs:\n"
     cmd+="  for f in libs:\n"
-    cmd+="    s=os.path.join(d,b'lib'+f+b'.so')\n"
+    cmd+="    s=os.path.join(d,'lib'+f+'.so')\n"
     cmd+="    try:\n"
     cmd+="      dummy=os.stat(s)\n"
     cmd+="      if target=='':\n"
@@ -152,7 +160,7 @@ def call_python_config(bin=None):
     cmd+="        libname=f\n"
     cmd+="    except Exception:\n"
     cmd+="      pass\n"
-    cmd+="    s=os.path.join(d,b'lib'+f+b'.dylib')\n"
+    cmd+="    s=os.path.join(d,'lib'+f+'.dylib')\n"
     cmd+="    try:\n"
     cmd+="      dummy=os.stat(s)\n"
     cmd+="      if target=='':\n"
@@ -166,7 +174,7 @@ def call_python_config(bin=None):
        return (target,libname,ver, sysconfig.get_python_inc())
     # run an external python to get its library location
     # yes we are starting another python just to run python?-config
-    cmd+="if 'decode' in dir(target):\n"
+    cmd+="if hasattr(target,'decode'):\n"
     cmd+="   target=target.decode()\n"
     cmd+="   libname=libname.decode()\n"
     cmd+="print(target)\n"
@@ -175,10 +183,14 @@ def call_python_config(bin=None):
     cmd+="print(str(sys.version_info[0])+'.'+str(sys.version_info[1])+'.'+str(sys.version_info[2]))\n"
     cmd+="print(sysconfig.get_python_inc())\n"
     sp=subprocess.Popen([bin, '-c', cmd], stdin=None, stderr=None, stdout=subprocess.PIPE)
-    target=sp.stdout.readline().strip()
-    libname=sp.stdout.readline().strip()
-    ver=sp.stdout.readline().strip()
-    pinc=sp.stdout.readline().strip()
+    target = sp.stdout.readline()
+    libname = sp.stdout.readline()
+    ver = sp.stdout.readline()
+    pinc = sp.stdout.readline()
+    if hasattr(target, "decode"):
+        target, libname, ver, pinc=target.decode().strip(), libname.decode().strip(), ver.decode().strip(), pinc.decode().strip()
+    else:
+        target, libname, ver, pinc=target.strip(), libname.strip(), ver.strip(), pinc.strip()
     return (target, libname, ver, pinc)
 
 def checkPython(env):
@@ -214,6 +226,7 @@ def checkPython(env):
             python_lib_path = lines[1].strip()
             python_libs = [lines[2].strip()]
             verstring = lines[3].strip()
+            print((python_lib_path, python_libs,verstring, python_inc_path))
         else:
             (python_lib_path, python_libs,verstring, python_inc_path)=call_python_config(env['pythoncmd'])
     
@@ -332,44 +345,25 @@ def checkBoost(env):
                 # windows scons template adds boost_numpy to boost_libs
                 env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
             else:
-                p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
+                p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 out,err = p.communicate()
-                spath = [x[13:-3] for x in out.split() if b'SEARCH_DIR' in x]
+                if hasattr(out, 'decode'):
+                    out=out.decode()
+
+                spath = [x[13:-3] for x in out.split() if 'SEARCH_DIR' in x]
                 spath.append(boost_lib_path)
                 spath.append('/usr/lib/x86_64-linux-gnu/')
-                p2name = ''
+                spath.append('/usr/lib64/')
                 p3name = ''
                 for name in spath:
                     try:
                         l=os.listdir(name)
-
-                        import sys
-                        if sys.version_info[0] == 3:
-                            string_type = str
-                        else:
-                            string_type = basestring
-
-                        p2res = ''
-                        p3res = ''
                         for x in l:
-                            if isinstance(x,string_type):
-                                if x.startswith('libboost_numpy') and x.endswith('.so'):
-                                    p2res = x
-                                if x.startswith('libboost_numpy3') and x.endswith('.so'):
-                                    p3res = x
-                            else:
-                                if x.startswith(b'libboost_numpy') and x.endswith(b'.so'):
-                                    p2res = x
-                                if x.startswith(b'libboost_numpy3') and x.endswith(b'.so'):
-                                    p3res = x
-                    except OSError:
-                        pass
-
-                # Pick the right one
-                if int(env['python_version'][0]) == 2:
-                    libname = p2res[3:-3]
-                else:
-                    libname = p3res[3:-3]
+                            if x.startswith('libboost_numpy3') and x.endswith('.so'):
+                                p3name = x
+                    except:
+                        continue
+                libname = p3name[3:-3]
 
                 # If found, add the necessary information to env
                 if len(libname) > 0:
@@ -381,7 +375,8 @@ def checkBoost(env):
                     env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
                     env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
                     env['have_boost_numpy']=True
-
+                else:
+                    print("Warning: Could not find boost/python/numpy.hpp (wrong folder?). Building without numpy support.")
             print("Found boost/python/numpy.hpp. Building with boost numpy support.")
         except:
             print("Warning: Could not find boost/python/numpy.hpp. Building without numpy support.")
@@ -447,62 +442,22 @@ def checkCppUnit(env):
 def checkOptionalModules(env):
     ######## scipy
     if not detectModule(env, 'scipy'):
-        env['warnings'].append("Cannot import scipy. NetCDF sources will not be available for inversions.")
-
-    ######## pyproj
-    if not detectModule(env, 'pyproj'):
-        env['warnings'].append("Cannot import pyproj. Inversions may not work.")
-
-    ######## gdal
-    if not detectModule(env, 'gdal'):
-        env['warnings'].append("Cannot import gdal. Inversions will not honour WKT coordinate system information.")
+        env['warnings'].append("Cannot import scipy.")
 
     ######## sympy
-    if not detectModule(env, 'sympy'):
-        env['warnings'].append("Cannot import sympy. Symbolic toolbox and nonlinear PDEs will not be available.")
-        env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
-    else:
-        # if env['pythoncmd'] is not None:
-        #     env=get_external_python_sympy(env, env['pythoncmd'])
-        # else:
-        try:
-            import sympy as sp
-            import distutils.version as duv
-            spVer=sp.__version__
-            quit=False
-            ver1=''
-            ver2=''
-            count=0;
-            for i in range(0,len(spVer)):
-                x=spVer[i]
-                if x.isdigit() is True:
-                    if count == 0:
-                        ver1=ver1+spVer[i]
-                    else:
-                        ver2=ver2+spVer[i]
-                else:
-                    count=count+1
-                    if quit is True:
-                        break
-                    else:
-                        quit=True
-                        continue
-            version1=float(ver1)
-            version2=float(ver2)
-            if version1 == 0 and version2 < 7:
-                env['sympy']=False
-                env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
-                env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
-            elif version1 == 1 and version2 > 2:
-                env['sympy']=False
-                env['warnings'].append("escript does not support sympy version 1.2 and higher. Found %s" % spVer)
-                env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
-            else:
-                env['sympy']=True
-                env['warnings'].append("Found sympy version %s" % spVer)
-        except:
+    if env['use_sympy'] is True:
+        if detectModule(env, 'sympy'):
+            env['sympy'] = True
+            env['warnings'].append("Found sympy.")
+        else:
+            env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
             env['sympy']=False
             env['warnings'].append("Could not find sympy")
+    else:
+        env['sympy']=False
+        env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
+
+
 
     ######## gmshpy
     env['gmshpy'] = detectModule(env, 'gmshpy')
@@ -510,106 +465,167 @@ def checkOptionalModules(env):
     return env
 
 def checkForTrilinos(env):
+
+
     trilinos_inc_path=''
     trilinos_lib_path=''
+    dependencies = ['Amesos2.hpp', 'Amesos2_Solver_decl.hpp', 'BelosSolverFactory.hpp', 'BelosSolverManager.hpp', \
+                    'BelosTFQMRIter.hpp', 'BelosTFQMRSolMgr.hpp', 'BelosTpetraAdapter.hpp', 'BelosTypes.hpp', \
+                    'Ifpack2_Factory.hpp',  \
+                    'MatrixMarket_Tpetra.hpp', 'MueLu_CreateTpetraPreconditioner.hpp', \
+                    'Teuchos_DefaultComm.hpp', 'Teuchos_ParameterList.hpp', \
+                    'Teuchos_Comm.hpp', 'Teuchos_TimeMonitor.hpp', 'Tpetra_CrsMatrix_decl.hpp', \
+                    'Tpetra_BlockCrsMatrix_decl.hpp', \
+                    'Tpetra_CrsGraph.hpp', 'Tpetra_CrsMatrix.hpp', 'Tpetra_RowMatrix.hpp', \
+                    'TpetraExt_TripleMatrixMultiply_def.hpp', \
+                    'Tpetra_Vector.hpp', 'Trilinos_version.h']
+    packages = ['Tpetra', 'Kokkos', 'Belos', 'Amesos2', 'Ifpack2', 'MueLu']
+
+    # 'Tpetra_createDeepCopy_CrsMatrix.hpp', \
+
     if env['trilinos']:
         havelibs = (len(env['trilinos_libs']) > 0)
-        trilinos_inc_path,trilinos_lib_path=findLibWithHeader(env,
-                env['trilinos_libs'], 'Amesos2.hpp',
-                env['trilinos_prefix'], lang='c++', try_link=havelibs)
-        env.AppendUnique(CPPPATH = [trilinos_inc_path])
-        env.AppendUnique(LIBPATH = [trilinos_lib_path])
-        env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], trilinos_lib_path)
-        env['buildvars']['trilinos_inc_path']=trilinos_inc_path
-        env['buildvars']['trilinos_lib_path']=trilinos_lib_path
-        conf = Configure(env.Clone())
+    else:
+        havelibs = False
+    trilinos_inc_path,trilinos_lib_path=findLibWithHeader(env,
+            env['trilinos_libs'], 'Amesos2.hpp',
+            env['trilinos_prefix'], lang='c++', try_link=havelibs)
+    env.AppendUnique(CPPPATH = [trilinos_inc_path])
+    env.AppendUnique(LIBPATH = [trilinos_lib_path])
+    env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], trilinos_lib_path)
+    env['buildvars']['trilinos_inc_path']=trilinos_inc_path
+    env['buildvars']['trilinos_lib_path']=trilinos_lib_path
+    #conf = Configure(env.Clone())
 
-        dependencies=['Amesos2.hpp','Amesos2_Solver_decl.hpp','BelosSolverFactory.hpp','BelosSolverManager.hpp',\
-        'BelosTFQMRIter.hpp','BelosTFQMRSolMgr.hpp','BelosTpetraAdapter.hpp','BelosTypes.hpp',\
-        'Ifpack2_Factory.hpp','Kokkos_DefaultNode.hpp',\
-        'MatrixMarket_Tpetra.hpp','MueLu_CreateTpetraPreconditioner.hpp',\
-        'Teuchos_DefaultComm.hpp','Teuchos_ParameterList.hpp',\
-        'Tpetra_CrsGraph.hpp','Tpetra_CrsMatrix.hpp', 'Tpetra_RowMatrix.hpp',\
-        'Tpetra_Vector.hpp','Trilinos_version.h']
+    print("Looking for the Trilinos headers...")
+    for check in dependencies:
+        print("Checking for %s... %s" % (check, "yes" if os.path.isfile(os.path.join(trilinos_inc_path,check)) else "no") )
+        if not os.path.isfile(os.path.join(trilinos_inc_path,check)):
+            print("Could not find the  Trilinos header file %s (tried looking in directory %s)" % (check, trilinos_inc_path))
+            env.Exit(1)
 
-        print("Looking for the Trilinos headers...")
-        for check in dependencies:
-            print("Checking for %s... %s" % (check, "yes" if os.path.isfile(os.path.join(trilinos_inc_path,check)) else "no"))
-            if not os.path.isfile(os.path.join(trilinos_inc_path,check)):
-                print("Could not find a Trilinos header file (tried looking in directory %s)" % (trilinos_inc_path))
-                env.Exit(1)
+    if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')):
+        print("Checking for %s... %s" %('Tpetra_DefaultPlatform.hpp', "yes"))
+        env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_DP'])
+    else:
+        print("Checking for %s... %s" %('Tpetra_DefaultPlatform.hpp', "no"))
+    # Try to extract the trilinos version from Trilinos_version.h
+    versionh=open(os.path.join(trilinos_inc_path, 'Trilinos_version.h'))
+    trilinos_version='unknown'
+    env['trilinos_version']='unknown'
+    for line in versionh:
+        ver=re.match(r'#define TRILINOS_MAJOR_MINOR_VERSION (\d+)',line)
+        if ver:
+            trilinos_version=ver.group(1)
+            trilinos_version = int(trilinos_version)
+            major=int(str(trilinos_version)[:2])
+            minor=int(str(trilinos_version)[2:4])
+            tmp=int(str(trilinos_version)[4:6])
+            env['trilinos_version'] = str(major)+"."+str(minor)+"."+str(tmp)
+            if major >= 14:
+                env.Append(CPPDEFINES = ['ESYS_TRILINOS_14'])
+            if major >= 14 and minor >=2:
+                env.Append(CPPDEFINES = ['ESYS_TRILINOS_14_2'])
 
-        if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')):
-            print("Checking for %s... %s" % ('Tpetra_DefaultPlatform.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
-            env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_DP'])
+    if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix.hpp')):
+        print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix.hpp', "yes") )
+    elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockCrsMatrix.hpp')):
+        print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix.hpp', "yes" ) )
+        env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRS'])
+    else:
+        raise RuntimeError('Could not locate the Trilinos Block CRS Matrix header')
 
-        if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix.hpp')):
-            print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
-        elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockCrsMatrix.hpp')):
-            print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
-            env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRS'])
-        else:
-            raise RuntimeError('Could not locate the Trilinos Block CRS Matrix header')
+    if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix_Helpers.hpp')):
+        print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix_Helpers.hpp', "yes"))
+    elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp')):
+        print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp'))
+        env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH'])
+    else:
+        raise RuntimeError('Could not locate the Trilinos Block CRS Matrix Helpers header')
 
-        if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix_Helpers.hpp')):
-            print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix_Helpers.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
-        elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp')):
-            print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
-            env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH'])
-        else:
-            raise RuntimeError('Could not locate the Trilinos Block CRS Matrix Helpers header')
+    if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockVector.hpp')):
+        print("Checking for %s... %s" % ('Tpetra_BlockVector.hpp', "yes"))
+    elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockVector.hpp')):
+        print("Checking for %s... %s" % ('Tpetra_Experimental_BlockVector.hpp', "yes"))
+        env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKV'])
+    else:
+        raise RuntimeError('Could not locate the Trilinos BlockVector header')
 
-        if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockVector.hpp')):
-            print("Checking for %s... %s" % ('Tpetra_BlockVector.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
-        elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockVector.hpp')):
-            print("Checking for %s... %s" % ('Tpetra_Experimental_BlockVector.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
-            env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKV'])
-        else:
-            raise RuntimeError('Could not locate the Trilinos BlockVector header')
+    library_list=['amesos2', 'amesos', 'anasaziepetra', 'anasazi', 'anasazitpetra', 'aztecoo', \
+                  'belosepetra', 'belos', 'belostpetra', 'belosxpetra', 'epetraext', 'epetra', \
+                  'galeri', 'galeri', 'ifpack2', 'ifpack2', 'ifpack', 'intrepid2', 'isorropia',\
+                  'kokkosalgorithms', 'kokkoscontainers', 'kokkoscore', 'kokkoskernels', 'kokkossimd', \
+                  'kokkostsqr', 'komplex', 'ml', 'ModeLaplace', 'muelu', 'muelu', 'pamgen_extras',\
+                  'pamgen', 'rtop', 'sacado', 'shards', 'shylu_nodehts', 'simpi', 'stratimikosamesos2',\
+                  'stratimikosamesos', 'stratimikosaztecoo', 'stratimikosbelos', 'stratimikosifpack', \
+                  'stratimikosml', 'stratimikos', 'tacho', 'teko', 'teuchoscomm', 'teuchoscore', \
+                  'teuchoskokkoscomm', 'teuchoskokkoscompat', 'teuchosnumerics', 'teuchosparameterlist', \
+                  'teuchosparser', 'teuchosremainder', 'thyracore', 'thyraepetraext', 'thyraepetra', \
+                  'thyratpetra', 'tpetraclassic', 'tpetraext', 'tpetrainout', 'tpetra', 'trilinosss',\
+                  'triutils', 'xpetra', 'xpetra', 'zoltan', 'zoltan2']
 
-        # Try to extract the trilinos version from Trilinos_version.h
-        versionh=open(os.path.join(trilinos_inc_path, 'Trilinos_version.h'))
-        trilinos_version='unknown'
-        env['trilinos_version']='unknown'
-        for line in versionh:
-            ver=re.match(r'#define TRILINOS_MAJOR_MINOR_VERSION (\d+)',line)
-            if ver:
-                trilinos_version=ver.group(1)
-                trilinos_version = int(trilinos_version)
-                major=int(str(trilinos_version)[:2])
-                minor=int(str(trilinos_version)[2:4])
-                tmp=int(str(trilinos_version)[4:6])
-                env['trilinos_version'] = str(major)+"."+str(minor)+"."+str(tmp)
+    if not havelibs:
+        libs = []
+        for file in os.listdir(trilinos_lib_path):
+            if file[-3:] == ".so":
+                for x in range(0, library_list.__len__()):
+                    if file[3:-3] == library_list[x] or file[12:-3] == library_list[x]:
+                        libs.append(file[3:-3])
+            if file[-3:] == ".dylib": # macOS
+                for x in range(0, library_list.__len__()):
+                    if file[3:-6] == library_list[x] or file[12:-6] == library_list[x]:
+                        libs.append(file[3:-6])
+        env['trilinos_libs'] = libs
 
-        if not havelibs:
-            packages=['Tpetra','Kokkos','Belos','Amesos2','Ifpack2','MueLu']
-            libs = []
-            for pk in packages:
-                # find out what libraries to link with...
-                makefile = os.path.join(trilinos_inc_path, 'Makefile.export.%s'%pk)
-                try:
-                    for l in open(makefile, 'r').readlines():
-                        if l.startswith("%s_LIBRARIES"%pk): # or l.startswith("Trilinos_TPL_LIBRARIES"):
-                            lst = l.split('=')[1].strip().split()
-                            lst = [e.replace('-l','',1) for e in lst]
-                            libs += lst
-                        elif l.startswith("%s_TPL_INCLUDE_DIRS"%pk):
-                            lst = l.split('=')[1].strip().split()
-                            lst = [e.replace('-I','',1) for e in lst]
-                            env.AppendUnique(CPPPATH = lst)
+    # Trilinos version 14 and higher
+    # if major >= 14:
+    #     if not havelibs:
+    #         libs = []
+    #         for file in os.listdir(trilinos_lib_path):
+    #             if file[-3:] == ".so":
+    #                 libs.append(file[3:-3])
+    #             if file[-3:] == ".dylib": # macOS
+    #                 libs.append(file[3:-6])
+    #         env['trilinos_libs'] = libs
+    # else:
+    #     if not havelibs:
+    #         libs = []
+    #         for pk in packages:
+    #             # find out what libraries to link with...
+    #             makefile = os.path.join(trilinos_inc_path, 'Makefile.export.%s'%pk)
+    #             try:
+    #                 for l in open(makefile, 'r').readlines():
+    #                     if l.startswith("%s_LIBRARIES"%pk): # or l.startswith("Trilinos_TPL_LIBRARIES"):
+    #                         lst = l.split('=')[1].strip().split()
+    #                         lst = [e.replace('-l','',1) for e in lst]
+    #                         libs += lst
+    #                     elif l.startswith("%s_TPL_INCLUDE_DIRS"%pk):
+    #                         lst = l.split('=')[1].strip().split()
+    #                         lst = [e.replace('-I','',1) for e in lst]
+    #                         env.AppendUnique(CPPPATH = lst)
 
-                except Exception as e:
-                    raise RuntimeError('Error reading Trilinos export Makefile\n%s'%(e))
-            env['trilinos_libs'] = libs
+    #             except Exception as e:
+    #                 raise RuntimeError('Error reading Trilinos export Makefile\n%s'%(e))
+    #         env['trilinos_libs'] = libs
 
-        env.Append(CPPDEFINES = ['ESYS_HAVE_TRILINOS'])
-        # env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], trilinos_lib_path)
-        # env['buildvars']['trilinos_inc_path']=trilinos_inc_path
-        # env['buildvars']['trilinos_lib_path']=trilinos_lib_path
+    pytri_path=trilinos_lib_path+'/python'+str(sys.version_info[0])+'.'+str(sys.version_info[1])+'/site-packages/PyTrilinos'
+    pytri_test_file=os.path.join(pytri_path,'Tpetra.pyc')
+    if os.path.isfile(pytri_test_file):
+        env.Append(PYTHONPATH=pytri_path)
+    paths=sys.path
+    for i in range(0,paths.__len__()):
+        env.Append(PYTHONPATH=paths[i])
+    env.Append(CPPDEFINES = ['ESYS_HAVE_TRILINOS'])
+    # env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], trilinos_lib_path)
+    # env['buildvars']['trilinos_inc_path']=trilinos_inc_path
+    # env['buildvars']['trilinos_lib_path']=trilinos_lib_path
     env['buildvars']['trilinos']=int(env['trilinos'])
     return env
 
 def checkOptionalLibraries(env):
+    if env['mpi']=='no':
+        env['mpi']='none'
+    env['usempi'] = env['mpi']!='none'
     ######## netCDF
     netcdf_inc_path=''
     netcdf_lib_path=''
@@ -657,7 +673,10 @@ def checkOptionalLibraries(env):
     mumps_inc_path=''
     mumps_lib_path=''
     if env['mumps']:
-        mumps_inc_path,mumps_lib_path=findLibWithHeader(env, env['mumps_libs'], 'dmumps_c.h', env['mumps_prefix'], lang='c++')
+        if env['usempi']:
+            mumps_inc_path,mumps_lib_path=findLibWithHeader(env, env['mumps_libs'], 'mumps_mpi.h', env['mumps_prefix'], lang='c++')
+        else:
+            mumps_inc_path, mumps_lib_path = findLibWithHeader(env, env['mumps_libs'], 'mumps_seq/mpi.h', env['mumps_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [mumps_inc_path])
         env.AppendUnique(LIBPATH = [mumps_lib_path])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], mumps_lib_path)
@@ -742,10 +761,7 @@ def checkOptionalLibraries(env):
     env['buildvars']['visit']=int(env['visit'])
 
     ######## MPI
-    if env['mpi']=='no':
-        env['mpi']='none'
 
-    env['usempi'] = env['mpi']!='none'
     mpi_inc_path=''
     mpi_lib_path=''
     if env['usempi']:
@@ -875,6 +891,18 @@ def checkOptionalLibraries(env):
 
     ######## Trilinos
     env = checkForTrilinos(env)
+
+    ######## mpi4py
+    if env['mpi4py']:
+        try:
+            import mpi4py
+            mpi4py_inc_path=mpi4py.get_include()
+            env.AppendUnique(CPPPATH = [mpi4py_inc_path])
+            env.Append(CPPDEFINES = ['ESYS_HAVE_MPI4PY'])
+            env['mpi4py'] = True
+        except RuntimeError as e:
+            env['warnings'].append("Could not import mpi4py.")
+
     return env
 
 def checkPDFLatex(env):

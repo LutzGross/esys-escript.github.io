@@ -15,7 +15,7 @@
 *****************************************************************************/
 
 #include "MPIScalarReducer.h"
-#include "SplitWorldException.h"
+#include "EsysException.h"
 
 #include <limits>
 #include <sstream>
@@ -50,7 +50,7 @@ Reducer_ptr makeScalarReducer(std::string type)
     }
     else
     {
-        throw SplitWorldException("Unsupported operation for makeScalarReducer.");
+        throw EsysException("Unsupported operation for makeScalarReducer.");
     }
     MPIScalarReducer* m=new MPIScalarReducer(op);
     return Reducer_ptr(m);
@@ -77,7 +77,7 @@ void combineDouble(double& d1, const double d2, MPI_Op op)
     }
     else if (op==MPI_OP_NULL)
     {
-        throw SplitWorldException("Multiple 'simultaneous' attempts to export a 'SET' variable.");
+        throw EsysException("Multiple 'simultaneous' attempts to export a 'SET' variable.");
     }
 }
 
@@ -102,7 +102,7 @@ MPIScalarReducer::MPIScalarReducer(MPI_Op op)
     }
     else
     {
-        throw SplitWorldException("Unsupported MPI_Op");
+        throw EsysException("Unsupported MPI_Op");
     }
 }
 
@@ -132,7 +132,7 @@ std::string MPIScalarReducer::description()
     }
     else
     {
-        throw SplitWorldException("Unsupported MPI reduction operation");
+        throw EsysException("Unsupported MPI reduction operation");
     }
     return "Reducer("+op+") for double scalars";
 }
@@ -301,7 +301,7 @@ void MPIScalarReducer::copyValueFrom(boost::shared_ptr<AbstractReducer>& src)
     MPIScalarReducer* sr=dynamic_cast<MPIScalarReducer*>(src.get());
     if (sr==0)
     {
-        throw SplitWorldException("Source and destination need to be the same reducer types.");
+        throw EsysException("Source and destination need to be the same reducer types.");
     }
     value=sr->value;
     valueadded=true;

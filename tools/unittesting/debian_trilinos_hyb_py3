@@ -1,87 +1,32 @@
-FROM debian:buster-slim
+FROM aellery/esys.escript.trilinos
 
 LABEL maintainer="a.ellery@uq.edu.au"
 
 WORKDIR /app
 
 ENV DEBIAN_FRONTEND=noninteractive
+RUN echo deb http://deb.debian.org/debian/ buster main non-free contrib >> /etc/apt/sources.list
 RUN apt-get update 
-RUN apt-get install -y python3-dev python3-numpy python3-pyproj python3-gdal python3-sympy  \
-      python3-matplotlib python3-scipy libboost-python-dev libboost-random-dev libnetcdf-dev \
-      libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libsuitesparse-dev scons lsb-release gmsh  \
-      libmumps-dev libscotchparmetis-dev cmake gcc git gfortran make scons wget \
-      libopenmpi-dev
-RUN useradd -ms /bin/bash appuser
-# Trilinos
-RUN wget https://github.com/trilinos/Trilinos/archive/refs/tags/initial-trilinos-release-12-12-branch.tar.gz
-RUN tar zxvf initial-trilinos-release-12-12-branch.tar.gz
-WORKDIR trilinos_build
-RUN cmake \
-      -D CMAKE_INSTALL_PREFIX=/usr/local \
-      -D CMAKE_CXXFLAGS=" -fopenmp -w -O2 -march=native" \
-      -D Trilinos_ENABLE_CXX11=ON \
-      -D Trilinos_ENABLE_Fortran=ON \
-      -D BUILD_SHARED_LIBS=ON \
-      -D TPL_ENABLE_BLAS=ON \
-      -D TPL_ENABLE_Boost=ON \
-      -D TPL_ENABLE_Cholmod=ON \
-      -D TPL_ENABLE_LAPACK=ON \
-      -D TPL_ENABLE_METIS=OFF \
-      -D TPL_ENABLE_SuperLU=OFF \
-      -D TPL_ENABLE_UMFPACK=ON \
-      -D TPL_ENABLE_SCALAPACK=OFF \
-      -D TPL_ENABLE_MUMPS=OFF \
-      -D TPL_ENABLE_ParMETIS=OFF \
-      -D TPL_BLAS_INCLUDE_DIRS=/usr/include/suitesparse \
-      -D TPL_Cholmod_INCLUDE_DIRS=/usr/include/suitesparse \
-      -D TPL_Cholmod_LIBRARIES='libcholmod.so;libamd.so;libcolamd.so' \
-      -D TPL_UMFPACK_INCLUDE_DIRS=/usr/include/suitesparse \
-      -D TPL_MPI_INCLUDE_DIRS=/usr/lib/x86_64-linux-gnu/openmpi/include \
-      -D TPL_MPI_LIBRARY_DIRS=/usr/lib/x86_64-linux-gnu/openmpi/lib \
-      -D TPL_Boost_INCLUDE_DIRS=/usr/local/boost/include \
-      -D Trilinos_ENABLE_Amesos=ON \
-      -D Trilinos_ENABLE_Amesos2=ON \
-      -D Trilinos_ENABLE_AztecOO=ON \
-      -D Trilinos_ENABLE_Belos=ON \
-      -D Trilinos_ENABLE_Ifpack=ON \
-      -D Trilinos_ENABLE_Ifpack2=ON \
-      -D Trilinos_ENABLE_Kokkos=ON \
-      -D Trilinos_ENABLE_Komplex=ON \
-      -D Trilinos_ENABLE_ML=ON \
-      -D Trilinos_ENABLE_MueLu=ON \
-      -D Trilinos_ENABLE_Teuchos=ON \
-      -D Trilinos_ENABLE_Tpetra=ON \
-      -D Trilinos_ENABLE_ALL_OPTIONAL_PACKAGES=ON \
-      -D Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION=ON \
-      -D Tpetra_INST_COMPLEX_DOUBLE=ON \
-      -D Trilinos_ENABLE_COMPLEX_DOUBLE=ON \
-      -D Teuchos_ENABLE_COMPLEX=ON \
-      -D Tpetra_INST_INT_INT=ON \
-      -D Tpetra_ENABLE_DEPRECATED_CODE=ON \
-      -D Trilinos_ENABLE_OpenMP=ON \
-      -D Trilinos_ENABLE_MPI=ON \
-      -D Trilinos_ENABLE_EXPLICIT_INSTANTIATION=ON \
-      -D Kokkos_ENABLE_COMPILER_WARNINGS=ON \
-      -D Amesos2_ENABLE_Basker=ON \
-      -D Tpetra_INST_SERIAL:BOOL=ON \
-      -D Trilinos_ENABLE_TESTS=OFF \
-      /app/Trilinos-initial-trilinos-release-12-12-branch && make -j`nproc --ignore=2` install
+
 # escript
 WORKDIR /app/escript
-RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 .
-RUN scons options_file=scons/templates/stretch_py3_options.py \
-      boost_libs=boost_python37 -j`nproc --ignore=2` werror=0 \
-      trilinos=1 trilinos_prefix=/usr/local \
-      mpi='OPENMPI' mpi_prefix=/usr/lib/x86_64-linux-gnu/openmpi/ \
-      openmp=1 verbose=1 prefix=/usr/local/ \
-      build_full || cat config.log 
-ENV LD_LIBRARY_PATH=/app/escript/lib:/app/trilinos/lib:$LD_LIBRARY_PATH
+RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 -b 6.0 .
+ENV LD_LIBRARY_PATH=/app/escript/lib:/usr/local/lib:$LD_LIBRARY_PATH
 ENV PYTHONPATH=/app/escript:$PYTHONPATH
 ENV PATH=/app/escript/bin:$PATH
-# run testing
-RUN chown -R appuser /app
+ENV OMPI_ALLOW_RUN_AS_ROOT=1 
+ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+RUN scons options_file=scons/templates/docker_testing.py \
+      boost_libs=boost_python39 -j`nproc --ignore=2` werror=0 \
+      trilinos=1 trilinos_prefix=/usr/local \
+      mpi='OPENMPI' mpi_prefix=/usr/lib/x86_64-linux-gnu/openmpi/ \
+      openmp=1 verbose=1  \
+      build_full || cat config.log \
+      && eval `bin/run-escript -e` && ./utest.sh /app/escript/build '-n1 -p1 -t1'
+
+# final steps
 USER appuser
-RUN ./utest.sh /app/escript/build ' -n1 -p2 -t2'
+RUN chown -R appuser /app
 RUN run-escript /app/escript/scripts/release_sanity.py
 RUN rm -rf *
 

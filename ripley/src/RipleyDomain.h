@@ -25,7 +25,6 @@
 #include <escript/AbstractContinuousDomain.h>
 #include <escript/Data.h>
 #include <escript/FunctionSpace.h>
-#include <escript/SubWorld.h>
 
 #ifdef ESYS_HAVE_PASO
 #include <paso/Coupler.h>
@@ -106,7 +105,7 @@ public:
        \brief
        Constructor with number of dimensions. Allocates MPI info structure.
     */
-    RipleyDomain(dim_t dim, escript::SubWorld_ptr p=escript::SubWorld_ptr());
+    RipleyDomain(dim_t dim);
 
     /**
        \brief
@@ -766,7 +765,6 @@ public:
     Assembler_ptr createAssemblerFromPython(std::string type,
                                      const boost::python::list& options) const;
 
-
 protected:
     int m_numDim;
     StatusType m_status;
@@ -775,6 +773,7 @@ protected:
     mutable std::vector<int> m_nodeTags, m_nodeTagsInUse;
     mutable std::vector<int> m_elementTags, m_elementTagsInUse;
     mutable std::vector<int> m_faceTags, m_faceTagsInUse;
+    // mutable std::vector<int> m_pointsTagsInUse;
     std::vector<DiracPoint> m_diracPoints;
     IndexVector m_diracPointNodeIDs; //for borrowSampleID
     assembler_t assembler_type;

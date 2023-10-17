@@ -1,0 +1,3 @@
+
+ADD_SUBDIRECTORY(WrapTpetraSolver)
+ADD_SUBDIRECTORY(Orthog)

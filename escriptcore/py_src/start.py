@@ -27,7 +27,7 @@ __url__="https://launchpad.net/escript-finley"
 # This file includes setup and tweaks that are required for escript core packages
 # No escript packages should be imported here
 
-
+from esys.escriptcore.escriptcpp import hasFeature
 try:
     # this is required so newer intel MKL libraries find necessary symbols
     import ctypes, sys
@@ -35,15 +35,13 @@ try:
 except:
     pass
 
-try:
-    import sympy as sp
-    spVer=sp.__version__
-    spl=spVer.split('.')
-    if (int(spl[0]) == 0 and int(spl[1]) < 7) or (int(spl[0]) == 1 and int(spl[1]) > 2):
-        HAVE_SYMBOLS=False
-    else:
+if hasFeature('sympy'):
+    try:
+        import sympy as sp
         HAVE_SYMBOLS=True
-except ImportError:
+    except ImportError:
+        HAVE_SYMBOLS=False
+else:
     HAVE_SYMBOLS=False
 
 # To have this function called automatically

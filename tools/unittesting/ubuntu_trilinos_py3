@@ -6,7 +6,7 @@ WORKDIR /app
 
 ENV UBUNTU_FRONTEND=noninteractive
 RUN apt-get update 
-RUN apt-get install -y python3-dev python3-numpy python3-pyproj python3-gdal  \
+RUN apt-get install -y python3-dev python3-numpy \
      python3-sympy python3-matplotlib python3-scipy \
      libboost-python-dev libboost-random-dev libboost-numpy-dev \
      libnetcdf-dev libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev \

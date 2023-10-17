@@ -55,10 +55,9 @@ MultiBrick::MultiBrick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, doubl
              double x1, double y1, double z1, int d0, int d1, int d2,
              const vector<double>& points, const vector<int>& tags,
              const TagMap& tagnamestonums,
-             escript::SubWorld_ptr w,
              unsigned int subdivisions
          ) :
-    Brick(n0, n1, n2, x0, y0, z0, x1, y1, z1, d0, d1, d2, points, tags, tagnamestonums, w),
+    Brick(n0, n1, n2, x0, y0, z0, x1, y1, z1, d0, d1, d2, points, tags, tagnamestonums),
     m_subdivisions(subdivisions)
 {
     if (m_mpiInfo->size != 1)

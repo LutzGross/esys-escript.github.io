@@ -34,7 +34,6 @@ requirements:
         - matplotlib
         - hdf5  # [linux]
         - libblas  # [linux]
-        - pyproj 
         - scipy 
         - suitesparse  # [linux]
         - sympy
@@ -51,7 +50,6 @@ requirements:
         - matplotlib
         - hdf5  # [linux]
         - libblas  # [linux]
-        - pyproj 
         - scipy 
         - suitesparse  # [linux]
         - sympy

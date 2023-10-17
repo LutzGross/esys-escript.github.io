@@ -123,7 +123,7 @@ Once these are done proceed to Section~\ref{sec:cleanup} for cleanup steps.
 \noindent As a preliminary step, you should install the dependencies that \esfinley requires from the repository.
 If you intend to use Python 2.7, then you should install the following
 \begin{shellCode}
-sudo apt-get install python-dev python-numpy python-pyproj python-gdal
+sudo apt-get install python-dev python-numpy
 sudo apt-get install python-sympy python-matplotlib python-scipy
 sudo apt-get install libboost-python-dev libboost-random-dev
 sudo apt-get install libnetcdf-dev libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev
@@ -132,7 +132,7 @@ sudo apt-get install scons lsb-release libsuitesparse-dev gmsh
 
 \noindent If you intend to use Python 3.0+, then you should install the following
 \begin{shellCode}
-sudo apt-get install python3-dev python3-numpy python3-pyproj python3-gdal
+sudo apt-get install python3-dev python3-numpy
 sudo apt-get install python3-sympy python3-matplotlib python3-scipy
 sudo apt-get install libboost-python-dev libboost-random-dev
 sudo apt-get install libnetcdf-dev libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev
@@ -164,7 +164,7 @@ These instructions were prepared on Ubuntu 20.04 LTS \textit{Focal Fossa}. \newl
 % \noindent As a preliminary step, you should install the dependencies that \esfinley requires from the repository.
 % If you intend to use Python 2.7, then you should install the following packages:
 % \begin{shellCode}
-% sudo apt-get install python-dev python-numpy python-pyproj python-gdal
+% sudo apt-get install python-dev python-numpy
 % sudo apt-get install python-sympy python-matplotlib python-scipy
 % sudo apt-get install libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libnetcdf-dev
 % sudo apt-get install libboost-random-dev libboost-python-dev libboost-iostreams-dev
@@ -174,7 +174,7 @@ These instructions were prepared on Ubuntu 20.04 LTS \textit{Focal Fossa}. \newl
 %For Python 3.0+, you should instead install the following packages:
 \noindent As a preliminary step, you should install the dependencies that \esfinley requires from the repository.
 \begin{shellCode}
-sudo apt-get install python3-dev python3-numpy python3-pyproj python3-gdal
+sudo apt-get install python3-dev python3-numpy
 sudo apt-get install python3-sympy python3-matplotlib python3-scipy
 sudo apt-get install libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libnetcdf-dev
 sudo apt-get install libboost-random-dev libboost-python-dev libboost-iostreams-dev
@@ -209,7 +209,7 @@ These instructions were prepared on Mint 20.3. \newline
 
 \noindent As a preliminary step, you should install the dependencies that \esfinley requires from the repository.
 \begin{shellCode}
-sudo apt-get install python3-dev python3-numpy python3-pyproj python3-gdal
+sudo apt-get install python3-dev python3-numpy
 sudo apt-get install python3-sympy python3-matplotlib python3-scipy
 sudo apt-get install libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libnetcdf-dev
 sudo apt-get install libboost-random-dev libboost-python-dev libboost-iostreams-dev
@@ -226,7 +226,7 @@ These instructions were prepared on Arch Linux. \newline
 
 First, install the dependencies that escript uses:
 \begin{shellCode}
-pacman -Sy --noconfirm python python-numpy python-scipy python-pyproj
+pacman -Sy --noconfirm python python-numpy python-scipy
 pacman -Sy --noconfirm community/netcdf community/netcdf-cxx
 pacman -Sy --noconfirm extra/boost extra/boost-libs suitesparse
 \end{shellCode}
@@ -242,7 +242,7 @@ These instructions were prepared using OpenSUSE Leap 15.2. \newline
 \noindent As a preliminary step, you should install the dependencies that \esfinley requires from the repository.
 \noindent  If you intend to use Python 2.7, then you should install the following packages
 \begin{shellCode}
-sudo zypper in python-devel python2-numpy python-gdal
+sudo zypper in python-devel python2-numpy
 sudo zypper in python2-scipy python2-sympy python2-matplotlib
 sudo zypper in gcc gcc-c++ scons netcdf-devel libnetcdf_c++-devel
 sudo zypper in libboost_python-py2_7-1_66_0-devel libboost_numpy-py2_7-1_66_0-devel
@@ -251,7 +251,7 @@ sudo zypper in libboost_iostreams1_66_0-devel suitesparse-devel
 
 \noindent If you intend to use Python 3.0, then you should instead install the following packages
 \begin{shellCode}
-sudo zypper in python3-devel python3-numpy python3-GDAL
+sudo zypper in python3-devel python3-numpy
 sudo zypper in python3-scipy python3-sympy python3-matplotlib
 sudo zypper in gcc gcc-c++ scons netcdf-devel libnetcdf_c++-devel
 sudo zypper in libboost_python-py3-1_66_0-devel libboost_numpy-py3-1_66_0-devel
@@ -286,10 +286,10 @@ yum install epel-release.noarch
 
 \noindent Install packages:
 \begin{shellCode}
-yum install netcdf-devel netcdf-cxx-devel gdal-python
+yum install netcdf-devel netcdf-cxx-devel
 yum install python-devel numpy scipy sympy python2-scons
 yum install python-matplotlib gcc gcc-c++ boost-devel
-yum install boost-python gdal-devel suitesparse-devel pyproj
+yum install boost-python suitesparse-devel
 \end{shellCode}
 
 \noindent Now to build escript itself.
@@ -314,7 +314,7 @@ yum update
 
 Now, install the packages:
 \begin{shellCode}
-yum install python3-devel python3-numpy python3-scipy python3-pyproj
+yum install python3-devel python3-numpy python3-scipy
 yum install boost-devel boost-python3 boost-python3-devel
 yum install gcc gcc-c++ scons
 yum install suitesparse suitesparse-devel 
@@ -340,7 +340,7 @@ yum install netcdf-devel netcdf-cxx-devel netcdf-cxx4-devel
 \begin{shellCode}
 yum install gcc-c++ scons suitesparse-devel
 yum install python3-devel boost-python3-devel
-yum install python3-scipy python3-pyproj python3-matplotlib
+yum install python3-scipy python3-matplotlib
 yum install boost-python3 boost-numpy3 boost-iostreams boost-random
 yum install netcdf-devel netcdf-cxx-devel netcdf-cxx4-devel
 \end{shellCode}
@@ -364,8 +364,6 @@ sudo port install py27-numpy
 sudo port install py27-sympy
 sudo port select --set py-sympy py27-sympy
 sudo port install py27-scipy
-sudo port install py27-pyproj
-sudo port install py27-gdal
 sudo port install netcdf-cxx
 sudo port install silo
 \end{shellCode}
@@ -385,7 +383,7 @@ brew install boost-python
 brew install netcdf
 \end{shellCode}
 
-There do not appear to be formulae for \texttt{sympy} or \texttt{pyproj} so if you wish to use those features, then
+There do not appear to be formulae for \texttt{sympy}  so if you wish to use those features, then
 you will need to install them separately.
 
 
@@ -411,9 +409,7 @@ Install the following packages:
  \item netcdf
  \item silo
  \item py27-scipy
- \item py27-gdal
  \item py27-matplotlib
- \item py27-pyproj
  \item py27-sympy
 \end{itemize}
 
@@ -487,7 +483,7 @@ C:\Users\%USERNAME%\Anaconda3\Scripts\activate escript
 \item Install required conda modules
 \begin{shellCode}
 conda install numpy==1.15.4 matplotlib==2.2.2 sympy==1.1.1
-    boost gdal git pyproj scons scipy m2-patch mumps gmsh
+    boost git scons scipy m2-patch mumps gmsh
     -c defaults -c conda-forge
 \end{shellCode}
 \end{enumerate}

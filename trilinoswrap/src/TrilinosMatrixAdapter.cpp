@@ -27,6 +27,12 @@
 #include <escript/FunctionSpaceFactory.h>
 #include <escript/SolverOptions.h>
 
+#ifdef ESYS_TRILINOS_14
+#include "Teuchos_ArrayRCPDecl.hpp"
+#else
+#include "Tpetra_createDeepCopy_CrsMatrix.hpp"
+#endif
+
 namespace bp = boost::python;
 using Teuchos::rcp;
 
@@ -82,6 +88,18 @@ void TrilinosMatrixAdapter::add<cplx_t>(const std::vector<LO>& rowIdx,
         throw escript::ValueError("Please use real-valued array to add to "
                                   "real-valued matrix!");
     }
+}
+
+template<>
+void TrilinosMatrixAdapter::IztAIz<cplx_t>(const Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,LO,GO,NT>> iz, long n) 
+{
+    (*cmat).IztAIz(iz, n);
+}
+
+template<>
+void TrilinosMatrixAdapter::IztAIz<real_t>(const Teuchos::RCP<Tpetra::CrsMatrix<real_t,LO,GO,NT>> iz, long n) 
+{
+    (*mat).IztAIz(iz, n);
 }
 
 void TrilinosMatrixAdapter::ypAx(escript::Data& y, escript::Data& x) const
@@ -194,5 +212,52 @@ void TrilinosMatrixAdapter::saveHB(const std::string& filename) const
     throw escript::NotImplementedError("Harwell-Boeing interface not available.");
 }
 
+int TrilinosMatrixAdapter::getNumRows()
+{
+    if (m_isComplex)
+        return getNumRowsWorkerCplx();
+    else
+        return getNumRowsWorkerRealx();
+}
+
+int TrilinosMatrixAdapter::getNumRowsWorkerCplx()
+{
+    AbstractMatrixWrapper<cplx_t> * ptr = nullptr;
+    ptr=cmat.get();
+    return ptr->getNumRows();
+}
+
+int TrilinosMatrixAdapter::getNumRowsWorkerRealx()
+{
+    AbstractMatrixWrapper<real_t> * ptr = nullptr;
+    ptr=mat.get();
+    return ptr->getNumRows();
+}
+
+int TrilinosMatrixAdapter::getNumCols()
+{
+    if (m_isComplex)
+        return getNumColsWorkerCplx();
+    else
+        return getNumColsWorkerRealx();
+}
+
+int TrilinosMatrixAdapter::getNumColsWorkerCplx()
+{
+    AbstractMatrixWrapper<cplx_t> * ptr = nullptr;
+    ptr=cmat.get();
+    return ptr->getNumCols();
+}
+
+int TrilinosMatrixAdapter::getNumColsWorkerRealx()
+{
+    AbstractMatrixWrapper<real_t> * ptr = nullptr;
+    ptr=mat.get();
+    return ptr->getNumCols();
+}
+
+
+
 }  // end of namespace
+
 

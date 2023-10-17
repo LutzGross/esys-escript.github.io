@@ -21,14 +21,21 @@
 #include "system_dep.h"
 
 #include <escript/DataTypes.h>
-
+#include "EsysException.h"
 #include <ctime>
 #include <sstream>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/python.hpp>
 
 #ifdef _OPENMP
 #include <omp.h>
+#endif
+
+#ifdef ESYS_HAVE_MPI4PY
+#include <mpi4py/mpi4py.h>
+#include <mpi4py/mpi4py.MPI.h>
+#include <mpi4py/mpi4py.MPI_api.h>
 #endif
 
 #ifdef ESYS_MPI
@@ -45,6 +52,7 @@
    typedef int MPI_Request;
    typedef int MPI_Op;
    typedef int MPI_Status;
+
    #define MPI_INT 6
    #define MPI_DOUBLE 11
    #define MPI_COMM_WORLD 91
@@ -69,6 +77,35 @@ namespace escript {
 inline int getSubWorldTag()
 {
     return (('S'<< 24) + ('u' << 16) + ('b' << 8) + 'W')%1010201;
+}
+
+
+inline static MPI_Comm * extractMPICommunicator(boost::python::object py_comm)
+{
+    MPI_Comm *comm_p = 0;
+    if ( py_comm.is_none() )  {
+        *comm_p = MPI_COMM_WORLD;
+    } else {
+        #ifdef ESYS_HAVE_MPI4PY
+
+    std::cout << "TEST B1 \n";
+
+        PyObject* py_obj = py_comm.ptr();
+        std::cout << "TEST C" << py_obj <<  "\n";
+        std::cout << "TEST B2 \n";
+std::cout << "TEST B22 " <<  py_obj << "\n";
+
+        comm_p = PyMPIComm_Get(py_obj);
+            std::cout << "TEST B3 \n";
+        if (comm_p == NULL)
+            throw EsysException("Null communicator.");
+        #else
+        *comm_p = MPI_COMM_WORLD;
+        #endif
+
+    }
+        std::cout << "TEST B4 \n";
+    return comm_p;
 }
 
 class JMPI_;
@@ -203,6 +240,9 @@ inline double gettime()
 #endif
     return out;
 }
+
+
+
 
 } // namespace escript
 

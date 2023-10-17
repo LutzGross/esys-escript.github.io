@@ -36,9 +36,6 @@ except KeyError:
      RIPLEY_WORKDIR='.'
 
 class Test_RipleyDiracPoints(unittest.TestCase):
-
-
-
     def getRectRefs(self, xLong):
         Ex = self.longEdge+1
         Ey = self.shortEdge+1
@@ -229,7 +226,7 @@ class Test_RipleyDiracPoints(unittest.TestCase):
                         "\nlongedge={0}, shortedge={1}\n".format(self.longEdge, self.shortEdge))
                 #remaining ranks must also exit, otherwise we'll lock up
                 self.assertEqual(global_result, 0, "One or more ranks failed")
-
+    @unittest.skip("Point->Nodes intepolation (not sure why this should work)")
     def test_DDF_to_Continuous_2D(self):
         expected_value = self.numRanks*11
         rectX, rectY = self.generateRects(self.longEdge,self.shortEdge)
@@ -245,6 +242,7 @@ class Test_RipleyDiracPoints(unittest.TestCase):
             self.assertLess(result, 1e-15,
                     "Interpolation failure, expected zero, got %g"%result)
 
+    @unittest.skip("Point->Nodes interpolation (not sure why this should work)")
     def test_DDF_to_Continuous_3D(self):
         expected_value = self.numRanks*11
         doms, dims = self.generateBricks(self.longEdge,

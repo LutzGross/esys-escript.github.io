@@ -2032,3 +2032,64 @@ def BoundaryValuesFromVolumeTag(domain,**values):
        out+=v*util.whereZero(util.interpolate(util.whereNonZero(pde.getRightHandSide()), escore.FunctionOnBoundary(domain))-1.)
    return out
 
+class Wavelet(object):
+       """
+       place holder for source wavelet
+       """
+       pass
+
+
+class Ricker(Wavelet):
+    """
+    The Ricker Wavelet w=f(t)
+    """
+
+    def __init__(self, f_dom=40, t_dom=None):
+        """
+        Sets up a Ricker wavelet wih dominant frequence `f_dom` and
+        center at time `t_dom`. If `t_dom` is not given an estimate
+        for suitable `t_dom` is calculated so f(0)~0.
+
+        :note: maximum frequence is about 2 x the dominant frequence.
+        """
+        drop = 18
+        self.__f = f_dom
+        self.__f_max = numpy.sqrt(7) * f_dom
+        self.__s = math.pi * self.__f
+        if t_dom == None:
+            t_dom = numpy.sqrt(drop) / self.__s
+        self.__t0 = t_dom
+
+    def getCenter(self):
+        """
+        Return value of wavelet center
+        """
+        return self.__t0
+
+    def getTimeScale(self):
+        """
+        Returns the time scale which is the inverse of the largest
+        frequence with a significant spectral component.
+        """
+        return 1 / self.__f_max
+
+    def getValue(self, t):
+        """
+        get value of wavelet at time `t`
+        """
+        e2 = (self.__s * (t - self.__t0)) ** 2
+        return (1 - 2 * e2) * numpy.exp(-e2)
+
+    def getVelocity(self, t):
+        """
+        get the velocity f'(t) at time `t`
+        """
+        e2 = (self.__s * (t - self.__t0)) ** 2
+        return (-3 + 2 * e2) * numpy.exp(-e2) * 2 * self.__s ** 2 * (t - self.__t0)
+
+    def getAcceleration(self, t):
+        """
+        get the acceleration f''(t) at time `t`
+        """
+        e2 = (self.__s * (t - self.__t0)) ** 2
+        return 2 * self.__s ** 2 * (-4 * e2 ** 2 + 12 * e2 - 3) * numpy.exp(-e2)

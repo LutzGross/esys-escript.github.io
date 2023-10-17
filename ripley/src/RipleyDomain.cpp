@@ -75,15 +75,11 @@ void tupleListToMap(DataMap& mapping, const bp::list& list)
     }
 }
 
-RipleyDomain::RipleyDomain(dim_t dim, escript::SubWorld_ptr p) :
+RipleyDomain::RipleyDomain(dim_t dim) :
     m_numDim(dim),
     m_status(0)
 {
-    if (p.get() == NULL)
-        m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
-    else
-        m_mpiInfo = p->getMPI();
-
+    m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
     assembler_type = DEFAULT_ASSEMBLER;
 }
 
@@ -577,6 +573,18 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                         break;
                     default:
                         throw NotImplementedError(msg.str());
+                    case Nodes:
+                        {
+                            const dim_t numComp = in.getDataPointSize();
+                            const int nDirac = m_diracPoints.size();
+                            target.requireWrite();
+#pragma omp parallel for
+                            for (int i = 0; i < nDirac; i++) {
+                                const double* src = in.getSampleDataRO(i);
+                                copy(src, src+numComp, target.getSampleDataRW(m_diracPoints[i].node));
+                            }
+                        }
+
                 }
                 break;
             default:
@@ -857,6 +865,8 @@ int RipleyDomain::getNumberOfTagsInUse(int fsType) const
         case FaceElements:
         case ReducedFaceElements:
             return m_faceTagsInUse.size();
+        case Points:
+            return m_diracPoints.size();
         default: {
             stringstream msg;
             msg << "getNumberOfTagsInUse: invalid function space type "
@@ -866,17 +876,26 @@ int RipleyDomain::getNumberOfTagsInUse(int fsType) const
     }
 }
 
+
 const int* RipleyDomain::borrowListOfTagsInUse(int fsType) const
 {
     switch(fsType) {
         case Nodes:
             return &m_nodeTagsInUse[0];
+        case ReducedNodes:
+            throw ValueError("ReducedNodes does not support tags");
+        case DegreesOfFreedom:
+            throw ValueError("DegreesOfFreedom does not support tags");
+        case ReducedDegreesOfFreedom:
+            throw ValueError("ReducedDegreesOfFreedom does not support tags");
         case Elements:
         case ReducedElements:
             return &m_elementTagsInUse[0];
         case FaceElements:
         case ReducedFaceElements:
             return &m_faceTagsInUse[0];
+        case Points:
+            return (int *) &m_diracPoints[0];
         default: {
             stringstream msg;
             msg << "borrowListOfTagsInUse: invalid function space type "
@@ -1452,6 +1471,15 @@ esys_trilinos::const_TrilinosGraph_ptr RipleyDomain::createTrilinosGraph(
         copy(conns[i].begin(), conns[i].end(), &colInd[rowPtr[i]]);
     }
 
+    // for(int i = 0; i < getNumDataPointsGlobal(); i++)
+    // 	std::cout << "myRows["<<i<<"]: " << myRows[i]<<std::endl;
+    // for(int i = 0; i < getNumDataPointsGlobal(); i++)
+    // 	std::cout << "columns["<<i<<"]: " << columns[i]<<std::endl;
+    // for(int i = 0; i < numMatrixRows+1; i++)
+    // 	std::cout << "rowPtr["<<i<<"]: " << rowPtr[i]<<std::endl;
+    // for(int i = 0; i < rowPtr[numMatrixRows]; i++)
+    // 	std::cout << "colInd["<<i<<"]: " << colInd[i]<<std::endl;
+
     TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
     Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
     params->set("Optimize Storage", true);
@@ -1644,6 +1672,16 @@ void RipleyDomain::addToPasoMatrix(paso::SystemMatrix<T>* mat,
     }
 #undef UPDATE_BLOCK
 }
+
+// instantiate templates
+template void RipleyDomain::addToPasoMatrix<real_t>(paso::SystemMatrix<real_t>* mat,
+                                   const IndexVector& nodes, dim_t numEq,
+                                   const vector<real_t>& array) const;
+#ifdef ESYS_HAVE_MUMPS
+template void RipleyDomain::addToPasoMatrix<cplx_t>(paso::SystemMatrix<cplx_t>* mat,
+                                   const IndexVector& nodes, dim_t numEq,
+                                   const vector<cplx_t>& array) const;
+#endif // ESYS_HAVE_MUMPS
 #endif // ESYS_HAVE_PASO
 
 //private

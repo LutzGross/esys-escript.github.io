@@ -1029,15 +1029,6 @@
    ...
 }
 {
-   GDAL-CPLMutexHolder
-   Memcheck:Leak
-   fun:malloc
-   fun:CPLCreateMutex
-   fun:CPLCreateOrAcquireMutex
-   fun:_ZN14CPLMutexHolderC1EPPvdPKci
-   ...
-}
-{
    osgeo-importFromWkt-cond
    Memcheck:Cond
    fun:_ZN19OGRSpatialReference13importFromWktEPPc

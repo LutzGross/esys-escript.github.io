@@ -37,7 +37,7 @@ namespace paso {
 static dim_t M, N, nz;
 
 static int calc_digits(int);
-static void fmt_str(int, int, int*, int*, int*, char*, char*);
+static void fmt_str(int, int, int*, int*, int*, const int, char*, const int, char*);
 static void print_data(std::ofstream&, int, int, int, char*, const void*, int, int);
 static void generate_HB(std::ofstream&, dim_t*, dim_t*, const double*);
 
@@ -56,7 +56,7 @@ int calc_digits(int var)
  * use maxlen to determine no. of entries per line
  * use nvalues to determine no. of lines
  */
-void fmt_str(int nvalues, int integer, int *width, int *nlines, int *nperline, char *pfmt, char *fmt)
+void fmt_str(int nvalues, int integer, int *width, int *nlines, int *nperline, const int lpfmt, char *pfmt, const int lfmt, char *fmt)
 {
     int per_line;
     int maxlen = *width;
@@ -73,11 +73,11 @@ void fmt_str(int nvalues, int integer, int *width, int *nlines, int *nperline, c
 
     *nperline = per_line;
     if (integer) {
-        sprintf( pfmt, "(%dI%d)", per_line, maxlen );
-        sprintf( fmt, "%%%dd", maxlen );
+        snprintf( pfmt, lpfmt, "(%dI%d)", per_line, maxlen );
+        snprintf( fmt, lfmt, "%%%dd", maxlen );
     } else {
-        sprintf( pfmt, "(1P%dE%d.6)", per_line, maxlen );
-        sprintf( fmt, "%%%d.6E", maxlen );
+        snprintf( pfmt, lpfmt, "(1P%dE%d.6)", per_line, maxlen );
+        snprintf( fmt, lfmt, "%%%d.6E", maxlen );
     }
     *width = maxlen;
 }
@@ -143,18 +143,18 @@ void generate_HB(std::ofstream& fp, dim_t *col_ptr, dim_t *row_ind,
     const std::streamsize oldwidth = fp.width();
 
     /* line 1 */
-    sprintf( buffer, "%-72s%-8s", "Matrix Title", "Key" );
+    snprintf( buffer, 80, "%-72s%-8s", "Matrix Title", "Key" );
     buffer[80] = '\0';
     fp << buffer << std::endl;
 
     /* line 2 */
     ptr_width = calc_digits( nz+1 );
-    fmt_str( N+1, 1, &ptr_width, &ptr_lines, &ptr_perline, ptr_pfmt, ptr_fmt );
+    fmt_str( N+1, 1, &ptr_width, &ptr_lines, &ptr_perline, 7, ptr_pfmt, 10, ptr_fmt );
     ind_width = calc_digits( N );
-    fmt_str( nz, 1, &ind_width, &ind_lines, &ind_perline, ind_pfmt, ind_fmt );
+    fmt_str( nz, 1, &ind_width, &ind_lines, &ind_perline, 7, ind_pfmt, 10, ind_fmt );
     val_width = 13;
-    fmt_str( nz, 0, &val_width, &val_lines, &val_perline, val_pfmt, val_fmt );
-    sprintf( buffer, "%14d%14d%14d%14d%14d%10c", (ptr_lines+ind_lines+val_lines), ptr_lines, ind_lines, val_lines, 0, ' ' );
+    fmt_str( nz, 0, &val_width, &val_lines, &val_perline, 7, val_pfmt, 10, val_fmt );
+    snprintf( buffer, 81, "%14d%14d%14d%14d%14d%10c", (ptr_lines+ind_lines+val_lines), ptr_lines, ind_lines, val_lines, 0, ' ' );
     buffer[80] = '\0';
     fp << buffer << std::endl;
 
@@ -163,7 +163,7 @@ void generate_HB(std::ofstream& fp, dim_t *col_ptr, dim_t *row_ind,
         << 0 << std::setw(10) << ' ' << std::setw(oldwidth) << std::endl;
 
     /* line 4 */
-    sprintf( buffer, "%16s%16s%20s%28c", ptr_pfmt, ind_pfmt, val_pfmt, ' ');
+    snprintf( buffer, 81, "%16s%16s%20s%28c", ptr_pfmt, ind_pfmt, val_pfmt, ' ');
     buffer[80]='\0';
     fp << buffer << std::endl;
 

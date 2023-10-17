@@ -20,6 +20,8 @@
 boost_libs=['boost_python311','boost_numpy311','boost_iostreams']
 cxx_extra=' -fdiagnostics-color=always -std=c++17 -Wno-mismatched-new-delete'
 escript_opts_version = 203
+ld_extra=' -Wl,-soname=libescript.5.10'
+mpi4py=0
 mumps=1
 mumps_prefix=['/usr/include','/usr/lib/x86_64-linux-gnu/']
 mumps_libs=['cmumps','dmumps','smumps','zmumps','mumps_common','pord']

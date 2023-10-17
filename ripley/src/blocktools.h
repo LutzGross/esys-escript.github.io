@@ -66,7 +66,7 @@ typedef std::pair<neighbourID_t, int> neighpair;
 typedef std::vector<neighpair> neighbourvector;
 
 
-typedef struct
+typedef struct Message
 {
 public:
     neighbourID_t sourceID;   // ranks involved in communication

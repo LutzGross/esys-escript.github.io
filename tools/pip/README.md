@@ -141,7 +141,7 @@ Avoid installing the `esys-escript` Python dependencies from Test PyPI by
 installing them manually as the first step:
 
 ```
-pip install requests netCDF4 pyproj scipy sympy
+pip install requests netCDF4 scipy sympy
 ```
 
 Then install `esys-escript` from Test PyPI as follows:

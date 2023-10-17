@@ -56,10 +56,16 @@ from .escriptcpp import C_GeneralTensorProduct, Data
 from .escriptcpp import getVersion, getMPIRankWorld, getMPIWorldMax
 from .escriptcpp import printParallelThreadCounts
 from .escriptcpp import listEscriptParams
-from . import symboliccore as sym
+from .start import HAVE_SYMBOLS
 from .gmshrunner import gmshGeo2Msh
 
-from .escriptcpp import hasFeature
+if HAVE_SYMBOLS:
+    from . import symboliccore as sym
+else:
+    class sym:
+        Symbol=type(memoryview(b'1')) #This type should never be passed to util.py
+
+
 
 
 #=========================================================
@@ -753,11 +759,11 @@ def matchType(arg0=0.,arg1=0.):
        elif isinstance(arg1,escore.Data):
           arg0=escore.Data(arg0,arg1.getFunctionSpace())
        elif isinstance(arg1,float):
-          arg1=numpy.array(arg1,dtype=numpy.float64)
+          arg1=numpy.array(arg1,dtype=numpy.double)
        elif isinstance(arg1,int):
-          arg1=numpy.array(float(arg1),dtype=numpy.float64)
+          arg1=numpy.array(float(arg1),dtype=numpy.double)
        elif isinstance(arg1,complex):
-          arg1=numpy.array(arg1, dtype=numpy.complex)
+          arg1=numpy.array(arg1, dtype=numpy.cdouble)
        elif isinstance(arg1,sym.Symbol):
           pass
        else:
@@ -792,15 +798,15 @@ def matchType(arg0=0.,arg1=0.):
           raise TypeError("function: Unknown type of second argument.")
     elif isinstance(arg0,complex):
        if isinstance(arg1,numpy.ndarray):
-          arg0=numpy.array(arg0,dtype=numpy.complex128)
+          arg0=numpy.array(arg0,dtype=numpy.cdouble)
        elif isinstance(arg1,escore.Data):
           arg0=escore.Data(arg0,arg1.getFunctionSpace())
        elif isinstance(arg1,float):
-          arg0=numpy.array(arg0,dtype=numpy.complex)
-          arg1=numpy.array(arg1,dtype=numpy.complex)
+          arg0=numpy.array(arg0,dtype=numpy.cdouble)
+          arg1=numpy.array(arg1,dtype=numpy.cdouble)
        elif isinstance(arg1,int):
-          arg0=numpy.array(arg0,dtype=numpy.complex)
-          arg1=numpy.array(float(arg1),dtype=numpy.complex)
+          arg0=numpy.array(arg0,dtype=numpy.cdouble)
+          arg1=numpy.array(float(arg1),dtype=numpy.cdouble)
        elif isinstance(arg1,sym.Symbol):
           pass
        elif isinstance(arg1,complex):
@@ -809,36 +815,36 @@ def matchType(arg0=0.,arg1=0.):
           raise TypeError("function: Unknown type of second argument.") 
     elif isinstance(arg0,float):
        if isinstance(arg1,numpy.ndarray):
-          arg0=numpy.array(arg0,dtype=numpy.float64)
+          arg0=numpy.array(arg0,dtype=numpy.double)
        elif isinstance(arg1,escore.Data):
           arg0=escore.Data(arg0,arg1.getFunctionSpace())
        elif isinstance(arg1,float):
-          arg0=numpy.array(arg0,dtype=numpy.float64)
-          arg1=numpy.array(arg1,dtype=numpy.float64)
+          arg0=numpy.array(arg0,dtype=numpy.double)
+          arg1=numpy.array(arg1,dtype=numpy.double)
        elif isinstance(arg1,int):
-          arg0=numpy.array(arg0,dtype=numpy.float64)
-          arg1=numpy.array(float(arg1),dtype=numpy.float64)
+          arg0=numpy.array(arg0,dtype=numpy.double)
+          arg1=numpy.array(float(arg1),dtype=numpy.double)
        elif isinstance(arg1,complex):
-          arg0=numpy.array(complex(arg0),dtype=numpy.complex)
-          arg1=numpy.array(complex(arg1),dtype=numpy.complex)    
+          arg0=numpy.array(complex(arg0),dtype=numpy.cdouble)
+          arg1=numpy.array(complex(arg1),dtype=numpy.cdouble)    
        elif isinstance(arg1,sym.Symbol):
           pass
        else:
           raise TypeError("function: Unknown type of second argument.")
     elif isinstance(arg0,int):
        if isinstance(arg1,numpy.ndarray):
-          arg0=numpy.array(float(arg0),dtype=numpy.float64)
+          arg0=numpy.array(float(arg0),dtype=numpy.double)
        elif isinstance(arg1,escore.Data):
           arg0=escore.Data(float(arg0),arg1.getFunctionSpace())
        elif isinstance(arg1,float):
-          arg0=numpy.array(float(arg0),dtype=numpy.float64)
-          arg1=numpy.array(arg1,dtype=numpy.float64)
+          arg0=numpy.array(float(arg0),dtype=numpy.double)
+          arg1=numpy.array(arg1,dtype=numpy.double)
        elif isinstance(arg1,complex):
-          arg0=numpy.array(complex(arg0),dtype=numpy.complex)
-          arg1=numpy.array(complex(arg1),dtype=numpy.complex)          
+          arg0=numpy.array(complex(arg0),dtype=numpy.cdouble)
+          arg1=numpy.array(complex(arg1),dtype=numpy.cdouble)          
        elif isinstance(arg1,int):
-          arg0=numpy.array(float(arg0),dtype=numpy.float64)
-          arg1=numpy.array(float(arg1),dtype=numpy.float64)
+          arg0=numpy.array(float(arg0),dtype=numpy.double)
+          arg1=numpy.array(float(arg1),dtype=numpy.double)
        elif isinstance(arg1,sym.Symbol):
           pass
        else:
@@ -864,9 +870,9 @@ def matchShape(arg0,arg1):
     sh0=getShape(arg0)
     sh1=getShape(arg1)
     if len(sh0)<len(sh):
-       return outer(arg0,numpy.ones(sh[len(sh0):],numpy.float64)),arg1
+       return outer(arg0,numpy.ones(sh[len(sh0):],numpy.double)),arg1
     elif len(sh1)<len(sh):
-       return arg0,outer(arg1,numpy.ones(sh[len(sh1):],numpy.float64))
+       return arg0,outer(arg1,numpy.ones(sh[len(sh1):],numpy.double))
     else:
        return arg0,arg1
 
@@ -906,7 +912,7 @@ def wherePositive(arg):
    if isinstance(arg,numpy.ndarray):
       if arg.dtype.kind=='c':
           raise TypeError("wherePositive: operation not supported for complex");
-      out=numpy.greater(arg,numpy.zeros(arg.shape,numpy.float64))*1.
+      out=numpy.greater(arg,numpy.zeros(arg.shape,numpy.double))*1.
       return out
    elif isinstance(arg,escore.Data):
       return arg._wherePositive()
@@ -940,7 +946,7 @@ def whereNegative(arg):
    if isinstance(arg,numpy.ndarray):
       if arg.dtype.kind=='c':
           raise TypeError("whereNegative: operation not supported for complex");
-      out=numpy.less(arg,numpy.zeros(arg.shape,numpy.float64))*1.
+      out=numpy.less(arg,numpy.zeros(arg.shape,numpy.double))*1.
       return out
    elif isinstance(arg,escore.Data):
       return arg._whereNegative()
@@ -974,7 +980,7 @@ def whereNonNegative(arg):
    if isinstance(arg,numpy.ndarray):
       if arg.dtype.kind=='c':
           raise TypeError("whereNonNegative: operation not supported for complex");       
-      out=numpy.greater_equal(arg,numpy.zeros(arg.shape,numpy.float64))*1.
+      out=numpy.greater_equal(arg,numpy.zeros(arg.shape,numpy.double))*1.
       return out
    elif isinstance(arg,escore.Data):
       return arg._whereNonNegative()
@@ -1008,7 +1014,7 @@ def whereNonPositive(arg):
    if isinstance(arg,numpy.ndarray):
       if arg.dtype.kind=='c':
           raise TypeError("whereNonPositive: operation not supported for complex");       
-      out=numpy.less_equal(arg,numpy.zeros(arg.shape,numpy.float64))*1.
+      out=numpy.less_equal(arg,numpy.zeros(arg.shape,numpy.double))*1.
       return out
    elif isinstance(arg,escore.Data):
       return arg._whereNonPositive()
@@ -1049,8 +1055,8 @@ def whereZero(arg,tol=None,rtol=math.sqrt(EPSILON)):
       if rtol<0: raise ValueError("rtol must be non-negative.")
       tol = Lsup(arg)*rtol
    if isinstance(arg,numpy.ndarray):
-      out=numpy.less_equal(abs(arg)-tol,numpy.zeros(arg.shape,numpy.float64))*1.
-      if isinstance(out,float): out=numpy.array(out,dtype=numpy.float64)
+      out=numpy.less_equal(abs(arg)-tol,numpy.zeros(arg.shape,numpy.double))*1.
+      if isinstance(out,float): out=numpy.array(out,dtype=numpy.double)
       return out
    elif isinstance(arg,escore.Data):
       return arg._whereZero(tol)
@@ -1082,8 +1088,8 @@ def whereNonZero(arg,tol=0.):
       if rtol<=0: raise ValueError("rtol must be non-negative.")
       tol = Lsup(arg)*rtol
    if isinstance(arg,numpy.ndarray):
-      out=numpy.greater(abs(arg)-tol,numpy.zeros(arg.shape,numpy.float64))*1.
-      if isinstance(out,float): out=numpy.array(out,dtype=numpy.float64)
+      out=numpy.greater(abs(arg)-tol,numpy.zeros(arg.shape,numpy.double))*1.
+      if isinstance(out,float): out=numpy.array(out,dtype=numpy.double)
       return out
    elif isinstance(arg,escore.Data):
       return arg._whereNonZero(tol)
@@ -1610,7 +1616,7 @@ def trace(arg,axis_offset=0):
       if not sh[axis_offset] == sh[axis_offset+1]:
         raise ValueError("dimensions of component %d and %d must match."%(axis_offset,axis_offset+1))
       arg_reshaped=numpy.reshape(arg,(s1,sh[axis_offset],sh[axis_offset],s2))
-      out=numpy.zeros([s1,s2],numpy.float64)
+      out=numpy.zeros([s1,s2],numpy.double)
       for i1 in range(s1):
         for i2 in range(s2):
             for j in range(sh[axis_offset]): out[i1,i2]+=arg_reshaped[i1,j,j,i2]
@@ -2062,7 +2068,7 @@ def eigenvalues_and_eigenvectors(arg):
     elif isinstance(arg,escore.Data):
       return arg._eigenvalues_and_eigenvectors()
     elif isinstance(arg,complex):
-      return (numpy.array([[arg]],numpy.complex_),numpy.ones((1,1),numpy.complex_))
+      return (numpy.array([[arg]],numpy.cdouble_),numpy.ones((1,1),numpy.cdouble_))
     elif isinstance(arg,float):
       return (numpy.array([[arg]],numpy.float_),numpy.ones((1,1),numpy.float_))
     elif isinstance(arg,int):
@@ -2090,7 +2096,7 @@ def mult(arg0,arg1):
        """
        args=matchShape(arg0,arg1)
        if testForZero(args[0]) or testForZero(args[1]):
-          return numpy.zeros(getShape(args[0]),numpy.float64)
+          return numpy.zeros(getShape(args[0]),numpy.double)
        else:
           if isinstance(args[0],numpy.ndarray):
               return args[1]*args[0]
@@ -2738,10 +2744,10 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
        for i in sh1[arg1.ndim-axis_offset:]: d01*=i
        arg0_c.resize((d0,d01))
        arg1_c.resize((d1,d01))
-       if arg0_c.dtype!=numpy.float64:
+       if arg0_c.dtype!=numpy.double:
            out=numpy.zeros((d0,d1),arg0_c.dtype)
        else:
-           out=numpy.zeros((d0,d1),numpy.float64)       
+           out=numpy.zeros((d0,d1),numpy.double)       
        for i0 in range(d0):
           for i1 in range(d1):
              out[i0,i1]=numpy.sum(arg0_c[i0,:]*arg1_c[i1,:])
@@ -2904,6 +2910,8 @@ def interpolate(arg,where):
           if arg.isComplex():
               return interpolate(arg.real(), where)+1j*interpolate(arg.imag(), where)
           else:
+              if arg.isConstant():
+                  arg.expand()
               return escore.Data(arg,where)
     elif isinstance(arg,sym.Symbol):
        return sym.symfn.interpolate(arg, where)
@@ -3349,3 +3357,21 @@ def makeTagMap(fs):
         out.setTaggedValue(t,t)
     out.expand()
     return out
+
+def real(arg):
+    """
+    returns the real part of arg
+    """
+    return arg.real()
+
+def imag(arg):
+    """
+    returns the imaginary part of arg
+    """
+    return arg.imag()
+
+def conjugate(arg):
+    """
+    returns the complex conjugate of arg
+    """
+    return arg.conjugate()

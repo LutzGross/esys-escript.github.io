@@ -45,9 +45,7 @@ Depends: ${python:Depends},
 Recommends: python-sympy,
             python-matplotlib,
             python-scipy
-Suggests: python-pyproj,
-          python-gdal,
-          python-escript-doc
+Suggests: python-escript-doc
 Description: Escript/Finley finite elements Python2 system (with OpenMP)
  Escript is a programming tool for implementing mathematical models in Python
  using the finite element method (FEM). Because users do not access the data
@@ -77,9 +75,7 @@ Depends: ${python:Depends},
 Recommends: python-sympy,
             python-matplotlib,
             python-scipy
-Suggests: python-pyproj,
-          python-gdal,
-          python-escript-doc
+Suggests: python-escript-doc
 Description: Escript/Finley finite elements Python2 system (OpenMP + MPI)
  Escript is a programming tool for implementing mathematical models in Python
  using the finite element method (FEM). Because users do not access the data
@@ -107,9 +103,7 @@ Depends: ${python3:Depends},
 Recommends: python3-sympy,
             python3-matplotlib,
             python3-scipy
-Suggests: python3-pyproj,
-          python3-gdal,
-          python-escript-doc
+Suggests: python-escript-doc
 Description: Escript/Finley finite elements Python3 system (with OpenMP)
  Escript is a programming tool for implementing mathematical models in Python
  using the finite element method (FEM). Because users do not access the data
@@ -139,9 +133,7 @@ Depends: ${python3:Depends},
 Recommends: python3-sympy,
             python3-matplotlib,
             python3-scipy
-Suggests: python3-pyproj,
-          python3-gdal,
-          python-escript-doc
+Suggests: python-escript-doc
 Description: Escript/Finley finite elements Python3 system (OpenMP + MPI)
  Escript is a programming tool for implementing mathematical models in Python
  using the finite element method (FEM). Because users do not access the data

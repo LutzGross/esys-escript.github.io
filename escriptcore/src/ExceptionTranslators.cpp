@@ -19,7 +19,7 @@
 
 namespace escript {
 
-void AssertionErrorTranslator(const EsysException& e) 
+void AssertionErrorTranslator(const EsysException& e)
 {
     PyErr_SetString(PyExc_AssertionError, e.what());
 }

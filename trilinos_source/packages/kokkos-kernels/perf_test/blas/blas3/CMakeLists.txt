@@ -1,0 +1,14 @@
+KOKKOSKERNELS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+KOKKOSKERNELS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+
+KOKKOSKERNELS_ADD_EXECUTABLE(
+    KokkosBlas3_perf_test
+    SOURCES KokkosBlas3_perf_test.cpp
+    TESTONLYLIBS kokkoskernelsperf_gtest
+)
+
+KOKKOSKERNELS_ADD_EXECUTABLE(
+    KokkosBlas3_gemm_perf_test
+    SOURCES KokkosBlas3_gemm_standalone_perf_test.cpp
+)
+

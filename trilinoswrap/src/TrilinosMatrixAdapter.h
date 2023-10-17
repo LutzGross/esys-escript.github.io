@@ -31,6 +31,8 @@ namespace esys_trilinos {
 
 class TrilinosMatrixAdapter : public escript::AbstractSystemMatrix
 {
+friend class OxleyDomain;
+
 public:
     /**
        \brief
@@ -85,6 +87,16 @@ public:
 
     template<typename ST>
     void add(const std::vector<LO>& rowIndex, const std::vector<ST>& array);
+
+    template<typename ST>
+    void IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> IZ, long n);
+
+    int getNumRows();
+    int getNumRowsWorkerCplx();
+    int getNumRowsWorkerRealx();
+    int getNumCols();
+    int getNumColsWorkerCplx();
+    int getNumColsWorkerRealx();
 
     inline int getBlockSize() const { return getRowBlockSize(); }
 

@@ -59,9 +59,7 @@ class MultiResolutionDomain(object):
         d1 = self.__kwargs.get('d1', -1)
         diracPoints = self.__kwargs.get('diracPoints', [])
         tags = self.__kwargs.get('diracTags', [])
-        escriptworld = self.__kwargs.get('escriptWorld', None)
-        return MultiRectangle(n0, n1, l0, l1, d0, d1, diracPoints, tags,
-                escriptworld, subdivisions)
+        return MultiRectangle(n0, n1, l0, l1, d0, d1, diracPoints, tags, subdivisions)
 
     def __newBrick(self, subdivisions):
         n0 = self.__kwargs['n0']
@@ -75,9 +73,7 @@ class MultiResolutionDomain(object):
         d2 = self.__kwargs.get('d2', -1)
         diracPoints = self.__kwargs.get('diracPoints', [])
         tags = self.__kwargs.get('diracTags', [])
-        escriptworld = self.__kwargs.get('escriptWorld', None)
-        return MultiBrick(n0, n1, n2, l0, l1, l2, d0, d1, d2, diracPoints, tags,
-                escriptworld, subdivisions)
+        return MultiBrick(n0, n1, n2, l0, l1, l2, d0, d1, d2, diracPoints, tags, subdivisions)
 
     def getMaxDepth(self):
         """ Returns the level of the finest domain created so far """

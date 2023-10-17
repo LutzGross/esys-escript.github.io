@@ -14,12 +14,13 @@
 ##############################################################################
 
 EnsureSConsVersion(0,98,1)
-EnsurePythonVersion(2,5)
+EnsurePythonVersion(3,1)
 
-import atexit, sys, os, platform, re
+import atexit, sys, os, platform, re, shutil
 from distutils import sysconfig
 from dependencies import *
 from site_init import *
+
 
 print(sys.version)
 
@@ -62,8 +63,13 @@ mpi_flavours=('no', 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
 netcdf_flavours = ('no', 'off', 'none', 'False', # Must be last of the false alternatives
                    'yes', 'on', 'True', '3', # Must be last of the version 3 alternatives
                    '4')
-all_domains = ['dudley','finley','ripley','speckley']
+all_domains = ('finley','oxley','ripley','speckley')
 version_info=['0.0','5','6']
+build_trilinos_flavours = ( "check",      # check for unsuccessful make before setting up make
+                            "True", "make", # set-up standard make install
+                            "always",    # always build
+                            "never", "False"  # never build
+                            )
 
 #Note that scons construction vars the the following purposes:
 #  CPPFLAGS -> to the preprocessor
@@ -80,6 +86,7 @@ vars.AddVariables(
   BoolVariable('verbose', 'Output full compile/link lines', False),
 # Compiler/Linker options
   ('cxx', 'Path to C++ compiler', 'default'),
+  ('cc', 'Path to C compiler', 'default'),
   ('cc_flags', 'Base (C and C++) compiler flags', 'default'),
   ('cc_optim', 'Additional (C and C++) flags for a non-debug build', 'default'),
   ('cc_debug', 'Additional (C and C++) flags for a debug build', 'default'),
@@ -101,6 +108,7 @@ vars.AddVariables(
   ('mpi_prefix', 'Prefix/Paths of MPI installation', default_prefix),
   ('mpi_libs', 'MPI shared libraries to link with', ['mpi']),
   BoolVariable('use_gmsh', 'Enable gmsh, if available', True),
+  BoolVariable('use_sympy', 'Enable sympy, if available. Currently the sympy-escript connection is not working due to a problem with code printing. By default symbols are not installed.', False),
   EnumVariable('netcdf', 'Enable netCDF file support', False, allowed_values=netcdf_flavours),
   ('netcdf_prefix', 'Prefix/Paths of netCDF installation', default_prefix),
   ('netcdf_libs', 'netCDF libraries to link with', 'DEFAULT'),
@@ -123,13 +131,17 @@ vars.AddVariables(
   BoolVariable('silo', 'Enable the Silo file format in weipa', False),
   ('silo_prefix', 'Prefix/Paths to Silo installation', default_prefix),
   ('silo_libs', 'Silo libraries to link with', ['siloh5', 'hdf5']),
-  BoolVariable('trilinos', 'Enable the Trilinos solvers', False),
+  BoolVariable('trilinos', 'Enable the Trilinos solvers (overwriten when trilinos is built)', False),
+  EnumVariable('build_trilinos', 'Instructs scons to build the trilinos library.', "False", allowed_values=build_trilinos_flavours),
+  ('trilinos_make', 'path to shell script to run trilinos make.', 'default'),
   ('trilinos_prefix', 'Prefix/Paths to Trilinos installation', default_prefix),
   ('trilinos_libs', 'Trilinos libraries to link with', []),
+  PathVariable('trilinos_build', 'Top-level build directory for trilinos', Dir('#/trilinos_build').abspath, PathVariable.PathIsDirCreate),
   BoolVariable('visit', 'Enable the VisIt simulation interface', False),
   ('visit_prefix', 'Prefix/Paths to VisIt installation', default_prefix),
   ('visit_libs', 'VisIt libraries to link with', ['simV2']),
-  ListVariable('domains', 'Which domains to build', 'all', all_domains),
+  #ListVariable('domains', 'Which domains to build', 'all', all_domains),
+  ('domains', 'Which domains to build', all_domains),
   BoolVariable('paso', 'Build Paso solver library', True),
   BoolVariable('weipa', 'Build Weipa data export library', True),
   ('mathjax_path', 'Path to MathJax.js file', 'default'),
@@ -137,8 +149,6 @@ vars.AddVariables(
   ('launcher', 'Launcher command (e.g. mpirun)', 'default'),
   ('prelaunch', 'Command to execute before launcher (e.g. mpdboot)', 'default'),
   ('postlaunch', 'Command to execute after launcher (e.g. mpdexit)', 'default'),
-  #dudley_assemble_flags = -funroll-loops      to actually do something
-  ('dudley_assemble_flags', 'compiler flags for some dudley optimisations', ''),
   # To enable passing function pointers through python
   BoolVariable('iknowwhatimdoing', 'Allow non-standard C', False),
   # An option for specifying the compiler tools
@@ -163,9 +173,12 @@ vars.AddVariables(
   BoolVariable('mpi_no_host', 'Do not specify --host in run-escript launcher (only OPENMPI)', False),
   BoolVariable('insane', 'Instructs scons to not run a sanity check after compilation.', False),
   EnumVariable('version_information', 'Instructs scons to create symlinks to the library files','0.0',allowed_values=version_info),
+  BoolVariable('mpi4py', 'Compile with mpi4py.', False),
+  BoolVariable('use_p4est', 'Compile with p4est.', True),
   ('trilinos_LO', 'Manually specify the LO used by Trilinos.', ''),
   ('trilinos_GO', 'Manually specify the GO used by Trilinos.', '')
 )
+
 
 ##################### Create environment and help text #######################
 
@@ -177,17 +190,93 @@ vars.AddVariables(
 env = Environment(tools = ['default'], options = vars,
                   ENV = {'PATH': os.environ['PATH']})
 
+# check options file version:
+if options_file:
+    opts_valid=False
+    if 'escript_opts_version' in env.Dictionary() and \
+        int(env['escript_opts_version']) >= REQUIRED_OPTS_VERSION:
+            opts_valid=True
+    if opts_valid:
+        print("Using options in %s." % options_file)
+    else:
+        print("\nOptions file %s" % options_file)
+        print("is outdated! Please update the file after reading scons/templates/README_FIRST")
+        print("and setting escript_opts_version to %d.\n"%REQUIRED_OPTS_VERSION)
+        Exit(1)
+
+################# Fill in compiler options if not set above ##################
+if env['cxx'] != 'default':
+    env['CXX'] = env['cxx']
+if env['cc'] != 'default':
+    env['CC'] = env['cc']
+if ( env['cc'] == 'default' and env['cxx'] != 'default') :
+    env['CC'] = env['cxx']
+
+if env['mpi'] == 'OPENMPI':
+    env['CXX'] = 'mpic++'
+    env['CC'] = 'mpicc'
+
+if env['mpi4py'] and env['mpi'] in mpi_flavours[:2]:
+    print("mpi4py is switched on but no mpi flavour given (most likely `MPICH`).")
+    Exit(1)
 # set the vars for clang
 def mkclang(env):
-    env['CXX']='clang++'
+        env['CXX']='clang'
 
 if env['tools_names'] != ['default']:
     zz=env['tools_names']
     if 'clang' in zz:
         zz.remove('clang')
         zz.insert(0, mkclang)
-    env = Environment(tools = ['default'] + env['tools_names'], options = vars,
+        env = Environment(tools = ['default'] + env['tools_names'], options = vars,
                       ENV = {'PATH' : os.environ['PATH']})
+    else:
+        env = Environment(tools = ['default'] + env['tools_names'], options = vars,
+                      ENV = {'PATH' : os.environ['PATH']} )
+
+# Generate help text (scons -h)
+Help(vars.GenerateHelpText(env))
+# Check for superfluous options
+if len(vars.UnknownVariables())>0:
+    for k in vars.UnknownVariables():
+        print("Unknown option '%s'" % k)
+    Exit(1)
+
+env['domains'] = sorted(set(env['domains']))
+#===== First thing we do is to install Trilinos if requested to do so:
+#
+################ If requested, build & install Trilinos ####################
+# Manually change the trilinos ordinals (if necessary)
+if env['trilinos_LO'] != '':
+    env.Append(CPPDEFINES=['MANUALLY_SET_LO'])
+    print("Manually setting the Trilinos Local Ordinate...")
+    if env['trilinos_LO'] == 'int':
+        env.Append(CPPDEFINES=['SET_LO_INT'])
+    elif env['trilinos_LO'] == 'long':
+        env.Append(CPPDEFINES=['SET_LO_LONG'])
+    elif env['trilinos_LO'] == 'long long':
+        env.Append(CPPDEFINES=['SET_LO_LONG_LONG'])
+    elif env['trilinos_LO'] == 'complex double':
+        env.Append(CPPDEFINES=['SET_LO_COMPLEX_DOUBLE'])
+    elif env['trilinos_LO'] == 'real_t':
+        env.Append(CPPDEFINES=['SET_LO_REALT'])
+    elif env['trilinos_LO'] == 'cplx_t':
+        env.Append(CPPDEFINES=['SET_LO_CPLXT'])
+if env['trilinos_GO'] != '':
+    env.Append(CPPDEFINES=['MANUALLY_SET_GO'])
+    print("Manually setting the Trilinos Global Ordinate...")
+    if env['trilinos_GO'] == 'int':
+        env.Append(CPPDEFINES=['SET_GO_INT'])
+    elif env['trilinos_GO'] == 'long':
+        env.Append(CPPDEFINES=['SET_GO_LONG'])
+    elif env['trilinos_GO'] == 'long long':
+        env.Append(CPPDEFINES=['SET_GO_LONG_LONG'])
+    elif env['trilinos_GO'] == 'complex double':
+        env.Append(CPPDEFINES=['SET_GO_COMPLEX_DOUBLE'])
+    elif env['trilinos_GO'] == 'real_t':
+        env.Append(CPPDEFINES=['SET_GO_REALT'])
+    elif env['trilinos_GO'] == 'cplx_t':
+        env.Append(CPPDEFINES=['SET_GO_CPLXT'])
 
 # Covert env['netcdf'] into one of False, 3, 4
 # Also choose default values for libraries
@@ -204,33 +293,6 @@ else:   # netcdf4
     env['netcdf']=4
     if env['netcdf_libs']=='DEFAULT':
         env['netcdf_libs']=['netcdf_c++4']
-
-if options_file:
-    opts_valid=False
-    if 'escript_opts_version' in env.Dictionary() and \
-        int(env['escript_opts_version']) >= REQUIRED_OPTS_VERSION:
-            opts_valid=True
-    if opts_valid:
-        print("Using options in %s." % options_file)
-    else:
-        print("\nOptions file %s" % options_file)
-        print("is outdated! Please update the file after reading scons/templates/README_FIRST")
-        print("and setting escript_opts_version to %d.\n"%REQUIRED_OPTS_VERSION)
-        Exit(1)
-
-# Generate help text (scons -h)
-Help(vars.GenerateHelpText(env))
-
-# Check for superfluous options
-if len(vars.UnknownVariables())>0:
-    for k in vars.UnknownVariables():
-        print("Unknown option '%s'" % k)
-    Exit(1)
-
-if 'dudley' in env['domains']:
-    env['domains'].append('finley')
-
-env['domains'] = sorted(set(env['domains']))
 
 # create dictionary which will be populated with info for buildvars file
 env['buildvars'] = {}
@@ -263,32 +325,28 @@ if not os.path.isdir(env['pyinstall']):
 env.Append(CPPPATH = [env['incinstall']])
 env.Append(LIBPATH = [env['libinstall']])
 
-################# Fill in compiler options if not set above ##################
 
-if env['cxx'] != 'default':
-    env['CXX'] = env['cxx']
-
-if env['mpi'] == 'OPENMPI':
-    env['CXX'] = 'mpic++'
 
 # default compiler/linker options
-cc_flags = '-std=c++11'
+cxx_flags = '-std=c++17 '+ env['cxx_extra']  # extra CXX flags
+cc_flags = ''
 cc_optim = ''
 cc_debug = ''
 omp_flags = ''
 omp_ldflags = ''
+ld_extra = env['ld_extra']
 fatalwarning = '' # switch to turn warnings into errors
 sysheaderopt = '' # how to indicate that a header is a system header
 
 # env['CC'] might be a full path
-cc_name=os.path.basename(env['CXX'])
+cxx_name=os.path.basename(env['CXX'])
 
-if cc_name == 'icpc':
+if cxx_name == 'icpc':
     # Intel compiler
     # #1478: class "std::auto_ptr<...>" was declared deprecated
     # #1875: offsetof applied to non-POD types is nonstandard (in boost)
     # removed -std=c99 because icpc doesn't like it and we aren't using c anymore
-    cc_flags    = "-std=c++11 -fPIC -w2 -wd1875 -wd1478 -Wno-unknown-pragmas"
+    cc_flags   += "-fPIC -w2 -wd1875 -wd1478 -Wno-unknown-pragmas"
     cc_optim    = "-Ofast -ftz -fno-alias -xCORE-AVX2 -ipo"
     #cc_optim    = "-Ofast -ftz -fno-alias -inline-level=2 -ipo -xCORE-AVX2"
     #cc_optim    = "-O2 -ftz -fno-alias -inline-level=2"
@@ -298,15 +356,29 @@ if cc_name == 'icpc':
     omp_flags   = "-qopenmp"
     omp_ldflags = "-qopenmp" # removing -openmp-report (which is deprecated) because the replacement outputs to a file
     fatalwarning = "-Werror"
-elif cc_name[:3] == 'g++':
+elif cxx_name.startswith('g++-mp'):
+    # cc_flags +="-Wall" - switched off as there are problem in p4est compilation.
+    cc_flags       += "-fPIC -fdiagnostics-color=always -Wno-uninitialized "
+    cc_flags       += "-Wno-unknown-pragmas -Wimplicit-function-declaration "
+    cxx_flags      += "-Wno-string-concatenation -Wno-unused-private-field "
+    #if env['trilinos'] is True:
+    #  cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
+    cc_optim     = "-O3 "
+    cc_debug     = "-ggdb3 -O0 -fdiagnostics-fixit-info -pedantic "
+    cc_debug    += "-DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK "
+    omp_flags    = "-fopenmp "
+    omp_ldflags  = "-fopenmp "
+    fatalwarning = "-Werror"
+    sysheaderopt = "-isystem"
+elif cxx_name[:3] == 'g++':
     # GNU C++ on any system
     # note that -ffast-math is not used because it breaks isnan(),
     # see mantis #691
-    cc_flags     = "-std=c++11 -pedantic -Wall -fPIC -finline-functions"
+    cc_flags += "-pedantic -Wall -fPIC -finline-functions"
     cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing "
     cc_flags += " -Wno-unused-function  -Wno-narrowing"
     cc_flags += " -Wno-stringop-truncation -Wno-deprecated-declarations --param=max-vartrack-size=100000000"
-    cc_optim     = "-O2 -march=native"
+    cc_optim     = "-O2" # -march=native"
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
     cc_debug     = "-g3 -O0  -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
     #Removed because new netcdf doesn't seem to like it
@@ -315,36 +387,53 @@ elif cc_name[:3] == 'g++':
     omp_ldflags  = "-fopenmp"
     fatalwarning = "-Werror"
     sysheaderopt = "-isystem"
-elif cc_name == 'cl':
+elif cxx_name == 'cl':
     # Microsoft Visual C on Windows
     cc_flags     = "/EHsc /MD /GR /wd4068 /D_USE_MATH_DEFINES /DDLL_NETCDF"
     cc_optim     = "/O2 /Op /W3"
     cc_debug     = "/Od /RTCcsu /ZI /DBOUNDS_CHECK"
     fatalwarning = "/WX"
-elif cc_name == 'icl':
+elif cxx_name == 'icl':
     # Intel C on Windows
     cc_flags     = '/EHsc /GR /MD'
     cc_optim     = '/fast /Oi /W3 /Qssp /Qinline-factor- /Qinline-min-size=0 /Qunroll'
     cc_debug     = '/Od /RTCcsu /Zi /Y- /debug:all /Qtrapuv'
     omp_flags    = '/Qvec-report0 /Qopenmp /Qopenmp-report0 /Qparallel'
     omp_ldflags  = '/Qvec-report0 /Qopenmp /Qopenmp-report0 /Qparallel'
-elif cc_name == 'clang++':
-    # Clang++ on any system
-    cc_flags     = "-std=c++11 -Wall -fPIC -fdiagnostics-color=always -Wno-uninitialized "
-    cc_flags    += "-Wno-unused-private-field -Wno-unknown-pragmas "
-    if env['trilinos'] is True:
-      cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations"
-    cc_optim     = "-O2 -march=native"
+elif cxx_name.startswith('clang++-mp'):
+    # Clang++mp on any system
+    # cc_flags +="-Wall" - switched off as there are problem in p4est compilation.
+    cc_flags       += "-fPIC -fdiagnostics-color=always -Wno-uninitialized -Wno-deprecated-declarations "
+    #cc_flags       += "-I/opt/local/lib/gcc12/gcc/arm64-apple-darwin22/12.2.0/include "
+    cc_flags       += "-Wno-unknown-pragmas "
+    cxx_flags      += "-Wno-string-concatenation -Wno-unused-private-field -Wimplicit-function-declaration "
+    #if env['trilinos'] is True:
+    #  cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
+    cc_optim     = "-O3 "
     cc_debug     = "-ggdb3 -O0 -fdiagnostics-fixit-info -pedantic "
     cc_debug    += "-DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK "
-    omp_flags    = "-fopenmp"
-    omp_ldflags  = "-fopenmp"
+    omp_flags    = "-fopenmp "
+    omp_ldflags  = "-fopenmp "
     fatalwarning = "-Werror"
     sysheaderopt = "-isystem"
-elif cc_name == 'mpic++':
+
+elif cxx_name.startswith('clang++'):
+    # Clang++ on any system
+    cc_flags    += "-Wall -fPIC -fdiagnostics-color=always -Wno-uninitialized "
+    cc_flags    += "-Wno-unused-private-field -Wno-unknown-pragmas "
+    #if env['trilinos'] is True:
+    #  cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
+    cc_optim     = "-O3 "  # -march=native"
+    cc_debug     = "-ggdb3 -O0 -fdiagnostics-fixit-info -pedantic "
+    cc_debug    += "-DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK "
+    omp_flags    = "-fopenmp "
+    omp_ldflags  = " "
+    fatalwarning = "-Werror"
+    sysheaderopt = "-isystem"
+elif cxx_name == 'mpic++':
     # MPIC++ on any system
     # note that -ffast-math is not used because it breaks isnan(),
-    cc_flags     = " -std=c++17 -pedantic -Wall -fPIC -finline-functions"
+    cc_flags += "-pedantic -Wall -fPIC -finline-functions"
     cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing "
     cc_flags += " -Wno-unused-function  -Wno-narrowing"
     cc_flags += " -Wno-stringop-truncation -Wno-deprecated-declarations --param=max-vartrack-size=100000000"
@@ -360,6 +449,79 @@ elif cc_name == 'mpic++':
     omp_ldflags  = "-fopenmp"
     fatalwarning = "-Werror"
     sysheaderopt = "-isystem"
+elif cxx_name == 'mpiicpc':
+    # note that -ffast-math is not used because it breaks isnan(),
+    env['CC']= 'mpiicc'
+    cxx_flags = '-std=c++17 '+ env['cxx_extra']
+    cc_flags += " -pedantic -Wall -fPIC -finline-functions"
+    cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing "
+    cc_flags += " -Wno-unused-function  -Wno-narrowing"
+    cc_flags += " -Wno-deprecated-declarations --param=max-vartrack-size=100000000"
+    cc_flags += " -ipo "
+    cc_optim     = "-O2 -march=native"
+    #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
+    cc_debug     = "-g3 -O0  -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
+    #Removed because new netcdf doesn't seem to like it
+    #cc_debug += ' -D_GLIBCXX_DEBUG  '
+    ld_extra += " -fPIC -lmpi "
+    if env['openmp']:
+      ld_extra += " -lgomp"
+    omp_flags    = "-qopenmp"
+    omp_ldflags  = "-qopenmp"
+    fatalwarning = "-Werror"
+    sysheaderopt = "-isystem"
+
+if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
+    env['trilinos_prefix']=os.path.join(env['prefix'],'escript_trilinos')
+    print("")
+    if not env['cc'] == 'default ':
+        os.environ['CC'] = env['cc']
+    if not env['cxx'] == 'default ':
+        os.environ['CXX'] = env['cxx']
+    startdir=os.getcwd()
+    if os.path.isdir(env['trilinos_build']) is False: # create a build folder if the user deleted it
+        os.mkdir(env['trilinos_build'])
+    os.chdir(env['trilinos_build'])
+    if env['openmp']:
+        OPENMPFLAG='ON'
+    else:
+        OPENMPFLAG='OFF'
+
+    print("Building Trilinos using")
+    print(env['prefix'])
+    print(env['CC'])
+    print(env['CXX'])
+    if env['trilinos_make'] == 'default':
+        if env['mpi'] not in [ 'none', 'no', True]:
+            source=startdir+"/scripts/trilinos_mpi.sh"
+            dest=env['trilinos_build'] + "/trilinos_mpi.sh"
+            shutil.copy(source,dest)
+            print("Building (MPI) trilinos..............................")
+            configure="sh trilinos_mpi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX'] + " " + OPENMPFLAG
+        else:
+            source=startdir+"/scripts/trilinos_nompi.sh"
+            dest=env['trilinos_build'] + "/trilinos_nompi.sh"
+            shutil.copy(source,dest)
+            print("Building (no MPI) trilinos..............................")
+            configure="sh trilinos_nompi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX'] + " " + OPENMPFLAG
+    else:
+        shutil.copy(env['trilinos_make'], "hostmake.sh")
+        configure="sh hostmake.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX'] + " " + OPENMPFLAG
+
+    print("Running: "+configure)
+    res=os.system(configure)
+    if res :
+        print(">>> Installation of trilinos failed. Scons stopped.")
+        Exit(1)
+    if env['build_trilinos'] == "True" or  env['build_trilinos'] == "make" or env['build_trilinos'] == "check":
+            res=os.system('make -j%s install'%GetOption("num_jobs"))
+    else:
+            res=os.system('make --always-make  -j%s install'%GetOption("num_jobs"))
+    if res :
+        print(">>> Installation of trilinos failed. Scons stopped.")
+        Exit(1)
+    env['trilinos'] = True
+    os.chdir(startdir)
 
 env['sysheaderopt']=sysheaderopt
 
@@ -374,6 +536,7 @@ if env['ld_extra']  != '': env.Append(LINKFLAGS = env['ld_extra'])
 
 if env['version_information'] != '0.0':
     env['SHLIBVERSION']=env['version_information']
+    env['LDMODULEVERSION']=env['version_information']
 sonameflags=" -Wl,-soname=$_SHLIBSONAME "
 env.Append(LINKFLAGS = sonameflags)
 
@@ -411,46 +574,33 @@ else:
     env['omp_flags']=''
     env['omp_ldflags']=''
 
+# Flags used by the p4est program
+if env['openmp']:
+    env.Append(CPPDEFINES=['P4EST_HAVE_OPENMP'])
+    env.Append(CPPDEFINES=['P4EST_OPENMP'])
+    env.Append(CPPDEFINES=['P4EST_ENABLE_OPENMP'])
+    env.Append(CPPDEFINES=['ENABLE_OPENMP'])
+    env.Append(CPPDEFINES=['HAVE_OPENMP'])
+    env.Append(CPPDEFINES=['OPENMP'])
+
 env['buildvars']['openmp']=int(env['openmp'])
 
 # add debug/non-debug compiler flags
+
 env['buildvars']['debug']=int(env['debug'])
+env.Append(CCFLAGS = env['cc_flags'])
+env.Append(CXXFLAGS = cxx_flags)
+if ld_extra: env.Append(LINKFLAGS = ld_extra)
+
 if env['debug']:
     env.Append(CCFLAGS = env['cc_debug'])
+    #env.Append(CXXFLAGS = env['cc_debug'])
+    # env.Append(CPPDEFINES=['P4EST_ENABLE_DEBUG'])
+    # env.Append(CPPDEFINES=['SC_ENABLE_DEBUG'])
 else:
     env.Append(CCFLAGS = env['cc_optim'])
+    #env.Append(CXXFLAGS = env['cc_optim'])
 
-# Manually change the trilinos ordinals (if necessary)
-if env['trilinos_LO'] != '':
-    env.Append(CPPDEFINES=['MANUALLY_SET_LO'])
-    print("Manually setting the Trilinos Local Ordinate...")
-    if env['trilinos_LO'] == 'int':
-        env.Append(CPPDEFINES=['SET_LO_INT'])
-    elif env['trilinos_LO'] == 'long':
-        env.Append(CPPDEFINES=['SET_LO_LONG'])
-    elif env['trilinos_LO'] == 'long long':
-        env.Append(CPPDEFINES=['SET_LO_LONG_LONG'])
-    elif env['trilinos_LO'] == 'complex double':
-        env.Append(CPPDEFINES=['SET_LO_COMPLEX_DOUBLE'])
-    elif env['trilinos_LO'] == 'real_t':
-        env.Append(CPPDEFINES=['SET_LO_REALT'])
-    elif env['trilinos_LO'] == 'cplx_t':
-        env.Append(CPPDEFINES=['SET_LO_CPLXT'])
-if env['trilinos_GO'] != '':
-    env.Append(CPPDEFINES=['MANUALLY_SET_GO'])
-    print("Manually setting the Trilinos Global Ordinate...")
-    if env['trilinos_GO'] == 'int':
-        env.Append(CPPDEFINES=['SET_GO_INT'])
-    elif env['trilinos_GO'] == 'long':
-        env.Append(CPPDEFINES=['SET_GO_LONG'])
-    elif env['trilinos_GO'] == 'long long':
-        env.Append(CPPDEFINES=['SET_GO_LONG_LONG'])
-    elif env['trilinos_GO'] == 'complex double':
-        env.Append(CPPDEFINES=['SET_GO_COMPLEX_DOUBLE'])
-    elif env['trilinos_GO'] == 'real_t':
-        env.Append(CPPDEFINES=['SET_GO_REALT'])
-    elif env['trilinos_GO'] == 'cplx_t':
-        env.Append(CPPDEFINES=['SET_GO_CPLXT'])
 
 # always add cc_flags
 env.Append(CCFLAGS = env['cc_flags'])
@@ -581,6 +731,7 @@ env.Append(BUILDERS = {'RunPyExample' : runPyExample_builder});
 epstopdfbuilder = Builder(action = eps2pdf, suffix='.pdf', src_suffix='.eps', single_source=True)
 env.Append(BUILDERS = {'EpsToPDF' : epstopdfbuilder});
 
+
 ############################ Dependency checks ###############################
 
 ######## Compiler
@@ -607,6 +758,8 @@ env=checkOptionalLibraries(env)
 ######## PDFLaTeX (for documentation)
 env=checkPDFLatex(env)
 
+
+# =================================
 # set defaults for launchers if not otherwise specified
 if env['prelaunch'] == 'default':
     if env['mpi'] == 'INTELMPI' and env['openmp']:
@@ -620,6 +773,25 @@ if env['prelaunch'] == 'default':
         env['prelaunch'] = "mpdboot -n %n -r ssh -f %f"
     else:
         env['prelaunch'] = ""
+
+# Used by p4est
+if env['mpi'] != 'no' and env['mpi'] != 'none':
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPI'])
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPICOMMSHARED'])
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPIIO'])
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPISHARED'])
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPITHREAD'])
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPIWINSHARED'])
+    env.Append(CPPDEFINES = ['P4EST_MPI'])
+    env.Append(CPPDEFINES = ['P4EST_MPIIO'])
+    env.Append(CPPDEFINES = ['SC_ENABLE_MPI'])
+    env.Append(CPPDEFINES = ['SC_ENABLE_MPICOMMSHARED'])
+    env.Append(CPPDEFINES = ['SC_ENABLE_MPIIO'])
+    env.Append(CPPDEFINES = ['SC_ENABLE_MPISHARED'])
+    env.Append(CPPDEFINES = ['SC_ENABLE_MPITHREAD'])
+    env.Append(CPPDEFINES = ['SC_ENABLE_MPIWINSHARED'])
+    env.Append(CPPDEFINES = ['SC_MPI'])
+    env.Append(CPPDEFINES = ['SC_MPIIO'])
 
 if env['launcher'] == 'default':
     if env['mpi'] == 'INTELMPI':
@@ -654,6 +826,8 @@ if env['postlaunch'] == 'default':
 
 if len(env['domains']) == 0:
    env['warnings'].append("No domains have been built, escript will not be very useful!")
+else:
+   print("Building escript with the domains:  %s"%(", ".join(env['domains'])))
 
 # keep some of our install paths first in the list for the unit tests
 env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['libinstall'])
@@ -661,6 +835,8 @@ env.PrependENVPath('PYTHONPATH', prefix)
 env['ENV']['ESCRIPT_ROOT'] = prefix
 
 if not env['verbose']:
+    env['CCCOMSTR'] = "Compiling $TARGET"
+    env['SHCCCOMSTR'] = "Compiling $TARGET"
     env['CXXCOMSTR'] = "Compiling $TARGET"
     env['SHCXXCOMSTR'] = "Compiling $TARGET"
     env['ARCOMSTR'] = "Linking $TARGET"
@@ -688,7 +864,7 @@ if ((fatalwarning != '') and (env['werror'])):
 Export(
   ['env',
    'dodgy_env',
-   'IS_WINDOWS',
+   'IS_WINDOWS', 'IS_OSX',
    'TestGroups'
   ]
 )
@@ -699,6 +875,14 @@ env.Alias('target_init', [target_init])
 # escript can't be turned off
 build_all_list = ['build_escript']
 install_all_list = ['target_init', 'install_escript']
+
+#p4est
+if env['use_p4est']:
+    build_all_list += ['build_p4est']
+    install_all_list += ['install_p4est']
+    env['p4est']=True
+    env['p4est_libs']=['p4est','sc']
+    env['escript_src']=os.getcwd()
 
 if env['usempi']:
     build_all_list += ['build_pythonMPI', 'build_overlord']
@@ -726,35 +910,35 @@ if env['weipa']:
     env.Append(CPPDEFINES = ['ESYS_HAVE_WEIPA'])
     build_all_list += ['build_weipa']
     install_all_list += ['install_weipa']
-    if 'finley' in env['domains'] or 'dudley' in env['domains']:
+    if 'finley' in env['domains']:
         build_all_list += ['build_escriptreader']
         install_all_list += ['install_escriptreader']
 
+
 variant='$BUILD_DIR/$PLATFORM/'
 env.SConscript('escriptcore/SConscript', variant_dir=variant+'escriptcore', duplicate=0)
-env.SConscript('escript/py_src/SConscript', variant_dir=variant+'escript', duplicate=0)
-env.SConscript('pythonMPI/src/SConscript', variant_dir=variant+'pythonMPI', duplicate=0)
+env.SConscript('escript/SConscript', variant_dir=variant+'escript', duplicate=0)
+env.SConscript('pythonMPI/SConscript', variant_dir=variant+'pythonMPI', duplicate=0)
 env.SConscript('tools/overlord/SConscript', variant_dir=variant+'tools/overlord', duplicate=0)
 env.SConscript('paso/SConscript', variant_dir=variant+'paso', duplicate=0)
 env.SConscript('trilinoswrap/SConscript', variant_dir=variant+'trilinoswrap', duplicate=0)
 env.SConscript('cusplibrary/SConscript')
-env.SConscript('dudley/SConscript', variant_dir=variant+'dudley', duplicate=0)
 env.SConscript('finley/SConscript', variant_dir=variant+'finley', duplicate=0)
+if env['use_p4est']:
+    env.SConscript('p4est/SConscript', variant_dir=variant+'p4est', duplicate=0)
+env.SConscript('oxley/SConscript', variant_dir=variant+'oxley', duplicate=0)
 env.SConscript('ripley/SConscript', variant_dir=variant+'ripley', duplicate=0)
 env.SConscript('speckley/SConscript', variant_dir=variant+'speckley', duplicate=0)
 env.SConscript('weipa/SConscript', variant_dir=variant+'weipa', duplicate=0)
-env.SConscript(dirs = ['downunder/py_src'], variant_dir=variant+'downunder', duplicate=0)
-env.SConscript(dirs = ['modellib/py_src'], variant_dir=variant+'modellib', duplicate=0)
-env.SConscript(dirs = ['pycad/py_src'], variant_dir=variant+'pycad', duplicate=0)
 env.SConscript('tools/escriptconvert/SConscript', variant_dir=variant+'tools/escriptconvert', duplicate=0)
 env.SConscript('doc/SConscript', variant_dir=variant+'doc', duplicate=0)
 
 env.Alias('build', build_all_list)
 
-install_all_list += ['install_downunder_py']
-install_all_list += ['install_modellib_py']
-install_all_list += ['install_pycad_py']
 install_all_list += [env.Install(Dir('scripts',env['build_dir']), os.path.join('scripts', 'release_sanity.py'))]
+
+if env['mpi']:
+    install_all_list += ['install_pythonMPI']
 
 if env['osx_dependency_fix']:
     print("Require dependency fix")
@@ -787,7 +971,7 @@ Requires('py_tests', 'install')
 
 ##################### Targets to build the documentation #####################
 
-env.Alias('pdfdocs',['user_pdf', 'install_pdf', 'cookbook_pdf', 'inversion_pdf'])
+env.Alias('pdfdocs',['user_pdf', 'install_pdf', 'cookbook_pdf']) #inversion_pdf
 env.Alias('basedocs', ['pdfdocs','examples_tarfile', 'examples_zipfile', 'api_doxygen'])
 env.Alias('docs', ['basedocs', 'sphinxdoc'])
 env.Alias('release_prep', ['docs', 'install'])
@@ -821,14 +1005,17 @@ def print_summary():
     print("  Install prefix:  %s"%env['prefix'])
     print("          Python:  %s (Version %s)"%(env['pythoncmd'],env['python_version']))
     print("           boost:  %s (Version %s)"%(env['boost_prefix'],env['boost_version']))
-    if env['have_boost_numpy']:
+    if env['have_boost_numpy'] is True:
         print("     boost numpy:  YES")
     else:
         print("     boost numpy:  NO")
-    if env['trilinos']:
-        print("        trilinos:  %s (Version %s)" % (env['trilinos_prefix'],env['trilinos_version']))
-    else:
-        print("        trilinos:  NO")
+    if env['build_trilinos']:
+        print("        trilinos:  %s (built-in, Version %s)" % (env['trilinos_prefix'], env['trilinos_version']))
+    else:    
+        if env['trilinos']:
+            print("        trilinos:  %s (Version %s)" % (env['trilinos_prefix'],env['trilinos_version']))
+        else:
+            print("        trilinos:  NO")
     if env['numpy_h']:
         print("           numpy:  YES (with headers)")
     else:
@@ -840,6 +1027,10 @@ def print_summary():
             print("             MPI:  YES (flavour: %s)"%env['mpi'])
     else:
         d_list.append('mpi')
+    if env['mpi4py']:
+        print("          mpi4py:  YES")
+    else:
+        print("          mpi4py:  NO")
     if env['parmetis']:
         print("        ParMETIS:  %s (Version %s)"%(env['parmetis_prefix'],env['parmetis_version']))
     else:
@@ -897,8 +1088,8 @@ def print_summary():
     else:
         print("          netcdf:  NO")
     e_list=[]
-    for i in ('weipa','debug','openmp','cppunit','gdal','mkl',
-             'mumps','pyproj','scipy','silo','sympy','umfpack','visit'):
+    for i in ('weipa','debug','openmp','cppunit','mkl','mpi4py',
+             'mumps', 'scipy','silo','sympy','umfpack','visit'):
         if env[i]: e_list.append(i)
         else: d_list.append(i)
 
@@ -918,5 +1109,7 @@ def print_summary():
         print("\nERROR: build stopped due to errors\n")
     else:
         print("\nSUCCESS: build complete\n")
+
+    print("If publishing results using esys-escript, please cite us: https://esys-escript.github.io/")
 
 atexit.register(print_summary)

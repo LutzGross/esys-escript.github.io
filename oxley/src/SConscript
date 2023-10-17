@@ -1,0 +1,102 @@
+##############################################################################
+#
+# Copyright (c) 2003-2019 by The University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Apache License, version 2.0
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development 2012-2013 by School of Earth Sciences
+# Development from 2014 by Centre for Geoscience Computing (GeoComp)
+#
+##############################################################################
+
+Import('*')
+
+module_name = 'oxley'
+
+sources = """
+    Brick.cpp
+    DefaultAssembler2D.cpp
+    DefaultAssembler3D.cpp
+    domainhelpers.cpp
+    InitAlgorithms.cpp
+    Rectangle.cpp
+    OtherAlgorithms.cpp
+    OxleyData.cpp
+    OxleyDomain.cpp
+    RefinementAlgorithms.cpp
+    RefinementType.cpp
+    RefinementZone.cpp
+    tictoc.cpp
+""".split()
+
+headers = """
+    AbstractAssembler.h
+    Brick.h
+    DefaultAssembler2D.h
+    DefaultAssembler3D.h
+    domainhelpers.h
+    InitAlgorithms.h
+    Rectangle.h
+    system_dep.h
+    OtherAlgorithms.h
+    Oxley.h
+    OxleyData.h
+    OxleyDomain.h
+    OxleyException.h
+    RefinementAlgorithms.h
+    RefinementType.h
+    RefinementZone.h
+    tictoc.h
+""".split()
+
+local_env = env.Clone()
+
+# collect dependencies for other modules
+oxleylibs = []
+oxleylibs += env['escript_libs']
+oxleylibs += env['p4est_libs']
+if env['paso']:
+    oxleylibs += env['paso_libs']
+if env['trilinos']:
+    oxleylibs += env['trilinoswrap_libs']
+if env['compressed_files']:
+    oxleylibs += env['compression_libs']
+if env['silo']:
+    oxleylibs += env['silo_libs']
+
+#p4est library
+import os
+local_env.AppendUnique(CPPPATH = [os.path.join(env['escript_src'], 'p4est', 'src')])
+
+local_env.PrependUnique(LIBS = oxleylibs)
+
+
+include_path = Dir(module_name, local_env['incinstall'])
+hdr_inst = local_env.Install(include_path, headers)
+
+lib = local_env.SharedLibrary(module_name, sources)
+lib_inst = local_env.Install(local_env['libinstall'], lib)
+
+if IS_OSX:
+    env['oxley_libs'] = [lib_inst] + oxleylibs
+else:
+    env['oxley_libs'] = [module_name] + oxleylibs
+
+### Python wrapper ###
+py_env = local_env.Clone()
+if IS_OSX:
+    py_env.PrependUnique(LIBS = [lib_inst])
+else:
+    py_env.PrependUnique(LIBS = [module_name])
+py_lib_name = module_name + 'cpp'
+py_lib = py_env.PythonModule(py_lib_name, 'oxleycpp.cpp')
+
+mod_path = Dir(module_name, local_env['pyinstall'])
+mod_inst = py_env.Install(mod_path, py_lib)
+
+build = env.Alias('build_oxley', [hdr_inst, lib, py_lib])
+env.Alias('install_oxley', ['build_oxley', lib_inst, mod_inst])

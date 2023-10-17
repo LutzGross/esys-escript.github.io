@@ -55,8 +55,6 @@ sources = """
     pyerr.cpp
     Random.cpp
     SolverOptions.cpp
-    SplitWorld.cpp
-    SubWorld.cpp
     Taipan.cpp
     TestDomain.cpp
     Utils.cpp
@@ -109,9 +107,6 @@ headers = """
     Pointers.h
     Random.h
     SolverOptions.h
-    SplitWorld.h
-    SplitWorldException.h
-    SubWorld.h
     SystemMatrixException.h
     Taipan.h
     TestDomain.h
@@ -141,8 +136,9 @@ if env['netcdf']:
 if env['trilinos']:
     escriptlibs += env['trilinos_libs']
 
+
 local_env.PrependUnique(LIBS = escriptlibs)
-env['escript_libs'] = [module_name] + escriptlibs
+
 
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['ESCRIPT_EXPORTS'])
@@ -156,14 +152,23 @@ else:
 include_path = Dir(module_name, local_env['incinstall'])
 hdr_inst = local_env.Install(include_path, headers)
 
-lib = local_env.SharedLibrary(module_name, sources+nonped)
+lib = local_env.SharedLibrary(module_name, sources + nonped)
 lib_inst = local_env.Install(local_env['libinstall'], lib)
 
+if IS_OSX:
+    env['escript_libs'] = [lib_inst] + escriptlibs
+else:
+    env['escript_libs'] = [module_name] + escriptlibs
+
 ### Python wrapper ###
-py_env = env.Clone()
+py_env = local_env.Clone()
 #if IS_WINDOWS:
 #    py_env.Append(CPPDEFINES = ['ESCRIPT_EXPORTS'])
-py_env.Prepend(LIBS = [module_name])
+if IS_OSX:
+    py_env.Prepend(LIBS = [ lib_inst ])
+else:
+    py_env.Prepend(LIBS = [ module_name ])
+
 py_lib_name = module_name + 'cpp'
 py_lib = py_env.PythonModule(py_lib_name, 'escriptcpp.cpp')
 

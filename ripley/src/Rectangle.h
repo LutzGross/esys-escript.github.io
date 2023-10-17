@@ -23,6 +23,16 @@
 #include <math.h>
 #endif
 
+#ifdef ESYS_MPI
+#include <escript/EsysMPI.h>
+#endif
+
+#ifdef ESYS_HAVE_MPI4PY
+#include <mpi4py/mpi4py.h>
+#include <mpi4py/mpi4py.MPI.h>
+#include <mpi4py/mpi4py.MPI_api.h>
+#endif
+
 #include <ripley/RipleyDomain.h>
 
 namespace ripley {
@@ -49,8 +59,7 @@ public:
               int d0=-1, int d1=-1,
               const std::vector<double>& points = std::vector<double>(),
               const std::vector<int>& tags = std::vector<int>(),
-              const TagMap& tagnamestonums = TagMap(),
-              escript::SubWorld_ptr w=escript::SubWorld_ptr()
+              const TagMap& tagnamestonums = TagMap()
  	    );
 
     /**

@@ -96,7 +96,7 @@ if [ ! -r "$BUILDINFO_FILE" ]; then
         echo "export PATH=$EXTRA_PATH:\$PATH"
         if [ "$(uname)" = "Darwin" ]
         then
-            echo "export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:\$DYLD_LIBRARY_PATH"
+            echo "export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$DYLD_LIBRARY_PATH"
         fi
         exit 0
     fi
@@ -168,7 +168,7 @@ do
         echo "export PATH=$EXTRA_PATH:\$PATH"
         if [ "$(uname)" = "Darwin" ]
         then
-            echo "export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:\$DYLD_LIBRARY_PATH"
+            echo "export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:\$LD_LIBRARY_PATH"
         fi
         exit 0
         ;;
@@ -229,7 +229,7 @@ export PYTHONPATH=$EXTRA_PYTHONPATH:$PYTHONPATH
 EXPORT_ENV="PATH,LD_LIBRARY_PATH,PYTHONPATH"
 if [ "$(uname)" = "Darwin" ]
 then
-    export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH
+    export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$LD_LIBRARY_PATH
     EXPORT_ENV="$EXPORT_ENV,DYLD_LIBRARY_PATH"
 fi
 vlog "PATH = $PATH

@@ -96,20 +96,6 @@
             ]
         },
         {
-            "name": "python3-pyproj",
-            "buildsystem": "simple",
-            "build-commands": [
-                "pip3 install --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} pyproj"
-            ],
-            "sources": [
-                {
-                    "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/26/8c/1da0580f334718e04f8bbf74f0515a7fb8185ff96b2560ce080c11aa145b/pyproj-1.9.6.tar.gz",
-                    "sha256": "e0c02b1554b20c710d16d673817b2a89ff94738b0b537aead8ecb2edc4c4487b"
-                }
-            ]
-        },
-        {
             "name": "python3-matplotlib",
             "buildsystem": "simple",
             "build-commands": [

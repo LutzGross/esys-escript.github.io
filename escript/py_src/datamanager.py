@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2020 by The University of Queensland
+# Copyright (c) 2003-2022 by The University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -16,5 +16,4 @@
 ##############################################################################
 
 from __future__ import print_function, division
-
 from esys.escriptcore.datamanager import *

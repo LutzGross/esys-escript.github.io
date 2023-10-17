@@ -22,15 +22,28 @@ Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Apache License, version 2.0
 http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
-__author__="Cihan Altinay"
+__author__="Cihan Altinay, Lutz Gross"
 
 __all__ = ['Evaluator']
 
-import distutils.version as duv
+import esys.escriptcore.util as escript
+from .printer import EsysEscriptPrinter
 
 """
 Symbolic expression evaluator for escript
 """
+
+escript_functions = [ "kronecker", "identity", "zeros", "identityTensor", "identityTensor4", "unitVector", "Lsup", "sup", "inf", "testForZero", "log10", "wherePositive",
+                      "whereNegative", "whereNonNegative", "whereNonPositive", "whereZero", "whereNonZero", "Abs", "erf", "sin", "cos", "tan", "asin", "acos", "atan",
+                      "atan2", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "exp", "sqrt", "log", "sign", "minval", "maxval", "length", "trace", "transpose", "swap_axes",
+                      "symmetric", "nonsymmetric", "antisymmetric", "hermitian", "antihermitian", "inverse", "eigenvalues", "mult", "maximum", "minimum", "clip", "cross",
+                      "inner", "outer", "matrixmult", "matrix_mult", "tensormult", "tensor_mult", "generalTensorProduct", "transposed_matrix_mult", "transposed_tensor_mult",
+                      "generalTransposedTensorProduct", "matrix_transposed_mult", "tensor_transposed_mult",
+                      "generalTensorTransposedProduct", "grad", "grad_n", "curl", "integrate", "interpolate", "div", "jump", "L2", "normalize", "deviatoric", "meanValue",
+                      "reorderComponents", "positive", "negative", "safeDiv", "condEval", "polarToCart", "phase", "real", "imag", "conjugate" ]
+
+
+translator = { n :  getattr(escript, n) for n in escript_functions }
 
 class Evaluator(object):
     def __init__(self, *expressions):
@@ -76,26 +89,21 @@ class Evaluator(object):
             for arg in expression.args:
                 if arg is not None:
                     sym.update(arg.atoms(sympy.Symbol))
+            sym=tuple(sym)
             self.symbols.append(tuple(sym))
         else:
-            sym=set(expression.atoms(sympy.Symbol))
+            sym=tuple(set(expression.atoms(sympy.Symbol)))
             self.symbols.append(sym)
-
+        print(expression, sym)
         if isinstance(expression, escript.Symbol):
             subs=expression.getDataSubstitutions()
             subs_dict={}
             for s in subs.keys():
                 subs_dict[s.name] = subs[s]
             self.subs(**subs_dict)
-            if duv.LooseVersion(sympy.__version__) < duv.LooseVersion('0.7.6'):
-                self.lambdas.append(sympy.lambdify(sym, expression.lambdarepr(), ["numpy"]))
-            else:
-                self.lambdas.append(sympy.lambdify(sym, expression.lambdarepr(), ["numpy"],dummify=False))
+            self.lambdas.append(sympy.lambdify(sym, expression.lambdarepr(), printer=EsysEscriptPrinter, dummify=False)) # modules=[translator, "numpy"],
         else:
-            if duv.LooseVersion(sympy.__version__) < duv.LooseVersion('0.7.6'):
-                self.lambdas.append(sympy.lambdify(sym, expression, ["numpy"]))
-            else:
-                self.lambdas.append(sympy.lambdify(sym, expression, ["numpy"], dummify=False))
+            self.lambdas.append(sympy.lambdify(sym, expression, printer=EsysEscriptPrinter, dummify=False))
         return self
 
     def subs(self, **args):

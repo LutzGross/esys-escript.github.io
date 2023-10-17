@@ -75,12 +75,22 @@ typedef escript::DataTypes::index_t GO;
 typedef escript::DataTypes::index_t LO;
 #endif
 /// Kokkos Node type
-#ifdef _OPENMP
-typedef Kokkos::Compat::KokkosOpenMPWrapperNode NT;
-#elif ESYS_HAVE_CUDA
-typedef Kokkos::Compat::KokkosCudaWrapperNode   NT;
+#ifdef ESYS_TRILINOS_14_2
+    #ifdef _OPENMP
+    typedef Tpetra::KokkosCompat::KokkosOpenMPWrapperNode NT;
+    #elif ESYS_HAVE_CUDA
+    typedef Tpetra::KokkosCompat::KokkosCudaWrapperNode   NT;
+    #else
+    typedef Tpetra::KokkosCompat::KokkosSerialWrapperNode NT;
+    #endif
 #else
-typedef Kokkos::Compat::KokkosSerialWrapperNode NT;
+    #ifdef _OPENMP
+    typedef Kokkos::Compat::KokkosOpenMPWrapperNode NT;
+    #elif ESYS_HAVE_CUDA
+    typedef Kokkos::Compat::KokkosCudaWrapperNode   NT;
+    #else
+    typedef Kokkos::Compat::KokkosSerialWrapperNode NT;
+    #endif
 #endif
 
 typedef Tpetra::CrsGraph<LO,GO,NT>    GraphType;

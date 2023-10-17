@@ -15,7 +15,7 @@
 *****************************************************************************/
 
 #include "MPIDataReducer.h"
-#include "SplitWorldException.h"
+#include "EsysException.h"
 
 #include <limits>
 #include <sstream>
@@ -35,7 +35,7 @@ void combineData(Data& d1, const Data& d2, MPI_Op op)
     } 
     else if (op==MPI_OP_NULL) 
     {
-        throw SplitWorldException("Multiple 'simultaneous' attempts to export a 'SET' variable.");
+        throw EsysException("Multiple 'simultaneous' attempts to export a 'SET' variable.");
     }
 }
 
@@ -57,7 +57,7 @@ Reducer_ptr makeDataReducer(std::string type)
     }
     else
     {
-        throw SplitWorldException("Unsupported operation for makeDataReducer.");
+        throw EsysException("Unsupported operation for makeDataReducer.");
     }
     MPIDataReducer* m=new MPIDataReducer(op);
     return Reducer_ptr(m);    
@@ -73,7 +73,7 @@ MPIDataReducer::MPIDataReducer(MPI_Op op)
     }
     else
     {
-        throw SplitWorldException("Unsupported MPI_Op");
+        throw EsysException("Unsupported MPI_Op");
     }
 }
 
@@ -567,7 +567,7 @@ bool MPIDataReducer::groupSend(MPI_Comm& comm, bool imsending)
 // We assume compatible values at this point
 bool MPIDataReducer::groupReduce(MPI_Comm& com, char mystate)
 {
-    throw SplitWorldException("groupReduce Not implemented yet.");
+    throw EsysException("groupReduce Not implemented yet.");
 }
 
 void MPIDataReducer::copyValueFrom(boost::shared_ptr<AbstractReducer>& src)
@@ -575,15 +575,15 @@ void MPIDataReducer::copyValueFrom(boost::shared_ptr<AbstractReducer>& src)
     MPIDataReducer* sr=dynamic_cast<MPIDataReducer*>(src.get());
     if (sr==0)
     {
-        throw SplitWorldException("Source and destination need to be the same reducer types.");
+        throw EsysException("Source and destination need to be the same reducer types.");
     }
     if (sr->value.isEmpty())
     {
-        throw SplitWorldException("Attempt to copy DataEmpty.");
+        throw EsysException("Attempt to copy DataEmpty.");
     }
     if (sr==this)
     {
-        throw SplitWorldException("Source and destination can not be the same variable.");
+        throw EsysException("Source and destination can not be the same variable.");
     }
     value.copy(sr->value);    
     valueadded=true;

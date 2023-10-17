@@ -80,17 +80,12 @@ def sortOutExample(name, needsGMSH=False, needsMPL=False, needsMagicMPL=False, n
 #_deps is for files which end in .py and are required for
 # testing but should not be invoked directly themselves
 
-sortOutExample('usersguide/lid_driven_cavity.py')
-sortOutExample('usersguide/mount.py')
 sortOutExample('usersguide/heatedblock.py')
 sortOutExample('usersguide/helmholtz.py')
-sortOutExample('usersguide/fluid.py')
 sortOutExample('usersguide/poisson.py')
 sortOutExample('usersguide/diffusion.py')
 sortOutExample('usersguide/poisson_vtk.py')
-sortOutExample('usersguide/darcy.py')
 sortOutExample('usersguide/dirac.py')
-sortOutExample('usersguide/slip.py')
 sortOutExample('usersguide/int_save.py')
 sortOutExample('usersguide/wave.py', needsMPL=True)
 sortOutExample('usersguide/trapezoid.py', needsGMSH=True, allowsMPI=False)
@@ -98,13 +93,9 @@ sortOutExample('usersguide/quad.py', needsGMSH=True)
 sortOutExample('usersguide/brick.py', needsGMSH=True)
 sortOutExample('usersguide/refine.py', needsGMSH=True)
 sortOutExample('usersguide/poisson_matplotlib.py', allowsMPI=False)
-sortOutExample('usersguide/voxet_reader.py')
+sortOutExample('usersguide/rosenbrock.py', allowsMPI=False)
+sortOutExample('usersguide/MT.py', allowsMPI=False)
 
-sortOutExample('geotutorial/steadystate_variablek.py')
-sortOutExample('geotutorial/steadystate.py')
-sortOutExample('geotutorial/forward_euler.py')
-sortOutExample('geotutorial/myfirstscript.py')
-sortOutExample('geotutorial/backward_euler.py')
 
 example_deps.append('cookbook/cblib.py')
 sortOutExample('cookbook/example01a.py')
@@ -134,36 +125,6 @@ sortOutExample('cookbook/example10m.py', needsMagicMPL=True, needsGMSH=True, all
 #sortOutExample('cookbook/example10c_1.py', needsMagicMPL=True, needsGMSH=True, allowsMPI=False)
 sortOutExample('cookbook/example11a.py', needsMagicMPL=True, allowsMPI=False)
 sortOutExample('cookbook/example11b.py', needsMagicMPL=True, allowsMPI=False)
-
-sortOutExample('inversion/create_netcdf.py')
-sortOutExample('inversion/grav_ermapper.py')
-sortOutExample('inversion/grav_netcdf.py')
-sortOutExample('inversion/gravmag_netcdf.py')
-sortOutExample('inversion/gravmag_nodriver.py')
-sortOutExample('inversion/mag_netcdf.py')
-sortOutExample('inversion/plot_ermapper.py', needsMPL=True, allowsMPI=False)
-sortOutExample('inversion/plot_netcdf.py', needsMPL=True, allowsMPI=False)
-sortOutExample('inversion/dc_forward.py', needsGMSH=True)
-
-
-sortOutExample('inversion/test_commemi1.py', needsMPL=True, allowsMPI=True)
-sortOutExample('inversion/test_commemi4.py', needsMPL=True, allowsMPI=True)
-
-example_deps.append('inversion/content.txt')
-example_deps.append('inversion/data/GravitySmall')
-example_deps.append('inversion/data/MagneticSmall')
-example_deps.append('inversion/data/QLDWestGravity')
-example_deps.append('inversion/data/QLDWestMagnetic')
-example_deps.append('inversion/data/GravitySmall.ers')
-example_deps.append('inversion/data/MagneticSmall.ers')
-example_deps.append('inversion/data/QLDWestGravity.ers')
-example_deps.append('inversion/data/QLDWestMagnetic.ers')
-example_deps.append('inversion/data/GravitySmall.nc')
-example_deps.append('inversion/data/MagneticSmall.nc')
-example_deps.append('inversion/data/QLDWestGravity.nc')
-example_deps.append('inversion/data/QLDWestMagnetic.nc')
-example_deps.append('inversion/data/HalfSphere_v1.4.msh')
-
 
 if len(skipped_tests)>0:
     env['warnings'].append("gmsh not available. Skipping tests %s!"%' '.join(skipped_tests))
@@ -212,7 +173,6 @@ env.Alias('examples_tarfile', targz)
 
 local_env.SConscript(dirs = ['#/doc/cookbook'], variant_dir='cookbook', duplicate=1)
 local_env.SConscript(dirs = ['#/doc/user'], variant_dir='user', duplicate=1)
-local_env.SConscript(dirs = ['#/doc/inversion'], variant_dir='inversion', duplicate=1)
 local_env.SConscript(dirs = ['#/doc/epydoc'], variant_dir='epydoc', duplicate=1)
 local_env.SConscript(dirs = ['#/doc/sphinx_api'], variant_dir='sphinx_api', duplicate=1)
 local_env.SConscript(dirs = ['#/doc/doxygen'], variant_dir='doxygen', duplicate=1)

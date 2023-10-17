@@ -15,13 +15,13 @@
 
 from __future__ import print_function, division
 
-__copyright__="""Copyright (c) 2003-2018 by The University of Queensland
+__copyright__ = """Copyright (c) 2003-2018 by The University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Apache License, version 2.0
+__license__ = """Licensed under the Apache License, version 2.0
 http://www.apache.org/licenses/LICENSE-2.0"""
-__url__="https://launchpad.net/escript-finley"
-__author__="Cihan Altinay"
+__url__ = "https://launchpad.net/escript-finley"
+__author__ = "Cihan Altinay"
 
 """
 :var __author__: name of author
@@ -38,8 +38,9 @@ from esys.escriptcore.escriptcpp import Data, FunctionSpace
 if HAVE_SYMBOLS:
     import sympy
     
-__all__= ['Symbol']
+__all__ = ['Symbol']
    
+
 class Symbol(object):
     """
     `Symbol` objects are placeholders for a single mathematical symbol, such as
@@ -57,8 +58,8 @@ class Symbol(object):
     """
 
     # these are for compatibility with sympy.Symbol. lambdify checks these.
-    is_Add=False
-    is_Float=False
+    is_Add = False
+    is_Float = False
 
     def __init__(self, *args, **kwargs):
         """
@@ -91,42 +92,42 @@ class Symbol(object):
         if not HAVE_SYMBOLS:
             raise RuntimeError("Trying to instantiate a Symbol but sympy not available")
         if 'dim' in kwargs:
-            self._dim=kwargs.pop('dim')
+            self._dim = kwargs.pop('dim')
         else:
-            self._dim=-1 # undefined
+            self._dim = -1 # undefined
 
         if 'subs' in kwargs:
-            self._subs=kwargs.pop('subs')
+            self._subs = kwargs.pop('subs')
         else:
-            self._subs={}
+            self._subs = {}
 
-        if len(args)==1:
-            arg=args[0]
+        if len(args) == 1:
+            arg = args[0]
             if isinstance(arg, str):
-                if arg.find('[')>=0 or arg.find(']')>=0:
+                if arg.find('[') >= 0 or arg.find(']') >= 0:
                     raise ValueError("Name must not contain '[' or ']'")
-                self._arr=numpy.array(sympy.Symbol(arg, **kwargs))
+                self._arr = numpy.array(sympy.Symbol(arg, **kwargs))
             elif hasattr(arg, "__array__") or isinstance(arg, list):
-                if isinstance(arg, list): arg=numpy.array(arg)
-                arr=arg.__array__()
-                if len(arr.shape)>4:
+                if isinstance(arg, list): arg = numpy.array(arg)
+                arr = arg.__array__()
+                if len(arr.shape) > 4:
                     raise ValueError("Symbol only supports tensors up to order 4")
-                res=numpy.empty(arr.shape, dtype=object)
+                res = numpy.empty(arr.shape, dtype=object)
                 for idx in numpy.ndindex(arr.shape):
                     if hasattr(arr[idx], "item"):
-                        res[idx]=arr[idx].item()
+                        res[idx] = arr[idx].item()
                     else:
-                        res[idx]=arr[idx]
-                self._arr=res
+                        res[idx] = arr[idx]
+                self._arr = res
                 if isinstance(arg, Symbol):
                     self._subs.update(arg._subs)
-                    if self._dim==-1:
-                        self._dim=arg._dim
+                    if self._dim == -1:
+                        self._dim = arg._dim
             elif isinstance(arg, sympy.Basic):
-                self._arr=numpy.array(arg)
+                self._arr = numpy.array(arg)
             else:
                 raise TypeError("Unsupported argument type %s"%str(type(arg)))
-        elif len(args)==2:
+        elif len(args) == 2:
             if not isinstance(args[0], str):
                 raise TypeError("First argument must be a string")
             if not isinstance(args[1], tuple):
@@ -570,7 +571,7 @@ class Symbol(object):
         for i in sh1[:axis_offset]: d01*=i
         arg0_c.resize((d0,d01))
         arg1_c.resize((d01,d1))
-        out=numpy.zeros((d0,d1),numpy.object)
+        out=numpy.zeros((d0,d1), dtype=object)
         for i0 in range(d0):
             for i1 in range(d1):
                 out[i0,i1]=numpy.sum(arg0_c[i0,:]*arg1_c[:,i1])

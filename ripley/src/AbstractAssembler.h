@@ -15,8 +15,8 @@
 **
 *****************************************************************************/
 
-#ifndef __ESCRIPT_ABSTRACTASSEMBLER_H__
-#define __ESCRIPT_ABSTRACTASSEMBLER_H__
+#ifndef __RIPLEY_ABSTRACTASSEMBLER_H__
+#define __RIPLEY_ABSTRACTASSEMBLER_H__
 
 #include <escript/AbstractSystemMatrix.h>
 #include <escript/Data.h>

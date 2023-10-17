@@ -68,9 +68,8 @@ Rectangle::Rectangle(int order, dim_t n0, dim_t n1, double x0, double y0, double
                      double y1, int d0, int d1,
                      const std::vector<double>& points,
                      const std::vector<int>& tags,
-                     const TagMap& tagnamestonums,
-                     escript::SubWorld_ptr w) :
-    SpeckleyDomain(2, order, w)
+                     const TagMap& tagnamestonums) :
+    SpeckleyDomain(2, order)
 {
     if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1)
             > std::numeric_limits<dim_t>::max())
