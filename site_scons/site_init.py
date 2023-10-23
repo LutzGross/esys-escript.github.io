@@ -79,9 +79,8 @@ def findLibWithHeader(env, libs, header, paths, lang='c++', try_link=True):
         # for one
         conf.env.AppendUnique(LIBS = libs)
         if not conf.CheckLibWithHeader(libs[0], header, lang):
-            conf.Finish()
-            raise RuntimeError('Unable to link against %s (paths: %s, %s)'%(libs,inc_path,lib_path))
-
+                conf.Finish()
+                raise RuntimeError('Unable to link against %s (paths: include =%s, lib = %s)'%(libs,inc_path,lib_path))
         conf.Finish()
     return inc_path, lib_path
 
