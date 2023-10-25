@@ -62,5 +62,5 @@ find build -name '*.skipped' -print0 | xargs -0 rm -f
 
 find . -name 'src' -print0 | xargs -0 rm -rf
 rm -rf scons
-rm -rf doc/user doc/cookbook 
+rm -rf doc/user
 find doc -name '*.tex' -print0 | xargs -0 rm -f
