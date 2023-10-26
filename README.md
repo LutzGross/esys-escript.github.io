@@ -23,6 +23,39 @@ For geophyscial inversion see also the extensions [gambit](https://github.com/An
 Further documentation including examples and a user guide for the latest release can be found at
 https://esys-escript.github.io/
 
+## Linux Installation from Source
+
+For the impatient:
+
+- Install at least g++, python, scons, boost, NumPy.
+- READ the file scons/templates/README_FIRST .
+- Copy a suitable template options file from scons/templates/ to scons/hostname_options.py and modify as required.
+- type `scons` to build escript
+
+For information on a specific Linux distribution, please consult the install guide (install.pdf).
+
+## Debian Distribution 
+
+Debian packages [python3-escript-mpi] and [python3-escript] are available.
+
+## Anaconda Installation
+
+To install esys-escript for [anaconda](https://www.anaconda.com), first run conda and then the command
+
+conda install esys-escript -c conda-forge
+
+At present, this is the recommended way to run esys-escript on Windows.
+
+## Using esys-escript
+
+To get started using escript please consult the user guide (user.pdf). 
+All of these documents are available here and at https://esys-escript.github.io/
+
+Click on this button to try out esys-escript in your web browser:
+
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/esys-escript/esys-escript.github.io/HEAD)
+
+
 ## The project is funded by the
    - [AuScope National Collaborative Research Infrastructure Strategy (NCRIS)](https://www.auscope.org.au/) (until end of 2023),
    - Australian Geophysical Observing System (AGOS) (ended 2014),
@@ -36,35 +69,6 @@ Interface modeling in incompressible media using level sets in Escript,
 Physics of the Earth and Planetary Interiors,
 Volume 163, Issues 1–4, 2007,
 Pages 23-34](doi:10.1016/j.pepi.2007.04.004)
-
-
-## Anaconda Installation
-
-To install esys-escript for [anaconda](https://www.anaconda.com), first run conda and then the command
-
-conda install esys-escript -c conda-forge
-
-At present, this is the recommended way to run esys-escript on Windows.
-
-## Linux Installation
-
-For the impatient:
-
-- Install at least g++, python, scons, boost, NumPy.
-- READ the file scons/templates/README_FIRST .
-- Copy a suitable template options file from scons/templates/ to scons/hostname_options.py and modify as required.
-- type `scons` to build escript
-
-For information on a specific Linux distribution, please consult the install guide (install.pdf).
-
-## Using esys-escript
-
-To get started using escript please consult the user guide (user.pdf). 
-All of these documents are available here and at https://esys-escript.github.io/
-
-Click on this button to try out esys-escript in your web browser:
-
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/esys-escript/esys-escript.github.io/HEAD)
 
 ## Questions & Bugs 
 
