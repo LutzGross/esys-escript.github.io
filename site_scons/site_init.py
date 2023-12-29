@@ -230,7 +230,7 @@ def runPyUnitTest(target, source, env):
    if os.name=="nt":
        if env['usempi']:
            app = "cd %s & mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
-              "FINLEY_TEST_DATA,PATH %s\pythonMPIredirect.exe %s"\
+              "FINLEY_TEST_DATA,PATH %s pythonMPIredirect.exe %s"\
               %(pn,env['ENV']['ESCRIPT_NUM_NODES'],env['libinstall'],sn)
        else:
            app = "cd "+ pn +" & "+sys.executable + " " + sn
@@ -259,7 +259,7 @@ def runPyExample(target, source, env):
    if os.name=="nt":
        if env['usempi']:
            app = "cd %s & mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
-              "FINLEY_TEST_DATA,PATH %s\pythonMPIredirect.exe %s"\
+              "FINLEY_TEST_DATA,PATH %s pythonMPIredirect.exe %s"\
               %(pn,env['ENV']['ESCRIPT_NUM_NODES'],env['libinstall'],sn)
        else:
            app = "cd "+ pn +" & "+sys.executable + " " + sn

@@ -5,18 +5,17 @@ rm -f CMakeCache.txt
 TRI_INSTALL_PREFIX=$1"/escript_trilinos"
 
 cmake \
-      -D CMAKE_INSTALL_PREFIX=$TRI_INSTALL_PREFIX \
+      -D CMAKE_INSTALL_PREFIX=$TRI_INSTALL_PREFIX\
       -D Trilinos_ENABLE_CXX11=ON \
       -D Trilinos_ENABLE_Fortran=OFF \
       -D CMAKE_C_COMPILER=$2 \
       -D CMAKE_CXX_COMPILER=$3 \
-      -D CMAKE_CXX_FLAGS=" -Wno-unused-parameter" \
+      -D CMAKE_CXX_FLAGS="-std=c++17 -Wno-unused-parameter" \
       -D BUILD_SHARED_LIBS=ON \
       -D TPL_ENABLE_BLAS=ON \
       -D TPL_ENABLE_Boost=ON \
       -D TPL_ENABLE_Cholmod=OFF \
       -D TPL_ENABLE_SCALAPACK=OFF \
-      -D SCALAPACK_LIBRARY_NAMES='libscalapack-openmpi.so' \
       -D TPL_ENABLE_ParMETIS=OFF \
       -D TPL_ENABLE_MUMPS=OFF \
       -D TPL_ENABLE_SuperLU=OFF \
@@ -49,5 +48,5 @@ cmake \
       -D Amesos2_ENABLE_Basker=ON \
       -D Tpetra_INST_SERIAL:BOOL=ON \
       -D Trilinos_ENABLE_TESTS=OFF \
-      ../trilinos_source
+      $5
 #-D TPL_Cholmod_LIBRARIES='libcholmod.so;libamd.so;libcolamd.so' \

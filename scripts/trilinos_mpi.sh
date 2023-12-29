@@ -2,7 +2,7 @@
 
 rm -f CMakeCache.txt
 
-TRI_INSTALL_PREFIX=$1"/escript_trilinos"
+TRI_INSTALL_PREFIX=$1
 
 cmake \
       -D CMAKE_INSTALL_PREFIX=$TRI_INSTALL_PREFIX \
@@ -55,4 +55,4 @@ cmake \
       -D Amesos2_ENABLE_Basker=ON \
       -D Tpetra_INST_SERIAL:BOOL=ON \
       -D Trilinos_ENABLE_TESTS=OFF \
-      ../trilinos_source
+      $5

@@ -175,6 +175,7 @@ vars.AddVariables(
   EnumVariable('version_information', 'Instructs scons to create symlinks to the library files','0.0',allowed_values=version_info),
   BoolVariable('mpi4py', 'Compile with mpi4py.', False),
   BoolVariable('use_p4est', 'Compile with p4est.', True),
+  ('trilinos_dir', 'directory of trilions relative esys-escript ', 'trilinos_source15'),
   ('trilinos_LO', 'Manually specify the LO used by Trilinos.', ''),
   ('trilinos_GO', 'Manually specify the GO used by Trilinos.', '')
 )
@@ -340,6 +341,8 @@ sysheaderopt = '' # how to indicate that a header is a system header
 
 # env['CC'] might be a full path
 cxx_name=os.path.basename(env['CXX'])
+#
+# this should be done via import of an appropriate template:
 
 if cxx_name == 'icpc':
     # Intel compiler
@@ -472,8 +475,7 @@ elif cxx_name == 'mpiicpc':
     sysheaderopt = "-isystem"
 
 if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
-    env['trilinos_prefix']=os.path.join(env['prefix'],'escript_trilinos')
-    print("")
+    env['trilinos_prefix']=os.path.join(env['prefix'],env['trilinos_dir'])
     if not env['cc'] == 'default ':
         os.environ['CC'] = env['cc']
     if not env['cxx'] == 'default ':
@@ -491,22 +493,23 @@ if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
     print(env['prefix'])
     print(env['CC'])
     print(env['CXX'])
+    SHARGS = env['prefix'] + " " + env['CC'] + " " + env['CXX'] + " " + OPENMPFLAG + " " + env['trilinos_prefix']
     if env['trilinos_make'] == 'default':
         if env['mpi'] not in [ 'none', 'no', True]:
-            source=startdir+"/scripts/trilinos_mpi.sh"
-            dest=env['trilinos_build'] + "/trilinos_mpi.sh"
-            shutil.copy(source,dest)
+            source=startdir + "/scripts/trilinos_mpi.sh"
+            dest=env['trilinos_build'] + "/trilinos_mpi.sh "
+            shutil.copy(source, dest)
             print("Building (MPI) trilinos..............................")
-            configure="sh trilinos_mpi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX'] + " " + OPENMPFLAG
+            configure="sh trilinos_mpi.sh " + SHARGS
         else:
-            source=startdir+"/scripts/trilinos_nompi.sh"
+            source=startdir + "/scripts/trilinos_nompi.sh"
             dest=env['trilinos_build'] + "/trilinos_nompi.sh"
-            shutil.copy(source,dest)
+            shutil.copy(source, dest)
             print("Building (no MPI) trilinos..............................")
-            configure="sh trilinos_nompi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX'] + " " + OPENMPFLAG
+            configure="sh trilinos_nompi.sh " + SHARGS
     else:
         shutil.copy(env['trilinos_make'], "hostmake.sh")
-        configure="sh hostmake.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX'] + " " + OPENMPFLAG
+        configure="sh hostmake.sh " + SHARGS
 
     print("Running: "+configure)
     res=os.system(configure)

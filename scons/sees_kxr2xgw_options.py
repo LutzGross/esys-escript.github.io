@@ -19,6 +19,8 @@
 # Refer to README_FIRST for usage instructions.
 #
 # install Xcode + line commands (start Xcode to accept licence conditions)
+
+
 # sudo port install clang-14
 # sudo port select --set pygments py310-pygments
 # sudo port install scons
@@ -50,39 +52,10 @@
 
 # "-I/opt/local/include/libomp -L/opt/local/lib/libomp -fopenmp" ???
 
-escript_opts_version = 203
-openmp = True
+from templates.homebrew_options import *
+
+
 #cxx_extra = '-Wimplicit-function-declaration -Wno-string-concatenation -fopenmp' # --target arm64-apple-macosx13.0.0'
 # ld_extra='-v'# -L/Users/uqlgross/PycharmProjects/esys-escript.github.io/build/darwin/escriptcore/src'
-boost_prefix = '/opt/local'
-boost_libs = ['boost_python310-mt']
 
-#cppunit_prefix = '/opt/local'
-netcdf = 4
-netcdf_prefix = '/opt/local'
-netcdf_libs=['netcdf_c++4', 'netcdf']
-
-silo = False
-silo_prefix = '/usr/local'
-silo_libs = ['silo']
-
-
-lapack = False
-lapack_prefix = '/usr/local'
-
-
-#tools_names = ['llvm-g++'] # -mp-14']
-compression_libs = ['boost_iostreams-mt']
-
-umfpack = True
-umfpack_prefix = '/opt/local'
-build_trilinos = False
-
-#cxx_extra = ''
-#ld_extra = '-v'
-#cxx = "/opt/homebrew/bin/g++-12"
-#cxx = "/usr/bin/clang++"
-
-cxx = "/opt/local/bin/clang++-mp-14"
-#cxx_extra = '-std=c++11'
 
