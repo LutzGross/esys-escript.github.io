@@ -2,7 +2,7 @@
 
 rm -f CMakeCache.txt
 
-TRI_INSTALL_PREFIX=$1"/escript_trilinos"
+TRI_INSTALL_PREFIX=$1
 
 cmake \
       -D CMAKE_INSTALL_PREFIX=$TRI_INSTALL_PREFIX\
@@ -10,7 +10,7 @@ cmake \
       -D Trilinos_ENABLE_Fortran=OFF \
       -D CMAKE_C_COMPILER=$2 \
       -D CMAKE_CXX_COMPILER=$3 \
-      -D CMAKE_CXX_FLAGS="-std=c++17 -Wno-unused-parameter" \
+      -D CMAKE_CXX_FLAGS=" -Wno-unused-parameter" \
       -D BUILD_SHARED_LIBS=ON \
       -D TPL_ENABLE_BLAS=ON \
       -D TPL_ENABLE_Boost=ON \
@@ -39,6 +39,7 @@ cmake \
       -D Tpetra_INST_COMPLEX_DOUBLE=ON \
       -D Trilinos_ENABLE_COMPLEX_DOUBLE=ON \
       -D Teuchos_ENABLE_COMPLEX=ON \
+      -D Teuchos_ENABLE_THREAD_SAFE=ON \
       -D Tpetra_INST_INT_INT=ON \
       -D Tpetra_ENABLE_DEPRECATED_CODE=ON \
       -D Trilinos_ENABLE_OpenMP=ON \

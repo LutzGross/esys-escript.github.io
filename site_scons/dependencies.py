@@ -226,7 +226,6 @@ def checkPython(env):
             python_lib_path = lines[1].strip()
             python_libs = [lines[2].strip()]
             verstring = lines[3].strip()
-            print((python_lib_path, python_libs,verstring, python_inc_path))
         else:
             (python_lib_path, python_libs,verstring, python_inc_path)=call_python_config(env['pythoncmd'])
     
@@ -234,19 +233,11 @@ def checkPython(env):
         python_inc_path=python_inc_path.decode()
     if isinstance(python_lib_path, bytes):
         python_lib_path=python_lib_path.decode()
-
-    if sys.version_info[0] == 3:
-        if isinstance(verstring, str) is False:
-            verstring = str(verstring, 'utf-8')
-    else:
-        if isinstance(verstring, basestring) is False:
-            verstring = str(verstring, 'utf-8')
-
     env['python_version'] = verstring
     try:
         ispython3 = (verstring[0] == '3')
     except:
-        ispython3 = sys.version_info[0] == 3
+        ispython3 = True
     if ispython3:
         env.Append(CPPDEFINES=['ESPYTHON3'])
     env['buildvars']['python_version'] = verstring
@@ -269,7 +260,6 @@ def checkPython(env):
         conf.env.AppendUnique(CPPPATH = [python_inc_path])
     else:
         conf.env.Append(CCFLAGS = [env['sysheaderopt'], python_inc_path])
-
     conf.env.AppendUnique(LIBPATH = [python_lib_path])
     conf.env.AppendUnique(LIBS = python_libs)
     # The wrapper script needs to find the libs
@@ -299,7 +289,9 @@ def checkCudaVersion(env):
     return env
 
 def checkBoost(env):
-    boost_inc_path,boost_lib_path=findLibWithHeader(env, env['boost_libs'], 'boost/python.hpp', env['boost_prefix'], lang='c++')
+
+    boost_inc_path, boost_lib_path = findLibWithHeader(env, env['boost_libs'], 'boost/python.hpp', env['boost_prefix'], lang='c++')
+
     if env['sysheaderopt'] == '':
         env.AppendUnique(CPPPATH = [boost_inc_path])
     else:
@@ -310,7 +302,7 @@ def checkBoost(env):
         else:
             env.Append(CCFLAGS=[env['sysheaderopt'], boost_inc_path])
 
-    env.AppendUnique(LIBPATH = [boost_lib_path])
+    env.AppendUnique(LIBPATH = [ boost_lib_path ])
     env.AppendUnique(LIBS = env['boost_libs'])
     env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_lib_path)
 
@@ -336,20 +328,23 @@ def checkBoost(env):
 
     # Check for the boost numpy library
     env['have_boost_numpy']=False
-    if boostversion >= 106300 and env['disable_boost_numpy'] is False:
+    if boostversion >= 106300 and not env['disable_boost_numpy'] :
         try:
-            boost_numpy_inc_path,boost_numpy_lib_path=findLibWithHeader(env, env['boost_libs'], 'boost/python/numpy.hpp', env['boost_prefix'], lang='c++')
-
+            boost_numpy_inc_path, boost_numpy_lib_path = \
+                findLibWithHeader(env, env['boost_libs'], 'boost/python/numpy.hpp', env['boost_prefix'], lang='c++')
             # Locate the boost numpy files
             if env['IS_WINDOWS']:
                 # windows scons template adds boost_numpy to boost_libs
-                env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
+                env['have_boost_numpy'] = True
+                print("Found boost/python/numpy.hpp. Building with boost numpy support.")
+            elif env['IS_OSX']:
+                env['have_boost_numpy'] = True
+                print("Found boost/python/numpy.hpp. Building with boost numpy support.")
             else:
                 p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 out,err = p.communicate()
                 if hasattr(out, 'decode'):
                     out=out.decode()
-
                 spath = [x[13:-3] for x in out.split() if 'SEARCH_DIR' in x]
                 spath.append(boost_lib_path)
                 spath.append('/usr/lib/x86_64-linux-gnu/')
@@ -373,14 +368,14 @@ def checkBoost(env):
                     env.AppendUnique(CPPPATH = [boost_numpy_inc_path])
                     env.AppendUnique(LIBPATH = [boost_numpy_lib_path])
                     env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
-                    env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
                     env['have_boost_numpy']=True
                 else:
                     print("Warning: Could not find boost/python/numpy.hpp (wrong folder?). Building without numpy support.")
-            print("Found boost/python/numpy.hpp. Building with boost numpy support.")
+
         except:
             print("Warning: Could not find boost/python/numpy.hpp. Building without numpy support.")
-
+    if env['have_boost_numpy'] :
+        env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
     # Check if the version of boost we are using is missing BOOST_BYTE_ORDER
     if boostversion >= 107000:
         env.Append(CPPDEFINES=['ESYS_DEPRECATED_BOOST_ENDIAN'])
@@ -397,11 +392,8 @@ def checkNumpy(env):
     ## check for numpy header (optional)
     conf = Configure(env.Clone())
     numpy_h = False
-    if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
-        numpy_h = True
-    else:
-        conda_prefix = os.environ.get('CONDA_PREFIX')
-        if conda_prefix:
+    conda_prefix = os.environ.get('CONDA_PREFIX')
+    if conda_prefix:
             # make a copy of CPPPATH so it can be restored if header check fails
             cpp_path_old = conf.env.get('CPPPATH', []).copy()
             conf.env.Append(CPPPATH = [conda_prefix+'/Lib/site-packages/numpy/core/include'])
@@ -409,7 +401,18 @@ def checkNumpy(env):
                 numpy_h = True
             else:
                 conf.env['CPPPATH'] = cpp_path_old
-
+    elif env['IS_OSX']:
+        # make a copy of CPPPATH so it can be restored if header check fails
+        cpp_path_old = conf.env.get('CPPPATH', []).copy()
+        conf.env.Append(CPPPATH=[
+            f'/opt/homebrew/lib/python{env["python_version"][:env["python_version"].find(".",2)]}/site-packages/numpy/core/include'])
+        if conf.CheckCXXHeader(['Python.h', 'numpy/ndarrayobject.h']):
+            numpy_h = True
+        else:
+            conf.env['CPPPATH'] = cpp_path_old
+    else:
+        if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
+            numpy_h = True
     conf.env['numpy_h'] = numpy_h
     if numpy_h:
         conf.env.Append(CPPDEFINES = ['ESYS_HAVE_NUMPY_H'])
@@ -847,40 +850,7 @@ def checkOptionalLibraries(env):
         env['buildvars']['parmetis_lib_path']=parmetis_lib_path
     env['buildvars']['parmetis']=int(env['parmetis'])
 
-    ######## gmsh (for tests)
-    env['gmsh'] = False
-    if env['use_gmsh'] is True:
-        if env['IS_WINDOWS']:
-            try:
-                p=Popen(['gmsh', '-info'], stderr=PIPE)
-                _,e=p.communicate()
-                env.Append(CPPDEFINES=['ESYS_HAVE_GMSH'])
-                if e.split().count("MPI"):
-                    env['gmsh']='m'
-                    env.Append(CPPDEFINES=['ESYS_GMSH_MPI'])
-                else:
-                    env['gmsh']='s'
-            except OSError:
-                pass
-        else:
-            which = Popen(['which', 'gmsh'], stdout=PIPE)
-            path,_ = which.communicate()
-            if which.wait() == 0:
-                cmd = ['ldd', path[:-1]]
-                if env['IS_OSX']:
-                    cmd = ['otool','-L', path[:-1]]
-                try:
-                    p=Popen(cmd, stdout=PIPE)
-                    gmshlibs,_ = p.communicate()
-                    gmshlibs.decode()
-                    env.Append(CPPDEFINES=['ESYS_HAVE_GMSH'])
-                    if p.returncode == 0 and 'libmpi' in gmshlibs.decode('utf-8'):
-                        env['gmsh'] = 'm'
-                        env.Append(CPPDEFINES=['ESYS_GMSH_MPI'])
-                    else:
-                        env['gmsh'] = 's'
-                except OSError:
-                    pass
+
 
     ######## boost::iostreams
     if env['compressed_files']:

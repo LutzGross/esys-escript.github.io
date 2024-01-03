@@ -17,7 +17,7 @@ EnsureSConsVersion(0,98,1)
 EnsurePythonVersion(3,1)
 
 import atexit, sys, os, platform, re, shutil
-from distutils import sysconfig
+#from distutils import sysconfig
 from dependencies import *
 from site_init import *
 
@@ -107,7 +107,7 @@ vars.AddVariables(
   EnumVariable('mpi', 'Compile parallel version using MPI flavour', 'none', allowed_values=mpi_flavours),
   ('mpi_prefix', 'Prefix/Paths of MPI installation', default_prefix),
   ('mpi_libs', 'MPI shared libraries to link with', ['mpi']),
-  BoolVariable('use_gmsh', 'Enable gmsh, if available', True),
+  BoolVariable('gmsh', 'Enable gmsh, if available', True),
   BoolVariable('use_sympy', 'Enable sympy, if available. Currently the sympy-escript connection is not working due to a problem with code printing. By default symbols are not installed.', False),
   EnumVariable('netcdf', 'Enable netCDF file support', False, allowed_values=netcdf_flavours),
   ('netcdf_prefix', 'Prefix/Paths of netCDF installation', default_prefix),
@@ -131,12 +131,14 @@ vars.AddVariables(
   BoolVariable('silo', 'Enable the Silo file format in weipa', False),
   ('silo_prefix', 'Prefix/Paths to Silo installation', default_prefix),
   ('silo_libs', 'Silo libraries to link with', ['siloh5', 'hdf5']),
-  BoolVariable('trilinos', 'Enable the Trilinos solvers (overwriten when trilinos is built)', False),
-  EnumVariable('build_trilinos', 'Instructs scons to build the trilinos library.', "False", allowed_values=build_trilinos_flavours),
-  ('trilinos_make', 'path to shell script to run trilinos make.', 'default'),
-  ('trilinos_prefix', 'Prefix/Paths to Trilinos installation', default_prefix),
+  BoolVariable('trilinos', 'Enable the Trilinos solvers (overwritten when trilinos is built)', False),
+  EnumVariable('build_trilinos', 'Instructs scons to build the trilinos library.', "make", allowed_values = build_trilinos_flavours),
+  ('trilinos_prefix', 'Prefix/Paths to Trilinos installation (need to be set  if if build_trilinos = False).', default_prefix),
   ('trilinos_libs', 'Trilinos libraries to link with', []),
-  PathVariable('trilinos_build', 'Top-level build directory for trilinos', Dir('#/trilinos_build').abspath, PathVariable.PathIsDirCreate),
+  PathVariable('trilinos_src', 'Top-level source directory for trilinos.', Dir('trilinos_source15').abspath, PathVariable.PathIsDir),
+  PathVariable('trilinos_build', 'Top-level build directory for trilinos.', Dir('#/build_trilinos').abspath, PathVariable.PathIsDirCreate),
+  PathVariable('trilinos_install', 'Top-level install directory for trilinos when built', Dir('#/escript_trilinos').abspath, PathVariable.PathIsDirCreate),
+  ('trilinos_make_sh', 'path to a shell script to run trilinos make.', 'default'),
   BoolVariable('visit', 'Enable the VisIt simulation interface', False),
   ('visit_prefix', 'Prefix/Paths to VisIt installation', default_prefix),
   ('visit_libs', 'VisIt libraries to link with', ['simV2']),
@@ -175,7 +177,6 @@ vars.AddVariables(
   EnumVariable('version_information', 'Instructs scons to create symlinks to the library files','0.0',allowed_values=version_info),
   BoolVariable('mpi4py', 'Compile with mpi4py.', False),
   BoolVariable('use_p4est', 'Compile with p4est.', True),
-  ('trilinos_dir', 'directory of trilions relative esys-escript ', 'trilinos_source15'),
   ('trilinos_LO', 'Manually specify the LO used by Trilinos.', ''),
   ('trilinos_GO', 'Manually specify the GO used by Trilinos.', '')
 )
@@ -188,7 +189,9 @@ vars.AddVariables(
 
 # PATH is needed so the compiler, linker and tools are found if they are not
 # in default locations.
-env = Environment(tools = ['default'], options = vars,
+#env = Environment(tools = ['default'] + [ 'applelink' ], options = vars,
+
+env = Environment(tools = ['default'] , options = vars,
                   ENV = {'PATH': os.environ['PATH']})
 
 # check options file version:
@@ -204,7 +207,8 @@ if options_file:
         print("is outdated! Please update the file after reading scons/templates/README_FIRST")
         print("and setting escript_opts_version to %d.\n"%REQUIRED_OPTS_VERSION)
         Exit(1)
-
+env['IS_WINDOWS']=IS_WINDOWS
+env['IS_OSX']=IS_OSX
 ################# Fill in compiler options if not set above ##################
 if env['cxx'] != 'default':
     env['CXX'] = env['cxx']
@@ -234,6 +238,7 @@ if env['tools_names'] != ['default']:
     else:
         env = Environment(tools = ['default'] + env['tools_names'], options = vars,
                       ENV = {'PATH' : os.environ['PATH']} )
+
 
 # Generate help text (scons -h)
 Help(vars.GenerateHelpText(env))
@@ -475,56 +480,53 @@ elif cxx_name == 'mpiicpc':
     sysheaderopt = "-isystem"
 
 if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
-    env['trilinos_prefix']=os.path.join(env['prefix'],env['trilinos_dir'])
-    if not env['cc'] == 'default ':
-        os.environ['CC'] = env['cc']
-    if not env['cxx'] == 'default ':
-        os.environ['CXX'] = env['cxx']
-    startdir=os.getcwd()
     if os.path.isdir(env['trilinos_build']) is False: # create a build folder if the user deleted it
         os.mkdir(env['trilinos_build'])
-    os.chdir(env['trilinos_build'])
+    #os.chdir(env['trilinos_build'])
     if env['openmp']:
         OPENMPFLAG='ON'
     else:
         OPENMPFLAG='OFF'
+    if not env['cc'] == 'default ':
+        os.environ['CC'] = env['cc']
+    if not env['cxx'] == 'default ':
+        os.environ['CXX'] = env['cxx']
+    SHARGS = [ env['trilinos_install'], env['CC'],  env['CXX'], OPENMPFLAG, env['trilinos_src'] ]
 
-    print("Building Trilinos using")
-    print(env['prefix'])
-    print(env['CC'])
-    print(env['CXX'])
-    SHARGS = env['prefix'] + " " + env['CC'] + " " + env['CXX'] + " " + OPENMPFLAG + " " + env['trilinos_prefix']
-    if env['trilinos_make'] == 'default':
+    print("Initialization of Trilinos build using", SHARGS )
+
+    if env['trilinos_make_sh'] == 'default':
         if env['mpi'] not in [ 'none', 'no', True]:
-            source=startdir + "/scripts/trilinos_mpi.sh"
-            dest=env['trilinos_build'] + "/trilinos_mpi.sh "
-            shutil.copy(source, dest)
+            #source=startdir + "/scripts/trilinos_mpi.sh"
+            shutil.copy("scripts/trilinos_mpi.sh", env['trilinos_build'] + "/trilinos_mpi.sh ")
             print("Building (MPI) trilinos..............................")
-            configure="sh trilinos_mpi.sh " + SHARGS
+            SH ="trilinos_mpi.sh"
         else:
-            source=startdir + "/scripts/trilinos_nompi.sh"
-            dest=env['trilinos_build'] + "/trilinos_nompi.sh"
-            shutil.copy(source, dest)
+            #source=startdir + "/scripts/trilinos_nompi.sh"
+            shutil.copy("scripts/trilinos_nompi.sh", env['trilinos_build'] + "/trilinos_nompi.sh")
             print("Building (no MPI) trilinos..............................")
-            configure="sh trilinos_nompi.sh " + SHARGS
+            SH = "trilinos_nompi.sh"
     else:
-        shutil.copy(env['trilinos_make'], "hostmake.sh")
-        configure="sh hostmake.sh " + SHARGS
-
-    print("Running: "+configure)
-    res=os.system(configure)
-    if res :
-        print(">>> Installation of trilinos failed. Scons stopped.")
+        shutil.copy(env['trilinos_make_sh'], env['trilinos_build'] + "hostmake.sh")
+        SH = "hostmake.sh"
+    import subprocess
+    p_init = subprocess.run(['sh', SH ] + SHARGS, capture_output=False, cwd =  env['trilinos_build'],  text=True)
+    if p_init.returncode :
+        print(">>> Initialization of Trilinos build failed. Scons stopped.")
         Exit(1)
-    if env['build_trilinos'] == "True" or  env['build_trilinos'] == "make" or env['build_trilinos'] == "check":
-            res=os.system('make -j%s install'%GetOption("num_jobs"))
-    else:
-            res=os.system('make --always-make  -j%s install'%GetOption("num_jobs"))
-    if res :
-        print(">>> Installation of trilinos failed. Scons stopped.")
+
+    SHARGS = [ ]
+    if env['build_trilinos'] == "always" :
+            SHARGS += ['--always-make']
+    SHARGS += [ f'-j{GetOption("num_jobs")}', 'install' ]
+    print("Trilinos build using", SHARGS)
+    p_make = subprocess.run( [ 'make' ] + SHARGS, capture_output=False, cwd =  env['trilinos_build'],  text=True)
+    if p_make.returncode :
+        print(">>> Installation of Trilinos failed. Scons stopped.")
         Exit(1)
     env['trilinos'] = True
-    os.chdir(startdir)
+    env['trilinos_prefix'] = env['trilinos_install']
+    #os.chdir(startdir)
 
 env['sysheaderopt']=sysheaderopt
 
@@ -540,8 +542,11 @@ if env['ld_extra']  != '': env.Append(LINKFLAGS = env['ld_extra'])
 if env['version_information'] != '0.0':
     env['SHLIBVERSION']=env['version_information']
     env['LDMODULEVERSION']=env['version_information']
-sonameflags=" -Wl,-soname=$_SHLIBSONAME "
-env.Append(LINKFLAGS = sonameflags)
+
+if env['IS_OSX']:
+    env['SHLIBSONAMEFLAGS'] =  " -Wl, -install_name=$_SHLIBSONAME "
+else:
+    env['SHLIBSONAMEFLAGS'] = " -Wl,-soname=$_SHLIBSONAME "
 
 if env['longindices']:
   if env['paso']:
@@ -657,8 +662,7 @@ env['svn_revision']=global_revision
 env['buildvars']['svn_revision']=global_revision
 env.Append(CPPDEFINES=['GIT_BUILD'])
 
-env['IS_WINDOWS']=IS_WINDOWS
-env['IS_OSX']=IS_OSX
+
 
 ###################### Copy required environment vars ########################
 
@@ -756,6 +760,7 @@ env=checkCppUnit(env)
 env=checkOptionalModules(env)
 
 ######## optional dependencies (netCDF, MKL, UMFPACK, MUMPS, Lapack, Silo, ...)
+
 env=checkOptionalLibraries(env)
 
 ######## PDFLaTeX (for documentation)
@@ -1042,19 +1047,6 @@ def print_summary():
         print("          LAPACK:  YES (flavour: %s)"%env['lapack'])
     else:
         d_list.append('lapack')
-    if env['gmshpy']:
-        gmshpy=" + python module"
-    else:
-        gmshpy=""
-    if env['gmsh']=='m':
-        print("            gmsh:  YES, MPI-ENABLED"+gmshpy)
-    elif env['gmsh']=='s':
-        print("            gmsh:  YES"+gmshpy)
-    else:
-        if env['gmshpy']:
-            print("            gmsh:  python module only")
-        else:
-            d_list.append('gmsh')
     if env['compressed_files']:
         print("            gzip:  YES")
     else:
@@ -1112,6 +1104,9 @@ def print_summary():
         print("\nERROR: build stopped due to errors\n")
     else:
         print("\nSUCCESS: build complete\n")
+
+    print("Add to PYTHONPATH :", env['prefix'])
+    print("Add to LD_LIBRARY_PATH :", os.path.join(env['prefix'], 'lib'), ":",  )
 
     print("If publishing results using esys-escript, please cite us: https://esys-escript.github.io/")
 

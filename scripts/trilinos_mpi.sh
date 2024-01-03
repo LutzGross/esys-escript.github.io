@@ -2,7 +2,7 @@
 
 rm -f CMakeCache.txt
 
-TRI_INSTALL_PREFIX=$1
+TRI_INSTALL_PREFIX=$1/
 
 cmake \
       -D CMAKE_INSTALL_PREFIX=$TRI_INSTALL_PREFIX \
@@ -45,6 +45,7 @@ cmake \
       -D Tpetra_INST_COMPLEX_DOUBLE=ON \
       -D Trilinos_ENABLE_COMPLEX_DOUBLE=ON \
       -D Teuchos_ENABLE_COMPLEX=ON \
+      -D Teuchos_ENABLE_THREAD_SAFE=ON \
       -D Tpetra_INST_INT_INT=ON \
       -D Tpetra_ENABLE_DEPRECATED_CODE=ON \
       -D Trilinos_ENABLE_OpenMP=ON \

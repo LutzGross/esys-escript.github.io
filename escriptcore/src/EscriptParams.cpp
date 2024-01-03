@@ -106,14 +106,6 @@ EscriptParams::EscriptParams()
     features.insert("longindex");
 #endif
 
-    //TODO: these should be replaced by a runtime check in python
-#ifdef ESYS_HAVE_GMSH
-    features.insert("gmsh");    
-#endif
-#ifdef ESYS_GMSH_MPI
-    features.insert("gmsh_mpi");
-#endif
-
 #ifdef ESYS_HAVE_BOOST_NUMPY
     features.insert("boostnumpy");
 #endif
