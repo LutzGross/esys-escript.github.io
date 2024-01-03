@@ -133,7 +133,7 @@ vars.AddVariables(
   ('silo_libs', 'Silo libraries to link with', ['siloh5', 'hdf5']),
   BoolVariable('trilinos', 'Enable the Trilinos solvers (overwritten when trilinos is built)', False),
   EnumVariable('build_trilinos', 'Instructs scons to build the trilinos library.', "make", allowed_values = build_trilinos_flavours),
-  ('trilinos_prefix', 'Prefix/Paths to Trilinos installation (need to be set  if if build_trilinos = False).', default_prefix),
+  ('trilinos_prefix', 'Prefix/Paths to Trilinos installation (need to be set  if build_trilinos = False).', default_prefix),
   ('trilinos_libs', 'Trilinos libraries to link with', []),
   PathVariable('trilinos_src', 'Top-level source directory for trilinos.', Dir('trilinos_source15').abspath, PathVariable.PathIsDir),
   PathVariable('trilinos_build', 'Top-level build directory for trilinos.', Dir('#/build_trilinos').abspath, PathVariable.PathIsDirCreate),
@@ -1106,7 +1106,7 @@ def print_summary():
         print("\nSUCCESS: build complete\n")
 
     print("Add to PYTHONPATH :", env['prefix'])
-    print("Add to LD_LIBRARY_PATH :", os.path.join(env['prefix'], 'lib'), ":",  )
+    print("Add to LD_LIBRARY_PATH :", os.path.join(env['prefix'], 'lib')+":"+os.path.join(env['trilinos_prefix'], 'lib') )
 
     print("If publishing results using esys-escript, please cite us: https://esys-escript.github.io/")
 

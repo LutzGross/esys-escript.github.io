@@ -404,8 +404,9 @@ def checkNumpy(env):
     elif env['IS_OSX']:
         # make a copy of CPPPATH so it can be restored if header check fails
         cpp_path_old = conf.env.get('CPPPATH', []).copy()
+        pypth = env['pythoncmd'][:env['pythoncmd'].index('bin')-1]
         conf.env.Append(CPPPATH=[
-            f'/opt/homebrew/lib/python{env["python_version"][:env["python_version"].find(".",2)]}/site-packages/numpy/core/include'])
+            f'{pypth}/lib/python{env["python_version"][:env["python_version"].find(".",2)]}/site-packages/numpy/core/include'])
         if conf.CheckCXXHeader(['Python.h', 'numpy/ndarrayobject.h']):
             numpy_h = True
         else:
