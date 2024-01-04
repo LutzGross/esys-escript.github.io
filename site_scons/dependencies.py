@@ -528,10 +528,12 @@ def checkForTrilinos(env):
             minor=int(str(trilinos_version)[2:4])
             tmp=int(str(trilinos_version)[4:6])
             env['trilinos_version'] = str(major)+"."+str(minor)+"."+str(tmp)
-            if major >= 14:
+            if major == 14 and minor <2 :
                 env.Append(CPPDEFINES = ['ESYS_TRILINOS_14'])
-            if major >= 14 and minor >=2:
+            elif major == 14 and minor >=2:
                 env.Append(CPPDEFINES = ['ESYS_TRILINOS_14_2'])
+            else:
+                env.Append(CPPDEFINES = ['ESYS_TRILINOS_15'])
 
     if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix.hpp')):
         print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix.hpp', "yes") )

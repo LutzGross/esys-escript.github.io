@@ -41,6 +41,7 @@ mpi = 'no'
 #mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 import glob
 GCC=[ os.path.join(HOMEBREW_PREFIX, 'bin', 'g++-13') ]
+cxx_extra = "-Wno-error=maybe-uninitialized"
 
 assert  len(GCC) > 0, "unable to find gcc compiler in "+ os.path.join(HOMEBREW_PREFIX, 'bin')
 cxx = GCC[0]
