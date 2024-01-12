@@ -26,17 +26,18 @@
 #include <escript/index.h>
 #include <escript/SolverOptions.h>
 
-#ifdef ESYS_TRILINOS_14
+//#ifdef ESYS_TRILINOS_14
 #include "Teuchos_ArrayRCPDecl.hpp"
-#else
-#include "Tpetra_createDeepCopy_CrsMatrix.hpp"
-#endif
+//#else
+//#include "Tpetra_createDeepCopy_CrsMatrix.hpp"
+//#endif
 
-#ifdef ESYS_NO_KOKKOSCOMPAT
-#include "Kokkos_DefaultNode.hpp"
-#else
-#include "KokkosCompat_DefaultNode.hpp"
-#endif
+#include "Tpetra_KokkosCompat_DefaultNode.hpp"
+//#ifdef ESYS_NO_KOKKOSCOMPAT
+//#include "Kokkos_DefaultNode.hpp"
+//#else
+//#include "KokkosCompat_DefaultNode.hpp"
+//#endif
 
 #ifdef ESYS_HAVE_TPETRA_DP
 #include <Tpetra_DefaultPlatform.hpp>
@@ -243,7 +244,7 @@ void BlockCrsMatrixWrapper<ST>::nullifyRowsAndCols(
 // Can't use OpenMP here as replaceLocalValues() is not thread-safe.
 //#pragma omp parallel for
     // loop through local row blocks
-#ifdef ESYS_TRILINOS_14
+//#ifdef ESYS_TRILINOS_14
     using Kokkos::ALL;
     using Kokkos::subview;
     using local_inds_host_view_type = typename Tpetra::BlockCrsMatrix<ST,LO,GO,NT>::local_inds_host_view_type;
@@ -255,13 +256,13 @@ void BlockCrsMatrixWrapper<ST>::nullifyRowsAndCols(
         GO row_number = (GO) lrb;
         numIndices=mat.getNumEntriesInGlobalRow(row_number);
         mat.getLocalRowView(lrb, indices, values);
-#else
-    for (LO lrb = 0; lrb < mat.getNodeNumRows(); lrb++) {
-        LO numIndices = 0;
-        const LO * indices;
-        ST * values;
-        mat.getLocalRowView(lrb, indices, values, numIndices);
-#endif
+//#else
+ //   for (LO lrb = 0; lrb < mat.getNodeNumRows(); lrb++) {
+ //       LO numIndices = 0;
+ //       const LO * indices;
+ //       ST * values;
+ //       mat.getLocalRowView(lrb, indices, values, numIndices);
+//#endif
         std::vector<GO> cols(numIndices);
         std::vector<ST> vals(numIndices*blockSize*blockSize);
         const GO rowblk = mat.getRowMap()->getGlobalElement(lrb);

@@ -245,21 +245,22 @@ def checkPython(env):
     # Check for an override from the config file.
     # Ideally, this should be automatic but we need to deal with the case
     # where python is not in its INSTALL directory
-    if env['pythonlibpath'] != '':
+    if env['pythonlibpath'] :
         python_lib_path = env['pythonlibpath']
 
-    if env['pythonincpath'] != '':
+    if env['pythonincpath'] :
         python_inc_path = env['pythonincpath']
 
-    if env['pythonlibname'] != '':
+    if env['pythonlibname'] :
         python_libs = env['pythonlibname']
 
     conf = Configure(env.Clone())
 
-    if env['sysheaderopt'] == '':
-        conf.env.AppendUnique(CPPPATH = [python_inc_path])
+    if env['sysheaderopt'] :
+        conf.env.AppendUnique(CCFLAGS= env['sysheaderopt'] + " " + python_inc_path)
     else:
-        conf.env.Append(CCFLAGS = [env['sysheaderopt'], python_inc_path])
+        conf.env.AppendUnique(CPPPATH = [python_inc_path])
+
     conf.env.AppendUnique(LIBPATH = [python_lib_path])
     conf.env.AppendUnique(LIBS = python_libs)
     # The wrapper script needs to find the libs
@@ -293,14 +294,14 @@ def checkBoost(env):
     boost_inc_path, boost_lib_path = findLibWithHeader(env, env['boost_libs'], 'boost/python.hpp', env['boost_prefix'], lang='c++')
 
     if env['sysheaderopt'] == '':
-        env.AppendUnique(CPPPATH = [boost_inc_path])
+        env.AppendUnique(CPPPATH = [ boost_inc_path ])
     else:
         # This is required because we can't -isystem /usr/include since it
         # breaks std includes
         if os.path.normpath(boost_inc_path) == '/usr/include':
-            env.Append(CCFLAGS=[env['sysheaderopt'], os.path.join(boost_inc_path,'boost')])
+            env.Append(CCFLAGS= [ env['sysheaderopt']+ " " + os.path.join(boost_inc_path,'boost') ] )
         else:
-            env.Append(CCFLAGS=[env['sysheaderopt'], boost_inc_path])
+            env.Append(CCFLAGS= [ env['sysheaderopt'] + " " +  boost_inc_path ] )
 
     env.AppendUnique(LIBPATH = [ boost_lib_path ])
     env.AppendUnique(LIBS = env['boost_libs'])
@@ -326,57 +327,29 @@ def checkBoost(env):
     env['buildvars']['boost_lib_path']=boost_lib_path
     env['buildvars']['boostversion']=boostversion
 
+    #=======================
     # Check for the boost numpy library
     env['have_boost_numpy']=False
     if boostversion >= 106300 and not env['disable_boost_numpy'] :
+        pyv = env['python_version'].split(".")
+        if env["IS_OSX"]:
+            libname = f'boost_numpy{pyv[0]}{pyv[1]}-mt'
+        else:
+            libname = f'boost_numpy{pyv[0]}{pyv[1]}'
         try:
             boost_numpy_inc_path, boost_numpy_lib_path = \
-                findLibWithHeader(env, env['boost_libs'], 'boost/python/numpy.hpp', env['boost_prefix'], lang='c++')
-            # Locate the boost numpy files
-            if env['IS_WINDOWS']:
-                # windows scons template adds boost_numpy to boost_libs
-                env['have_boost_numpy'] = True
-                print("Found boost/python/numpy.hpp. Building with boost numpy support.")
-            elif env['IS_OSX']:
-                env['have_boost_numpy'] = True
-                print("Found boost/python/numpy.hpp. Building with boost numpy support.")
-            else:
-                p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                out,err = p.communicate()
-                if hasattr(out, 'decode'):
-                    out=out.decode()
-                spath = [x[13:-3] for x in out.split() if 'SEARCH_DIR' in x]
-                spath.append(boost_lib_path)
-                spath.append('/usr/lib/x86_64-linux-gnu/')
-                spath.append('/usr/lib64/')
-                p3name = ''
-                for name in spath:
-                    try:
-                        l=os.listdir(name)
-                        for x in l:
-                            if x.startswith('libboost_numpy3') and x.endswith('.so'):
-                                p3name = x
-                    except:
-                        continue
-                libname = p3name[3:-3]
+                findLibWithHeader(env, [ libname ] + env['boost_libs'], 'boost/python/numpy.hpp', env['boost_prefix'], lang='c++')
 
-                # If found, add the necessary information to env
-                if len(libname) > 0:
-                    env.AppendUnique(LIBS = libname)
-                    tmp=env['boost_libs']
-                    env['boost_libs']=[tmp,libname]
-                    env.AppendUnique(CPPPATH = [boost_numpy_inc_path])
-                    env.AppendUnique(LIBPATH = [boost_numpy_lib_path])
-                    env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
-                    env['have_boost_numpy']=True
-                else:
-                    print("Warning: Could not find boost/python/numpy.hpp (wrong folder?). Building without numpy support.")
-
+            env.AppendUnique(LIBS=libname)
+            env.AppendUnique(boost_libs=libname)
+            env.AppendUnique(CPPPATH=boost_numpy_inc_path)
+            env.AppendUnique(LIBPATH=boost_numpy_lib_path)
+            env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
+            env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
+            env['have_boost_numpy'] = True
         except:
             print("Warning: Could not find boost/python/numpy.hpp. Building without numpy support.")
-    if env['have_boost_numpy'] :
-        env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
-    # Check if the version of boost we are using is missing BOOST_BYTE_ORDER
+
     if boostversion >= 107000:
         env.Append(CPPDEFINES=['ESYS_DEPRECATED_BOOST_ENDIAN'])
     if boostversion >= 107200:
@@ -477,7 +450,7 @@ def checkForTrilinos(env):
     trilinos_lib_path=''
     dependencies = ['Amesos2.hpp', 'Amesos2_Solver_decl.hpp', 'BelosSolverFactory.hpp', 'BelosSolverManager.hpp', \
                     'BelosTFQMRIter.hpp', 'BelosTFQMRSolMgr.hpp', 'BelosTpetraAdapter.hpp', 'BelosTypes.hpp', \
-                    'Ifpack2_Factory.hpp',  \
+                    'Ifpack2_Factory.hpp',  'Tpetra_KokkosCompat_DefaultNode.hpp', \
                     'MatrixMarket_Tpetra.hpp', 'MueLu_CreateTpetraPreconditioner.hpp', \
                     'Teuchos_DefaultComm.hpp', 'Teuchos_ParameterList.hpp', \
                     'Teuchos_Comm.hpp', 'Teuchos_TimeMonitor.hpp', 'Tpetra_CrsMatrix_decl.hpp', \
@@ -528,12 +501,14 @@ def checkForTrilinos(env):
             minor=int(str(trilinos_version)[2:4])
             tmp=int(str(trilinos_version)[4:6])
             env['trilinos_version'] = str(major)+"."+str(minor)+"."+str(tmp)
-            if major == 14 and minor <2 :
-                env.Append(CPPDEFINES = ['ESYS_TRILINOS_14'])
-            elif major == 14 and minor >=2:
-                env.Append(CPPDEFINES = ['ESYS_TRILINOS_14_2'])
-            else:
-                env.Append(CPPDEFINES = ['ESYS_TRILINOS_15'])
+            if major < 14 :
+                raise RuntimeError('Trilinos version greater than 14 expected.')
+#            if major == 14 and minor <2 :
+#                env.Append(CPPDEFINES = ['ESYS_TRILINOS_14'])
+#            elif major == 14 and minor >=2:
+#                env.Append(CPPDEFINES = ['ESYS_TRILINOS_14_2'])
+#            else:
+            env.Append(CPPDEFINES = ['ESYS_TRILINOS_15'])
 
     if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix.hpp')):
         print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix.hpp', "yes") )
@@ -569,22 +544,21 @@ def checkForTrilinos(env):
                   'stratimikosml', 'stratimikos', 'tacho', 'teko', 'teuchoscomm', 'teuchoscore', \
                   'teuchoskokkoscomm', 'teuchoskokkoscompat', 'teuchosnumerics', 'teuchosparameterlist', \
                   'teuchosparser', 'teuchosremainder', 'thyracore', 'thyraepetraext', 'thyraepetra', \
-                  'thyratpetra', 'tpetraclassic', 'tpetraext', 'tpetrainout', 'tpetra', 'trilinosss',\
-                  'triutils', 'xpetra', 'xpetra', 'zoltan', 'zoltan2']
+                  'thyratpetra', 'tpetraclassic', 'tpetraext', 'tpetrainout', 'tpetra', 'xpetra', 'xpetra-sup',
+                  'trilinosss', 'triutils', 'xpetra', 'xpetra', 'zoltan', 'zoltan2']
 
     if not havelibs:
         libs = []
         for file in os.listdir(trilinos_lib_path):
-            if file[-3:] == ".so":
-                for x in range(0, library_list.__len__()):
+            if file.endswith(".so"):
+                for x in range(0, len(library_list)):
                     if file[3:-3] == library_list[x] or file[12:-3] == library_list[x]:
                         libs.append(file[3:-3])
-            if file[-3:] == ".dylib": # macOS
-                for x in range(0, library_list.__len__()):
+            elif file.endswith(".dylib"):
+                for x in range(0, len(library_list)):
                     if file[3:-6] == library_list[x] or file[12:-6] == library_list[x]:
                         libs.append(file[3:-6])
         env['trilinos_libs'] = libs
-
     # Trilinos version 14 and higher
     # if major >= 14:
     #     if not havelibs:
@@ -640,16 +614,18 @@ def checkOptionalLibraries(env):
     if env['netcdf']:
         if env['netcdf']==4:
             env.Append(CPPDEFINES = ['NETCDF4'])
-            netcdf_inc_path,netcdf_lib_path=findLibWithHeader(env, env['netcdf_libs'], 'ncVar.h', env['netcdf_prefix'], lang='c++')
+            netcdf_inc_path, netcdf_lib_path = findLibWithHeader(env, env['netcdf_libs'], 'ncVar.h', env['netcdf_prefix'], lang='c++')
+
         else:
-            netcdf_inc_path,netcdf_lib_path=findLibWithHeader(env, env['netcdf_libs'], 'netcdfcpp.h', env['netcdf_prefix'], lang='c++')
+            netcdf_inc_path, netcdf_lib_path = findLibWithHeader(env, env['netcdf_libs'], 'netcdfcpp.h', env['netcdf_prefix'], lang='c++')
+
         env.AppendUnique(CPPPATH = [netcdf_inc_path])
         env.AppendUnique(LIBPATH = [netcdf_lib_path])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], netcdf_lib_path)
         env.Append(CPPDEFINES = ['ESYS_HAVE_NETCDF'])
-        env['buildvars']['netcdf_inc_path']=netcdf_inc_path
-        env['buildvars']['netcdf_lib_path']=netcdf_lib_path
-    env['buildvars']['netcdf']=int(env['netcdf'])
+        env['buildvars']['netcdf_inc_path'] = netcdf_inc_path
+        env['buildvars']['netcdf_lib_path'] = netcdf_lib_path
+    env['buildvars']['netcdf'] = int(env['netcdf'])
 
     ######## MKL
     mkl_inc_path=''
@@ -854,7 +830,19 @@ def checkOptionalLibraries(env):
     env['buildvars']['parmetis']=int(env['parmetis'])
 
 
-
+    ######## zlib
+    if env['zlib']:
+        try:
+            zlib_inc_path, zlib_lib_path = findLibWithHeader(env, env['zlib_libs'], 'zlib.h', env['zlib_prefix'], lang='c')
+            env.Append(CPPDEFINES = ['ESYS_HAVE_ZLIB'])
+            env.AppendUnique(CPPPATH=[zlib_inc_path])
+            env.AppendUnique(LIBPATH=[zlib_lib_path])
+            env.AppendUnique(LIBS=env['zlib'])
+            env['buildvars']['zlib_inc_path'] = zlib_inc_path
+            env['buildvars']['zlib_lib_path'] = zlib_lib_path
+        except RuntimeError as e:
+            env['zlib'] = False
+    env['buildvars']['zlib']=int(env['zlib'])
     ######## boost::iostreams
     if env['compressed_files']:
         try:

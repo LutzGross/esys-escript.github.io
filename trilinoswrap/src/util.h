@@ -28,9 +28,9 @@
 
 #include <string>
 
-#ifdef ESYS_TRILINOS_14
+//#ifdef ESYS_TRILINOS_14
 #include "Tpetra_CrsMatrix.hpp"
-#endif
+//#endif
 
 namespace esys_trilinos {
 
@@ -60,7 +60,7 @@ TrilinosGraph_ptr unrollCrsGraph(const_TrilinosGraph_ptr graph, int blockSize)
     MapType rpm = BlockVectorType<double>::makePointMap(*graph->getRowMap(), blockSize);
     TrilinosMap_ptr colPointMap(new MapType(cpm));
     TrilinosMap_ptr rowPointMap(new MapType(rpm));
-#ifdef ESYS_TRILINOS_14
+
     const LO numMatrixRows = graph->getRowMap()->getLocalNumElements();
     const LO numUnrolledRows = rpm.getLocalNumElements();
     Teuchos::ArrayRCP<size_t> rowPtr(numUnrolledRows + 1);
@@ -80,27 +80,6 @@ TrilinosGraph_ptr unrollCrsGraph(const_TrilinosGraph_ptr graph, int blockSize)
                     + numColumns * blockSize;
         }
     }
-#else
-    const LO numMatrixRows = graph->getRowMap()->getNodeNumElements();
-    const LO numUnrolledRows = rpm.getNodeNumElements();
-    Teuchos::ArrayRCP<size_t> rowPtr(numUnrolledRows + 1);
-    Teuchos::ArrayRCP<GO> colInd(graph->getNodeNumEntries() * blockSize * blockSize);
-    for (LO row = 0; row < numMatrixRows; row++) {
-        size_t numColumns = graph->getNumEntriesInLocalRow(row);
-        Teuchos::Array<LO> indices(numColumns);
-        graph->getLocalRowCopy(row, indices(), numColumns);
-        for (int b = 0; b < blockSize; b++) {
-            for (size_t c = 0; c < numColumns; c++) {
-                for (int cb = 0; cb < blockSize; cb++) {
-                    colInd[rowPtr[row * blockSize + b] + c * blockSize + cb] =
-                        indices[c] * blockSize + cb;
-                }
-            }
-            rowPtr[row * blockSize + b + 1] = rowPtr[row * blockSize + b]
-                    + numColumns * blockSize;
-        }
-    }
-#endif  
 
     GraphType* unrolledGraph = new GraphType(rowPointMap, colPointMap, rowPtr, colInd);
 

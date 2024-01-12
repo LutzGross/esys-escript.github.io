@@ -81,7 +81,7 @@ RCP<SolverType<ST> > createSolver(const escript::SolverBuddy& sb)
         case escript::SO_METHOD_LSQR:
             // Trilinos breaks when using this combination of methods and packages
             // so switch to another method
-            #ifdef ESYS_TRILINOS_14
+            //#ifdef ESYS_TRILINOS_14
             if (sb.getSolverMethod() == escript::SO_METHOD_LSQR
                 && sb.getPackage() == escript::SO_PACKAGE_TRILINOS
                 && sb.getPreconditioner() == escript::SO_PRECONDITIONER_AMG
@@ -94,7 +94,7 @@ RCP<SolverType<ST> > createSolver(const escript::SolverBuddy& sb)
                 //notification message to user TODO
                 break;
             }
-            #endif
+            //#endif
             extractParamIfSet<ST>("Condition Limit", pyParams, *solverParams);
             extractParamIfSet<int>("Term Iter Max", pyParams, *solverParams);
             extractParamIfSet<ST>("Lambda", pyParams, *solverParams);

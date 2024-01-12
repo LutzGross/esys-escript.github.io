@@ -28,17 +28,8 @@
 
 // #include <oxley/tictoc.h>
 
-#ifdef ESYS_NO_KOKKOSCOMPAT
-#include "Kokkos_DefaultNode.hpp"
-#else
-#include "KokkosCompat_DefaultNode.hpp"
-#endif
-
-#ifdef ESYS_TRILINOS_14
+#include "Tpetra_KokkosCompat_DefaultNode.hpp"
 #include "Teuchos_ArrayRCPDecl.hpp"
-#else
-#include "Tpetra_createDeepCopy_CrsMatrix.hpp"
-#endif
 // #include <MatrixMarket_Tpetra.hpp>
 #include <MueLu_CreateTpetraPreconditioner.hpp>
 
@@ -268,7 +259,7 @@ void CrsMatrixWrapper<ST>::nullifyRowsAndCols(
 
     resumeFill();
 // Can't use OpenMP here as replaceLocalValues() is not thread-safe.
-#ifdef ESYS_TRILINOS_14
+//#ifdef ESYS_TRILINOS_14
     for (LO lclrow = 0; lclrow < mat.getLocalNumRows(); lclrow++) {
         std::vector<GO> cols;
         std::vector<ST> vals;
@@ -290,27 +281,27 @@ void CrsMatrixWrapper<ST>::nullifyRowsAndCols(
             mat.replaceLocalValues(lclrow, cols, vals);
     }
     fillComplete(true);
-#else
-    for (LO lclrow = 0; lclrow < mat.getNodeNumRows(); lclrow++) {
-        Teuchos::ArrayView<const LO> indices;
-        Teuchos::ArrayView<const ST> values;
-        std::vector<GO> cols;
-        std::vector<ST> vals;
-        mat.getLocalRowView(lclrow, indices, values);
-        GO row = rowMap->getGlobalElement(lclrow);
-        for (size_t c = 0; c < indices.size(); c++) {
-            const LO lclcol = indices[c];
-            const GO col = mat.getColMap()->getGlobalElement(lclcol);
-            if (rowMask[lclrow] > 0. || colMask[lclcol] > 0.) {
-                cols.push_back(lclcol);
-                vals.push_back(row==col ? mdv : zero);
-            }
-        }
-        if (cols.size() > 0)
-            mat.replaceLocalValues(lclrow, cols, vals);
-    }
-    fillComplete(true);
-#endif
+//#else
+//    for (LO lclrow = 0; lclrow < mat.getNodeNumRows(); lclrow++) {
+//        Teuchos::ArrayView<const LO> indices;
+ //       Teuchos::ArrayView<const ST> values;
+ //       std::vector<GO> cols;
+ //       std::vector<ST> vals;
+ //       mat.getLocalRowView(lclrow, indices, values);
+  //      GO row = rowMap->getGlobalElement(lclrow);
+  //      for (size_t c = 0; c < indices.size(); c++) {
+  //          const LO lclcol = indices[c];
+   //         const GO col = mat.getColMap()->getGlobalElement(lclcol);
+   //         if (rowMask[lclrow] > 0. || colMask[lclcol] > 0.) {
+   //             cols.push_back(lclcol);
+   //             vals.push_back(row==col ? mdv : zero);
+   //         }
+   //     }
+   //     if (cols.size() > 0)
+    //        mat.replaceLocalValues(lclrow, cols, vals);
+   // }
+    //fillComplete(true);
+//#endif
 }
 
 template<typename ST>
@@ -335,12 +326,12 @@ void CrsMatrixWrapper<ST>::resetValues(bool preserveSolverData)
 template<typename ST>
 void CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> iz, long n) 
 {
-#ifdef ESYS_TRILINOS_14
+//#ifdef ESYS_TRILINOS_14
     // TicTocClock oxleytimer;
     // oxleytimer.toc("IztAIz...");
 
     // Initialise some variables
-    Tpetra::global_size_t numGblIndices = n;
+    //Tpetra::global_size_t numGblIndices = n;
     const esys_trilinos::GO indexBase = 0;
     escript::JMPI m_mpiInfo;
     auto comm = Teuchos::DefaultComm<int>::getComm();
@@ -379,7 +370,7 @@ void CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,
 
     delete result;
 
-#else
+//#else
     // // Initialise some variables
     // Tpetra::global_size_t numGblIndices = n;
     // const esys_trilinos::GO indexBase = 0;
@@ -412,7 +403,7 @@ void CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,
 
     // delete iz_tmp;
     // delete result;
-#endif
+//#endif
 }
 
 template<typename ST>

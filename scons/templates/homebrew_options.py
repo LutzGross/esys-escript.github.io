@@ -18,6 +18,14 @@
 # This is a template configuration file for escript on OS X homebrew.
 # Refer to README_FIRST for usage instructions.
 
+
+#If you need to have llvm first in your PATH, run:
+#  echo 'export PATH="/opt/homebrew/opt/llvm/bin:$PATH"' >> ~/.zshrc
+#
+#For compilers to find llvm you may need to set:
+#  export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
+#  export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
+
 import os
 escript_opts_version = 203
 
@@ -37,21 +45,28 @@ pythonincpath = os.path.join(HOMEBREW_PREFIX,  "Cellar", f"python@3.{subversion}
                              "Versions", f"3.{subversion}", "include", f"python3.{subversion}" )
 
 mpi = 'no'
-#mpi_prefix = '/usr/local'
-#mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
-import glob
-GCC=[ os.path.join(HOMEBREW_PREFIX, 'bin', 'g++-13') ]
-cxx_extra = "-Wno-error=maybe-uninitialized"
 
-assert  len(GCC) > 0, "unable to find gcc compiler in "+ os.path.join(HOMEBREW_PREFIX, 'bin')
-cxx = GCC[0]
-cc = os.path.join(HOMEBREW_PREFIX, 'bin', 'gcc-13')
+cxx = '/opt/homebrew/opt/llvm/bin/clang++'
+cxx_extra = ["-Wno-error=uninitialized",
+             "-Wno-error=implicit-function-declaration",
+             "-Wno-error=unused-but-set-variable",
+             "-Wno-error=return-stack-address",
+             "-Wno-error=inconsistent-missing-override",
+             "-Wno-error=unused-function"]
+
+cc = '/opt/homebrew/opt/llvm/bin/clang'
+cc_extra = ["-Wno-error=unused-but-set-variable",
+            "-Wno-error=deprecated-non-prototype" ]
+cc_optim     = ["-O3" ]
+
 print(f"c++ compiler is {cxx}")
-
+domains = ('finley', 'ripley','speckley')
 
 cppunit_prefix = HOMEBREW_PREFIX
 
 openmp = True
+omp_flags = ["-fopenmp"]
+omp_ldflags = ["-fopenmp"]
 
 boost_prefix = HOMEBREW_PREFIX
 boost_libs = [f'boost_python3{subversion}-mt']
@@ -63,29 +78,21 @@ netcdf_libs=['netcdf-cxx4', 'netcdf']
 #===========================================================
 silo = True
 silo_prefix = HOMEBREW_PREFIX
-silo_libs = ['siloh5']
+silo_libs = ['siloh5', 'hdf5' ]
+ld_extra = ' -lz '
 
+zlib = True
+zlib_prefix = HOMEBREW_PREFIX+"/Cellar/zlib/1.3"
+zlib_libs = [ 'zlib']
 
 lapack =False
 lapack_prefix = os.path.join(HOMEBREW_PREFIX, 'lapack' )
 
 umfpack = True
-umfpack_prefix = HOMEBREW_PREFIX
+umfpack_prefix = [ HOMEBREW_PREFIX+"/include/suitesparse", HOMEBREW_PREFIX+"/lib/" ]
 
 build_trilinos = True
 
-#cxx_extra = ''
-#ld_extra = '-v'
-#cxx = "/opt/homebrew/bin/g++-12"
-#cxx = "/usr/bin/clang++"
-
-#cxx = "/opt/local/bin/clang++-mp-14"
-#cxx_extra = '-std=c++11'
-
-# LDFLAGS = "-L/opt/homebrew/opt/lapack/lib"
-# CPPFLAGS = "-I/opt/homebrew/opt/lapack/include"
-
-
-#-------
+ld_extra = ["-L/opt/homebrew/opt/llvm/lib", "-lz" ]
 
 

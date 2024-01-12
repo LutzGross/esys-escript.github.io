@@ -294,23 +294,23 @@ def Environment():
   env.Append(LINKFLAGS = getLINKFLAGS(env['mode'], env['backend'], env['hostspblas'], env.subst('$LINK')))
    
   # silence unknown pragma warnings
-  env.Append(CFLAGS = ['-Wno-unknown-pragmas','-Wno-unused-local-typedefs'])
-  env.Append(CXXFLAGS = ['-Wno-unknown-pragmas','-Wno-unused-local-typedefs'])
+  env.AppendUnique(CFLAGS = ['-Wno-unknown-pragmas','-Wno-unused-local-typedefs'])
+  env.AppendUnique(CXXFLAGS = ['-Wno-unknown-pragmas','-Wno-unused-local-typedefs'])
 
   # get CUDA paths
   (cuda_exe_path,cuda_lib_path,cuda_inc_path) = get_cuda_paths()
-  env.Append(LIBPATH = [cuda_lib_path])
-  env.Append(CPPPATH = [cuda_inc_path])
+  env.AppendUnique(LIBPATH = [cuda_lib_path])
+  env.AppendUnique(CPPPATH = [cuda_inc_path])
 
   # link against backend-specific runtimes
   # XXX we shouldn't have to link against cudart unless we're using the
   #     cuda runtime, but cudafe inserts some dependencies when compiling .cu files
   # XXX ideally this gets handled in nvcc.py if possible
-  env.Append(LIBS = ['cudart','stdc++','m'])
+  env.AppendUnique(LIBS = ['cudart','stdc++','m'])
 
   if env['backend'] == 'ocelot':
     if os.name == 'posix':
-      env.Append(LIBPATH = ['/usr/local/lib'])
+      env.AppendUnique(LIBPATH = ['/usr/local/lib'])
     else:
       raise ValueError, "Unknown OS.  What is the Ocelot library path?"
   elif env['backend'] == 'omp':
@@ -327,9 +327,9 @@ def Environment():
         intel_lib += '_lp64'
     
     (mkl_lib_path,mkl_inc_path) = get_mkl_paths()
-    env.Append(CPPPATH = [mkl_inc_path])
-    env.Append(LIBPATH = [mkl_lib_path])
-    env.Append(LIBS = ['mkl_core', 'mkl_gnu_thread', intel_lib])
+    env.AppendUnique(CPPPATH = [mkl_inc_path])
+    env.AppendUnique(LIBPATH = [mkl_lib_path])
+    env.AppendUnique(LIBS = ['mkl_core', 'mkl_gnu_thread', intel_lib])
 
   # set thrust include path
   # this needs to come before the CUDA include path appended above,

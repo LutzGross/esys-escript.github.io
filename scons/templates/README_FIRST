@@ -346,7 +346,7 @@ compressed_files = False
   Enable reading compressed binary grids in ripley? (requires boost iostreams)
   DEFAULT: True
 
-compression_libs = 'boost_iostreams-mt'
+compression_libs = ['boost_iostreams-mt']
   Compression libraries to link with. DEFAULT: 'boost_iostreams'
 
 disable_boost_numpy = False

@@ -362,6 +362,7 @@ namespace DataTypes
             }
             break;
          default:
+            numCopy = 0;
             std::stringstream mess;
             mess << "Error - (copySliceFrom) Invalid slice region rank: " << region.size();
             throw DataException(mess.str());
@@ -418,6 +419,7 @@ namespace DataTypes
             }
             break;
          default:
+            numCopy = 0;
             std::stringstream mess;
             mess << "Error - (copySliceFrom) Invalid slice region rank: " << region.size();
             throw DataException(mess.str());

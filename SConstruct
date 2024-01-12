@@ -88,10 +88,13 @@ vars.AddVariables(
   ('cxx', 'Path to C++ compiler', 'default'),
   ('cc', 'Path to C compiler', 'default'),
   ('cc_flags', 'Base (C and C++) compiler flags', 'default'),
-  ('cc_optim', 'Additional (C and C++) flags for a non-debug build', 'default'),
+    ('cxx_flags', 'Base C++ compiler flags (if [] set to cc_flags)', []),
+    ('cc_optim', 'Additional (C and C++) flags for a non-debug build', 'default'),
   ('cc_debug', 'Additional (C and C++) flags for a debug build', 'default'),
-  ('cxx_extra', 'Extra C++ compiler flags', ''),
-  ('ld_extra', 'Extra linker flags', ''),
+  ('cxx_extra', 'Extra C++ compiler flags', [] ),
+    ('cc_extra', 'Extra C compiler flags', [] ),
+    ('ld_flags', 'linker flags', 'default'),
+    ('ld_extra', 'Extra linker flags', [] ),
   BoolVariable('werror','Treat compiler warnings as errors', True),
   BoolVariable('debug', 'Compile with debug flags', False),
   BoolVariable('openmp', 'Compile parallel version using OpenMP', False),
@@ -112,7 +115,10 @@ vars.AddVariables(
   EnumVariable('netcdf', 'Enable netCDF file support', False, allowed_values=netcdf_flavours),
   ('netcdf_prefix', 'Prefix/Paths of netCDF installation', default_prefix),
   ('netcdf_libs', 'netCDF libraries to link with', 'DEFAULT'),
-  BoolVariable('parmetis', 'Enable ParMETIS (requires MPI)', False),
+    BoolVariable('zlib', 'Enable zLib', False),
+    ('zlib_prefix', 'Prefix/Paths to zlib installation', default_prefix),
+    ('zlib_libs', 'zlib libraries to link with', ['zlib']),
+    BoolVariable('parmetis', 'Enable ParMETIS (requires MPI)', False),
   ('parmetis_prefix', 'Prefix/Paths of ParMETIS installation', default_prefix),
   ('parmetis_libs', 'ParMETIS libraries to link with', ['parmetis', 'metis']),
   BoolVariable('mkl', 'Enable the Math Kernel Library', False),
@@ -160,6 +166,7 @@ vars.AddVariables(
   TristateVariable('forcecollres', 'For testing use only - set the default value for force resolving collective ops', 'auto'),
   BoolVariable('build_shared', '(deprecated option, ignored)', True),
   ('sys_libs', 'Extra libraries to link with', []),
+  ('sysheaderopt', 'system header options', ''),
   ('escript_opts_version', 'Version of options file (do not specify on command line)'),
   ('SVN_VERSION', 'Do not use from options file', -2),
   ('pythoncmd', 'which python to compile with', sys.executable),
@@ -193,6 +200,7 @@ vars.AddVariables(
 
 env = Environment(tools = ['default'] , options = vars,
                   ENV = {'PATH': os.environ['PATH']})
+
 
 # check options file version:
 if options_file:
@@ -328,21 +336,22 @@ if not os.path.isdir(env['libinstall']):
 if not os.path.isdir(env['pyinstall']):
     os.makedirs(env['pyinstall'])
 
-env.Append(CPPPATH = [env['incinstall']])
-env.Append(LIBPATH = [env['libinstall']])
+env.AppendUnique(CPPPATH = [env['incinstall']])
+env.AppendUnique(LIBPATH = [env['libinstall']])
 
 
-
+if not env['cxx_flags']:
+    env['cxx_flags'] = env['cc_flags']
 # default compiler/linker options
-cxx_flags = '-std=c++17 '+ env['cxx_extra']  # extra CXX flags
-cc_flags = ''
-cc_optim = ''
-cc_debug = ''
-omp_flags = ''
-omp_ldflags = ''
-ld_extra = env['ld_extra']
+cxx_flags = [ '-std=c++17' ] # extra CXX flags
+cc_flags = [ ]
+cc_optim = []
+cc_debug = []
+omp_flags = []
+omp_ldflags = []
+ld_flags = [ ]
 fatalwarning = '' # switch to turn warnings into errors
-sysheaderopt = '' # how to indicate that a header is a system header
+sysheaderopt = env['sysheaderopt']  # how to indicate that a header is a system header
 
 # env['CC'] might be a full path
 cxx_name=os.path.basename(env['CXX'])
@@ -354,130 +363,149 @@ if cxx_name == 'icpc':
     # #1478: class "std::auto_ptr<...>" was declared deprecated
     # #1875: offsetof applied to non-POD types is nonstandard (in boost)
     # removed -std=c99 because icpc doesn't like it and we aren't using c anymore
-    cc_flags   += "-fPIC -w2 -wd1875 -wd1478 -Wno-unknown-pragmas"
-    cc_optim    = "-Ofast -ftz -fno-alias -xCORE-AVX2 -ipo"
+    cc_flags   += [ "-fPIC", "-w2", "-wd1875", "-wd1478", "-Wno-unknown-pragmas"]
+    cc_optim    = [ "-Ofast", "-ftz", "-fno-alias", "-xCORE-AVX2", "-ipo"]
     #cc_optim    = "-Ofast -ftz -fno-alias -inline-level=2 -ipo -xCORE-AVX2"
     #cc_optim    = "-O2 -ftz -fno-alias -inline-level=2"
     #cc_optim    = "-O0 -ftz -fno-alias"
     #cc_optim    = "-O3 -ftz -fno-alias -inline-level=2 -ipo -xHost"
-    cc_debug    = "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK"
-    omp_flags   = "-qopenmp"
-    omp_ldflags = "-qopenmp" # removing -openmp-report (which is deprecated) because the replacement outputs to a file
-    fatalwarning = "-Werror"
+    cc_debug    = ["-g", "-O0", "-DDOASSERT", "-DDOPROF",  "-DBOUNDS_CHECK", "-DSLOWSHARECHECK"]
+    omp_flags   = [ "-qopenmp" ]
+    omp_ldflags = [ "-qopenmp" ] # removing -openmp-report (which is deprecated) because the replacement outputs to a file
+    fatalwarning = [ "-Werror" ]
 elif cxx_name.startswith('g++-mp'):
     # cc_flags +="-Wall" - switched off as there are problem in p4est compilation.
-    cc_flags       += "-fPIC -fdiagnostics-color=always -Wno-uninitialized "
-    cc_flags       += "-Wno-unknown-pragmas -Wimplicit-function-declaration "
-    cxx_flags      += "-Wno-string-concatenation -Wno-unused-private-field "
+    cc_flags       += [ "-fPIC", "-fdiagnostics-color=always", "-Wno-uninitialized" ]
+    cc_flags       += [ "-Wno-unknown-pragmas",  "-Wimplicit-function-declaration" ]
+    cxx_flags      += ["-Wno-string-concatenation", "-Wno-unused-private-field" ]
     #if env['trilinos'] is True:
     #  cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
-    cc_optim     = "-O3 "
-    cc_debug     = "-ggdb3 -O0 -fdiagnostics-fixit-info -pedantic "
-    cc_debug    += "-DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK "
-    omp_flags    = "-fopenmp "
-    omp_ldflags  = "-fopenmp "
+    cc_optim     = [ "-O3" ]
+    cc_debug     = [ "-ggdb3","-O0", "-fdiagnostics-fixit-info", "-pedantic"]
+    cc_debug    += ["-DDOASSERT" , "-DDOPROF", "-DBOUNDS_CHECK", "-DSLOWSHARECHECK" ]
+    omp_flags    = ["-fopenmp"]
+    omp_ldflags  = ["-fopenmp" ]
     fatalwarning = "-Werror"
     sysheaderopt = "-isystem"
 elif cxx_name[:3] == 'g++':
     # GNU C++ on any system
     # note that -ffast-math is not used because it breaks isnan(),
     # see mantis #691
-    cc_flags += "-pedantic -Wall -fPIC -finline-functions"
-    cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing "
-    cc_flags += " -Wno-unused-function  -Wno-narrowing"
-    cc_flags += " -Wno-stringop-truncation -Wno-deprecated-declarations --param=max-vartrack-size=100000000"
-    cc_optim     = "-O2" # -march=native"
+    cc_flags += ["-pedantic", "-Wall", "-fPIC", "-finline-functions" ]
+    cc_flags += [ "-Wno-unknown-pragmas", "-Wno-sign-compare", "-Wno-system-headers", "-Wno-long-long", "-Wno-strict-aliasing" ]
+    cc_flags += [ "-Wno-unused-function", "-Wno-narrowing" ]
+    cc_flags += [ "-Wno-stringop-truncation", "-Wno-deprecated-declarations", "--param=max-vartrack-size=100000000"]
+    cc_optim     = [ "-O2" ] # -march=native"
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
-    cc_debug     = "-g3 -O0  -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
+    cc_debug     = [ "-g3", "-O0", "-DDOASSERT -DDOPROF", "-DBOUNDS_CHECK", "-DSLOWSHARECHECK", "--param=max-vartrack-size=100000000"]
     #Removed because new netcdf doesn't seem to like it
     #cc_debug += ' -D_GLIBCXX_DEBUG  '
-    omp_flags    = "-fopenmp"
-    omp_ldflags  = "-fopenmp"
+    omp_flags    = [ "-fopenmp"]
+    omp_ldflags  = [ "-fopenmp"]
     fatalwarning = "-Werror"
     sysheaderopt = "-isystem"
 elif cxx_name == 'cl':
     # Microsoft Visual C on Windows
-    cc_flags     = "/EHsc /MD /GR /wd4068 /D_USE_MATH_DEFINES /DDLL_NETCDF"
-    cc_optim     = "/O2 /Op /W3"
-    cc_debug     = "/Od /RTCcsu /ZI /DBOUNDS_CHECK"
+    cc_flags     = ["/EHs", "/MD", "/GR", "/wd4068", "/D_USE_MATH_DEFINES", "/DDLL_NETCDF"]
+    cc_optim     = ["/O2", "/Op", "/W3"]
+    cc_debug     = ["/Od", "/RTCcsu", "/ZI", "/DBOUNDS_CHECK"]
     fatalwarning = "/WX"
 elif cxx_name == 'icl':
     # Intel C on Windows
-    cc_flags     = '/EHsc /GR /MD'
-    cc_optim     = '/fast /Oi /W3 /Qssp /Qinline-factor- /Qinline-min-size=0 /Qunroll'
-    cc_debug     = '/Od /RTCcsu /Zi /Y- /debug:all /Qtrapuv'
-    omp_flags    = '/Qvec-report0 /Qopenmp /Qopenmp-report0 /Qparallel'
-    omp_ldflags  = '/Qvec-report0 /Qopenmp /Qopenmp-report0 /Qparallel'
+    cc_flags     = ['/EHsc', '/GR', '/MD']
+    cc_optim     = ['/fast', '/Oi', '/W3', '/Qssp', '/Qinline-factor-', '/Qinline-min-size=0', '/Qunroll']
+    cc_debug     = ['/Od', '/RTCcsu', '/Zi', '/Y-', '/debug:all', '/Qtrapuv']
+    omp_flags    = ['/Qvec-report0v/Qopenmp', '/Qopenmp-report0', '/Qparallel']
+    omp_ldflags  = ['/Qvec-report0', '/Qopenmp', '/Qopenmp-report0', '/Qparallel']
 elif cxx_name.startswith('clang++-mp'):
     # Clang++mp on any system
     # cc_flags +="-Wall" - switched off as there are problem in p4est compilation.
-    cc_flags       += "-fPIC -fdiagnostics-color=always -Wno-uninitialized -Wno-deprecated-declarations "
+    cc_flags       += ["-fPIC", "-fdiagnostics-color=always", "-Wno-uninitialized", "-Wno-deprecated-declarations"]
     #cc_flags       += "-I/opt/local/lib/gcc12/gcc/arm64-apple-darwin22/12.2.0/include "
-    cc_flags       += "-Wno-unknown-pragmas "
-    cxx_flags      += "-Wno-string-concatenation -Wno-unused-private-field -Wimplicit-function-declaration "
+    cc_flags       += ["-Wno-unknown-pragmas" ]
+    cxx_flags      += ["-Wno-string-concatenation", "-Wno-unused-private-field", "-Wimplicit-function-declaration" ]
     #if env['trilinos'] is True:
     #  cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
-    cc_optim     = "-O3 "
-    cc_debug     = "-ggdb3 -O0 -fdiagnostics-fixit-info -pedantic "
-    cc_debug    += "-DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK "
-    omp_flags    = "-fopenmp "
-    omp_ldflags  = "-fopenmp "
+    cc_optim     = ["-O3" ]
+    cc_debug     = ["-ggdb3 -O0", "-fdiagnostics-fixit-info", "-pedantic"]
+    cc_debug    += ["-DDOASSERT", "-DDOPROF", "-DBOUNDS_CHECK", "-DSLOWSHARECHECK" ]
+    omp_flags    = ["-fopenmp" ]
+    omp_ldflags  = ["-fopenmp" ]
     fatalwarning = "-Werror"
     sysheaderopt = "-isystem"
-
-elif cxx_name.startswith('clang++'):
-    # Clang++ on any system
-    cc_flags    += "-Wall -fPIC -fdiagnostics-color=always -Wno-uninitialized "
-    cc_flags    += "-Wno-unused-private-field -Wno-unknown-pragmas "
-    #if env['trilinos'] is True:
-    #  cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
-    cc_optim     = "-O3 "  # -march=native"
-    cc_debug     = "-ggdb3 -O0 -fdiagnostics-fixit-info -pedantic "
-    cc_debug    += "-DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK "
-    omp_flags    = "-fopenmp "
-    omp_ldflags  = " "
-    fatalwarning = "-Werror"
-    sysheaderopt = "-isystem"
+# elif cxx_name.startswith('clang++'):
+#     # Clang++ on any system
+#     cc_flags    += ["-Wall", "-fPIC", "-fdiagnostics-color=always",  "-Wno-uninitialized" ]
+#     cc_flags    += ["-Wno-unused-private-field", "-Wno-unknown-pragmas" ]
+#     #if env['trilinos'] is True:
+#     #  cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
+#     cc_optim     = ["-O3" ]  # -march=native"
+#     cc_debug     = ["-ggdb3", "-O0", "-fdiagnostics-fixit-info", "-pedantic" ]
+#     cc_debug    += ["-DDOASSERT", "-DDOPROF", "-DBOUNDS_CHECK", "-DSLOWSHARECHECK" ]
+#     omp_flags    = ["-fopenmp" ]
+#     omp_ldflags  = []
+#     fatalwarning = ["-Werror" ]
+#     sysheaderopt = ["-isystem" ]
 elif cxx_name == 'mpic++':
     # MPIC++ on any system
     # note that -ffast-math is not used because it breaks isnan(),
-    cc_flags += "-pedantic -Wall -fPIC -finline-functions"
-    cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing "
-    cc_flags += " -Wno-unused-function  -Wno-narrowing"
-    cc_flags += " -Wno-stringop-truncation -Wno-deprecated-declarations --param=max-vartrack-size=100000000"
-    cc_optim     = "-O2 -march=native"
+    cc_flags += ["-pedantic", "-Wall", "-fPIC", "-finline-functions" ]
+    cc_flags += ["-Wno-unknown-pragmas", "-Wno-sign-compare", "-Wno-system-headers", "-Wno-long-long", "-Wno-strict-aliasing" ]
+    cc_flags += ["-Wno-unused-function ", "-Wno-narrowing" ]
+    cc_flags += ["-Wno-stringop-truncation", "-Wno-deprecated-declarations", "--param=max-vartrack-size=100000000" ]
+    cc_optim     = ["-O2 -march=native" ]
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
-    cc_debug     = "-g3 -O0  -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
+    cc_debug     = ["-g3", "-O0", "-DDOASSERT", "-DDOPROF", "-DBOUNDS_CHECK", "-DSLOWSHARECHECK", "--param=max-vartrack-size=100000000" ]
     #Removed because new netcdf doesn't seem to like it
     #cc_debug += ' -D_GLIBCXX_DEBUG  '
-    ld_extra = " -fPIC -lmpi "
+    ld_flags += ["-fPIC", "-lmpi" ]
     if env['openmp']:
-      ld_extra += " -lgomp"
-    omp_flags    = "-fopenmp"
-    omp_ldflags  = "-fopenmp"
+      ld_flags += ["-lgomp" ]
+    omp_flags    = ["-fopenmp" ]
+    omp_ldflags  = ["-fopenmp" ]
     fatalwarning = "-Werror"
     sysheaderopt = "-isystem"
 elif cxx_name == 'mpiicpc':
     # note that -ffast-math is not used because it breaks isnan(),
     env['CC']= 'mpiicc'
-    cxx_flags = '-std=c++17 '+ env['cxx_extra']
-    cc_flags += " -pedantic -Wall -fPIC -finline-functions"
-    cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing "
-    cc_flags += " -Wno-unused-function  -Wno-narrowing"
-    cc_flags += " -Wno-deprecated-declarations --param=max-vartrack-size=100000000"
-    cc_flags += " -ipo "
-    cc_optim     = "-O2 -march=native"
+    cxx_flags = ['-std=c++17' ]
+    cc_flags += ["-pedantic", "-Wall", "-fPIC", "-finline-functions"]
+    cc_flags += ["-Wno-unknown-pragmas", "-Wno-sign-compare", "-Wno-system-headers", "-Wno-long-long", "-Wno-strict-aliasing"]
+    cc_flags += ["-Wno-unused-function", "-Wno-narrowing"]
+    cc_flags += ["-Wno-deprecated-declarations", "--param=max-vartrack-size=100000000"]
+    cc_flags += ["-ipo" ]
+    cc_optim     = ["-O2", "-march=native"]
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
-    cc_debug     = "-g3 -O0  -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
+    cc_debug     = ["-g3", "-O0", "-DDOASSERT", "-DDOPROF", "-DBOUNDS_CHECK", "-DSLOWSHARECHECK", "--param=max-vartrack-size=100000000"]
     #Removed because new netcdf doesn't seem to like it
     #cc_debug += ' -D_GLIBCXX_DEBUG  '
-    ld_extra += " -fPIC -lmpi "
+    ld_flags +=[ "-fPIC", "-lmpi" ]
     if env['openmp']:
-      ld_extra += " -lgomp"
-    omp_flags    = "-qopenmp"
-    omp_ldflags  = "-qopenmp"
+      ld_flags += ["-lgomp" ]
+    omp_flags    = ["-qopenmp" ]
+    omp_ldflags  = ["-qopenmp" ]
     fatalwarning = "-Werror"
     sysheaderopt = "-isystem"
+
+
+env['sysheaderopt']=sysheaderopt
+# set defaults if not otherwise specified
+if env['cc_flags']    == 'default': env['cc_flags'] = cc_flags
+if env['cxx_flags']    == 'default': env['cxx_flags'] = cxx_flags
+if env['cc_optim']    == 'default': env['cc_optim'] = cc_optim
+if env['cc_debug']    == 'default': env['cc_debug'] = cc_debug
+if env['omp_flags']   == 'default': env['omp_flags'] = omp_flags
+if env['omp_ldflags'] == 'default': env['omp_ldflags'] = omp_ldflags
+if env['ld_flags'] == 'default': env['ld_flags'] = ld_flags
+
+if env['version_information'] != '0.0':
+    env['SHLIBVERSION']=env['version_information']
+    env['LDMODULEVERSION']=env['version_information']
+
+if env['IS_OSX']:
+    env.AppendUnique(SHLIBSONAMEFLAGS =  ["-Wl,-install_name=$_SHLIBSONAME"])
+else:
+    env.AppendUnique(SHLIBSONAMEFLAGS =   ["-Wl,-soname=$_SHLIBSONAME" ] )
 
 if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
     if os.path.isdir(env['trilinos_build']) is False: # create a build folder if the user deleted it
@@ -526,28 +554,7 @@ if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
         Exit(1)
     env['trilinos'] = True
     env['trilinos_prefix'] = env['trilinos_install']
-    #os.chdir(startdir)
-
-env['sysheaderopt']=sysheaderopt
-
-# set defaults if not otherwise specified
-if env['cc_flags']    == 'default': env['cc_flags'] = cc_flags
-if env['cc_optim']    == 'default': env['cc_optim'] = cc_optim
-if env['cc_debug']    == 'default': env['cc_debug'] = cc_debug
-if env['omp_flags']   == 'default': env['omp_flags'] = omp_flags
-if env['omp_ldflags'] == 'default': env['omp_ldflags'] = omp_ldflags
-if env['cxx_extra'] != '': env.Append(CXXFLAGS = env['cxx_extra'])
-if env['ld_extra']  != '': env.Append(LINKFLAGS = env['ld_extra'])
-
-if env['version_information'] != '0.0':
-    env['SHLIBVERSION']=env['version_information']
-    env['LDMODULEVERSION']=env['version_information']
-
-if env['IS_OSX']:
-    env['SHLIBSONAMEFLAGS'] =  " -Wl, -install_name=$_SHLIBSONAME "
-else:
-    env['SHLIBSONAMEFLAGS'] = " -Wl,-soname=$_SHLIBSONAME "
-
+#=====
 if env['longindices']:
   if env['paso']:
     env.Append(CPPDEFINES = ['ESYS_INDEXTYPE_LONG'])
@@ -570,17 +577,36 @@ elif env['forcecollres'] == 0:
 if env['iknowwhatimdoing']:
     env.Append(CPPDEFINES=['IKNOWWHATIMDOING'])
 
+# --- set  options:
+if env['cc_flags'] != 'default': env.Append(CCFLAGS = env['cc_flags'])
+if env['cxx_flags'] != 'default': env.Append(CXXFLAGS = env['cxx_flags'])
+if env['debug']:
+    if env['cc_debug'] != 'default':
+        env.AppendUnique(CCFLAGS = env['cc_debug'])
+        env.AppendUnique(CXXFLAGS = env['cc_debug'])
+else:
+    if env['cc_optim'] != 'default':
+        env.AppendUnique(CCFLAGS = env['cc_optim'])
+        env.AppendUnique(CXXFLAGS = env['cc_optim'])
+env['buildvars']['debug']=int(env['debug'])
+if env['ld_flags'] != 'default': env.Append(LINKFLAGS =env['ld_flags'])
+
+if env['cxx_extra'] : env.AppendUnique(CXXFLAGS = env['cxx_extra'])
+if env['cc_extra'] : env.AppendUnique(CCFLAGS = env['cc_extra'])
+if env['ld_extra']  : env.AppendUnique(LINKFLAGS =env['ld_extra'])
+
+
 # Disable OpenMP if no flags provided
 if env['openmp'] and env['omp_flags'] == '':
    env['warnings'].append("OpenMP requested but no flags provided - disabling OpenMP!")
    env['openmp'] = False
 
 if env['openmp']:
-    env.Append(CCFLAGS = env['omp_flags'])
-    if env['omp_ldflags'] != '': env.Append(LINKFLAGS = env['omp_ldflags'])
+    env.AppendUnique(CCFLAGS = env['omp_flags'])
+    if env['omp_ldflags']: env.AppendUnique(LINKFLAGS = env['omp_ldflags'])
 else:
-    env['omp_flags']=''
-    env['omp_ldflags']=''
+    env['omp_flags']= [ ]
+    env['omp_ldflags']= [ ]
 
 # Flags used by the p4est program
 if env['openmp']:
@@ -592,63 +618,8 @@ if env['openmp']:
     env.Append(CPPDEFINES=['OPENMP'])
 
 env['buildvars']['openmp']=int(env['openmp'])
-
-# add debug/non-debug compiler flags
-
-env['buildvars']['debug']=int(env['debug'])
-env.Append(CCFLAGS = env['cc_flags'])
-env.Append(CXXFLAGS = cxx_flags)
-if ld_extra: env.Append(LINKFLAGS = ld_extra)
-
-if env['debug']:
-    env.Append(CCFLAGS = env['cc_debug'])
-    #env.Append(CXXFLAGS = env['cc_debug'])
-    # env.Append(CPPDEFINES=['P4EST_ENABLE_DEBUG'])
-    # env.Append(CPPDEFINES=['SC_ENABLE_DEBUG'])
-else:
-    env.Append(CCFLAGS = env['cc_optim'])
-    #env.Append(CXXFLAGS = env['cc_optim'])
-
-
-# always add cc_flags
-env.Append(CCFLAGS = env['cc_flags'])
-
-# add system libraries
 env.AppendUnique(LIBS = env['sys_libs'])
 
-# determine svn revision
-# global_revision=ARGUMENTS.get('SVN_VERSION', None)
-# if global_revision:
-#     global_revision = re.sub(':.*', '', global_revision)
-#     global_revision = re.sub('[^0-9]', '', global_revision)
-#     if global_revision == '': global_revision='-2'
-# else:
-#   # Get the global Subversion revision number for the getVersion() method
-#   try:
-#     global_revision = os.popen('svnversion -n .').read()
-#     global_revision = re.sub(':.*', '', global_revision)
-#     global_revision = re.sub('[^0-9]', '', global_revision)
-#     if global_revision == '': global_revision='-2'
-#   except:
-#     global_revision = '-1'
-# env['svn_revision']=global_revision
-# env['buildvars']['svn_revision']=global_revision
-# env.Append(CPPDEFINES=['SVN_VERSION='+global_revision])
-
-# # If that failed, try to get the version number from the file svn_version
-# if global_revision=='-2' or global_revision=='-1':
-#     try:
-#         global_revision=str(os.popen('cat svn_version 2>/dev/null').read())
-#         if global_revision[global_revision.__len__()-1] == '\n':
-#             temp=global_revision[0:(global_revision.__len__()-1)]
-#         else:
-#             temp=global_revision
-#         print("Using svn revision information from file. Got revision = %s" % temp)
-#     except:
-#         global_revision='-2'
-
-# if global_revision=='-2' or global_revision=='-1':
-    # env['warnings'].append("Could not detect the svn revision number!")
 
 global_revision=''
 try:
@@ -867,7 +838,7 @@ dodgy_env=env.Clone()
 # now add warnings-as-errors flags. This needs to be done after configuration
 # because the scons test files have warnings in them
 if ((fatalwarning != '') and (env['werror'])):
-    env.Append(CCFLAGS = fatalwarning)
+    env.AppendUnique(CCFLAGS = fatalwarning)
 
 Export(
   ['env',
@@ -885,7 +856,7 @@ build_all_list = ['build_escript']
 install_all_list = ['target_init', 'install_escript']
 
 #p4est
-if env['use_p4est']:
+if env['use_p4est'] and "oxley" in env['domains']  :
     build_all_list += ['build_p4est']
     install_all_list += ['install_p4est']
     env['p4est']=True
@@ -912,7 +883,6 @@ for domain in env['domains']:
     env.Append(CPPDEFINES = ['ESYS_HAVE_'+domain.upper()])
     build_all_list += ['build_%s'%domain]
     install_all_list += ['install_%s'%domain]
-
 env['buildvars']['weipa'] = int(env['weipa'])
 if env['weipa']:
     env.Append(CPPDEFINES = ['ESYS_HAVE_WEIPA'])
@@ -1083,7 +1053,7 @@ def print_summary():
     else:
         print("          netcdf:  NO")
     e_list=[]
-    for i in ('weipa','debug','openmp','cppunit','mkl','mpi4py',
+    for i in ('weipa','debug','openmp','cppunit','mkl','mpi4py', 'zlib',
              'mumps', 'scipy','silo','sympy','umfpack','visit'):
         if env[i]: e_list.append(i)
         else: d_list.append(i)

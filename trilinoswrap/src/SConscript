@@ -46,10 +46,9 @@ local_env = env.Clone()
 
 # collect dependencies for other modules
 trilinoswraplibs = env['escript_libs'] + env['trilinos_libs']
-
 local_env.PrependUnique(LIBS = trilinoswraplibs)
 
-env['trilinoswrap_libs'] = [module_name] + trilinoswraplibs
+env['trilinoswrap_libs'] = [ module_name ] + trilinoswraplibs
 
 include_path = Dir(module_name, local_env['incinstall'])
 hdr_inst = local_env.Install(include_path, headers)

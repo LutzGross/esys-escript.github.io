@@ -27,11 +27,11 @@
 #include <escript/FunctionSpaceFactory.h>
 #include <escript/SolverOptions.h>
 
-#ifdef ESYS_TRILINOS_14
+//#ifdef ESYS_TRILINOS_14
 #include "Teuchos_ArrayRCPDecl.hpp"
-#else
-#include "Tpetra_createDeepCopy_CrsMatrix.hpp"
-#endif
+//#else
+//#include "Tpetra_createDeepCopy_CrsMatrix.hpp"
+//#endif
 
 namespace bp = boost::python;
 using Teuchos::rcp;
