@@ -33,16 +33,28 @@ HOMEBREW_PREFIX = '/opt/homebrew'
 pythoncmd = os.path.join(HOMEBREW_PREFIX, 'bin', 'python3')
 import subprocess
 p=subprocess.run([pythoncmd, '-V'], capture_output=True, text=True)
+print(p.stdout)
 subversion=p.stdout.split(' ')[1].split('.')[1].strip()
 revversion=p.stdout.split(' ')[1].split('.')[2].strip()
 print(f'Compiled for Python 3.{subversion}.{revversion}.')
-pythonlibpath = os.path.join(HOMEBREW_PREFIX,  "Cellar", f"python@3.{subversion}",
-                             f"3.{subversion}.{revversion}", "Frameworks", "Python.framework",
-                             "Versions", f"3.{subversion}", "lib" )
-                             #f"python3.{subversion}", f"config-3.{subversion}-darwin")
-pythonincpath = os.path.join(HOMEBREW_PREFIX,  "Cellar", f"python@3.{subversion}",
-                             f"3.{subversion}.{revversion}", "Frameworks", "Python.framework",
-                             "Versions", f"3.{subversion}", "include", f"python3.{subversion}" )
+
+p=subprocess.run([pythoncmd+f".{subversion}-config", '--includes'], capture_output=True, text=True)
+for t in p.stdout.split(" ") :
+    if t.startswith("-I"):
+        pythonincpath=p.stdout.split(" ")[0][2:]
+
+p=subprocess.run([pythoncmd+f".{subversion}-config", '--ldflags'], capture_output=True, text=True)
+for t in p.stdout.split(" "):
+    if t.startswith("-L") :
+        pythonlibpath=p.stdout.split(" ")[0][2:]
+
+#pythonpath = os.path.join(HOMEBREW_PREFIX,  "Cellar", f"python@3.{subversion}",
+#                             f"3.{subversion}.{revversion}", "Frameworks", "Python.framework",
+#                             "Versions", f"3.{subversion}" )
+#
+#pythonlibpath = os.path.join(pythonpath,  "lib" )
+#                             #f"python3.{subversion}", f"config-3.{subversion}-darwin")
+#pythonincpath = os.path.join(pythonpath, "include", f"python3.{subversion}" )
 
 mpi = 'no'
 
@@ -79,20 +91,19 @@ netcdf_libs=['netcdf-cxx4', 'netcdf']
 silo = True
 silo_prefix = HOMEBREW_PREFIX
 silo_libs = ['siloh5', 'hdf5' ]
-ld_extra = ' -lz '
 
-zlib = True
+zlib = False
 zlib_prefix = HOMEBREW_PREFIX+"/Cellar/zlib/1.3"
 zlib_libs = [ 'zlib']
 
 lapack =False
-lapack_prefix = os.path.join(HOMEBREW_PREFIX, 'lapack' )
+lapack_prefix = os.path.join(HOMEBREW_PREFIX, 'Cellar', 'lapack', '3.12.0' )
 
 umfpack = True
 umfpack_prefix = [ HOMEBREW_PREFIX+"/include/suitesparse", HOMEBREW_PREFIX+"/lib/" ]
 
 build_trilinos = True
 
-ld_extra = ["-L/opt/homebrew/opt/llvm/lib", "-lz" ]
+ld_extra = ["-L/opt/homebrew/opt/llvm/lib", "-lz", "-Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++" ]
 
 

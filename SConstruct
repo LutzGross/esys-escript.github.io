@@ -198,6 +198,7 @@ vars.AddVariables(
 # in default locations.
 #env = Environment(tools = ['default'] + [ 'applelink' ], options = vars,
 
+
 env = Environment(tools = ['default'] , options = vars,
                   ENV = {'PATH': os.environ['PATH']})
 
