@@ -48,17 +48,15 @@ def getdebbuildflags():
         continue
     key=line[:ind]
     val=line[ind+1:]
-    if key in ignoreflags:
-        continue
-    if key not in usedflags:
-        raise RuntimeError("Unknown key ("+key+") in dpkg-buildflags")
-    if key=="CFLAGS":
+    print(key, val)
+    if key in usedflags:
+      if key=="CFLAGS":
         mycflags=val
-    if key=="CXXFLAGS":
+      if key=="CXXFLAGS":
         mycxxflags=val
-    if mycflags is not None and mycxxflags is not None and mycflags!=mycxxflags:
+      if mycflags is not None and mycxxflags is not None and mycflags!=mycxxflags:
         raise RuntimeError("We do not current support different different dpkg-buildflags for C vs C++")
-    if usedflags[key] is None:
+      if usedflags[key] is None:
         continue
-    res.append([usedflags[key],val])
+      res.append([usedflags[key],val])
   return res    
