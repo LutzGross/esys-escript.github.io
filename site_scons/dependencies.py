@@ -257,7 +257,7 @@ def checkPython(env):
     conf = Configure(env.Clone())
 
     if env['sysheaderopt'] :
-        conf.env.AppendUnique(CCFLAGS= env['sysheaderopt'] + " " + python_inc_path)
+        conf.env.AppendUnique(CCFLAGS= [ (env['sysheaderopt'] , python_inc_path) ] )
     else:
         conf.env.AppendUnique(CPPPATH = [python_inc_path])
 
@@ -299,9 +299,9 @@ def checkBoost(env):
         # This is required because we can't -isystem /usr/include since it
         # breaks std includes
         if os.path.normpath(boost_inc_path) == '/usr/include':
-            env.Append(CCFLAGS= [ env['sysheaderopt']+ " " + os.path.join(boost_inc_path,'boost') ] )
+            env.Append(CCFLAGS= [ (env['sysheaderopt'], os.path.join(boost_inc_path,'boost')) ] )
         else:
-            env.Append(CCFLAGS= [ env['sysheaderopt'] + " " +  boost_inc_path ] )
+            env.Append(CCFLAGS= [ (env['sysheaderopt'], boost_inc_path ) ] )
 
     env.AppendUnique(LIBPATH = [ boost_lib_path ])
     env.AppendUnique(LIBS = env['boost_libs'])
