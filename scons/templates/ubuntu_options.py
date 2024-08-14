@@ -24,8 +24,7 @@ mpi='OPENMPI'
 mpi_prefix = ['/usr/include/x86_64-linux-gnu/openmpi', '/usr/lib/x86_64-linux-gnu/openmpi' ]
 openmp=1
 paso=1
-cxx_extra=' -fdiagnostics-color=always'
-cxx_extra+=' -Wno-format-truncation'
+cxx_extra= ['-fdiagnostics-color=always', '-Wno-format-truncation']
 pythoncmd = 'python3'
 
 parmetis = True
@@ -49,3 +48,4 @@ silo = True
 silo_libs = ['siloh5', 'hdf5']
 silo_prefix=[ '/usr/include' , '/usr/lib/x86_64-linux-gnu/hdf5/serial', '/usr/lib/x86_64-linux-gnu']
 netcdf = 4
+
