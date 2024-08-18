@@ -53,7 +53,7 @@ warnings.filterwarnings('ignore', category=DeprecationWarning, message='inspect.
 
 from . import escriptcpp as escore
 from .escriptcpp import C_GeneralTensorProduct, Data
-from .escriptcpp import getVersion, getMPIRankWorld, getMPIWorldMax
+from .escriptcpp import getVersion, getMPIRankWorld, getMPIWorldMax, hasFeature
 from .escriptcpp import printParallelThreadCounts
 from .escriptcpp import listEscriptParams
 from .start import HAVE_SYMBOLS
@@ -213,6 +213,7 @@ def saveDataCSV(filename, append=False, refid=False, sep=", ", csep="_", **data)
                raise ValueError("saveDataCSV: unknown non-data argument type for %s"%(str(n)))
     escore._saveDataCSV(filename, new_data, sep, csep, refid, append)
 
+
 def getNumpy(**data):
     """
     Writes `Data` objects to a numpy array.
@@ -280,21 +281,25 @@ def getNumpy(**data):
 
 def convertToNumpy(data):
     """
-    Writes `Data` objects to a numpy array.
-
-    The keyword args are Data objects to save.
-    If a scalar `Data` object is passed with the name ``mask``, then only
-    samples which correspond to positive values in ``mask`` will be output.
-
-    Example usage:
-
-    s=Scalar(..)
-    v=Vector(..)
-    t=Tensor(..)
-    f=float()
-    array = getNumpy(a=s, b=v, c=t, d=f)
+    converts `Data` object `data` to a numpy array.
     """
-    return escore._convertToNumpy(Data(data,data.getFunctionSpace()))
+    if hasFeature("boostnumpy"):
+        return escore._convertToNumpy(Data(data,data.getFunctionSpace()))
+    else:
+        N=data.getNumberOfDataPoints()
+        if data.getShape() == ():
+            S = ( 1 , N )
+        else:
+            S = data.getShape() + (N,)
+        if data.isComplex():
+            out = numpy.empty(S, dtype = numpy.complex128)
+        else:
+            out = numpy.empty( S, dtype = numpy.float64)
+
+        for k in range(data.getNumberOfDataPoints()):
+            out[:,k] = numpy.array( data.getTupleForDataPoint(k), dtype = out.dtype, subok = False, ndmin = 1 )
+        return out
+
 
 def NumpyToData(array, isComplex, functionspace):
     """
