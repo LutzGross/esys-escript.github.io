@@ -44,10 +44,8 @@ options_file=ARGUMENTS.get('options_file', None)
 if not options_file:
     ext_dir = os.path.join(os.getcwd(), 'scons')
     hostname = platform.node().split('.')[0]
-    for name in hostname, effectiveName(hostname):
-        mangledhostname = re.sub('[^0-9a-zA-Z]', '_', hostname)
-        options_file = os.path.join(ext_dir, mangledhostname+'_options.py')
-        if os.path.isfile(options_file): break
+    mangledhostname = re.sub('[^0-9a-zA-Z]', '_', hostname)
+    options_file = os.path.join(ext_dir, mangledhostname+'_options.py')
 
 if not os.path.isfile(options_file):
     print("\nWARNING:\nOptions file %s" % options_file)

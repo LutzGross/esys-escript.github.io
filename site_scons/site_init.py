@@ -280,12 +280,6 @@ def eps2pdf(target, source, env):
        return 1
    return None
 
-def effectiveName(inname):
-    m=re.compile("^r1i[0-9]{1,2}n[0-9]{1,2}$")  # savanna names take the form r1i?n?
-    if m.match(inname):
-        return "savanna"
-    return inname
-
 def osxlib_dep_rewrite(libname, targetdir, env):
     if env.Execute("tools/libmover.sh %s %s"%(libname, targetdir)):
        return 1
