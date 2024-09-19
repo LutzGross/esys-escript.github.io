@@ -143,7 +143,8 @@ vars.AddVariables(
   ('trilinos_libs', 'Trilinos libraries to link with', []),
   PathVariable('trilinos_src', 'Top-level source directory for trilinos.', Dir('trilinos_source15').abspath, PathVariable.PathIsDir),
   PathVariable('trilinos_build', 'Top-level build directory for trilinos.', Dir('#/build_trilinos').abspath, PathVariable.PathIsDirCreate),
-  PathVariable('trilinos_install', 'Top-level install directory for trilinos when built', Dir('#/escript_trilinos').abspath, PathVariable.PathIsDirCreate),
+  #PathVariable('trilinos_install', 'Top-level install directory for trilinos when built', Dir('#/lib/esys').abspath, PathVariable.PathIsDirCreate),
+  ('trilinos_install', 'path to install trilinos libs, default is <prefix>/lib/esys', 'default'),
   ('trilinos_make_sh', 'path to a shell script to run trilinos make.', 'default'),
   BoolVariable('visit', 'Enable the VisIt simulation interface', False),
   ('visit_prefix', 'Prefix/Paths to VisIt installation', default_prefix),
@@ -320,6 +321,7 @@ env['warnings'] = []
 if len(env['PREFIX']) != 0:
     env['prefix']=env['PREFIX']
 
+
 env['BUILD_DIR'] = Dir(env['build_dir']).abspath
 prefix = Dir(env['prefix']).abspath
 env['buildvars']['prefix'] = prefix
@@ -328,8 +330,11 @@ env['bininstall'] = os.path.join(prefix, 'bin')
 if IS_WINDOWS:
     env['libinstall'] = env['bininstall']
 else:
-    env['libinstall'] = os.path.join(prefix, 'lib')
+    env['libinstall'] = os.path.join(prefix, 'lib','esys')
 env['pyinstall']  = os.path.join(prefix, 'esys')
+if env['trilinos_install'] == 'default':
+    env['trilinos_install']=env['libinstall']
+
 if not os.path.isdir(env['bininstall']):
     os.makedirs(env['bininstall'])
 if not os.path.isdir(env['libinstall']):
@@ -979,7 +984,7 @@ if not env['usempi']:
 def print_summary():
     d_list=[]
     print("")
-    print("*** Config Summary (see config.log and <prefix>/lib/buildvars for details) ***")
+    print(f"*** Config Summary (see config.log and {env['libinstall']}/buildvars for details) ***")
     print("Escript revision %s"%global_revision)
     print("  Install prefix:  %s"%env['prefix'])
     print("          Python:  %s (Version %s)"%(env['pythoncmd'],env['python_version']))
@@ -1077,8 +1082,7 @@ def print_summary():
         print("\nSUCCESS: build complete\n")
 
     print("Add to PYTHONPATH :", env['prefix'])
-    print("Add to LD_LIBRARY_PATH :", os.path.join(env['prefix'], 'lib')+":"+os.path.join(env['trilinos_prefix'], 'lib') )
-
+    print("Add to LD_LIBRARY_PATH :", env['libinstall'],":",os.path.join(env['trilinos_install'],'lib'))
     print("If publishing results using esys-escript, please cite us: https://esys-escript.github.io/")
 
 atexit.register(print_summary)
