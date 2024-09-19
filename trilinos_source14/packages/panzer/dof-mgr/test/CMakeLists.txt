@@ -1,4 +1,0 @@
-ADD_SUBDIRECTORY(dofmngr_test)
-ADD_SUBDIRECTORY(cartesian_topology)
-ADD_SUBDIRECTORY(field_pattern)
-ADD_SUBDIRECTORY(fe_assembly)

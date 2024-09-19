@@ -1,4 +1,0 @@
-# Note: all relative paths are relative to package/doc!
-#
-@INCLUDE = Doxyfile.options
-INPUT    = ./Xpetra_DoxygenDocumentation.hpp ../src ../sup
