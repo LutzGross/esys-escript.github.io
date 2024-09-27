@@ -338,8 +338,7 @@ def checkBoost(env):
             libname = f'boost_numpy{pyv[0]}{pyv[1]}'
         try:
             boost_numpy_inc_path, boost_numpy_lib_path = \
-                findLibWithHeader(env, [ libname ] + env['boost_libs'], 'boost/python/numpy.hpp', env['boost_prefix'], lang='c++')
-
+                findLibWithHeader(env, [ libname ] + env['boost_libs'], os.path.join('boost', 'python', 'numpy.hpp'), env['boost_prefix'], lang='c++')
             env.AppendUnique(LIBS=libname)
             env.AppendUnique(boost_libs=libname)
             env.AppendUnique(CPPPATH=boost_numpy_inc_path)

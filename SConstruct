@@ -78,8 +78,8 @@ build_trilinos_flavours = ( "check",      # check for unsuccessful make before s
 vars = Variables(options_file, ARGUMENTS)
 vars.AddVariables(
   PathVariable('options_file', 'Path to options file', options_file, PathVariable.PathIsFile),
-  PathVariable('prefix', 'Installation prefix', Dir('#.').abspath, PathVariable.PathIsDirCreate),
-  PathVariable('PREFIX', 'Installation prefix', Dir('#.').abspath, PathVariable.PathIsDirCreate),
+  PathVariable('prefix', 'Installation prefix (may not contain space)', Dir('#.').abspath, PathVariable.PathIsDirCreate),
+  PathVariable('PREFIX', 'Installation prefix  (may not contain space)', Dir('#.').abspath, PathVariable.PathIsDirCreate),
   PathVariable('build_dir', 'Top-level build directory', Dir('#/build').abspath, PathVariable.PathIsDirCreate),
   BoolVariable('verbose', 'Output full compile/link lines', False),
 # Compiler/Linker options
@@ -319,6 +319,8 @@ env['warnings'] = []
 if len(env['PREFIX']) != 0:
     env['prefix']=env['PREFIX']
 
+if " " in env['prefix']:
+    raise ValueError("Installation prefix contains space.")
 
 env['BUILD_DIR'] = Dir(env['build_dir']).abspath
 prefix = Dir(env['prefix']).abspath
