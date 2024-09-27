@@ -446,7 +446,7 @@ class Locator(object):
          data.expand()  
          ii=self.getId()
          if isinstance(ii, list):
-          for i in id:
+          for i in ii:
            data._setTupleForGlobalDataPoint(i[1], i[0], v)
          else:
            data._setTupleForGlobalDataPoint(ii[1], ii[0], v)
@@ -853,7 +853,7 @@ def __FDGMRES(F0, defect, x0, atol, iter_max=100, iter_restart=20):
         if iter > 0 :
             hhat=numpy.zeros(iter+1,numpy.float64)
             for i in range(iter+1) : hhat[i]=h[i,iter]
-            hhat=__givapp(c[0:iter],s[0:iter],hhat);
+            hhat=__givapp(c[0:iter],s[0:iter],hhat)
             for i in range(iter+1) : h[i,iter]=hhat[i]
 
         mu=math.sqrt(h[iter,iter]*h[iter,iter]+h[iter+1,iter]*h[iter+1,iter])
@@ -1032,7 +1032,7 @@ def _GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, verb
 # Update the residual norm
 
         rho=abs(g[iter+1])
-        if verbose: print(("GMRES: iteration step %s: residual %e"%(iter,rho)))
+        if verbose: print("GMRES: iteration step %s: residual %e"%(iter,numpy.linalg.norm(rho)))
         iter+=1
 
 # At this point either iter > iter_max or rho < tol.
@@ -1332,8 +1332,8 @@ def TFQMR(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
     if rho == 0.0: raise IterationBreakDown('TFQMR breakdown, rho=0')
 
     rhon = bilinearform(r,w)
-    beta = rhon / rho;
-    rho = rhon;
+    beta = rhon / rho
+    rho = rhon
     y1 = w + beta * y2;
     u1 = Aprod(y1)
     v = u1 + beta * ( u2 + beta * v )

@@ -46,26 +46,21 @@ def findLibWithHeader(env, libs, header, paths, lang='c++', try_link=True):
             if os.path.isfile(os.path.join(inc, header)):
                 inc_path=inc
                 break
-        if inc_path=='':
-            raise RuntimeError('%s not found under %s'%(header,paths))
-
         # now try to find a lib directory
         for l in 'lib','lib64','lib32':
             lp=os.path.join(paths, l)
             if os.path.isdir(lp):
                 lib_path=lp
                 break
-        if lib_path=='':
-            raise RuntimeError('No lib directory found under %s'%paths)
     else:
         if os.path.isfile(os.path.join(paths[0], header)):
             inc_path=paths[0]
-        else:
-            raise RuntimeError('%s not found under %s'%(header,paths[0]))
         if os.path.isdir(paths[1]):
-            lib_path=paths[1]
-        else:
-            raise RuntimeError('%s is not a valid path.'%paths[1])
+                lib_path=paths[1]
+    if inc_path=='':
+        raise RuntimeError('%s not found under %s'%(header,paths))
+    if lib_path == '':
+        raise RuntimeError('No lib directory found under %s' % paths)
 
     if try_link:
         # now try the library
