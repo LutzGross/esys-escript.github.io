@@ -30,8 +30,13 @@ from .weipacpp import visitInitialize, visitPublishData
 __nodocorecursion=['weipacpp']
 
 import numpy as np
+import warnings
+
 try:
-    from tvtk.api import tvtk
+    # to suppress some warnings when importing VTK
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
+        from tvtk.api import tvtk
     HAVE_TVTK = True
 except:
     HAVE_TVTK = False
