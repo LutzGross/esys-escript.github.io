@@ -139,7 +139,7 @@ vars.AddVariables(
   EnumVariable('build_trilinos', 'Instructs scons to build the trilinos library.', "make", allowed_values = build_trilinos_flavours),
   ('trilinos_prefix', 'Prefix/Paths to Trilinos installation (need to be set  if build_trilinos = False).', default_prefix),
   ('trilinos_libs', 'Trilinos libraries to link with', []),
-  PathVariable('trilinos_src', 'Top-level source directory for trilinos.', Dir('trilinos_source15').abspath, PathVariable.PathIsDir),
+  PathVariable('trilinos_src', 'Top-level source directory for trilinos.', Dir('trilinos_source16').abspath, PathVariable.PathIsDir),
   PathVariable('trilinos_build', 'Top-level build directory for trilinos.', Dir('#/build_trilinos').abspath, PathVariable.PathIsDirCreate),
   PathVariable('trilinos_install', 'Top-level install directory for trilinos when built', Dir('#/esys.trilinos').abspath, PathVariable.PathIsDirCreate),
   #('trilinos_install', 'path to install trilinos libs, default is <prefix>/lib/esys', 'default'),
@@ -528,7 +528,6 @@ if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
     SHARGS = [ env['trilinos_install'], env['CC'],  env['CXX'], OPENMPFLAG, env['trilinos_src'] ]
 
     print("Initialization of Trilinos build using", SHARGS )
-
     if env['trilinos_make_sh'] == 'default':
         if env['mpi'] not in [ 'none', 'no', True]:
             #source=startdir + "/scripts/trilinos_mpi.sh"

@@ -1,0 +1,29 @@
+// @HEADER
+// *****************************************************************************
+//                           Intrepid2 Package
+//
+// Copyright 2007 NTESS and the Intrepid2 contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
+// @HEADER
+
+/** \file test_01.cpp
+    \brief  Unit test of serial interface Intrepid2::Basis_HGRAD_QUAD_Cn_FEM.
+    \author Kyungjoo Kim
+*/
+
+#include "Kokkos_Core.hpp"
+
+#include "test_02.hpp"
+
+int main(int argc, char *argv[]) {
+
+  Kokkos::initialize();
+  {
+    const bool verbose = (argc-1) > 0;
+    Intrepid2::Test::HGRAD_HEX_Cn_FEM_Test02<@ETI_VALUETYPE@,@ETI_DEVICE@>(verbose);
+  }
+  Kokkos::finalize();
+  return 0;
+}
+
