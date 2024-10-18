@@ -955,8 +955,6 @@ class MinimizerLBFGS(AbstractMinimizer):
         assert self._restart > 0
         # start the iteration:
         iterCount = 0
-        iterCount_last_break_down = -1
-
         alpha = self._initialAlpha
         H_scale = None
 
@@ -965,7 +963,7 @@ class MinimizerLBFGS(AbstractMinimizer):
         grad_Fm = self.getCostFunction().getGradientAndCount(m, *args_m)
         norm_m = self.getCostFunction().getNormAndCount(m)
         Fm = self.getCostFunction().getValueAndCount(m, *args_m)
-        Fm_old = Fm
+        #Fm_old = Fm
         self.logger.info("Initialization completed.")
 
         self.doCallback(iterCount=0, m=m, dm=None, Fm=Fm, grad_Fm=grad_Fm,
@@ -978,6 +976,7 @@ class MinimizerLBFGS(AbstractMinimizer):
             break_down = False
             s_and_y = []
             self.__initializeHessian=True
+            iterCount_last_break_down = -1
 
             while not converged and not break_down and k < self._restart and iterCount < self._iterMax:
                 self.logger.info("********** iteration %3d **********" % iterCount)
