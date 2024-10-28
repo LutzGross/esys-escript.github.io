@@ -957,7 +957,9 @@ class MinimizerLBFGS(AbstractMinimizer):
         iterCount = 0
         alpha = self._initialAlpha
         H_scale = None
-
+        if self._restart < self._iterMax+2:
+            self._restart = self._iterMax * 3
+            self.logger.info("INFO: Restart is currently disabled.")
         self._result = m
         args_m = self.getCostFunction().getArgumentsAndCount(m)
         grad_Fm = self.getCostFunction().getGradientAndCount(m, *args_m)
