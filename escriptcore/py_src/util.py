@@ -3076,6 +3076,25 @@ def boundingBox(domain):
        out.append((inf(x_i),sup(x_i)))
     return out
 
+class BBxInterval(object):
+    def __init__(self, minval=0, maxval=0):
+        self.min=minval
+        self.max=maxval
+    def __str__(self):
+        return f"[{self.min}, {self.max}]"
+    def __repr__(self):
+        return f"[{self.min}, {self.max}]"
+def getBoundingBox(domain):
+    """
+    Returns the bounding box of a domain as a list of intervals
+
+    :param domain: a domain
+    :type domain: `escript.Domain`
+    :return: bounding box of the domain
+    :rtype: ``list`` of ``BBxInterval``
+    """
+    return [ BBxInterval(minval, maxval) for minval, maxval in boundingBox(domain)]
+
 def longestEdge(domain):
     """
     Returns the length of the longest edge of the domain
