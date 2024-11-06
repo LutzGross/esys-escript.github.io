@@ -81,7 +81,6 @@ class CostFunction(object):
         out="Number of cost function evaluations: %d\n" % self.Value_calls
         out+="Number of gradient evaluations: %d\n" % self.Gradient_calls
         out+="Number of inverse Hessian evaluations: %d\n" % self.InverseHessianApproximation_calls
-        out+="Number of gradient evaluations: %d\n" % self.Gradient_calls
         out+="Number of inner product evaluations: %d\n" % self.DualProduct_calls
         out+="Number of argument evaluations: %d\n" % self.Arguments_calls
         out+="Number of norm evaluations: %d" % self.Norm_calls
@@ -263,6 +262,23 @@ class CostFunction(object):
         :note: Overwrite this method to implement a cost function.
         """
         raise NotImplementedError
+
+    def getSqueezeFactor(self, m, p, *args):
+        """
+        The new solution is calculated as m+a*p with a>0. This function allows to provide an upper bound
+        for a to make sure that m+a*p is valid typically to avoid overflow when the cost function is evaluated.
+        the solver will take action to make sure that the value of a is not too small.
+
+        :param m: a solution approximation
+        :type m: m-type
+        :param p: an increment to the solution
+        :type m: m-type
+        :param args: pre-calculated values for ``m`` from `getArgumentsAndCount()`
+        :rtype: positive ``float`` or None
+
+        :note: Overwrite this method to implement a cost function.
+        """
+        return None
 
     def getInverseHessianApproximation(self, r, m, *args, initializeHessian = True):
         """

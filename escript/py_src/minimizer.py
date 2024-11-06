@@ -992,8 +992,15 @@ class MinimizerLBFGS(AbstractMinimizer):
                 else:
                     alphaMin = self._relAlphaMin
                 self.getLineSearch().setOptions(alphaMin=alphaMin)
-                alpha = max(alpha, alphaMin*1.10)
-                self.logger.debug("Starting line search with alphaMin, alpha  = %g, %g" % (alphaMin, alpha))
+                alpha = max(alpha, alphaMin * 1.10)
+                alpha_s = self.getCostFunction().getSqueezeFactor(m, p)
+                if not alpha_s is None:
+                    assert alpha_s >0
+                    self.logger.debug("Safe alpha value given as %g." % (alpha_s,))
+                    alpha_s*=0.5
+                    if alpha_s > alphaMin:
+                        alpha = min(alpha, alpha_s)
+                self.logger.info("Starting line search with alpha  = %g."% (alpha, ))
                 try:
                     phi_new = self.getLineSearch().run(phi, alpha)
                     alpha = phi_new.alpha
