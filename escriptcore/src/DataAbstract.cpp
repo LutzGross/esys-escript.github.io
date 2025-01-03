@@ -134,6 +134,12 @@ DataAbstract::operandCheck(const DataAbstract& right) const
 }
 
 void
+DataAbstract::dump_hdf5(const std::string fileName) const
+{
+    throw DataException("Error - DataAbstract::dump_hdf5: not implemented.");
+}
+
+void
 DataAbstract::dump(const std::string fileName) const
 {
     throw DataException("Error - DataAbstract::dump: not implemented.");

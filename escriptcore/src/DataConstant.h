@@ -188,6 +188,15 @@ typedef DataReady parent;
 
  /**
      \brief
+     dumps the object into an HDF5 file
+  */
+  ESCRIPT_DLL_API
+  virtual
+  void
+  dump_hdf5(const std::string fileName) const;
+
+ /**
+     \brief
     sets all values to zero
   */
   ESCRIPT_DLL_API

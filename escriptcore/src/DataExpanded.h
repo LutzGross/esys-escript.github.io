@@ -225,6 +225,15 @@ TODO Note that this constructor will also copy data to all points if it only con
   DataAbstract*
   zeroedCopy() const;    
   
+ /**
+     \brief
+     dumps the object into a HDF5 file
+  */
+  ESCRIPT_DLL_API
+  virtual
+  void
+  dump_hdf5(const std::string fileName) const;
+
 
  /**
      \brief

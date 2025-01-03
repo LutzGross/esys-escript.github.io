@@ -254,6 +254,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("dump",&escript::AbstractDomain::dump,args("filename"),"Dumps the domain to a file\n\n"
         ":param filename: \n"
         ":type filename: string")
+
      .def("getMPISize",&escript::AbstractDomain::getMPISize,":return: the number of processes used for this `Domain`\n"
         ":rtype: ``int``")
      .def("getMPIRank",&escript::AbstractDomain::getMPIRank,":return: the rank of this process\n"
@@ -507,6 +508,10 @@ args("arg"), "assigns new location to the domain\n\n"
     .def("dump",&escript::Data::dump,args("fileName"),"Save the data as a netCDF file\n\n"
         ":param fileName: \n"
         ":type fileName: ``string``")
+    .def("dump_hdf5",&escript::Data::dump_hdf5,args("fileName"),"Save the data as an HDF5 file\n\n"
+        ":param fileName: \n"
+        ":type fileName: ``string``")
+
     .def("toListOfTuples",&escript::Data::toListOfTuples, (arg("scalarastuple")=false),
         "Return the datapoints of this object in a list. Each datapoint is stored as a tuple.\n\n"
         ":param scalarastuple: if True, scalar data will be wrapped as a tuple."

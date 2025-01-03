@@ -31,8 +31,12 @@
   #include <ncVar.h>
   #include <ncFile.h>
  #else
-  #include <netcdfcpp.h>
+ #include <netcdfcpp.h>
  #endif
+#endif
+
+#ifdef ESYS_HAVE_HDF5
+  #include <H5Cpp.h>
 #endif
 
 using namespace std;
@@ -43,7 +47,6 @@ using namespace escript::DataTypes;
   using namespace netCDF;
  #endif
 #endif
-
 
 #ifdef SLOWSHARECHECK
   #define CHECK_FOR_EX_WRITE do {\
@@ -1189,6 +1192,86 @@ void DataExpanded::setToZero()
 	    }
 	}
     }
+}
+
+
+void DataExpanded::dump_hdf5(const std::string fileName) const
+{
+#ifdef ESYS_HAVE_HDF5
+    int rank = getRank();
+    int fs_type=  getFunctionSpace().getTypeCode();
+    const DataTypes::ShapeType& shape = getShape();
+
+    const dim_t* ids_p=getFunctionSpace().borrowSampleReferenceIDs();
+    JMPI mpiInfo(getFunctionSpace().getDomain()->getMPI());
+    if (isComplex())
+    {
+        throw DataException("Error - DataExpanded::dump_hdf5: complex data are not supported. Split into real and imaginary part.");
+    }
+    const std::string newFileName(mpiInfo->appendRankToFileName(fileName));
+#ifdef ESYS_MPI
+   /* Serialize I/O */
+   const int mpi_iam = mpiInfo->rank;
+   const int mpi_num = mpiInfo->size;
+   MPI_Status status;
+   if (mpi_iam > 0)
+       MPI_Recv(&ndims, 0, MPI_INT, mpi_iam-1, 81802, mpiInfo->comm, &status);
+#endif
+
+    try
+    {
+        H5::H5File h5_file(newFileName, H5F_ACC_TRUNC);
+        // .... add meta data ............
+        uint h5_shape[DataTypes::maxRank]; // dataset dimensions
+        for (uint i = 0; i < rank; i++) {
+            h5_shape[i]= shape[i];
+        }
+        hsize_t h5_shape_dims[1] = {rank};
+        H5::DataSet h5_dmeta = h5_file.createDataSet("meta", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_shape_dims ) );
+        h5_dmeta.write( h5_shape, H5::PredType::NATIVE_UINT);
+        // data type
+        hsize_t h5_typeid_dims[1] = { 1 };
+        uint h5_type_id[1] = { 2 };
+        H5::Attribute h5_typeid_attr = h5_dmeta.createAttribute("type_id", H5::PredType::NATIVE_UINT, H5::DataSpace(1,h5_typeid_dims ) );
+        h5_typeid_attr.write( H5::PredType::NATIVE_UINT , h5_type_id );
+
+        uint h5_rank[1] = { rank };
+        H5::Attribute h5_rank_attr = h5_dmeta.createAttribute("rank", H5::PredType::NATIVE_UINT, H5::DataSpace(1,h5_typeid_dims ) );
+        h5_rank_attr.write( H5::PredType::NATIVE_UINT , h5_rank );
+
+        uint dfs_type[1] = { fs_type };
+        H5::Attribute h5_fs_type_attr = h5_dmeta.createAttribute("function_space_type", H5::PredType::NATIVE_UINT, H5::DataSpace(1,h5_typeid_dims) );
+        h5_fs_type_attr.write( H5::PredType::NATIVE_UINT , dfs_type );
+        // .... end meta data ............
+        // ... add index of samples ....
+        hsize_t h5_id_dims[1] = { getFunctionSpace().getNumSamples() };
+        H5::DataSpace h5_dataspace_ids(1 , h5_id_dims );
+        #ifdef ESYS_INDEXTYPE_LONG
+            H5::DataSet h5_dataset_ids = h5_file.createDataSet("sample_id", H5::PredType::NATIVE_LONG, h5_dataspace_ids );
+            h5_dataset_ids.write(ids_p, H5::PredType::NATIVE_LONG);
+        #else
+            H5::DataSet h5_dataset_ids = h5_file.createDataSet("sample_id", H5::PredType::NATIVE_INT, h5_dataspace_ids );
+            h5_dataset_ids.write(ids_p, H5::PredType::NATIVE_INT);
+        #endif
+        // ... add data ....
+        const double* d_ptr=&(m_data_r[0]);
+        hsize_t h5_data_length[1] = { m_data_r.size() };
+        H5::DataSet h5_dataset_data = h5_file.createDataSet("data", H5::PredType::NATIVE_DOUBLE, H5::DataSpace(1 , h5_data_length ) );
+        h5_dataset_data.write(d_ptr, H5::PredType::NATIVE_DOUBLE);
+    }
+    // catch failure caused by the H5File operations
+    catch (H5::Exception& error)
+    {
+        error.printErrorStack();
+        throw DataException("Error - DataExpanded:: creating HDF5 file failed.");
+    }
+#ifdef ESYS_MPI
+   if ( mpi_iam < mpi_num-1 ) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81802, MPI_COMM_WORLD);
+#endif
+#else
+    throw DataException("DataExpanded::dump_hdf5: not configured with HDF5. Please contact your installation manager.");
+#endif
+
 }
 
 #ifdef NETCDF4

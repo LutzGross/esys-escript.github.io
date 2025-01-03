@@ -246,6 +246,13 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   toString() const;
  /**
      \brief
+     dumps the object into am HDF5 file
+  */
+  virtual
+  void
+  dump_hdf5(const std::string fileName) const;
+ /**
+     \brief
      dumps the object into a netCDF file
   */
   virtual

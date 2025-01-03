@@ -590,6 +590,13 @@ contains datapoints.
   void
   dump(const std::string fileName) const;
 
+  /**
+     \brief
+     dumps the object into an HDF5 file
+  */
+  void
+  dump_hdf5(const std::string fileName) const;
+
  /**
   \brief returns the values of the object as a list of tuples (one for each datapoint).
 

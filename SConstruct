@@ -110,9 +110,14 @@ vars.AddVariables(
   ('mpi_libs', 'MPI shared libraries to link with', ['mpi']),
   BoolVariable('gmsh', 'Enable gmsh, if available', True),
   BoolVariable('use_sympy', 'Enable sympy, if available. Currently the sympy-escript connection is not working due to a problem with code printing. By default symbols are not installed.', False),
+  BoolVariable('hdf5', 'Enable hdf5, if available', True),
+  ('hdf5_prefix', 'Prefix/Paths of hdf5 installation', default_prefix),
+  ('hdf5_libs', 'HDF5 libraries to link with', 'DEFAULT'),
+  #TODO: remove
   EnumVariable('netcdf', 'Enable netCDF file support', False, allowed_values=netcdf_flavours),
   ('netcdf_prefix', 'Prefix/Paths of netCDF installation', default_prefix),
   ('netcdf_libs', 'netCDF libraries to link with', 'DEFAULT'),
+
     BoolVariable('zlib', 'Enable zLib', False),
     ('zlib_prefix', 'Prefix/Paths to zlib installation', default_prefix),
     ('zlib_libs', 'zlib libraries to link with', ['zlib']),
@@ -1058,7 +1063,7 @@ def print_summary():
     else:
         print("          netcdf:  NO")
     e_list=[]
-    for i in ('weipa','debug','openmp','cppunit','mkl','mpi4py', 'zlib',
+    for i in ('hdf5', 'weipa','debug','openmp','cppunit','mkl','mpi4py', 'zlib',
              'mumps', 'scipy','silo','sympy','umfpack','visit'):
         if env[i]: e_list.append(i)
         else: d_list.append(i)

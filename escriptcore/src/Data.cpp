@@ -5435,6 +5435,37 @@ Data::dump(const std::string fileName) const
     }
 }
 
+void
+Data::dump_hdf5(const std::string fileName) const
+{
+    if (isComplex())
+    {
+        Data temp_re = (*this).real();
+        Data temp_im = (*this).imag();
+        temp_re.dump_hdf5( fileName + "_re" );
+        temp_im.dump_hdf5( fileName + "_im" );
+        //throw DataException("Error - Data::dump_hdf5 : complex data are not supported. Split into real and imaginary part.");
+    } else {
+        try
+        {
+            if (isLazy())
+            {
+                Data temp(*this);     // this is to get a non-const object which we can resolve
+                temp.resolve();
+                temp.dump_hdf5(fileName);
+            }
+            else
+            {
+                return m_data->dump_hdf5(fileName);
+            }
+        }
+        catch (std::exception& e)
+        {
+            std::cout << e.what() << std::endl;
+        }
+    }
+}
+
 int
 Data::get_MPISize() const
 {

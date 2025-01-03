@@ -607,6 +607,22 @@ def checkOptionalLibraries(env):
     if env['mpi']=='no':
         env['mpi']='none'
     env['usempi'] = env['mpi']!='none'
+    ######## hdf5
+    hdf5_inc_path = ''
+    hdf5_lib_path = ''
+    if env['hdf5']:
+        env.Append(CPPDEFINES=['HDF5'])
+        hdf5_inc_path, hdf5_lib_path = findLibWithHeader(env, env['hdf5_libs'], 'H5Cpp.h',
+                                                                 env['hdf5_prefix'], lang='c++')
+
+        env.AppendUnique(CPPPATH=[hdf5_inc_path])
+        env.AppendUnique(LIBPATH=[hdf5_lib_path])
+        env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], hdf5_lib_path)
+        env.Append(CPPDEFINES=['ESYS_HAVE_HDF5'])
+        env['buildvars']['hdf5_inc_path'] = hdf5_inc_path
+        env['buildvars']['hdf5_lib_path'] = hdf5_lib_path
+    env['buildvars']['hdf5'] = int(env['hdf5'])
+
     ######## netCDF
     netcdf_inc_path=''
     netcdf_lib_path=''
