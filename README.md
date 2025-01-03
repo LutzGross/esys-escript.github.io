@@ -27,12 +27,13 @@ https://esys-escript.github.io/
 
 For the impatient:
 
-- Install at least g++, python, scons, boost, NumPy.
+- Install at least g++, python, scons, boost, and NumPy.
+- Optional: HDF5_serial, silo
 - READ the file scons/templates/README_FIRST .
 - Copy a suitable template options file from scons/templates/ to scons/hostname_options.py and modify as required.
 - type `scons` to build escript
 
-For information on a specific Linux distribution, please consult the install guide (install.pdf).
+Please have a look at the [installation guide](install.md) for information on a specific Linux distribution.
 
 ## Debian Distribution 
 
@@ -48,7 +49,7 @@ At present, this is the recommended way to run esys-escript on Windows.
 
 ## Using esys-escript
 
-To get started using escript please consult the user guide (user.pdf). 
+To get started using esys-escript, you can use the user guide (user.pdf). 
 All of these documents are available here and at https://esys-escript.github.io/
 
 Click on this button to try out esys-escript in your web browser:
