@@ -1258,6 +1258,8 @@ void DataExpanded::dump_hdf5(const std::string fileName) const
         hsize_t h5_data_length[1] = { m_data_r.size() };
         H5::DataSet h5_dataset_data = h5_file.createDataSet("data", H5::PredType::NATIVE_DOUBLE, H5::DataSpace(1 , h5_data_length ) );
         h5_dataset_data.write(d_ptr, H5::PredType::NATIVE_DOUBLE);
+        // .. we are done ....
+        h5_file.close();
     }
     // catch failure caused by the H5File operations
     catch (H5::Exception& error)

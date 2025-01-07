@@ -235,6 +235,14 @@ load(const std::string fileName,
      const AbstractDomain& domain);
 /**
    \brief
+   reads (real) Data on domain from file in hdf5 format
+*/
+ESCRIPT_DLL_API Data
+load_hdf5(const std::string fileName,
+     const AbstractDomain& domain);
+
+/**
+   \brief
    returns true if the load funtion is configured.
 */
 ESCRIPT_DLL_API bool

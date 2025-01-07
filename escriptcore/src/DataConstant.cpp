@@ -649,13 +649,13 @@ void DataConstant::dump_hdf5(const std::string fileName) const
         H5::DataSet h5_dmeta = h5_file.createDataSet("meta", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_shape_dims ) );
         h5_dmeta.write( h5_shape, H5::PredType::NATIVE_UINT);
         // data type
-        hsize_t h5_typeid_dims[1] = { 0 };
-        uint h5_type_id[1] = { 2 };
+        hsize_t h5_typeid_dims[1] = { 1 };
+        uint h5_type_id[1] = { 0 };
         H5::Attribute h5_typeid_attr = h5_dmeta.createAttribute("type_id", H5::PredType::NATIVE_UINT, H5::DataSpace(1,h5_typeid_dims ) );
         h5_typeid_attr.write( H5::PredType::NATIVE_UINT , h5_type_id );
 
         uint h5_rank[1] = { rank };
-        H5::Attribute h5_rank_attr = h5_dmeta.createAttribute("rank", H5::PredType::NATIVE_UINT, H5::DataSpace(1,h5_typeid_dims ) );
+        H5::Attribute h5_rank_attr = h5_dmeta.createAttribute("rank", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_typeid_dims ) );
         h5_rank_attr.write( H5::PredType::NATIVE_UINT , h5_rank );
 
         uint dfs_type[1] = { fs_type };
@@ -667,6 +667,8 @@ void DataConstant::dump_hdf5(const std::string fileName) const
         const double* d_ptr=&(m_data_r[0]);
         H5::DataSet h5_dataset_data = h5_file.createDataSet("data", H5::PredType::NATIVE_DOUBLE, H5::DataSpace(1 , h5_data_length ) );
         h5_dataset_data.write(d_ptr, H5::PredType::NATIVE_DOUBLE);
+        // .. we are done ....
+        h5_file.close();
     }
     // catch failure caused by the H5File operations
     catch (H5::Exception& error)
