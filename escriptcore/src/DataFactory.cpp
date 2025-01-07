@@ -452,9 +452,11 @@ Data load_hdf5(const std::string fileName, const AbstractDomain& domain)
 {
     Data out;
 #ifdef ESYS_HAVE_HDF5
+    int error = 0;
+    std::string msg;
     JMPI mpiInfo(domain.getMPI());
-    const std::string newFileName(mpiInfo->appendRankToFileName(fileName));
 
+    const std::string newFileName(mpiInfo->appendRankToFileName(fileName));
     /* .. read meta data ... */
     try {
             int rank = -1;
@@ -630,10 +632,22 @@ Data load_hdf5(const std::string fileName, const AbstractDomain& domain)
             }
     }
     // catch failure caused by the H5File operations
-    catch (H5::Exception& error)
+    catch (H5::Exception& e)
     {
-        error.printErrorStack();
-        throw DataException("Error - load_hdf5:: reading HDF5 file failed.");
+        error=1;
+        e.printErrorStack();
+        msg=e.getCDetailMsg();
+    }
+    catch (DataException& e) {
+        error=1;
+        msg=e.what();
+    }
+    int gerror = error;
+    checkResult(error, gerror, mpiInfo);
+    if (gerror > 0) {
+        char* gmsg;
+        shipString(msg.c_str(), &gmsg, mpiInfo->comm);
+        throw DataException(gmsg);
     }
     return out;
 
