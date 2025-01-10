@@ -3399,17 +3399,3 @@ def conjugate(arg):
     returns the complex conjugate of arg
     """
     return arg.conjugate()
-
-def loadHDF5(filename, domain):
-    """
-    recovers Data on domain from file in HDF5 format created by dump method
-
-    :param filename: name of existing file from dumped data object.
-    :type filename: ``str``
-    :param domain: domain Data are associated with.
-    :type domain: `Domain`
-    :return: data object
-    :rtype: `Data`
-    """
-    d=escore.load_hdf5(filename, domain)
-    return d

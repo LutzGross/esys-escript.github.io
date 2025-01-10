@@ -827,7 +827,7 @@ args("arg"), "assigns new location to the domain\n\n"
   //
   // Factory methods for Data
   //
- def("load_hdf5",escript::load_hdf5, args("fileName","domain"), "reads real Data on domain from file in HDF5 format\n\n"
+ def("loadHDF5",escript::load_hdf5, args("fileName","domain"), "reads real Data on domain from file in HDF5 format\n\n"
         ":param fileName:\n"
         ":type fileName: ``string``\n"
         ":param domain:\n"
