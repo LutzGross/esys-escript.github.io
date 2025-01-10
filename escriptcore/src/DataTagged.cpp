@@ -1405,20 +1405,17 @@ DataTagged::setToZero(){
     }
 }
 
-
-void DataTagged::dump_hdf5(const std::string fileName) const
-{
 #ifdef ESYS_HAVE_HDF5
+void DataTagged::dump_hdf5(const H5::Group h5_grp) const
+{
     int rank = getRank();
     int fs_type=  getFunctionSpace().getTypeCode();
     const DataTypes::ShapeType& shape = getShape();
-    JMPI mpiInfo(getFunctionSpace().getDomain()->getMPI());
     if (isComplex())
     {
         throw DataException("Error - DataTagged::dump_hdf5: complex data are not supported. Split into real and imaginary part.");
     }
 
-    const std::string newFileName(mpiInfo->appendRankToFileName(fileName));
 
 #ifdef ESYS_MPI
    /* Serialize I/O */
@@ -1430,14 +1427,13 @@ void DataTagged::dump_hdf5(const std::string fileName) const
 #endif
     try
     {
-        H5::H5File h5_file(newFileName, H5F_ACC_TRUNC);
         // .... add meta data ............
         uint h5_shape[DataTypes::maxRank]; // dataset dimensions
         for (uint i = 0; i < rank; i++) {
             h5_shape[i]= shape[i];
         }
         hsize_t h5_shape_dims[1] = {rank};
-        H5::DataSet h5_dmeta = h5_file.createDataSet("meta", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_shape_dims ) );
+        H5::DataSet h5_dmeta = h5_grp.createDataSet("meta", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_shape_dims ) );
         h5_dmeta.write( h5_shape, H5::PredType::NATIVE_UINT);
         // data type
         hsize_t h5_typeid_dims[1] = { 1 };
@@ -1463,15 +1459,13 @@ void DataTagged::dump_hdf5(const std::string fileName) const
             tags.push_back(i->first);
         // ... add list of tags ...
         hsize_t h5_tag_length[1] = {tags.size() };
-        H5::DataSet h5_dataset_tags = h5_file.createDataSet("tags", H5::PredType::NATIVE_INT, H5::DataSpace(1 , h5_tag_length ) );
+        H5::DataSet h5_dataset_tags = h5_grp.createDataSet("tags", H5::PredType::NATIVE_INT, H5::DataSpace(1 , h5_tag_length ) );
         h5_dataset_tags.write(&(tags[0]), H5::PredType::NATIVE_INT);
         // ... add data ....
         hsize_t h5_data_length[1] = { m_data_r.size() };
         const double* d_ptr=&(m_data_r[0]);
-        H5::DataSet h5_dataset_data = h5_file.createDataSet("data", H5::PredType::NATIVE_DOUBLE, H5::DataSpace(1 , h5_data_length ) );
+        H5::DataSet h5_dataset_data = h5_grp.createDataSet("data", H5::PredType::NATIVE_DOUBLE, H5::DataSpace(1 , h5_data_length ) );
         h5_dataset_data.write(d_ptr, H5::PredType::NATIVE_DOUBLE);
-        // .. we are done ....
-        h5_file.close();
     }
     // catch failure caused by the H5File operations
     catch (H5::Exception& error)
@@ -1482,11 +1476,10 @@ void DataTagged::dump_hdf5(const std::string fileName) const
 #ifdef ESYS_MPI
    if ( mpi_iam < mpi_num-1 ) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81802, MPI_COMM_WORLD);
 #endif
-#else
-    throw DataException("DataTagged::dump_hdf5: not configured with HDF5. Please contact your installation manager.");
+}
 #endif
 
-}
+
 #ifdef NETCDF4
 void
 DataTagged::dump(const std::string fileName) const

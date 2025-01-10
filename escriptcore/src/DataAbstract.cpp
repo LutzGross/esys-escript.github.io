@@ -133,11 +133,13 @@ DataAbstract::operandCheck(const DataAbstract& right) const
       }
 }
 
+#ifdef ESYS_HAVE_HDF5
 void
-DataAbstract::dump_hdf5(const std::string fileName) const
+DataAbstract::dump_hdf5(const H5::Group h5_grp) const
 {
     throw DataException("Error - DataAbstract::dump_hdf5: not implemented.");
 }
+#endif
 
 void
 DataAbstract::dump(const std::string fileName) const

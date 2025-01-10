@@ -22,6 +22,9 @@
 
 #include "DataReady.h"
 #include "WrappedArray.h"
+#ifdef ESYS_HAVE_HDF5
+  #include <H5Cpp.h>
+#endif
 
 
 namespace escript {
@@ -190,11 +193,12 @@ typedef DataReady parent;
      \brief
      dumps the object into an HDF5 file
   */
+  #ifdef ESYS_HAVE_HDF5
   ESCRIPT_DLL_API
   virtual
   void
-  dump_hdf5(const std::string fileName) const;
-
+  dump_hdf5(const H5::Group h5_grp) const;
+#endif
  /**
      \brief
     sets all values to zero

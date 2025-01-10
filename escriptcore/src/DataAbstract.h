@@ -31,6 +31,10 @@
 #include <fstream>
 #include <vector>
 
+#ifdef ESYS_HAVE_HDF5
+  #include <H5Cpp.h>
+#endif
+
 #include "Pointers.h"
 
 namespace escript {
@@ -138,10 +142,11 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \brief
      dumps the object into a HDF5 file
   */
+#ifdef ESYS_HAVE_HDF5
   virtual
   void
-  dump_hdf5(const std::string fileName) const;
-
+  dump_hdf5(const H5::Group h5_grp) const;
+#endif
  /**
      \brief
      dumps the object into a netCDF file

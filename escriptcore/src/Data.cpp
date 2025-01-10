@@ -5438,31 +5438,37 @@ Data::dump(const std::string fileName) const
 void
 Data::dump_hdf5(const std::string fileName) const
 {
-    if (isComplex())
-    {
-        Data temp_re = (*this).real();
-        Data temp_im = (*this).imag();
-        temp_re.dump_hdf5( fileName + "_re" );
-        temp_im.dump_hdf5( fileName + "_im" );
-        //throw DataException("Error - Data::dump_hdf5 : complex data are not supported. Split into real and imaginary part.");
-    } else {
+     if (isLazy())
+     {
+         Data temp(*this);     // this is to get a non-const object which we can resolve
+         temp.resolve();
+         temp.dump_hdf5(fileName);
+     }
+     else
+     {
+     #ifdef ESYS_HAVE_HDF5
         try
         {
-            if (isLazy())
-            {
-                Data temp(*this);     // this is to get a non-const object which we can resolve
-                temp.resolve();
-                temp.dump_hdf5(fileName);
-            }
-            else
-            {
-                return m_data->dump_hdf5(fileName);
+            JMPI mpiInfo(getFunctionSpace().getDomain()->getMPI());
+            const std::string newFileName(mpiInfo->appendRankToFileName(fileName));
+            H5::H5File h5_file(newFileName, H5F_ACC_TRUNC);
+
+            if (isComplex()) {
+                Data temp_re = (*this).real();
+                Data temp_im = (*this).imag();
+                temp_re.m_data->dump_hdf5(h5_file.createGroup("Data_Re"));
+                temp_im.m_data->dump_hdf5(h5_file.createGroup("Data_Im"));
+            } else {
+                m_data->dump_hdf5(h5_file.createGroup("Data"));
             }
         }
         catch (std::exception& e)
         {
             std::cout << e.what() << std::endl;
         }
+    #else
+        throw DataException("Data::dump_hdf5: not configured with HDF5. Please contact your installation manager.");
+    #endif
     }
 }
 

@@ -248,9 +248,11 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \brief
      dumps the object into am HDF5 file
   */
+  #ifdef ESYS_HAVE_HDF5
   virtual
   void
-  dump_hdf5(const std::string fileName) const;
+  dump_hdf5(const H5::Group h5_grp) const;
+  #endif
  /**
      \brief
      dumps the object into a netCDF file

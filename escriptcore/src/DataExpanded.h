@@ -229,11 +229,12 @@ TODO Note that this constructor will also copy data to all points if it only con
      \brief
      dumps the object into a HDF5 file
   */
+  #ifdef ESYS_HAVE_HDF5
   ESCRIPT_DLL_API
   virtual
   void
-  dump_hdf5(const std::string fileName) const;
-
+  dump_hdf5(const H5::Group h5_grp) const;
+#endif
 
  /**
      \brief

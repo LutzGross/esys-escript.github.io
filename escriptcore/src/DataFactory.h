@@ -26,7 +26,9 @@
 #include "Data.h"
 
 #include <boost/python/object.hpp>
-
+#ifdef ESYS_HAVE_HDF5
+  #include <H5Cpp.h>
+#endif
 namespace escript {
 
 /**
@@ -241,6 +243,10 @@ ESCRIPT_DLL_API Data
 load_hdf5(const std::string fileName,
      const AbstractDomain& domain);
 
+#ifdef ESYS_HAVE_HDF5
+ESCRIPT_DLL_API Data
+ load_hdf5grp(const H5::Group h5_grp, const AbstractDomain& domain);
+#endif
 /**
    \brief
    returns true if the load funtion is configured.

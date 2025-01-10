@@ -590,6 +590,7 @@ contains datapoints.
   void
   dump(const std::string fileName) const;
 
+
   /**
      \brief
      dumps the object into an HDF5 file

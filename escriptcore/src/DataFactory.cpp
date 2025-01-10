@@ -448,15 +448,13 @@ Data ComplexData(boost::python::object o, const FunctionSpace& what, bool expand
     return d;
 }
 
-Data load_hdf5(const std::string fileName, const AbstractDomain& domain)
+#ifdef ESYS_HAVE_HDF5
+Data load_hdf5grp(const H5::Group h5_grp, const AbstractDomain& domain)
 {
     Data out;
-#ifdef ESYS_HAVE_HDF5
     int error = 0;
     std::string msg;
     JMPI mpiInfo(domain.getMPI());
-
-    const std::string newFileName(mpiInfo->appendRankToFileName(fileName));
     /* .. read meta data ... */
     try {
             int rank = -1;
@@ -464,9 +462,8 @@ Data load_hdf5(const std::string fileName, const AbstractDomain& domain)
             int function_space_type=-1;
             uint h5_shape[DataTypes::maxRank];
 
-            H5::H5File h5_file(newFileName, H5F_ACC_RDONLY);
             // .... read meta data ...
-            H5::DataSet h5_meta_data=h5_file.openDataSet("meta");
+            H5::DataSet h5_meta_data=h5_grp.openDataSet("meta");
             // .. rank:
             H5::Attribute h5_attr_rank(h5_meta_data.openAttribute("rank"));
             H5::DataType h5_type_rank(h5_attr_rank.getDataType());
@@ -527,7 +524,7 @@ Data load_hdf5(const std::string fileName, const AbstractDomain& domain)
             // ... recover data
             if (type == 0) {
                 // constant data
-               H5::DataSet h5_data_data =h5_file.openDataSet("data");
+               H5::DataSet h5_data_data =h5_grp.openDataSet("data");
                H5::DataType h5_type_data(h5_data_data.getDataType());
                out=Data(0, shape, function_space, false);
                if ( out.getDataPointSize() * sizeof(DataTypes::real_t) != h5_data_data.getStorageSize() )
@@ -543,7 +540,7 @@ Data load_hdf5(const std::string fileName, const AbstractDomain& domain)
                // tagged data
 
                 // .... check the sample id order ...
-                H5::DataSet h5_data_tags =h5_file.openDataSet("tags");
+                H5::DataSet h5_data_tags =h5_grp.openDataSet("tags");
                 H5::DataType h5_type_tags(h5_data_tags.getDataType());
 
                 const int ntags = h5_data_tags.getStorageSize() / h5_type_tags.getSize();
@@ -558,7 +555,7 @@ Data load_hdf5(const std::string fileName, const AbstractDomain& domain)
                std::vector<int> h5_tags(ntags);
                h5_data_tags.read(&h5_tags[0], h5_type_tags);
 
-               H5::DataSet h5_data_data =h5_file.openDataSet("data");
+               H5::DataSet h5_data_data =h5_grp.openDataSet("data");
                H5::DataType h5_type_data(h5_data_data.getDataType());
                if ( ntags * num_values_per_data_point * sizeof(DataTypes::real_t) != h5_data_data.getStorageSize() )
                {
@@ -579,7 +576,7 @@ Data load_hdf5(const std::string fileName, const AbstractDomain& domain)
                 const int num_data_points_per_sample = function_space.getNumDataPointsPerSample();
                 const DataTypes::dim_t* ids_p=function_space.borrowSampleReferenceIDs();
                 // .... check the sample id order ...
-                H5::DataSet h5_data_sample_id =h5_file.openDataSet("sample_id");
+                H5::DataSet h5_data_sample_id =h5_grp.openDataSet("sample_id");
                 H5::DataType h5_type_sample_id(h5_data_sample_id.getDataType());
                if ( num_samples * sizeof(DataTypes::dim_t) != h5_data_sample_id.getStorageSize() )
                {
@@ -604,7 +601,7 @@ Data load_hdf5(const std::string fileName, const AbstractDomain& domain)
                     if (local_wrong_position>=0) wrong_position = local_wrong_position;
                }
                //... load data ....
-               H5::DataSet h5_data_data =h5_file.openDataSet("data");
+               H5::DataSet h5_data_data =h5_grp.openDataSet("data");
                H5::DataType h5_type_data(h5_data_data.getDataType());
                out=Data(0, shape, function_space, true);
                if ( out.getDataPointSize() * num_samples * num_data_points_per_sample * sizeof(DataTypes::real_t) != h5_data_data.getStorageSize() )
@@ -620,7 +617,7 @@ Data load_hdf5(const std::string fileName, const AbstractDomain& domain)
                if (wrong_position >= 0)
                {
                     try {
-                        std::cout << "Information - load: start reordering data from HDF5 file " << fileName << std::endl;
+                        std::cout << "Information - load: start reordering data from HDF5 file" << std::endl;
                         out.borrowData()->reorderByReferenceIDs(&H5_ids[0]);
                     }
                     catch (std::exception&) {
@@ -650,10 +647,37 @@ Data load_hdf5(const std::string fileName, const AbstractDomain& domain)
         throw DataException(gmsg);
     }
     return out;
+}
+#endif
 
+
+Data load_hdf5(const std::string fileName, const AbstractDomain& domain)
+{
+    Data out;
+#ifdef ESYS_HAVE_HDF5
+    JMPI mpiInfo(domain.getMPI());
+    const std::string newFileName(mpiInfo->appendRankToFileName(fileName));
+    H5::H5File h5_file(newFileName, H5F_ACC_RDONLY);
+
+    if (h5_file.nameExists("Data"))
+    {
+        return load_hdf5grp(h5_file.openGroup("Data"), domain);
+
+    }
+    else if ( h5_file.nameExists("Data_Re") and h5_file.nameExists("Data_Im") )
+    {
+            Data data_re = load_hdf5grp(h5_file.openGroup("Data_Re"), domain);
+            Data data_im = load_hdf5grp(h5_file.openGroup("Data_Im"), domain);
+            return data_re +  data_im * Scalar(std::complex(0.0, 1.0), data_im.getFunctionSpace(), false );
+    }
+    else
+    {
+        throw DataException("load_hdf5: unable to load HDF neither as real nor complex data as expected groups are missing.");
+    }
 #else
     throw DataException("load_hdf5: not compiled with HDF5 (serial). Please contact your installation manager.");
 #endif // ESYS_HAVE_HDF5
+    return out;
 }
 
 #ifdef NETCDF4
