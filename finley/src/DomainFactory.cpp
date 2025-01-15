@@ -19,20 +19,6 @@
 
 #include <escript/index.h>
 
-#ifdef ESYS_HAVE_NETCDF
- #ifdef NETCDF4
-  #include <ncDim.h>
-  #include <ncVar.h>
-  #include <ncFile.h>
-  
- #include <escript/NCHelper.h>  
-  
- #else
-  #include <netcdfcpp.h>
- #endif
-#endif
-
-
 #include <boost/python/extract.hpp>
 #include <boost/scoped_array.hpp>
 
@@ -41,11 +27,6 @@
 using namespace std;
 using namespace escript;
 
-
-
-#ifdef NETCDF4
-using namespace netCDF;
-#endif
 
 namespace finley {
 

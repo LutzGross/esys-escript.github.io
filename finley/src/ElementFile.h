@@ -110,6 +110,10 @@ public:
     /// ranks.
     inline void updateTagList();
 
+    /// dump element data to HDF5 file
+    #ifdef ESYS_HAVE_HDF5
+    void dump(H5::Group h5_grp) const;
+    #endif
 private:
     void swapTable(ElementFile* other);
 

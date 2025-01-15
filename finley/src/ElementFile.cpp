@@ -482,5 +482,39 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
     }
 }
 
+#ifdef ESYS_HAVE_HDF5
+void ElementFile::dump(H5::Group h5_grp) const
+{
+    #ifdef ESYS_INDEXTYPE_LONG
+        H5::DataType h5_type_index = H5::PredType::NATIVE_LONG;
+    #else
+        H5::DataType h5_type_index = H5::PredType::NATIVE_INT;
+    #endif
+    hsize_t h5_dims_numElements[1] = { 1 };
+    uint h5_values_numElements[1] = { numElements };
+    uint h5_values_numNodes[1] = { numNodes };
+    uint h5_values_typeId[1] = { referenceElementSet->referenceElement->Type->TypeId };
+    H5::Attribute h5_attr_numElements = h5_grp.createAttribute("numElements", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_dims_numElements ) );
+    h5_attr_numElements.write( H5::PredType::NATIVE_UINT, h5_values_numElements );
+    H5::Attribute h5_attr_numNodes = h5_grp.createAttribute("numNodes", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_dims_numElements ) );
+    h5_attr_numNodes.write( H5::PredType::NATIVE_UINT, h5_values_numNodes );
+    H5::Attribute h5_attr_typeId = h5_grp.createAttribute("TypeId", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_dims_numElements ) );
+    h5_attr_typeId.write( H5::PredType::NATIVE_UINT, h5_values_typeId );
+
+    hsize_t h5_dims_ids[1] = { numElements  };
+    H5::DataSet h5_ds_ids = h5_grp.createDataSet("Ids", H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_ids ) );
+    h5_ds_ids.write( &Id[0], H5::DataType(h5_type_index));
+    H5::DataSet h5_ds_tags = h5_grp.createDataSet("Tags", H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_ids ) );
+    h5_ds_tags.write( &Tag[0], H5::DataType(h5_type_index));
+    H5::DataSet h5_ds_owners = h5_grp.createDataSet("Owners", H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_ids ) );
+    h5_ds_owners.write( &Owner[0], H5::DataType(h5_type_index));
+    H5::DataSet h5_ds_colors = h5_grp.createDataSet("Colors", H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_ids ) );
+    h5_ds_colors.write( &Color[0], H5::DataType(h5_type_index));
+    hsize_t h5_dims_nodes[1] = { numElements * numNodes };
+    H5::DataSet h5_ds_nodes = h5_grp.createDataSet("Nodes", H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_nodes ) );
+    h5_ds_nodes.write( &Nodes[0], H5::DataType(h5_type_index));
+}
+#endif
+
 } // namespace finley
 
