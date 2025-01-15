@@ -253,13 +253,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   void
   dump_hdf5(const H5::Group h5_grp) const;
   #endif
- /**
-     \brief
-     dumps the object into a netCDF file
-  */
-  virtual
-  void
-  dump(const std::string fileName) const;
+
 
   /**
     \brief invert square matricies

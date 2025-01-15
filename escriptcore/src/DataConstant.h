@@ -178,22 +178,12 @@ typedef DataReady parent;
   virtual
   DataAbstract*
   zeroedCopy() const;  
-  
-
- /**
-     \brief
-     dumps the object into a netCDF file
-  */
-  ESCRIPT_DLL_API
-  virtual
-  void
-  dump(const std::string fileName) const;
 
  /**
      \brief
      dumps the object into an HDF5 file
   */
-  #ifdef ESYS_HAVE_HDF5
+ #ifdef ESYS_HAVE_HDF5
   ESCRIPT_DLL_API
   virtual
   void

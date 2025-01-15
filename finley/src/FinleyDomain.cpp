@@ -40,27 +40,15 @@ using esys_trilinos::const_TrilinosGraph_ptr;
 
 #include <boost/scoped_array.hpp>
 
-#ifdef ESYS_HAVE_NETCDF
- #ifdef NETCDF4
-  #include <ncVar.h>
-  #include <ncDim.h>
-  #include <escript/NCHelper.h>
- #else
-   #include <netcdfcpp.h>
- #endif
+#ifdef ESYS_HAVE_HDF5
+  #include <H5Cpp.h>
 #endif
-
 
 
 using namespace std;
 namespace bp = boost::python;
 using escript::NotImplementedError;
 using escript::ValueError;
-
-#ifdef NETCDF4
-using namespace netCDF;
-#endif
-
 
 namespace finley {
 
@@ -208,11 +196,157 @@ void FinleyDomain::relabelElementNodes(const IndexVector& newNode, index_t offse
     m_points->relabelNodes(newNode, offset);
 }
 
-#ifdef NETCDF4
-
 void FinleyDomain::dump(const string& fileName) const
 {
+#ifdef ESYS_HAVE_HDF5
+    int mpi_size = getMPISize();
+    int mpi_rank = getMPIRank();
+    #ifdef ESYS_INDEXTYPE_LONG
+        H5::DataType h5_type_index = H5::PredType::NATIVE_LONG;
+    #else
+        H5::DataType h5_type_index = H5::PredType::NATIVE_INT;
+    #endif
+    H5::DataType h5_type_double = H5::PredType::NATIVE_DOUBLE;
+    #ifdef ESYS_MPI
+    MPI_Status status;
+    #endif
+    #ifdef ESYS_MPI
+        if (mpi_rank > 0)
+            MPI_Recv(&num_Tags, 0, MPI_INT, mpi_rank-1, 81800, getMPIComm(), &status);
+    #endif
+    try
+    {
+        const string newFileName(m_mpiInfo->appendRankToFileName(fileName));
+        // Incoming token indicates it's my turn to write
+
+        // Open HDF5 file :
+        H5::H5File h5_file(newFileName, H5F_ACC_TRUNC);
+        // Save same meta-data
+        H5::Group h5_grp_meta = h5_file.createGroup("Meta");
+
+        hsize_t h5_dims_mpi[1] = { 2 };
+        long long h5_values_mpi[2] = { mpi_size,  mpi_rank };
+        H5::Attribute h5_attr_mpi = h5_grp_meta.createAttribute("mpi", H5::PredType::NATIVE_LLONG, H5::DataSpace(1, h5_dims_mpi ) );
+        h5_attr_mpi.write( H5::PredType::NATIVE_LLONG, h5_values_mpi );
+
+        hsize_t h5_dims_order[1] = { 1 };
+        H5::Attribute h5_attr_approximationOrder = h5_grp_meta.createAttribute("approximationOrder", H5::PredType::NATIVE_INT, H5::DataSpace(1, h5_dims_order ) );
+        h5_attr_approximationOrder.write( H5::PredType::NATIVE_INT, &approximationOrder);
+        H5::Attribute h5_attr_reducedApproximationOrder = h5_grp_meta.createAttribute("reducedApproximationOrder", H5::PredType::NATIVE_INT, H5::DataSpace(1, h5_dims_order ) );
+        h5_attr_reducedApproximationOrder.write( H5::PredType::NATIVE_INT, &reducedApproximationOrder );
+        H5::Attribute h5_attr_integrationOrder = h5_grp_meta.createAttribute("integrationOrder", H5::PredType::NATIVE_INT, H5::DataSpace(1, h5_dims_order ) );
+        h5_attr_integrationOrder.write( H5::PredType::NATIVE_INT, &integrationOrder );
+        H5::Attribute h5_attr_reducedIntegrationOrder = h5_grp_meta.createAttribute("reducedIntegrationOrder", H5::PredType::NATIVE_INT, H5::DataSpace(1, h5_dims_order ) );
+        h5_attr_reducedIntegrationOrder.write( H5::PredType::NATIVE_INT, &reducedIntegrationOrder );
+
+        hsize_t h5_dims_name[1] = {1};
+        H5::StrType h5_type_name(0, H5T_VARIABLE);
+        H5::Attribute h5_attr_name = h5_grp_meta.createAttribute("name", h5_type_name, H5::DataSpace(1, h5_dims_name));
+        h5_attr_name.write(h5_type_name, &m_name);
+
+
+        // Node File
+        dim_t numNodes = m_nodes->getNumNodes();
+        int numDim = m_nodes->numDim;
+        H5::Group h5_grp_nodes = h5_file.createGroup("Nodes");
+
+        hsize_t h5_dims_numDim[1] = { 1 };
+        uint h5_values_numDim[1] = { numDim };
+        H5::Attribute h5_attr_numDim = h5_grp_nodes.createAttribute("numDim", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_dims_numDim ) );
+        h5_attr_numDim.write( H5::PredType::NATIVE_UINT, h5_values_numDim );
+
+        hsize_t h5_dims_numNodes[1] = { 1 };
+        long h5_values_numNodes[1] = { numNodes };
+        H5::Attribute h5_attr_numNodes = h5_grp_nodes.createAttribute("numNodes", H5::PredType::NATIVE_LONG, H5::DataSpace(1, h5_dims_numNodes ) );
+        h5_attr_numNodes.write( H5::PredType::NATIVE_LONG, h5_values_numNodes );
+
+        hsize_t h5_dims_nodes[1] = { numNodes * numDim };
+        H5::DataSet h5_ds_nodes = h5_grp_nodes.createDataSet("nodes",  H5::DataType(h5_type_double), H5::DataSpace(1, h5_dims_nodes ) );
+        h5_ds_nodes.write( &m_nodes->Coordinates[0],  H5::DataType(h5_type_double) );
+
+        hsize_t h5_dims_node_distr[1] = { mpi_size + 1 };
+        H5::DataSet h5_ds_node_distr = h5_grp_nodes.createDataSet("NodeDistribution",  H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_node_distr ) );
+        h5_ds_node_distr.write( &m_nodes->nodesDistribution->first_component[0],  H5::DataType(h5_type_index));
+        H5::DataSet h5_ds_dof_distr = h5_grp_nodes.createDataSet("DoFDistribution", H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_node_distr ) );
+        h5_ds_dof_distr.write( &m_nodes->degreesOfFreedomDistribution->first_component[0], H5::DataType(h5_type_index));
+
+        hsize_t h5_dims_ids[1] = { numNodes  };
+        H5::DataSet h5_ds_node_ids = h5_grp_nodes.createDataSet("Ids", H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_ids ) );
+        h5_ds_node_ids.write( &m_nodes->Id[0], H5::DataType(h5_type_index));
+
+        H5::DataSet h5_ds_node_tags = h5_grp_nodes.createDataSet("Tags", H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_ids ) );
+        h5_ds_node_tags.write(&m_nodes->Tag[0], H5::DataType(h5_type_index));
+
+        H5::DataSet h5_ds_node_gdof = h5_grp_nodes.createDataSet("globalDegreesOfFreedom", H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_ids ) );
+        h5_ds_node_gdof.write( &m_nodes->globalDegreesOfFreedom[0], H5::DataType(h5_type_index));
+
+        H5::DataSet h5_ds_node_gnidx = h5_grp_nodes.createDataSet("globalNodesIndex", H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_ids ) );
+        h5_ds_node_gnidx.write( &m_nodes->globalNodesIndex[0], H5::DataType(h5_type_index));
+
+        H5::DataSet h5_ds_node_rgdof = h5_grp_nodes.createDataSet("globalReducedDOFIndex", H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_ids ) );
+        h5_ds_node_gdof.write( &m_nodes->globalReducedDOFIndex[0], H5::DataType(h5_type_index));
+
+        H5::DataSet h5_ds_node_rgnidx = h5_grp_nodes.createDataSet("globalReducedNodesIndex", H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_ids ) );
+        h5_ds_node_rgnidx.write( &m_nodes->globalReducedNodesIndex[0], H5::DataType(h5_type_index));
+
+        // dump elements
+        m_elements->dump(h5_file.createGroup("Elements"));
+        m_faceElements->dump(h5_file.createGroup("FaceElements"));
+        m_contactElements->dump(h5_file.createGroup("ContactElements"));
+        m_points->dump(h5_file.createGroup("Points"));
+        // save tags:
+        int numTags = m_tagMap.size();
+        H5::Group h5_grp_tags = h5_file.createGroup("Tags");
+
+
+        hsize_t h5_dims_numTags[1] = { 1 };
+        uint h5_values_numTags[1] = { numTags };
+        H5::Attribute h5_attr_numTags = h5_grp_tags.createAttribute("numTags", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_dims_numTags ) );
+        h5_attr_numTags.write( H5::PredType::NATIVE_UINT, h5_values_numTags );
+
+        vector<int> Tag_keys;
+        vector<const char*> Tag_names;
+        TagMap::const_iterator it;
+        for (it = m_tagMap.begin(); it != m_tagMap.end(); it++) {
+                Tag_keys.push_back(it->second);
+                Tag_names.push_back(it->first.c_str());
+        }
+
+        hsize_t h5_dims_tags[1] = { numTags };
+        H5::DataSet h5_ds_tags_ids = h5_grp_tags.createDataSet("TagIds", H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_tags ) );
+        h5_ds_tags_ids.write( &Tag_keys[0], H5::DataType(h5_type_index));
+
+        H5::StrType h5_type_tagnames(0, H5T_VARIABLE);
+        H5::DataSet h5_ds_tagnames = h5_grp_tags.createDataSet("TagNames", h5_type_tagnames, H5::DataSpace(1, h5_dims_tags));
+        h5_ds_tagnames.write( &Tag_names[0], h5_type_tagnames);
+
+        h5_file.close();
+    }
+    // catch failure caused by the H5File operations
+    catch (H5::Exception& error)
+    {
+        #ifdef ESYS_MPI
+        if (mpi_rank < mpi_size-1)
+            MPI_Send(&num_Tags, 0, MPI_INT, mpi_rank+1, 81800, getMPIComm());
+        #endif
+        error.printErrorStack();
+        throw FinleyException("Error - DataConstant:: creating HDF5 file failed.");
+    }
+    // pass the MPI token:
+    #ifdef ESYS_MPI
+        if (mpi_rank < mpi_size-1)
+            MPI_Send(&num_Tags, 0, MPI_INT, mpi_rank+1, 81800, getMPIComm());
+    #endif
+#else
+    throw FinleyException("FinleyDomain::dump: not configured with NDF5. Please contact your installation manager.");
+#endif
+}
+
 #ifdef ESYS_HAVE_NETCDF
+#ifdef NETCDF4
+void FinleyDomain::dump(const string& fileName) const
+{
+
     NcDim ncdims[12];
     NcVar ids;
     index_t* index_ptr;
@@ -422,7 +556,6 @@ void FinleyDomain::dump(const string& fileName) const
             throw FinleyException(msgPrefix+"add_var(Elements_Nodes)");
         ids.putVar(&m_elements->Nodes[0]); //(, num_Elements, num_Elements_numNodes) values written
     }
-
     // // // // // Face_Elements // // // // //
     if (num_FaceElements > 0) {
         // FaceElements_Id
@@ -551,19 +684,11 @@ void FinleyDomain::dump(const string& fileName) const
         MPI_Send(&num_Tags, 0, MPI_INT, mpi_rank+1, 81800, getMPIComm());
 #endif
 
-    // NetCDF file is closed by destructor of NcFile object
-
-#else
-    throw FinleyException("FinleyDomain::dump: not configured with netCDF. "
-                          "Please contact your installation manager.");
-#endif // ESYS_HAVE_NETCDF
 }
-
 #else
-
 void FinleyDomain::dump(const string& fileName) const
 {
-#ifdef ESYS_HAVE_NETCDF
+
     const NcDim* ncdims[12] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
     NcVar* ids;
     index_t* index_ptr;
@@ -914,14 +1039,9 @@ void FinleyDomain::dump(const string& fileName) const
         MPI_Send(&num_Tags, 0, MPI_INT, mpi_rank+1, 81800, getMPIComm());
 #endif
 
-    // NetCDF file is closed by destructor of NcFile object
 
-#else
-    throw FinleyException("FinleyDomain::dump: not configured with netCDF. "
-                          "Please contact your installation manager.");
-#endif // ESYS_HAVE_NETCDF
 }
-
+#endif // ESYS_HAVE_NETCDF
 #endif
 
 string FinleyDomain::getDescription() const

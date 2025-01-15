@@ -141,14 +141,6 @@ DataAbstract::dump_hdf5(const H5::Group h5_grp) const
 }
 #endif
 
-void
-DataAbstract::dump(const std::string fileName) const
-{
-    throw DataException("Error - DataAbstract::dump: not implemented.");
-}
-
-
-
 DataTypes::real_t*
 DataAbstract::getSampleDataByTag(int tag, DataTypes::real_t dummy)
 {

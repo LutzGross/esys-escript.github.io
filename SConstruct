@@ -58,9 +58,6 @@ if not os.path.isfile(options_file):
 
 default_prefix='/usr'
 mpi_flavours=('no', 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
-netcdf_flavours = ('no', 'off', 'none', 'False', # Must be last of the false alternatives
-                   'yes', 'on', 'True', '3', # Must be last of the version 3 alternatives
-                   '4')
 all_domains = ('finley','oxley','ripley','speckley')
 version_info=['0.0','5','6']
 build_trilinos_flavours = ( "check",      # check for unsuccessful make before setting up make
@@ -113,11 +110,6 @@ vars.AddVariables(
   BoolVariable('hdf5', 'Enable hdf5, if available', True),
   ('hdf5_prefix', 'Prefix/Paths of hdf5 installation', default_prefix),
   ('hdf5_libs', 'HDF5 libraries to link with', 'DEFAULT'),
-  #TODO: remove
-  EnumVariable('netcdf', 'Enable netCDF file support', False, allowed_values=netcdf_flavours),
-  ('netcdf_prefix', 'Prefix/Paths of netCDF installation', default_prefix),
-  ('netcdf_libs', 'netCDF libraries to link with', 'DEFAULT'),
-
     BoolVariable('zlib', 'Enable zLib', False),
     ('zlib_prefix', 'Prefix/Paths to zlib installation', default_prefix),
     ('zlib_libs', 'zlib libraries to link with', ['zlib']),
@@ -297,22 +289,6 @@ if env['trilinos_GO'] != '':
     elif env['trilinos_GO'] == 'cplx_t':
         env.Append(CPPDEFINES=['SET_GO_CPLXT'])
 
-# Covert env['netcdf'] into one of False, 3, 4
-# Also choose default values for libraries
-pos1=netcdf_flavours.index('False')
-pos2=netcdf_flavours.index('3')
-mypos=netcdf_flavours.index(env['netcdf'])
-if 0 <= mypos <=pos1:
-    env['netcdf']=0
-elif pos1 < mypos <= pos2:
-    env['netcdf']=3
-    if env['netcdf_libs']=='DEFAULT':
-        env['netcdf_libs']=['netcdf_c++', 'netcdf']
-else:   # netcdf4
-    env['netcdf']=4
-    if env['netcdf_libs']=='DEFAULT':
-        env['netcdf_libs']=['netcdf_c++4']
-
 # create dictionary which will be populated with info for buildvars file
 env['buildvars'] = {}
 # create list which will be populated with warnings if there are any
@@ -408,16 +384,14 @@ elif cxx_name[:3] == 'g++':
     cc_flags += [ "-Wno-stringop-truncation", "-Wno-deprecated-declarations", "--param=max-vartrack-size=100000000"]
     cc_optim     = [ "-O3" ] # -march=native"
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
-    cc_debug     = [ "-g3", "-O0", "-DDOASSERT -DDOPROF", "-DBOUNDS_CHECK", "-DSLOWSHARECHECK", "--param=max-vartrack-size=100000000"]
-    #Removed because new netcdf doesn't seem to like it
-    #cc_debug += ' -D_GLIBCXX_DEBUG  '
+    cc_debug     = [ "-g3", "-O0", "-DDOASSERT -DDOPROF", "-DBOUNDS_CHECK", "-DSLOWSHARECHECK", "--param=max-vartrack-size=100000000", '-D_GLIBCXX_DEBUG' ]
     omp_flags    = [ "-fopenmp"]
     omp_ldflags  = [ "-fopenmp"]
     fatalwarning = "-Werror"
     sysheaderopt = "-isystem"
 elif cxx_name == 'cl':
     # Microsoft Visual C on Windows
-    cc_flags     = ["/EHs", "/MD", "/GR", "/wd4068", "/D_USE_MATH_DEFINES", "/DDLL_NETCDF"]
+    cc_flags     = ["/EHs", "/MD", "/GR", "/wd4068", "/D_USE_MATH_DEFINES", "/DDLL_HDF5"] # does this work
     cc_optim     = ["/O2", "/Op", "/W3"]
     cc_debug     = ["/Od", "/RTCcsu", "/ZI", "/DBOUNDS_CHECK"]
     fatalwarning = "/WX"
@@ -466,9 +440,7 @@ elif cxx_name == 'mpic++':
     cc_flags += ["-Wno-stringop-truncation", "-Wno-deprecated-declarations", "--param=max-vartrack-size=100000000" ]
     cc_optim     = ["-O2 -march=native" ]
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
-    cc_debug     = ["-g3", "-O0", "-DDOASSERT", "-DDOPROF", "-DBOUNDS_CHECK", "-DSLOWSHARECHECK", "--param=max-vartrack-size=100000000" ]
-    #Removed because new netcdf doesn't seem to like it
-    #cc_debug += ' -D_GLIBCXX_DEBUG  '
+    cc_debug     = ["-g3", "-O0", "-DDOASSERT", "-DDOPROF", "-DBOUNDS_CHECK", "-DSLOWSHARECHECK", "--param=max-vartrack-size=100000000", '-D_GLIBCXX_DEBUG' ]
     ld_flags += ["-fPIC", "-lmpi" ]
     if env['openmp']:
       ld_flags += ["-lgomp" ]
@@ -487,9 +459,7 @@ elif cxx_name == 'mpiicpc':
     cc_flags += ["-ipo" ]
     cc_optim     = ["-O2", "-march=native"]
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
-    cc_debug     = ["-g3", "-O0", "-DDOASSERT", "-DDOPROF", "-DBOUNDS_CHECK", "-DSLOWSHARECHECK", "--param=max-vartrack-size=100000000"]
-    #Removed because new netcdf doesn't seem to like it
-    #cc_debug += ' -D_GLIBCXX_DEBUG  '
+    cc_debug     = ["-g3", "-O0", "-DDOASSERT", "-DDOPROF", "-DBOUNDS_CHECK", "-DSLOWSHARECHECK", "--param=max-vartrack-size=100000000", '-D_GLIBCXX_DEBUG']
     ld_flags +=[ "-fPIC", "-lmpi" ]
     if env['openmp']:
       ld_flags += ["-lgomp" ]
@@ -740,7 +710,7 @@ env=checkCppUnit(env)
 ######## optional python modules (sympy, pyproj)
 env=checkOptionalModules(env)
 
-######## optional dependencies (netCDF, MKL, UMFPACK, MUMPS, Lapack, Silo, ...)
+######## optional dependencies (HDF5, MKL, UMFPACK, MUMPS, Lapack, Silo, ...)
 
 env=checkOptionalLibraries(env)
 
@@ -1056,12 +1026,6 @@ def print_summary():
     else:
         print("   Direct solver:  NONE")
     print("         domains:  %s"%(", ".join(env['domains'])))
-    if env['netcdf']==4:
-        print("          netcdf:  YES (4 + 3)")
-    elif env['netcdf']==3:
-        print("          netcdf:  YES (3)")
-    else:
-        print("          netcdf:  NO")
     e_list=[]
     for i in ('hdf5', 'weipa','debug','openmp','cppunit','mkl','mpi4py', 'zlib',
              'mumps', 'scipy','silo','sympy','umfpack','visit'):

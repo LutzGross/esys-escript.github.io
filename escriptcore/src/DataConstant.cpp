@@ -22,16 +22,6 @@
 
 #include <iostream>
 
-#ifdef ESYS_HAVE_NETCDF
- #ifdef NETCDF4
-  #include <ncDim.h>
-  #include <ncVar.h>
-  #include <ncFile.h>
- #else
-  #include <netcdfcpp.h>
- #endif
-#endif
-
 #ifdef ESYS_HAVE_HDF5
   #include <H5Cpp.h>
 #endif
@@ -59,10 +49,6 @@
 using namespace std;
 using namespace boost::python;
 using namespace escript::DataTypes;
-
-#ifdef NETCDF4
-using namespace netCDF;
-#endif
 
 namespace escript {
 
@@ -668,234 +654,16 @@ void DataConstant::dump_hdf5(const H5::Group h5_grp) const
     // catch failure caused by the H5File operations
     catch (H5::Exception& error)
     {
+        #ifdef ESYS_MPI
+            if ( mpi_iam < mpi_num-1 ) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81802, MPI_COMM_WORLD);
+        #endif
         error.printErrorStack();
         throw DataException("Error - DataConstant:: creating HDF5 file failed.");
     }
-#ifdef ESYS_MPI
-   if ( mpi_iam < mpi_num-1 ) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81802, MPI_COMM_WORLD);
-#endif
-}
-#endif
-
-#ifdef NETCDF4
-void
-DataConstant::dump(const std::string fileName) const
-{
-#ifdef ESYS_HAVE_NETCDF
-    vector<NcDim> ncdims;
-    int rank = getRank();
-    int type=  getFunctionSpace().getTypeCode();
-
-    //long dims[DataTypes::maxRank];
-    const double* d_ptr=&(m_data_r[0]);
-    DataTypes::ShapeType shape = getShape();
-    JMPI mpiInfo(getFunctionSpace().getDomain()->getMPI());
-#ifdef ESYS_MPI
-    int ndims =0;    
-    const int mpi_iam = mpiInfo->rank;
-    const int mpi_num = mpiInfo->size;
-    MPI_Status status;
-
-    /* Serialize NetCDF I/O */
-    if (mpi_iam > 0)
-        MPI_Recv(&ndims, 0, MPI_INT, mpi_iam-1, 81802, mpiInfo->comm, &status);
-#endif
-    // Create the file.
-    const std::string newFileName(mpiInfo->appendRankToFileName(fileName));
-    NcFile dataFile;
-    try
-    {
-        dataFile.open(newFileName.c_str(), NcFile::FileMode::replace,   NcFile::FileFormat::classic64);
-    }
-    catch (exceptions::NcException& e)
-    {
-        throw DataException("Error - DataConstant:: opening of netCDF file for output failed.");
-    }
-    int line=0;
-    try
-    {
-        const NcInt ni;
-        dataFile.putAtt("type_id", ni, 0);
-        line++;
-        dataFile.putAtt("rank", ni, rank);
-        line++;
-        dataFile.putAtt("function_space_type", ni, type);
-    }
-    catch (exceptions::NcException& e)
-    {
-        switch (line)
-        {
-        case 0: throw DataException("Error - DataConstant:: appending data type to netCDF file failed.");
-        case 1: throw DataException("Error - DataConstant:: appending rank attribute to netCDF file failed.");
-        case 2: throw DataException("Error - DataConstant:: appending function space attribute to netCDF file failed.");
-        }
-    }
-    if (rank == 0) {
-        try
-        {
-            ncdims.push_back(dataFile.addDim("l",  1));
-        }
-        catch (exceptions::NcException& e)
-        {
-            throw DataException("Error - DataConstant:: appending ncdimension 0 to netCDF file failed.");           
-        }
-//         dims[0]=1,
-#ifdef ESYS_MPI
-        ndims=1;
-#endif        
-    } else {
-#ifdef ESYS_MPI        
-        ndims=rank;
-#endif        
-//         dims[0]=shape[0];
-        try
-        {
-            ncdims.push_back(dataFile.addDim("d0", shape[0]));
-        }
-        catch (exceptions::NcException& e)
-        {
-            throw DataException("Error - DataConstant:: appending ncdimension 0 to netCDF file failed.");
-        }
-        if ( rank >1 ) {
-//             dims[1]=shape[1];
-            try
-            {
-                ncdims.push_back(dataFile.addDim("d1", shape[1]));
-            }
-            catch (exceptions::NcException& e)
-            {
-                throw DataException("Error - DataConstant:: appending ncdimension 1 to netCDF file failed.");
-            }
-        }
-        if ( rank >2 ) {
-//             dims[2]=shape[2];
-            try
-            {
-                ncdims.push_back(dataFile.addDim("d2",  shape[2]));
-            } 
-            catch (exceptions::NcException& e)
-            {
-                throw DataException("Error - DataConstant:: appending ncdimension 2 to netCDF file failed.");
-            }
-        }
-        if ( rank >3 ) {
-//             dims[3]=shape[3];
-            try
-            {
-                ncdims.push_back(dataFile.addDim("d3",  shape[3]));
-            } 
-            catch (exceptions::NcException& e)
-            {
-                throw DataException("Error - DataConstant:: appending ncdimension 3 to netCDF file failed.");
-            }
-        }
-    }
-
-    try
-    {
-        line=0;     
-        NcVar var = dataFile.addVar("data", ncDouble, ncdims);
-        line++;
-            // d_ptr is the data itself, dims is the shape
-        // var.put(d_ptr,dims);
-        var.putVar(d_ptr);
-    }
-    catch (exceptions::NcException& e)
-    {
-        if (line==0)
-        {
-            throw DataException("Error - DataConstant:: appending variable to netCDF file failed.");
-        }
-        throw DataException("Error - DataConstant:: copy data to netCDF buffer failed.");
-    }
-#ifdef ESYS_MPI
-    if (mpi_iam<mpi_num-1) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81802, MPI_COMM_WORLD);
-#endif
-    #else
-    throw DataException("Error - DataConstant:: dump is not configured with netCDF. Please contact your installation manager.");
+    #ifdef ESYS_MPI
+        if ( mpi_iam < mpi_num-1 ) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81802, MPI_COMM_WORLD);
     #endif
 }
-
-#else
-
-// old netcdf implementation
-void
-DataConstant::dump(const std::string fileName) const
-{
-#ifdef ESYS_HAVE_NETCDF
-   const NcDim* ncdims[DataTypes::maxRank];
-   NcVar* var;
-   int rank = getRank();
-   int type=  getFunctionSpace().getTypeCode();
-   int ndims =0;
-   long dims[DataTypes::maxRank];
-   const double* d_ptr=&(m_data_r[0]);
-   DataTypes::ShapeType shape = getShape();
-   JMPI mpiInfo(getFunctionSpace().getDomain()->getMPI());
-#ifdef ESYS_MPI
-   const int mpi_iam = mpiInfo->rank;
-   const int mpi_num = mpiInfo->size;
-   MPI_Status status;
-
-   /* Serialize NetCDF I/O */
-   if (mpi_iam > 0)
-       MPI_Recv(&ndims, 0, MPI_INT, mpi_iam-1, 81802, mpiInfo->comm, &status);
-#endif
-
-   // netCDF error handler
-   NcError err(NcError::verbose_nonfatal);
-   // Create the file.
-   const std::string newFileName(mpiInfo->appendRankToFileName(fileName));
-   NcFile dataFile(newFileName.c_str(), NcFile::Replace);
-   // check if writing was successful
-   if (!dataFile.is_valid())
-        throw DataException("Error - DataConstant:: opening of netCDF file for output failed.");
-   if (!dataFile.add_att("type_id",0) )
-        throw DataException("Error - DataConstant:: appending data type to netCDF file failed.");
-   if (!dataFile.add_att("rank",rank) )
-        throw DataException("Error - DataConstant:: appending rank attribute to netCDF file failed.");
-   if (!dataFile.add_att("function_space_type",type))
-        throw DataException("Error - DataConstant:: appending function space attribute to netCDF file failed.");
-
-   if (rank == 0) {
-      if( ! (ncdims[0] = dataFile.add_dim("l", 1)) )
-                throw DataException("Error - DataConstant:: appending ncdimension 0 to netCDF file failed.");
-      dims[0]=1,
-      ndims=1;
-   } else {
-       ndims=rank;
-       dims[0]=shape[0];
-       if (! (ncdims[0] = dataFile.add_dim("d0",shape[0])) )
-                throw DataException("Error - DataConstant:: appending ncdimension 0 to netCDF file failed.");
-       if ( rank >1 ) {
-           dims[1]=shape[1];
-           if (! (ncdims[1] = dataFile.add_dim("d1",shape[1])) )
-                throw DataException("Error - DataConstant:: appending ncdimension 1 to netCDF file failed.");
-       }
-       if ( rank >2 ) {
-           dims[2]=shape[2];
-           if (! (ncdims[2] = dataFile.add_dim("d2", shape[2])) )
-                throw DataException("Error - DataConstant:: appending ncdimension 2 to netCDF file failed.");
-       }
-       if ( rank >3 ) {
-           dims[3]=shape[3];
-           if (! (ncdims[3] = dataFile.add_dim("d3", shape[3])) )
-                throw DataException("Error - DataConstant:: appending ncdimension 3 to netCDF file failed.");
-       }
-   }
-
-   if (! ( var = dataFile.add_var("data", ncDouble, ndims, ncdims)) )
-        throw DataException("Error - DataConstant:: appending variable to netCDF file failed.");
-   if (! (var->put(d_ptr,dims)) )
-         throw DataException("Error - DataConstant:: copy data to netCDF buffer failed.");
-#ifdef ESYS_MPI
-   if (mpi_iam<mpi_num-1) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81802, MPI_COMM_WORLD);
-#endif
-   #else
-   throw DataException("Error - DataConstant:: dump is not configured with netCDF. Please contact your installation manager.");
-   #endif
-}
-
 #endif
 
 // These used to be marked as inline in DataConstant.

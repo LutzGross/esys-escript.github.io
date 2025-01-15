@@ -5413,36 +5413,15 @@ Data::print()
 	}
     }
 }
-void
-Data::dump(const std::string fileName) const
-{
-    try
-    {
-        if (isLazy())
-        {
-            Data temp(*this);     // this is to get a non-const object which we can resolve
-            temp.resolve();
-            temp.dump(fileName);
-        }
-        else
-        {
-            return m_data->dump(fileName);
-        }
-    }
-    catch (std::exception& e)
-    {
-        std::cout << e.what() << std::endl;
-    }
-}
 
 void
-Data::dump_hdf5(const std::string fileName) const
+Data::dump(const std::string fileName) const
 {
      if (isLazy())
      {
          Data temp(*this);     // this is to get a non-const object which we can resolve
          temp.resolve();
-         temp.dump_hdf5(fileName);
+         temp.dump(fileName);
      }
      else
      {

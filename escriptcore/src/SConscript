@@ -131,8 +131,6 @@ if env['uselapack']:
     escriptlibs += env['lapack_libs']
 if env['mkl']:
     escriptlibs += env['mkl_libs']
-if env['netcdf']:
-    escriptlibs += env['netcdf_libs']
 if env['hdf5']:
     escriptlibs += env['hdf5_libs']
 if env['trilinos']:

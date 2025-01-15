@@ -7,10 +7,10 @@ COPY . /app
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update 
-RUN apt-get install -y cmake gcc g++ git gfortran make scons wget libsuitesparse-dev libmetis-dev liblapack-dev libblas-dev python3-dev python3-numpy python3-pyproj python3-gdal python3-sympy python3-matplotlib python3-scipy scons lsb-release libnetcdf-dev libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libopenmpi-dev libboost-all-dev libpython3.7
+RUN apt-get install -y cmake gcc g++ git gfortran make scons wget libsuitesparse-dev libmetis-dev liblapack-dev libblas-dev python3-dev python3-numpy python3-sympy python3-matplotlib python3-scipy scons lsb-release libhdf5-serial-dev libopenmpi-dev libboost-all-dev libpython3.7
 # Trilinos
-RUN wget https://github.com/trilinos/Trilinos/archive/trilinos-release-13-0-1.tar.gz
-RUN tar zxvf trilinos-release-13-0-1.tar.gz 
+RUN wget https://github.com/trilinos/Trilinos/archive/trilinos-release-16-0-0.tar.gz
+RUN tar zxvf trilinos-release-16-0-0.tar.gz
 RUN mkdir trilinos_build
 RUN cd trilinos_build && \
 	cmake \

@@ -147,13 +147,7 @@ class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   void
   dump_hdf5(const H5::Group h5_grp) const;
 #endif
- /**
-     \brief
-     dumps the object into a netCDF file
-  */
-  virtual
-  void
-  dump(const std::string fileName) const;
+
 
   /**
      \brief

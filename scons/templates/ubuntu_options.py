@@ -47,7 +47,7 @@ umfpack_libs = ['umfpack', 'blas', 'amd']
 silo = True
 silo_libs = ['siloh5', 'hdf5']
 silo_prefix=[ '/usr/include' , '/usr/lib/x86_64-linux-gnu/hdf5/serial', '/usr/lib/x86_64-linux-gnu']
-netcdf = 4
+
 
 hdf5 = True
 hdf5_libs = ['hdf5_serial_cpp']

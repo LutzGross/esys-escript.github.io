@@ -489,7 +489,6 @@ def checkForTrilinos(env):
         print("Checking for %s... %s" %('Tpetra_DefaultPlatform.hpp', "no"))
     # Try to extract the trilinos version from Trilinos_version.h
     versionh=open(os.path.join(trilinos_inc_path, 'Trilinos_version.h'))
-    trilinos_version='unknown'
     env['trilinos_version']='unknown'
     for line in versionh:
         ver=re.match(r'#define TRILINOS_MAJOR_MINOR_VERSION (\d+)',line)
@@ -507,7 +506,7 @@ def checkForTrilinos(env):
 #            elif major == 14 and minor >=2:
 #                env.Append(CPPDEFINES = ['ESYS_TRILINOS_14_2'])
 #            else:
-            env.Append(CPPDEFINES = ['ESYS_TRILINOS_15'])
+            env.Append(CPPDEFINES = [f'ESYS_TRILINOS_{major}'])
 
     if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix.hpp')):
         print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix.hpp', "yes") )
@@ -622,25 +621,6 @@ def checkOptionalLibraries(env):
         env['buildvars']['hdf5_inc_path'] = hdf5_inc_path
         env['buildvars']['hdf5_lib_path'] = hdf5_lib_path
     env['buildvars']['hdf5'] = int(env['hdf5'])
-
-    ######## netCDF
-    netcdf_inc_path=''
-    netcdf_lib_path=''
-    if env['netcdf']:
-        if env['netcdf']==4:
-            env.Append(CPPDEFINES = ['NETCDF4'])
-            netcdf_inc_path, netcdf_lib_path = findLibWithHeader(env, env['netcdf_libs'], 'ncVar.h', env['netcdf_prefix'], lang='c++')
-
-        else:
-            netcdf_inc_path, netcdf_lib_path = findLibWithHeader(env, env['netcdf_libs'], 'netcdfcpp.h', env['netcdf_prefix'], lang='c++')
-
-        env.AppendUnique(CPPPATH = [netcdf_inc_path])
-        env.AppendUnique(LIBPATH = [netcdf_lib_path])
-        env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], netcdf_lib_path)
-        env.Append(CPPDEFINES = ['ESYS_HAVE_NETCDF'])
-        env['buildvars']['netcdf_inc_path'] = netcdf_inc_path
-        env['buildvars']['netcdf_lib_path'] = netcdf_lib_path
-    env['buildvars']['netcdf'] = int(env['netcdf'])
 
     ######## MKL
     mkl_inc_path=''
@@ -770,11 +750,6 @@ def checkOptionalLibraries(env):
         env.AppendUnique(LIBS = env['mpi_libs'])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], mpi_lib_path)
         env.Append(CPPDEFINES = ['ESYS_MPI', 'MPI_NO_CPPBIND', 'MPICH_IGNORE_CXX_SEEK'])
-        # NetCDF 4.1 defines MPI_Comm et al. if MPI_INCLUDED is not defined!
-        # On the other hand MPT and OpenMPI don't define the latter so we have
-        # to do that here
-        if env['netcdf'] and env['mpi'] in ['MPT','OPENMPI']:
-            env.Append(CPPDEFINES = ['MPI_INCLUDED'])
 
         if env['mpi'] == 'OPENMPI':
             # try to get version for correct launcher arguments

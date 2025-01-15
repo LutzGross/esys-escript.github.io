@@ -28,9 +28,6 @@
 #include "FunctionSpaceFactory.h"
 #include "MPIDataReducer.h"
 #include "MPIScalarReducer.h"
-#ifdef NETCDF4
-  #include "NCHelper.h"
-#endif
 #include "NonReducedVariable.h"
 #include "SolverOptions.h"
 #include "TestDomain.h"
@@ -128,12 +125,6 @@ BOOST_PYTHON_MODULE(escriptcpp)
 
     // register escript's default translators
     REGISTER_ESCRIPT_EXCEPTION_TRANSLATORS;
-    
-    
-#ifdef NETCDF4
-    def("NcFType", escript::NcFType, arg("filename"), "Return a character indicating what netcdf format a file uses.\nc or C indicates netCDF3.\n4 indicates netCDF4.\nu indicates unsupported format (eg netCDF4 file in an escript build which does not support it\n? indicates unknown.");
-#endif
-
   def("setNumberOfThreads",escript::setNumberOfThreads,"Use of this method is strongly discouraged.");
   def("getNumberOfThreads",escript::getNumberOfThreads,"Return the maximum number of threads"
         " available to OpenMP.");
@@ -505,13 +496,9 @@ args("arg"), "assigns new location to the domain\n\n"
         ":rtype: ``tuple``")
     .def("getRank",&escript::Data::getDataPointRank,":return: the number of indices required to address a component of a datapoint\n"
         ":rtype: positive ``int``")
-    .def("dump",&escript::Data::dump,args("fileName"),"Save the data as a netCDF file\n\n"
+    .def("dump",&escript::Data::dump,args("fileName"),"Save the data as a HDF5 file\n\n"
         ":param fileName: \n"
         ":type fileName: ``string``")
-    .def("dump_hdf5",&escript::Data::dump_hdf5,args("fileName"),"Save the data as an HDF5 file\n\n"
-        ":param fileName: \n"
-        ":type fileName: ``string``")
-
     .def("toListOfTuples",&escript::Data::toListOfTuples, (arg("scalarastuple")=false),
         "Return the datapoints of this object in a list. Each datapoint is stored as a tuple.\n\n"
         ":param scalarastuple: if True, scalar data will be wrapped as a tuple."
@@ -827,12 +814,7 @@ args("arg"), "assigns new location to the domain\n\n"
   //
   // Factory methods for Data
   //
- def("loadHDF5",escript::load_hdf5, args("fileName","domain"), "reads real Data on domain from file in HDF5 format\n\n"
-        ":param fileName:\n"
-        ":type fileName: ``string``\n"
-        ":param domain:\n"
-        ":type domain: `Domain`");
-  def("load",escript::load, args("fileName","domain"), "reads Data on domain from file in netCDF format\n\n"
+ def("load",escript::load_hdf5, args("fileName","domain"), "reads real Data on domain from file in HDF5 format\n\n"
         ":param fileName:\n"
         ":type fileName: ``string``\n"
         ":param domain:\n"

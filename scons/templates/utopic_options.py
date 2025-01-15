@@ -23,7 +23,6 @@ boost_libs = ['boost_python-py27']
 #mpi = 'OPENMPI'
 mpi_prefix = '/usr/lib/openmpi'
 mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
-netcdf = True
 #umfpack = True
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 umfpack_libs = ['umfpack', 'blas', 'amd']
