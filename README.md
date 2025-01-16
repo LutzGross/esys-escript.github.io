@@ -34,13 +34,13 @@ For the impatient:
 - Copy a suitable template options file from scons/templates/ to scons/hostname_options.py and modify as required.
 - type `scons` to build escript
 
-Please have a look at the [installation guide](install.md) for information on a specific Linux distribution.
+Please have a look at the [installation guide](installation.md) for information on a specific Linux distribution.
 
 ## Debian Distribution 
 
 Debian packages [python3-escript-mpi] and [python3-escript] of **version 5** are available.
 
-## Anaconda Installation (needs validatation)
+## Anaconda Installation (needs validation)
 
 To install esys-escript for [anaconda](https://www.anaconda.com), first run conda and then the command
 
@@ -63,7 +63,7 @@ Click on this button to try out esys-escript in your web browser:
    - Australian Geophysical Observing System (AGOS) (ended 2014),
    - [The University of Queensland](https://www.uq.edu.au)
 
-If you publish work that makes use of esys-escript, we would appreciate if you would cite the following reference:
+If you publish work that makes use of esys-escript, we would appreciate it if you would cite the following reference:
 
 - [R Schaa, L Gross, J du Plessis, PDE-based geophysical modelling using finite elements: examples from 3D resistivity and 2D magnetotellurics, Journal of Geophysics and Engineering, Volume 13, Issue 2, April 2016, Pages S59–S73](https://doi.org/10.1088/1742-2132/13/2/S59)
 - [L. Gross, L. Bourgouin, A.J. Hale, H.-B. Mühlhaus,
