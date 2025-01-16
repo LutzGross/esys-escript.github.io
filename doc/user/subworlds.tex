@@ -121,7 +121,7 @@ def task(self, **kwargs):
     gammaD=whereZero(x[0])+whereZero(x[1])
     pde.setValue(f=v, q=gammaD)
     soln=pde.getSolution()
-    soln.dump('soln%d.ncdf'%v)
+    soln.dump('soln%d'%v)
 
 # Add some jobs
 for i in range(1,20):

@@ -30,6 +30,19 @@ using namespace escript;
 
 namespace finley {
 
+
+Domain_ptr FinleyDomain::load(const string& fileName)
+{
+#ifdef ESYS_HAVE_HDF5
+    JMPI mpiInfo = makeInfo(MPI_COMM_WORLD);
+    const string fName(mpiInfo->appendRankToFileName(fileName));
+
+#else
+    throw FinleyException("loadMesh: not compiled with HDF5. Please contact your installation manager.");
+#endif // ESYS_HAVE_HDF5
+}
+
+
 #ifdef ESYS_HAVE_NETCDF
 #ifdef NETCDF4
 

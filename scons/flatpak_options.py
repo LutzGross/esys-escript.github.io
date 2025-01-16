@@ -37,8 +37,7 @@ pythonlibpath = '/app/lib'
 pythonincpath = '/app/include/python3.7m'
 
 boost_prefix=['/app/include','/app/lib']
-netcdf = 4
-netcdf_prefix=['/app/include','/app/lib']
+hdf5_prefix=['/app/include','/app/lib']
 mpi_prefix=['/app/include','/app/lib']
 mpi_libs=['mpi_cxx']
 umfpack_prefix = ['/app/include','/app/lib']

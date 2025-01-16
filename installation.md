@@ -1,17 +1,87 @@
 # esys-escript installation guide
 
-This document describes how to install esys-escript. To learn how to use \esfinley please see [Link missing].
-esys-escript is primarily developed on Linux/Unix platforms with some support for MacOS.
-See [Issues](https://github.com/LutzGross/esys-escript.github.io/issues) for online help.
 
+--------------
+## Introduction
+This document describes how to install *esys-escript* on to your computer.
+To learn how to use *esys-escript* please see the Cookbook, User's guide or the API documentation.
+
+*esys-escript* is primarily developed on Linux desktop, SGI ICE and \macosx systems.
+It can be installed in several ways:
+\begin{enumerate}
+- Binary packages -- ready to run with no compilation required.
+  These are available in Debian and Ubuntu repositories, so just use your normal package manager (so you don't need this guide). They are also available for Anaconda Python 3.
+- Using flatpak
+- From source -- that is, it must be compiled for your machine.
+This is the topic of this guide.
+\end{enumerate}
+
+See the site \url{https://answers.launchpad.net/escript-finley} for online help.
+Chapter~\ref{chap:source} covers installing from source.
+Appendix~\ref{app:cxxfeatures} lists some c++ features which your compiler must support in order to compile escript.
+This version of escript has the option of using \texttt{Trilinos} in addition to our regular solvers.
+Appendix~\ref{app:trilinos} covers features of \texttt{Trilinos} which escript needs.
+
+## Installing from Flatpak}\label{chap:flatpak}
+
+To install \escript on any linux distribution using flatpak\footnote{For most linux distributions this can be installed from the repository. Otherwise, flatpak is available at \url{https://flathub.org/home}}, type
+\begin{shellCode}
+flatpak install flathub au.edu.uq.esys.escript
+\end{shellCode}
+
+This wil download and install \escript on your machine. The \escript build installed utilises both the Trilinos and PASO solver libraries, with openMP but without OPENMPI. 
+
+After flatpak has finished downloading and installing \escript, you can launch an \escript window from the menu or run \escript in a terminal with the command:
+\begin{shellCode}
+flatpak run au.edu.uq.esys.escript [other arguments to pass to escript]
+\end{shellCode}
+
+Finally, to uninstall \escript from your machine, type
+\begin{shellCode}
+flatpak uninstall escript
+\end{shellCode}
+
+#--------------
+## Installing inside Anaconda}\label{chap:conda}
+
+There are precompiled binaries of \escript available for Anaconda python (for Linux), available in the conda-forge channel on Anaconda cloud. They can be installed using the command
+\begin{shellCode}
+conda install esys-escript -c conda-forge
+\end{shellCode}
+#--------------
+
+## Installing from Docker}\label{chap:docker}
+
+To install an \escript Docker container on your machine, first install Docker and then type:
+\begin{shellCode}
+docker pull esysescript/esys-escript
+\end{shellCode}
+
+\vspace{1cm}\
+Once installed, you can launch an escript session using the command:
+\begin{shellCode}
+docker run -ti esysescript/esys-escript run-escript
+\end{shellCode}
+
+If you would also like to mount a folder, you can use the command:
+\begin{shellCode}
+docker run -ti -v $(pwd):/app/ esysescript/esys-escript run-escript
+\end{shellCode}
+
+Additionally, if you wish to run an escript named test_program.py, you can use the command:
+\begin{shellCode}
+docker run -ti -v $(pwd):/app/ esysescript/esys-escript \
+					run-escript [path to test_program.py]
+\end{shellCode}
 
 ## Installing from Source
 
-his chapter describes installing \escript from source on unix/posix like
+This chapter describes installing \escript from source on unix/posix like
 systems (including MacOSX) and Windows 10.
 
-### Parallelization
-esys-escript can make use of multiple cores 
+\section{Parallel Technologies}\label{sec:par}
+It is likely that the computer you run \escript on, will have more than one processor core.
+Escript can make use of multiple cores [in order to solve problems more quickly] if it is told to do so,
 but this functionality must be enabled at compile time.
 Section~\ref{sec:needpar} gives some rough guidelines to help you determine what you need.
 
@@ -81,7 +151,7 @@ command \texttt{xcode-select --install} will allow you to download and install t
 
 \section{Building}\label{sec:build}
 
-\esfinley is built using \textit{SCons}. To simplify the installation process, we have prepared \textit{SCons} \textit{_options.py} files for a number of common systems\footnote{These are correct a time of writing but later versions of those systems may require tweaks.
+*esys-escript* is built using \textit{SCons}. To simplify the installation process, we have prepared \textit{SCons} \textit{_options.py} files for a number of common systems\footnote{These are correct a time of writing but later versions of those systems may require tweaks.
 Also, these systems represent a cross section of possible platforms rather than meaning those systems get particular support.}.
 The options files are located in the \textit{scons/templates} directory. We suggest that the file most relevant to your OS
 be copied from the templates directory to the scons directory and renamed to the form XXXX_options.py where XXXX
@@ -109,13 +179,13 @@ Once these are done proceed to Section~\ref{sec:cleanup} for cleanup steps.
 \subsection{Debian}\label{sec:debsrc}
 \noindent These instructions were prepared on Debian 10 \textit{Buster}.
 
-\noindent As a preliminary step, you should install the dependencies that \esfinley requires from the repository.
+\noindent As a preliminary step, you should install the dependencies that *esys-escript* requires from the repository.
 If you intend to use Python 2.7, then you should install the following
 \begin{shellCode}
 sudo apt-get install python-dev python-numpy
 sudo apt-get install python-sympy python-matplotlib python-scipy
 sudo apt-get install libboost-python-dev libboost-random-dev
-sudo apt-get install libnetcdf-dev libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev
+sudo apt-get install lib
 sudo apt-get install scons lsb-release libsuitesparse-dev gmsh
 \end{shellCode}
 
@@ -123,8 +193,7 @@ sudo apt-get install scons lsb-release libsuitesparse-dev gmsh
 \begin{shellCode}
 sudo apt-get install python3-dev python3-numpy
 sudo apt-get install python3-sympy python3-matplotlib python3-scipy
-sudo apt-get install libboost-python-dev libboost-random-dev
-sudo apt-get install libnetcdf-dev libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev
+sudo apt-get install libboost-python-dev libboost-random-dev libhdf5-serial-dev
 sudo apt-get install libsuitesparse-dev scons lsb-release gmsh
 \end{shellCode}
 
@@ -150,22 +219,20 @@ scons -j4 py_tests options_file=scons/templates/XXXX_options.py
 These instructions were prepared on Ubuntu 20.04 LTS \textit{Focal Fossa}. \newline
 
 
-% \noindent As a preliminary step, you should install the dependencies that \esfinley requires from the repository.
+% \noindent As a preliminary step, you should install the dependencies that *esys-escript* requires from the repository.
 % If you intend to use Python 2.7, then you should install the following packages:
 % \begin{shellCode}
 % sudo apt-get install python-dev python-numpy
-% sudo apt-get install python-sympy python-matplotlib python-scipy
-% sudo apt-get install libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libnetcdf-dev
+% sudo apt-get install python-sympy python-matplotlib python-scipy libhdf5-serial-dev
 % sudo apt-get install libboost-random-dev libboost-python-dev libboost-iostreams-dev
 % sudo apt-get install scons lsb-release libsuitesparse-dev
 % \end{shellCode}
 
 %For Python 3.0+, you should instead install the following packages:
-\noindent As a preliminary step, you should install the dependencies that \esfinley requires from the repository.
+\noindent As a preliminary step, you should install the dependencies that *esys-escript* requires from the repository.
 \begin{shellCode}
 sudo apt-get install python3-dev python3-numpy
-sudo apt-get install python3-sympy python3-matplotlib python3-scipy
-sudo apt-get install libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libnetcdf-dev
+sudo apt-get install python3-sympy python3-matplotlib python3-scipy libhdf5-serial-dev
 sudo apt-get install libboost-random-dev libboost-python-dev libboost-iostreams-dev
 sudo apt-get install scons lsb-release libsuitesparse-dev
 \end{shellCode}
@@ -196,11 +263,11 @@ scons -j4 options_file=scons/templates/focus_options.py
 \subsection{Mint}\label{sec:mintsrc}
 These instructions were prepared on Mint 20.3. \newline
 
-\noindent As a preliminary step, you should install the dependencies that \esfinley requires from the repository.
+\noindent As a preliminary step, you should install the dependencies that *esys-escript* requires from the repository.
 \begin{shellCode}
 sudo apt-get install python3-dev python3-numpy
 sudo apt-get install python3-sympy python3-matplotlib python3-scipy
-sudo apt-get install libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libnetcdf-dev
+sudo apt-get install libhdf5-serial-dev
 sudo apt-get install libboost-random-dev libboost-python-dev libboost-iostreams-dev
 sudo apt-get install scons lsb-release libsuitesparse-dev
 \end{shellCode}
@@ -216,7 +283,7 @@ These instructions were prepared on Arch Linux. \newline
 First, install the dependencies that escript uses:
 \begin{shellCode}
 pacman -Sy --noconfirm python python-numpy python-scipy
-pacman -Sy --noconfirm community/netcdf community/netcdf-cxx
+pacman -Sy --noconfirm community/hdf5-serial
 pacman -Sy --noconfirm extra/boost extra/boost-libs suitesparse
 \end{shellCode}
 
@@ -228,12 +295,12 @@ scons options_file=scons/templates/arch_py3_options.py -j4 build_full
 \subsection{OpenSuse}\label{sec:susesrc}
 These instructions were prepared using OpenSUSE Leap 15.2. \newline
 
-\noindent As a preliminary step, you should install the dependencies that \esfinley requires from the repository.
+\noindent As a preliminary step, you should install the dependencies that *esys-escript* requires from the repository.
 \noindent  If you intend to use Python 2.7, then you should install the following packages
 \begin{shellCode}
 sudo zypper in python-devel python2-numpy
 sudo zypper in python2-scipy python2-sympy python2-matplotlib
-sudo zypper in gcc gcc-c++ scons netcdf-devel libnetcdf_c++-devel
+sudo zypper in gcc gcc-c++ scons hdf5-devel
 sudo zypper in libboost_python-py2_7-1_66_0-devel libboost_numpy-py2_7-1_66_0-devel
 sudo zypper in libboost_iostreams1_66_0-devel suitesparse-devel
 \end{shellCode}
@@ -242,7 +309,7 @@ sudo zypper in libboost_iostreams1_66_0-devel suitesparse-devel
 \begin{shellCode}
 sudo zypper in python3-devel python3-numpy
 sudo zypper in python3-scipy python3-sympy python3-matplotlib
-sudo zypper in gcc gcc-c++ scons netcdf-devel libnetcdf_c++-devel
+sudo zypper in gcc gcc-c++ scons hdf5-devel
 sudo zypper in libboost_python-py3-1_66_0-devel libboost_numpy-py3-1_66_0-devel
 sudo zypper in libboost_random1_66_0-devel libboost_iostreams1_66_0-devel
 sudo zypper in suitesparse-devel
@@ -275,7 +342,7 @@ yum install epel-release.noarch
 
 \noindent Install packages:
 \begin{shellCode}
-yum install netcdf-devel netcdf-cxx-devel
+yum install hdf5-devel
 yum install python-devel numpy scipy sympy python2-scons
 yum install python-matplotlib gcc gcc-c++ boost-devel
 yum install boost-python suitesparse-devel
@@ -322,7 +389,7 @@ These instructions were prepared using Fedora $31$ Workstation.
 yum install gcc-c++ scons suitesparse-devel
 yum install python2-devel boost-python2-devel
 yum install python2-scipy
-yum install netcdf-devel netcdf-cxx-devel netcdf-cxx4-devel
+yum install hdf5-devel
 \end{shellCode}
 
 \noindent To build the a version of \escript that uses Python 3.0+, install the following packages:
@@ -331,7 +398,7 @@ yum install gcc-c++ scons suitesparse-devel
 yum install python3-devel boost-python3-devel
 yum install python3-scipy python3-matplotlib
 yum install boost-python3 boost-numpy3 boost-iostreams boost-random
-yum install netcdf-devel netcdf-cxx-devel netcdf-cxx4-devel
+yum install hdf5-devel
 \end{shellCode}
 
 \noindent In the source directory execute the following (substitute \textit{fedora_py2} or \textit{fedora_py3} for XXXX):
@@ -353,7 +420,7 @@ sudo port install py27-numpy
 sudo port install py27-sympy
 sudo port select --set py-sympy py27-sympy
 sudo port install py27-scipy
-sudo port install netcdf-cxx
+sudo port install hdf5
 sudo port install silo
 \end{shellCode}
 
@@ -369,7 +436,7 @@ The following will install the capabilities needed for the \texttt{homebrew_10.1
 \begin{shellCode}
 brew install scons
 brew install boost-python
-brew install netcdf
+brew install hdf5
 \end{shellCode}
 
 There do not appear to be formulae for \texttt{sympy}  so if you wish to use those features, then
@@ -653,7 +720,51 @@ sh utest.sh path_to_build_folder '-t1'
 Note that a careless selection of these parameters may cause the testing program to skip many of the tests. For example, if you compile \escript with OpenMP enabled but then instruct the testing program to run on a single thread, many of the OpenMP tests will not be run.
 
 
-Chapter~\ref{chap:source} covers installing from source.
-Appendix~\ref{app:cxxfeatures} lists some c++ features which your compiler must support in order to compile escript.
-This version of escript has the option of using \texttt{Trilinos} in addition to our regular solvers.
-Appendix~\ref{app:trilinos} covers features of \texttt{Trilinos} which escript needs.
+\esysappendix
+## Required compiler features}
+\label{app:cxxfeatures}
+
+Building escript from source requires that your c++ compiler supports at least the following features:
+\begin{itemize}
+ \item \texttt{std::complex<>}
+ \item Variables declared with type \texttt{auto}
+ \item Variables declared with type \texttt{decltype(T)}
+ \item \texttt{extern template class} to prevent instantiation of templates. 
+ \item \texttt{template class \textit{classname$<$type$>$};} to force instantiation of templates
+ \item \texttt{isnan()} is defined in the \texttt{std::} namespace
+\end{itemize}
+The above is not exhaustive and only lists language features which are more recent that our previous baseline of c++99 (or which
+we have recently begun to rely on).
+Note that we test on up to date versions of \texttt{g++, icpc \& clang++} so they should be fine.
+
+Note that in future we may use c++14 features as well.
+
+## Trilinos}
+\label{app:trilinos}
+
+In order to solve PDEs with complex coefficients, escript needs to be compiled with \texttt{Trilinos} support.
+This requires that your version of Trilinos has certain features enabled.
+Since some precompiled distributions of \texttt{Trilinos} are not built with these features, you may 
+need to compile \texttt{Trilinos} yourself as well.
+
+While we can't provide support for building \texttt{Trilinos}, we provide here two configuration files which seem to work for 
+Debian 10 ``buster'. One of these cmake script builds \texttt{Trilinos} with MPI support and one builds \texttt{Trilinos} without MPI support.
+
+\section{Debian ``buster'' configuration}
+
+
+\subsection{Required packages}
+
+The following packages should be installed to attempt this build:
+\begin{itemize}
+\item[] cmake
+\item[] g++
+\item[] libsuitesparse-dev
+\item[] libmumps-dev
+\item[] libboost-dev
+\item[] libscotchparmetis-dev
+\item[] libmetis-dev
+\item[] libcppunit-dev
+\end{itemize}
+\end{document}
+
