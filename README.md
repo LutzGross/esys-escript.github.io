@@ -27,9 +27,10 @@ https://esys-escript.github.io/
 
 For the impatient:
 
-- Install at least g++, python, scons, boost, and NumPy.
-- Optional: HDF5_serial, silo
-- READ the file scons/templates/README_FIRST .
+- Install at least g++, python, scons, boost, suitesparse, and numpy.
+- Optional but recommended: HDF5_serial, silo.
+- git clone --single-branch --branch main https://github.com/LutzGross/esys-escript.github.io.git
+- READ the file scons/templates/README_FIRST.
 - Copy a suitable template options file from scons/templates/ to scons/hostname_options.py and modify as required.
 - type `scons` to build escript
 
@@ -37,9 +38,9 @@ Please have a look at the [installation guide](install.md) for information on a 
 
 ## Debian Distribution 
 
-Debian packages [python3-escript-mpi] and [python3-escript] are available.
+Debian packages [python3-escript-mpi] and [python3-escript] of **version 5** are available.
 
-## Anaconda Installation
+## Anaconda Installation (needs validatation)
 
 To install esys-escript for [anaconda](https://www.anaconda.com), first run conda and then the command
 
@@ -57,7 +58,7 @@ Click on this button to try out esys-escript in your web browser:
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/esys-escript/esys-escript.github.io/HEAD)
 
 
-## The project is funded by the
+## The project was funded by the
    - [AuScope National Collaborative Research Infrastructure Strategy (NCRIS)](https://www.auscope.org.au/) (until end of 2023),
    - Australian Geophysical Observing System (AGOS) (ended 2014),
    - [The University of Queensland](https://www.uq.edu.au)
