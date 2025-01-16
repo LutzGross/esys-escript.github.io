@@ -38,7 +38,7 @@ Please have a look at the [installation guide](installation.md) for information 
 
 ## Debian Distribution 
 
-Debian packages [python3-escript-mpi] and [python3-escript] of **version 5** are available.
+Debian packages [python3-escript-mpi] and [python3-escript] of old **version 5** are available.
 
 ## Anaconda Installation (needs validation)
 
