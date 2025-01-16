@@ -23,6 +23,11 @@ For geophyscial inversion see also the extensions [gambit](https://github.com/An
 Further documentation including examples and a user guide for the latest release can be found at
 https://esys-escript.github.io/
 
+
+## Questions & Bugs 
+
+To raise a question or to report a bug please start a [github issue](https://github.com/esys-escript/esys-escript.github.io/issues).
+
 ## Linux Installation from Source
 
 For the impatient:
@@ -72,9 +77,6 @@ Physics of the Earth and Planetary Interiors,
 Volume 163, Issues 1–4, 2007,
 Pages 23-34](doi:10.1016/j.pepi.2007.04.004)
 
-## Questions & Bugs 
-
-To raise a question or to report a bug please start a [github issue](https://github.com/esys-escript/esys-escript.github.io/issues).
 
 ### Contributors
         Lutz Gross
