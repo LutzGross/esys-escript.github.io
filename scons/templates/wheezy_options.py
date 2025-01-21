@@ -45,3 +45,6 @@ for i in debstuff:
     exec(k+"+=' "+v+"'")
   except NameError:   
     exec(k+"='"+v+"'")
+
+boost_libs = ['boost_python-py32']
+pythoncmd = 'python3'

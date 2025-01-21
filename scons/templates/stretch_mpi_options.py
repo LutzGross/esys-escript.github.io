@@ -15,13 +15,10 @@
 #
 ##############################################################################
 
-# This is a template configuration file for escript on Debian GNU/Linux.
+# This is a template configuration file for escript on Debian/GNU Linux.
 # Refer to README_FIRST for usage instructions.
 
-from .wheezy_options import *
+from scons.templates.stretch_options import *
 
-boost_libs = ['boost_python-py32']
-pythoncmd = 'python3'
-#pythonlibname = 'python3.2mu'
-#pythonincpath = '/usr/include/python3.2'
+mpi = 'OPENMPI'
 

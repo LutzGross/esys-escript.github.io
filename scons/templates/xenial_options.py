@@ -29,4 +29,6 @@ netcdf = True
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 umfpack_libs = ['umfpack', 'blas', 'amd']
 lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
-dudley_assemble_flags = '-funroll-loops'
+
+boost_libs = ['boost_python-py34']
+pythoncmd = 'python3'
