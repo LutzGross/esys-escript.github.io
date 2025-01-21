@@ -20,5 +20,5 @@
 
 from .vivid_options import *
 
-mpi='OPENMPI'
+mpi = 'OPENMPI'
 

@@ -99,7 +99,7 @@ tar -jxf ../pkg_src/Python-2.6.2.tar.bz2
 tar -jxf ../pkg_src/boost_1_39_0.tar.bz2
 tar -zxf ../pkg_src/scons-1.2.0.tar.gz
 tar -zxf ../pkg_src/numpy-1.3.0.tar.gz
-tar -zxf ../pkg_src/netcdf-4.0.tar.gz
+tar -zxf ../pkg_src/hdf5-4.0.tar.gz
 tar -zxf ../pkg_src/matplotlib-0.98.5.3.tar.gz
 \end{shellCode}
 
@@ -183,7 +183,7 @@ ln *.so.* libboost_python.so
 popd
 \end{shellCode}
 
-\item ...and netCDF:
+\item ...and hdf5 (serial):
 \begin{shellCode}
 cd netcdf-4.0
 CFLAGS="-O2 -fPIC -Df2cFortran" CXXFLAGS="-O2 -fPIC -Df2cFortran" \

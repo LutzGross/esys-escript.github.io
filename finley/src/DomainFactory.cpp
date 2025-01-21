@@ -30,7 +30,96 @@ using namespace escript;
 
 namespace finley {
 
+
+Domain_ptr FinleyDomain::load(const string& fileName)
+{
+    int error = 0;
+    std::string msg;
+#ifdef ESYS_HAVE_HDF5
+    JMPI mpiInfo = makeInfo(MPI_COMM_WORLD);
+    const string fName(mpiInfo->appendRankToFileName(fileName));
+    try
+    {
+            string name;
+            int numDim = -1;
+
+            // ... Open file ....
+            H5::H5File h5_file(fName, H5F_ACC_RDONLY);
+            // .... read meta data ...
+            H5::DataSet h5_meta_data=h5_file.openDataSet("Meta");
+            // .... get MPI information ...........................
+            long long h5_values_mpi[2];
+            H5::Attribute h5_attr_mpi(h5_meta_data.openAttribute("mpi"));
+            H5::DataType h5_type_mpi(h5_attr_mpi.getDataType());
+
+            if ( h5_attr_mpi.getStorageSize() != 2 * h5_type_mpi.getSize() ) {
+                 throw FinleyException("Error - finley.load: MPI information in HDF5 file needs to be a two value.");
+            }
+            if ( h5_type_mpi.getSize()  != sizeof(h5_values_mpi[0]) ) {
+                 throw FinleyException("Error - finley.load: illegal data type for MPI informations in HDF5");
+            }
+            h5_attr_mpi.read(h5_type_mpi, &h5_values_mpi[0]);
+            // Verify size and rank
+            if (mpiInfo->size != h5_values_mpi[0]) {
+                stringstream msg;
+                msg << "finley.load: The HDF5 file '" << fName << "' can only be read on " << h5_values_mpi[0] << " MPI ranks. Currently running: " << mpiInfo->size;
+                throw FinleyException(msg.str());
+            }
+            if (mpiInfo->rank != h5_values_mpi[1]) {
+                stringstream msg;
+                msg << "finley.load: The HDF5 file '" << fName << "' should be read on MPI rank #" << h5_values_mpi[1] << " and NOT on #" << mpiInfo->rank;
+                throw FinleyException(msg.str());
+            }
+
+            // ... retrieve name ....
+            H5::Attribute h5_attr_name(h5_meta_data.openAttribute("name"));
+            H5::DataType h5_type_name(h5_attr_name.getDataType());
+            // h5_attr_name.read(h5_type_name, &name);
+            //attr.getValues(name);
+
+            H5::Group h5_grp_nodes = h5_file.openGroup("Nodes");
+            // ... retrieve dimension ....
+            H5::Attribute h5_attr_dim(h5_grp_nodes.openAttribute("numDim"));
+            H5::DataType h5_type_dim(h5_attr_dim.getDataType());
+            if ( h5_attr_dim.getStorageSize() !=  1 * h5_type_dim.getSize() ) {
+                 throw DataException("Error - finley.load: numDim  in HDF5 file  needs to be a single value.");
+            }
+            if (  h5_type_dim.getSize() != sizeof(int) ) {
+                 throw DataException("Error - finley.load: illegal data type for numDim in HDF5");
+            }
+            h5_attr_dim.read(h5_type_dim, &numDim);
+            // allocate mesh
+            FinleyDomain* dom = new FinleyDomain(name, numDim, mpiInfo);
+
+             return dom->getPtr();
+    }
+    // catch failure caused by the H5File operations
+    catch (H5::Exception& e)
+    {
+        error=1;
+        e.printErrorStack();
+        msg=e.getCDetailMsg();
+    }
+    catch (DataException& e) {
+        error=1;
+        msg=e.what();
+    }
+    int gerror = error;
+    checkResult(error, gerror, mpiInfo);
+    if (gerror > 0) {
+        char* gmsg;
+        shipString(msg.c_str(), &gmsg, mpiInfo->comm);
+        throw DataException(gmsg);
+    }
+#else
+    throw FinleyException("loadMesh: not compiled with HDF5. Please contact your installation manager.");
+#endif // ESYS_HAVE_HDF5
+    return NULL;
+}
+
+
 #ifdef ESYS_HAVE_NETCDF
+
 #ifdef NETCDF4
 
 // A convenience method to retrieve an integer attribute from a NetCDF file
@@ -76,11 +165,11 @@ inline void cleanupAndThrow(FinleyDomain* dom, string msg)
     throw IOError(msgPrefix+msg);
 }
 
-#ifdef NETCDF4
 
+#ifdef ESYS_HAVE_NETCDF
+#ifdef NETCDF4
 Domain_ptr FinleyDomain::load(const string& fileName)
 {
-#ifdef ESYS_HAVE_NETCDF
     JMPI mpiInfo = makeInfo(MPI_COMM_WORLD);
     const string fName(mpiInfo->appendRankToFileName(fileName));
 
@@ -461,17 +550,12 @@ Domain_ptr FinleyDomain::load(const string& fileName)
     dom->createMappings(first_DofComponent, first_NodeComponent);
 
     return dom->getPtr();
-#else
-    throw FinleyException("loadMesh: not compiled with NetCDF. Please contact your installation manager.");
-#endif // ESYS_HAVE_NETCDF
 }
-
-
 #else
 
 Domain_ptr FinleyDomain::load(const string& fileName)
 {
-#ifdef ESYS_HAVE_NETCDF
+
     JMPI mpiInfo = makeInfo(MPI_COMM_WORLD);
     const string fName(mpiInfo->appendRankToFileName(fileName));
 
@@ -875,11 +959,10 @@ Domain_ptr FinleyDomain::load(const string& fileName)
     dom->createMappings(first_DofComponent, first_NodeComponent);
 
     return dom->getPtr();
-#else
     throw FinleyException("loadMesh: not compiled with NetCDF. Please contact your installation manager.");
-#endif // ESYS_HAVE_NETCDF
-}
 
+}
+#endif // ESYS_HAVE_NETCDF
 #endif
 
 Domain_ptr readMesh_driver(const bp::list& args)

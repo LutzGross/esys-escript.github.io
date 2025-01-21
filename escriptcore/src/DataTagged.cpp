@@ -1433,7 +1433,7 @@ void DataTagged::dump_hdf5(const H5::Group h5_grp) const
             h5_shape[i]= shape[i];
         }
         hsize_t h5_shape_dims[1] = {rank};
-        H5::DataSet h5_dmeta = h5_grp.createDataSet("meta", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_shape_dims ) );
+        H5::DataSet h5_dmeta = h5_grp.createDataSet("Meta", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_shape_dims ) );
         h5_dmeta.write( h5_shape, H5::PredType::NATIVE_UINT);
         // data type
         hsize_t h5_typeid_dims[1] = { 1 };

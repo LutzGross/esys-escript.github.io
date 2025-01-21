@@ -23,23 +23,29 @@ For geophyscial inversion see also the extensions [gambit](https://github.com/An
 Further documentation including examples and a user guide for the latest release can be found at
 https://esys-escript.github.io/
 
+
+## Questions & Bugs 
+
+To raise a question or to report a bug please start a [github issue](https://github.com/esys-escript/esys-escript.github.io/issues).
+
 ## Linux Installation from Source
 
 For the impatient:
 
-- Install at least g++, python, scons, boost, and NumPy.
-- Optional: HDF5_serial, silo
-- READ the file scons/templates/README_FIRST .
+- Install at least g++, python, scons, boost, suitesparse, and numpy.
+- Optional but recommended: HDF5_serial, silo.
+- git clone --single-branch --branch main https://github.com/LutzGross/esys-escript.github.io.git
+- READ the file scons/templates/README_FIRST.
 - Copy a suitable template options file from scons/templates/ to scons/hostname_options.py and modify as required.
 - type `scons` to build escript
 
-Please have a look at the [installation guide](install.md) for information on a specific Linux distribution.
+Please have a look at the [installation guide](installation.md) for information on a specific Linux distribution.
 
 ## Debian Distribution 
 
-Debian packages [python3-escript-mpi] and [python3-escript] are available.
+Debian packages [python3-escript-mpi] and [python3-escript] of old **version 5** are available.
 
-## Anaconda Installation
+## Anaconda Installation (needs validation)
 
 To install esys-escript for [anaconda](https://www.anaconda.com), first run conda and then the command
 
@@ -57,12 +63,12 @@ Click on this button to try out esys-escript in your web browser:
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/esys-escript/esys-escript.github.io/HEAD)
 
 
-## The project is funded by the
+## The project was funded by the
    - [AuScope National Collaborative Research Infrastructure Strategy (NCRIS)](https://www.auscope.org.au/) (until end of 2023),
    - Australian Geophysical Observing System (AGOS) (ended 2014),
    - [The University of Queensland](https://www.uq.edu.au)
 
-If you publish work that makes use of esys-escript, we would appreciate if you would cite the following reference:
+If you publish work that makes use of esys-escript, we would appreciate it if you would cite the following reference:
 
 - [R Schaa, L Gross, J du Plessis, PDE-based geophysical modelling using finite elements: examples from 3D resistivity and 2D magnetotellurics, Journal of Geophysics and Engineering, Volume 13, Issue 2, April 2016, Pages S59–S73](https://doi.org/10.1088/1742-2132/13/2/S59)
 - [L. Gross, L. Bourgouin, A.J. Hale, H.-B. Mühlhaus,
@@ -71,9 +77,6 @@ Physics of the Earth and Planetary Interiors,
 Volume 163, Issues 1–4, 2007,
 Pages 23-34](doi:10.1016/j.pepi.2007.04.004)
 
-## Questions & Bugs 
-
-To raise a question or to report a bug please start a [github issue](https://github.com/esys-escript/esys-escript.github.io/issues).
 
 ### Contributors
         Lutz Gross

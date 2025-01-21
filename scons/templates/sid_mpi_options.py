@@ -15,13 +15,12 @@
 #
 ##############################################################################
 
-# This is a template configuration file for escript on Debian GNU/Linux.
+# This is a template configuration file for escript on Debian/GNU Linux.
 # Refer to README_FIRST for usage instructions.
 
-from .sid_options import *
+from scons.templates.sid_options import *
 
 mpi = 'OPENMPI'
-
 import sysconfig
 multiarch = sysconfig.get_config_var('MULTIARCH')
 mpi_include = '/usr/lib/' + multiarch + '/openmpi/include'
