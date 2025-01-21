@@ -1,4 +1,5 @@
 # *esys-escript* installation guide (under review)
+This is for Version 6.
 
 (sorry this document is still a mess)
 
@@ -16,7 +17,7 @@ Dependencies are
 - boost-random
 - boost-iostreams
 - [mpi4py](https://mpi4py.readthedocs.io) or openMPI (with MPI)
-- parametis (with MPI)
+- parmetis (with MPI)
 - hdf5-serial (optional)
 - silo (optional,  recommended when using VisIt)
 - boost-numpy (optional, recommended when using Jupyter)
@@ -32,6 +33,8 @@ Recommended tools are
 - [paraview](https://www.paraview.org/) for visualization (via VTK),
 - [mayavi](https://docs.enthought.com/mayavi/mayavi/) for visualization (via VTK),
 - [python3-matplotlib](https://matplotlib.org/) for plotting.
+
+They are not required to be installed at compile time. Please visit the particular package for installation instructions.
 
 For parallelization *esys-escript* supports
 
@@ -58,7 +61,7 @@ After you have installed the required dependendencies (see below) start *scons* 
     scons -j4 options_file=scons/templates/<OS>_options.py
 
 where `<OS>` is your operating system/kernel name. Typically the templates are assuming installation with MPI. 
-By default libraries and python modules are installed into `./lib/esys` and `./esys`, respectively.
+By default libraries and *Python* modules are installed into `./lib/esys` and `./esys`, respectively.
 *Trilinos* libraries are installed into `esys.trilions/lib`. So you need to add 
     
     export PYTHONPATH=$ESYSESCRIPT
