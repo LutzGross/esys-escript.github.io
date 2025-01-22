@@ -51,12 +51,12 @@ The first step is to download the newest version of *esys-escript* source from
 [github](https://github.com/LutzGross/esys-escript.github.io) using  
 
     mkdir esys6
-    git clone --single-branch --branch main https://github.com/LutzGross/esys-escript.github.io.git esys6
+    git clone --single-branch --branch master https://github.com/LutzGross/esys-escript.github.io.git esys6
     cd esys6
 
-Alternatively you can download a tagged version (zipped) from [tagged versions](https://github.com/LutzGross/esys-escript.github.io/tags)
+Alternatively, you can download a tagged version (zipped) from [tagged versions](https://github.com/LutzGross/esys-escript.github.io/tags)
 
-After you have installed the required dependendencies (see below) start *scons* to run the installation from the source directory:     
+After you have installed the required dependencies (see below) start *scons* to run the installation from the source directory:     
 
     scons -j4 options_file=scons/templates/<OS>_options.py
 
@@ -73,9 +73,9 @@ If you wish to test your build, you can use the following:
 
     scons -j4 py_tests options_file=scons/templates/<OS>_options.py
 
-If the option file of your operating system/kernel is not available yet or you want to modify the options
-(for instance switching off MPI) you can create your own option file  `scons/<HOST>_options.py` typically by copying and modifying one of the avialble
-template option files. `<HOST>` refers to the host name which can be obtained by
+If the options file of your operating system/kernel is not available yet or you want to modify the options
+(for instance switching off MPI) you can create your own option file  `scons/<HOST>_options.py` typically by copying and modifying one of the available
+template options files. `<HOST>` refers to the hostname which can be obtained by
 
     HOST=`uname -n`
     echo $HOST
