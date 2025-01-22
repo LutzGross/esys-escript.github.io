@@ -1,7 +1,7 @@
 
-# esys-escript 
+# *esys-escript* 
 
-esys-escript is a module for implementing mathematical models in Python using the finite element method (FEM).  As users do not access the underlying data structures it is very easy to use and scripts can run on desktop computers as well as massive parallel supercomputers without changes. Application areas for esys-escript include geophysical inversion, earthquakes, porous media flow, reactive transport, plate subduction, erosion, earth mantle convection, and tsunamis.
+*esys-escript* is a module for implementing mathematical models in Python using the finite element method (FEM).  As users do not access the underlying data structures it is very easy to use and scripts can run on desktop computers as well as massive parallel supercomputers without changes. Application areas for esys-escript include geophysical inversion, earthquakes, porous media flow, reactive transport, plate subduction, erosion, earth mantle convection, and tsunamis.
 
 esys-escript is designed as an easy-to-use environment for implementing mathematical models based on non-linear, coupled, time-dependent partial differential equations. It uses the finite element method (FEM) for spatial discretization and data representation and is used through Python. It is suitable for rapid prototyping (e.g. for a student project or thesis) as well as for large software projects. Scripts are executed sequentially, on multi-core platforms via OpenMP and distributed computing clusters using MPI. The hybrid mode of OpenMP and MPI is supported and allows for solving problems with over 200 million unknowns on several thousand cores on a parallel computer.
 
@@ -28,37 +28,27 @@ https://esys-escript.github.io/
 
 To raise a question or to report a bug please start a [github issue](https://github.com/esys-escript/esys-escript.github.io/issues).
 
-## Linux Installation from Source
+## Linux or MacOS Installation from Source
 
-For the impatient:
-
-- Install at least g++, python, scons, boost, suitesparse, and numpy.
-- Optional but recommended: HDF5_serial, silo.
-- git clone --single-branch --branch main https://github.com/LutzGross/esys-escript.github.io.git
-- READ the file scons/templates/README_FIRST.
-- Copy a suitable template options file from scons/templates/ to scons/hostname_options.py and modify as required.
-- type `scons` to build escript
-
-Please have a look at the [installation guide](installation.md) for information on a specific Linux distribution.
+Please inspect the [installation guide](installation.md) for information on a specific Linux distribution.
 
 ## Debian Distribution 
 
-Debian packages [python3-escript-mpi] and [python3-escript] of old **version 5** are available.
+Debian packages [python3-escript-mpi] and [python3-escript] for **version 5** are available.
 
-## Anaconda Installation (needs validation)
+## Anaconda Installation **Version 5** (needs validation)
 
-To install esys-escript for [anaconda](https://www.anaconda.com), first run conda and then the command
+To install *esys-escript* for [anaconda](https://www.anaconda.com), first run `conda` and then the command
 
 conda install esys-escript -c conda-forge
 
 At present, this is the recommended way to run esys-escript on Windows.
 
-## Using esys-escript
+## Using *esys-escript*
 
-To get started using esys-escript, you can use the user guide (user.pdf). 
-All of these documents are available here and at https://esys-escript.github.io/
+To get started using *esys-escript*, you can use the [user guide](./user.pdf). 
 
-Click on this button to try out esys-escript in your web browser:
+Click on this button to try out *esys-escript* in your web browser (needs validation):
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/esys-escript/esys-escript.github.io/HEAD)
 
