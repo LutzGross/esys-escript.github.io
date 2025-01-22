@@ -457,7 +457,7 @@ Data load_hdf5grp(const H5::Group h5_grp, const AbstractDomain& domain)
     JMPI mpiInfo(domain.getMPI());
     /* .. read meta data ... */
     try {
-            int rank = -1;
+            uint rank = 0;
             int type=-1;
             int function_space_type=-1;
             uint h5_shape[DataTypes::maxRank];
@@ -467,40 +467,40 @@ Data load_hdf5grp(const H5::Group h5_grp, const AbstractDomain& domain)
             // .. rank:
             H5::Attribute h5_attr_rank(h5_meta_data.openAttribute("rank"));
             H5::DataType h5_type_rank(h5_attr_rank.getDataType());
+            if ( h5_type_rank != H5::PredType::NATIVE_UINT ) {
+                 throw DataException("Error - load_hdf5: illegal rank data type in HDF5 file.");
+            }
             if ( h5_attr_rank.getStorageSize() != 1 * h5_type_rank.getSize() ) {
                  throw DataException("Error - load_hdf5: rank in HDF5 file needs to be a single value.");
-            }
-            if ( h5_type_rank.getSize()  != sizeof(int) ) {
-                 throw DataException("Error - load_hdf5: illegal data type for rank in HDF5");
             }
             h5_attr_rank.read(h5_type_rank, &rank);
             // .. rank:
             H5::Attribute h5_attr_type(h5_meta_data.openAttribute("type_id"));
             H5::DataType h5_type_type(h5_attr_type.getDataType());
+            if ( h5_type_type != H5::PredType::NATIVE_INT ) {
+                 throw DataException("Error - load_hdf5: illegal type_id data type in HDF5 file.");
+            }
             if ( h5_attr_type.getStorageSize() !=  1 * h5_type_type.getSize() ) {
                  throw DataException("Error - load_hdf5: type_id  in HDF5 file  needs to be a single value.");
             }
-            if (  h5_type_type.getSize() != sizeof(int) ) {
-                 throw DataException("Error - load_hdf5: illegal data type for data type in HDF5");
-            }
             h5_attr_type.read(h5_type_type, &type);
-            // .. rank:
+            // .. functionspace type:
             H5::Attribute h5_attr_fstype(h5_meta_data.openAttribute("function_space_type"));
             H5::DataType h5_type_fstype(h5_attr_fstype.getDataType());
+            if ( h5_type_fstype != H5::PredType::NATIVE_INT ) {
+                 throw DataException("Error - load_hdf5: illegal function_space_type data type in HDF5 file.");
+            }
             if ( h5_attr_fstype.getStorageSize() != 1 * h5_type_fstype.getSize() ) {
                  throw DataException("Error - load_hdf5: function_space_type in HDF5 file  needs to be a single value.");
-            }
-            if (  h5_type_fstype.getSize()  != sizeof(int) ) {
-                 throw DataException("Error - load_hdf5: illegal data type for function space in HDF5 file.");
             }
             h5_attr_fstype.read(h5_type_fstype, &function_space_type);
             // ... shape
             H5::DataType h5_type_shape(h5_meta_data.getDataType());
+            if ( h5_type_shape != H5::PredType::NATIVE_UINT ) {
+                 throw DataException("Error - load_hdf5: illegal shape data type in HDF5 file.");
+            }
             if ( h5_meta_data.getStorageSize() != h5_type_shape.getSize()  * rank ) {
                  throw DataException("Error - load_hdf5: shape length  in HDF5 file needs to be equal to rank.");
-            }
-            if (  h5_type_shape.getSize()  != sizeof(int) ) {
-                 throw DataException("Error - load_hdf5: illegal data type for shape in HDF5 file.");
             }
             DataTypes::ShapeType shape;
             shape.resize(rank);
@@ -527,45 +527,42 @@ Data load_hdf5grp(const H5::Group h5_grp, const AbstractDomain& domain)
                H5::DataSet h5_data_data =h5_grp.openDataSet("data");
                H5::DataType h5_type_data(h5_data_data.getDataType());
                out=Data(0, shape, function_space, false);
+               if ( h5_type_data != H5::PredType::NATIVE_DOUBLE ) {
+                 throw DataException("Error - load_hdf5: illegal value data type for constant data in HDF5 file.");
+               }
                if ( out.getDataPointSize() * sizeof(DataTypes::real_t) != h5_data_data.getStorageSize() )
                {
-                     throw DataException("Error - load_hdf5: insufficient data values for constant data.");
-               }
-               if (  sizeof(DataTypes::real_t) != h5_type_data.getSize() )
-               {
-                     throw DataException("Error - load_hdf5:  illegal data type for constant data in HDF5 file.");
+                     throw DataException("Error - load_hdf5: insufficient data values for constant data  in HDF5 file.");
                }
                h5_data_data.read(&(out.getDataAtOffsetRW(out.getDataOffset(0,0), static_cast<DataTypes::real_t>(0))), h5_type_data);
             } else if (type == 1) {
                // tagged data
 
-                // .... check the sample id order ...
-                H5::DataSet h5_data_tags =h5_grp.openDataSet("tags");
-                H5::DataType h5_type_tags(h5_data_tags.getDataType());
+               // .... check the sample id order ...
+               H5::DataSet h5_data_tags =h5_grp.openDataSet("tags");
+               H5::DataType h5_type_tags(h5_data_tags.getDataType());
 
-                const int ntags = h5_data_tags.getStorageSize() / h5_type_tags.getSize();
+               const int ntags = h5_data_tags.getStorageSize() / h5_type_tags.getSize();
+               if ( h5_type_tags != H5::PredType::NATIVE_INT ) {
+                 throw DataException("Error - load_hdf5: illegal value data type in HDF5 file.");
+               }
+
                if (  ! ( ntags > 0 ) )
                {
                      throw DataException("Error - load_hdf5: no tags found for tagged data in HDF5 file.");
-               }
-               if (  sizeof(int) != h5_type_tags.getSize() )
-               {
-                     throw DataException("Error - load_hdf5:  illegal data type for tags in HDF5 file.");
                }
                std::vector<int> h5_tags(ntags);
                h5_data_tags.read(&h5_tags[0], h5_type_tags);
 
                H5::DataSet h5_data_data =h5_grp.openDataSet("data");
                H5::DataType h5_type_data(h5_data_data.getDataType());
+               if ( h5_type_data != H5::PredType::NATIVE_DOUBLE ) {
+                 throw DataException("Error - load_hdf5: illegal value data type for tagged data in HDF5 file.");
+               }
                if ( ntags * num_values_per_data_point * sizeof(DataTypes::real_t) != h5_data_data.getStorageSize() )
                {
                      throw DataException("Error - load_hdf5: insufficient data values for tagged data in HDF5 file.");
                }
-               if (  sizeof(DataTypes::real_t) != h5_type_data.getSize() )
-               {
-                     throw DataException("Error - load_hdf5:  illegal data type for constant data in HDF5 file.");
-               }
-
                 DataTypes::RealVectorType values(num_values_per_data_point * ntags, 0., num_values_per_data_point * ntags);
                 h5_data_data.read(&(values[0]), h5_type_data);
                 DataTagged* taggedData=new DataTagged(function_space, shape, &h5_tags[0], values);
@@ -578,13 +575,18 @@ Data load_hdf5grp(const H5::Group h5_grp, const AbstractDomain& domain)
                 // .... check the sample id order ...
                 H5::DataSet h5_data_sample_id =h5_grp.openDataSet("sample_id");
                 H5::DataType h5_type_sample_id(h5_data_sample_id.getDataType());
+                #ifdef ESYS_INDEXTYPE_LONG
+                    if ( h5_type_sample_id != H5::PredType::NATIVE_LONG ) {
+                        throw DataException("Error - load_hdf5: illegal value data type for sample id for expanded data in HDF5 file.");
+                    }
+                #else
+                    if ( h5_type_sample_id != H5::PredType::NATIVE_INT ) {
+                        throw DataException("Error - load_hdf5: illegal value data type for sample id for expanded data in HDF5 file.");
+                    }
+                #endif
                if ( num_samples * sizeof(DataTypes::dim_t) != h5_data_sample_id.getStorageSize() )
                {
-                     throw DataException("Error - load_hdf5: insufficient sample id values for expanded data.");
-               }
-               if (  sizeof(DataTypes::dim_t) != h5_type_sample_id.getSize() )
-               {
-                     throw DataException("Error - load_hdf5:  illegal data type forsample id values in HDF5 file.");
+                     throw DataException("Error - load_hdf5: insufficient sample id values for expanded data in HDF5 file.");
                }
                std::vector<DataTypes::dim_t> H5_ids(num_samples);
                h5_data_sample_id.read(&H5_ids[0], h5_type_sample_id);
@@ -604,13 +606,12 @@ Data load_hdf5grp(const H5::Group h5_grp, const AbstractDomain& domain)
                H5::DataSet h5_data_data =h5_grp.openDataSet("data");
                H5::DataType h5_type_data(h5_data_data.getDataType());
                out=Data(0, shape, function_space, true);
+               if ( h5_type_data != H5::PredType::NATIVE_DOUBLE ) {
+                 throw DataException("Error - load_hdf5: illegal value data type for expanded data in HDF5 file.");
+               }
                if ( out.getDataPointSize() * num_samples * num_data_points_per_sample * sizeof(DataTypes::real_t) != h5_data_data.getStorageSize() )
                {
-                     throw DataException("Error - load_hdf5: insufficient data values for expanded data.");
-               }
-               if (  sizeof(DataTypes::real_t) != h5_type_data.getSize() )
-               {
-                     throw DataException("Error - load_hdf5:  illegal data type for expanded data in HDF5 file.");
+                     throw DataException("Error - load_hdf5: insufficient data values for expanded data in HDF5 file.");
                }
                h5_data_data.read(&(out.getDataAtOffsetRW(out.getDataOffset(0,0), static_cast<DataTypes::real_t>(0))), h5_type_data);
                // if order is not the same we try to reorder the data:

@@ -23,15 +23,6 @@
 
 #include <complex>
 
-#ifdef ESYS_HAVE_NETCDF
- #ifdef NETCDF4
-  #include <ncDim.h>
-  #include <ncVar.h>
-  #include <ncFile.h>
- #else
-  #include <netcdfcpp.h>
- #endif
-#endif
 
 #ifdef ESYS_HAVE_HDF5
   #include <H5Cpp.h>
@@ -44,10 +35,6 @@
 #endif
 
 using namespace std;
-
-#ifdef NETCDF4
-using namespace netCDF;
-#endif
 
 namespace escript {
 
@@ -1408,7 +1395,7 @@ DataTagged::setToZero(){
 #ifdef ESYS_HAVE_HDF5
 void DataTagged::dump_hdf5(const H5::Group h5_grp) const
 {
-    int rank = getRank();
+    uint rank = getRank();
     int fs_type=  getFunctionSpace().getTypeCode();
     const DataTypes::ShapeType& shape = getShape();
     if (isComplex())
@@ -1437,17 +1424,17 @@ void DataTagged::dump_hdf5(const H5::Group h5_grp) const
         h5_dmeta.write( h5_shape, H5::PredType::NATIVE_UINT);
         // data type
         hsize_t h5_typeid_dims[1] = { 1 };
-        uint h5_type_id[1] = { 1 };
-        H5::Attribute h5_typeid_attr = h5_dmeta.createAttribute("type_id", H5::PredType::NATIVE_UINT, H5::DataSpace(1,h5_typeid_dims ) );
-        h5_typeid_attr.write( H5::PredType::NATIVE_UINT , h5_type_id );
+        int h5_type_id[1] = { 1 };
+        H5::Attribute h5_typeid_attr = h5_dmeta.createAttribute("type_id", H5::PredType::NATIVE_INT, H5::DataSpace(1,h5_typeid_dims ) );
+        h5_typeid_attr.write( H5::PredType::NATIVE_INT , h5_type_id );
 
         uint h5_rank[1] = { rank };
         H5::Attribute h5_rank_attr = h5_dmeta.createAttribute("rank", H5::PredType::NATIVE_UINT, H5::DataSpace(1,h5_typeid_dims ) );
         h5_rank_attr.write( H5::PredType::NATIVE_UINT , h5_rank );
 
-        uint dfs_type[1] = { fs_type };
-        H5::Attribute h5_fs_type_attr = h5_dmeta.createAttribute("function_space_type", H5::PredType::NATIVE_UINT, H5::DataSpace(1,h5_typeid_dims) );
-        h5_fs_type_attr.write( H5::PredType::NATIVE_UINT , dfs_type );
+        int dfs_type[1] = { fs_type };
+        H5::Attribute h5_fs_type_attr = h5_dmeta.createAttribute("function_space_type", H5::PredType::NATIVE_INT, H5::DataSpace(1,h5_typeid_dims) );
+        h5_fs_type_attr.write( H5::PredType::NATIVE_INT , dfs_type );
         // .... end meta data ............
         // collect tags:
         const DataTagged::DataMapType& thisLookup=getTagLookup();
