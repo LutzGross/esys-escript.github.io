@@ -1051,6 +1051,6 @@ def print_summary():
 
     print("Add to PYTHONPATH :", env['prefix'])
     print("Add to LD_LIBRARY_PATH :", env['libinstall'],":",os.path.join(env['trilinos_install'],'lib'))
-    print("If publishing results using esys-escript, please cite us: https://esys-escript.github.io/")
+    print("If publishing results using esys-escript, please cite us: see https://github.com/LutzGross/esys-escript.github.io/")
 
 atexit.register(print_summary)
