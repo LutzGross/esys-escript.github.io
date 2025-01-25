@@ -31,17 +31,6 @@
 #include <boost/scoped_array.hpp>
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan
 
-#ifdef ESYS_HAVE_NETCDF
- #ifdef NETCDF4
-  #include <ncVar.h>
-  #include <ncDim.h>
-  #include <escript/NCHelper.h>
-
- #else
-   #include <netcdfcpp.h>
- #endif
-#endif
-
 #ifdef ESYS_HAVE_SILO
 #include <silo.h>
 #ifdef ESYS_MPI

@@ -230,7 +230,7 @@ ComplexData(boost::python::object o,
 
 /**
    \brief
-   reads Data on domain from file in netCDF format
+   reads Data on domain from file in HDF5 format
 */
 ESCRIPT_DLL_API Data
 load(const std::string fileName,

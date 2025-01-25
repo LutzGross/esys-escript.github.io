@@ -88,7 +88,7 @@ else
     EXTRA_LD_LIBRARY_PATH=$ESCRIPT_ROOT/lib/esys
 fi
 
-BUILDINFO_FILE="$ESCRIPT_ROOT/lib/buildvars"
+BUILDINFO_FILE="$ESCRIPT_ROOT/lib/esys/buildvars"
 if [ ! -r "$BUILDINFO_FILE" ]; then
     if [ "$1" = "-e" ]; then
         echo "export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:\$LD_LIBRARY_PATH"

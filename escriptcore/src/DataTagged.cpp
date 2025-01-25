@@ -1445,11 +1445,11 @@ void DataTagged::dump_hdf5(const H5::Group h5_grp) const
         for (i=thisLookup.begin();i!=thisLookupEnd;i++)
             tags.push_back(i->first);
         // ... add list of tags ...
-        hsize_t h5_tag_length[1] = {tags.size() };
+        hsize_t h5_tag_length[1] = { static_cast<hsize_t>(tags.size()) };
         H5::DataSet h5_dataset_tags = h5_grp.createDataSet("tags", H5::PredType::NATIVE_INT, H5::DataSpace(1 , h5_tag_length ) );
         h5_dataset_tags.write(&(tags[0]), H5::PredType::NATIVE_INT);
         // ... add data ....
-        hsize_t h5_data_length[1] = { m_data_r.size() };
+        hsize_t h5_data_length[1] = { static_cast<hsize_t>(m_data_r.size()) };
         const double* d_ptr=&(m_data_r[0]);
         H5::DataSet h5_dataset_data = h5_grp.createDataSet("data", H5::PredType::NATIVE_DOUBLE, H5::DataSpace(1 , h5_data_length ) );
         h5_dataset_data.write(d_ptr, H5::PredType::NATIVE_DOUBLE);

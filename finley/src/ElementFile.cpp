@@ -491,17 +491,17 @@ void ElementFile::dump(H5::Group h5_grp) const
         H5::DataType h5_type_index = H5::PredType::NATIVE_INT;
     #endif
     hsize_t h5_dims_numElements[1] = { 1 };
-    uint h5_values_numElements[1] = { numElements };
-    uint h5_values_numNodes[1] = { numNodes };
-    uint h5_values_typeId[1] = { referenceElementSet->referenceElement->Type->TypeId };
+    uint h5_values_numElements[1] = { static_cast<uint>(numElements) };
+    uint h5_values_numNodes[1] = { static_cast<uint>(numNodes) };
+    int h5_values_typeId[1] = { static_cast<int>(referenceElementSet->referenceElement->Type->TypeId) };
     H5::Attribute h5_attr_numElements = h5_grp.createAttribute("numElements", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_dims_numElements ) );
     h5_attr_numElements.write( H5::PredType::NATIVE_UINT, h5_values_numElements );
     H5::Attribute h5_attr_numNodes = h5_grp.createAttribute("numNodes", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_dims_numElements ) );
     h5_attr_numNodes.write( H5::PredType::NATIVE_UINT, h5_values_numNodes );
-    H5::Attribute h5_attr_typeId = h5_grp.createAttribute("TypeId", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_dims_numElements ) );
-    h5_attr_typeId.write( H5::PredType::NATIVE_UINT, h5_values_typeId );
+    H5::Attribute h5_attr_typeId = h5_grp.createAttribute("TypeId", H5::PredType::NATIVE_INT, H5::DataSpace(1, h5_dims_numElements ) );
+    h5_attr_typeId.write( H5::PredType::NATIVE_INT, h5_values_typeId );
 
-    hsize_t h5_dims_ids[1] = { numElements  };
+    hsize_t h5_dims_ids[1] = { static_cast<hsize_t>(numElements)  };
     H5::DataSet h5_ds_ids = h5_grp.createDataSet("Ids", H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_ids ) );
     h5_ds_ids.write( &Id[0], H5::DataType(h5_type_index));
     H5::DataSet h5_ds_tags = h5_grp.createDataSet("Tags", H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_ids ) );
@@ -510,11 +510,135 @@ void ElementFile::dump(H5::Group h5_grp) const
     h5_ds_owners.write( &Owner[0], H5::DataType(h5_type_index));
     H5::DataSet h5_ds_colors = h5_grp.createDataSet("Colors", H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_ids ) );
     h5_ds_colors.write( &Color[0], H5::DataType(h5_type_index));
-    hsize_t h5_dims_nodes[1] = { numElements * numNodes };
+    hsize_t h5_dims_nodes[1] = { static_cast<hsize_t>(numElements * numNodes) };
     H5::DataSet h5_ds_nodes = h5_grp.createDataSet("Nodes", H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_nodes ) );
     h5_ds_nodes.write( &Nodes[0], H5::DataType(h5_type_index));
 }
 #endif
 
+
+#ifdef ESYS_HAVE_HDF5
+finley::ElementFile* loadElements_hdf5(const H5::Group h5_grp, const int integration_order, const int reduced_integration_order, const escript::JMPI mpiInfo)
+{
+        #ifdef ESYS_INDEXTYPE_LONG
+            H5::DataType h5_type_index = H5::PredType::NATIVE_LONG;
+        #else
+            H5::DataType h5_type_index = H5::PredType::NATIVE_INT;
+        #endif
+
+        uint h5_numElements=0, h5_numNodes=0;
+        int h5_typeId=0;
+
+
+        H5::Attribute h5_attr_ne(h5_grp.openAttribute("numElements"));
+        H5::DataType h5_type_ne(h5_attr_ne.getDataType());
+        if (  h5_type_ne != H5::PredType::NATIVE_UINT  ) {
+             throw FinleyException("Error - finley.load: illegal data type for number of elements in HDF5 file.");
+        }
+        if ( h5_attr_ne.getStorageSize() !=  1 * h5_type_ne.getSize() ) {
+             throw FinleyException("Error - finley.load: number of elements in HDF5 file needs to be a single value.");
+        }
+        h5_attr_ne.read(h5_type_ne, &h5_numElements);
+
+
+        H5::Attribute h5_attr_nn(h5_grp.openAttribute("numNodes"));
+        H5::DataType h5_type_nn(h5_attr_nn.getDataType());
+        if (  h5_type_nn != H5::PredType::NATIVE_UINT  ) {
+             throw FinleyException("Error - finley.load: illegal data type for number of nodes per elements in HDF5 file.");
+        }
+        if ( h5_attr_nn.getStorageSize() !=  1 * h5_type_nn.getSize() ) {
+             throw FinleyException("Error - finley.load: number of nodes per elements in HDF5 file needs to be a single value.");
+        }
+        h5_attr_nn.read(h5_type_nn, &h5_numNodes);
+
+        H5::Attribute h5_attr_etype(h5_grp.openAttribute("TypeId"));
+        H5::DataType h5_type_etype(h5_attr_etype.getDataType());
+        if (  h5_type_etype != H5::PredType::NATIVE_INT  ) {
+             throw FinleyException("Error - finley.load: illegal data type for element type in HDF5 file.");
+        }
+        if ( h5_attr_etype.getStorageSize() !=  1 * h5_type_etype.getSize() ) {
+             throw FinleyException("Error - finley.load: element type in HDF5 file needs to be a single value.");
+        }
+        h5_attr_etype.read(h5_type_etype, &h5_typeId);
+
+        // ... create reference element and element file:
+        const_ReferenceElementSet_ptr refElements(new ReferenceElementSet( static_cast<ElementTypeId>(h5_typeId), integration_order, reduced_integration_order));
+        ElementFile* elements = new ElementFile(refElements, mpiInfo);
+
+
+        const dim_t num_Elements = static_cast<dim_t>(h5_numElements);
+        elements->allocTable(num_Elements);
+
+        H5::DataSet h5_ds_ids = h5_grp.openDataSet("Ids");
+        H5::DataType h5_type_ids(h5_ds_ids.getDataType());
+        if (  h5_type_ids != H5::DataType(h5_type_index)  ) {
+             throw FinleyException("Error - finley.load: illegal data type for element ids in HDF5 file.");
+        }
+        if ( h5_ds_ids.getStorageSize() !=  num_Elements * h5_type_ids.getSize() ) {
+             throw FinleyException("Error - finley.load: number of element ids in HDF5 file is incorrect.");
+        }
+        h5_ds_ids.read(&elements->Id[0], h5_type_ids);
+
+        H5::DataSet h5_ds_tags = h5_grp.openDataSet("Tags");
+        H5::DataType h5_type_tags(h5_ds_tags.getDataType());
+        if (  h5_type_tags != H5::DataType(h5_type_index)  ) {
+             throw FinleyException("Error - finley.load: illegal data type for element tags in HDF5 file.");
+        }
+        if ( h5_ds_tags.getStorageSize() !=  num_Elements * h5_type_tags.getSize() ) {
+             throw FinleyException("Error - finley.load: number of element tags in HDF5 file is incorrect.");
+        }
+        h5_ds_tags.read(&elements->Tag[0], h5_type_tags);
+
+        H5::DataSet h5_ds_ows = h5_grp.openDataSet("Owners");
+        H5::DataType h5_type_ows(h5_ds_ows.getDataType());
+        if (  h5_type_ows != H5::DataType(h5_type_index)  ) {
+             throw FinleyException("Error - finley.load: illegal data type for element owners in HDF5 file.");
+        }
+        if ( h5_ds_ows.getStorageSize() !=  num_Elements * h5_type_ows.getSize() ) {
+             throw FinleyException("Error - finley.load: number of element owners in HDF5 file is incorrect.");
+        }
+        h5_ds_ows.read(&elements->Owner[0], h5_type_ows);
+
+        H5::DataSet h5_ds_cls = h5_grp.openDataSet("Colors");
+        H5::DataType h5_type_cls(h5_ds_cls.getDataType());
+        if (  h5_type_cls != H5::DataType(h5_type_index)  ) {
+             throw FinleyException("Error - finley.load: illegal data type for element colors in HDF5 file.");
+        }
+        if ( h5_ds_cls.getStorageSize() !=  num_Elements * h5_type_cls.getSize() ) {
+             throw FinleyException("Error - finley.load: number of element colors in HDF5 file is incorrect.");
+        }
+        h5_ds_cls.read(&elements->Owner[0], h5_type_cls);
+
+        H5::DataSet h5_ds_nds = h5_grp.openDataSet("Nodes");
+        H5::DataType h5_type_nds(h5_ds_nds.getDataType());
+        if (  h5_type_nds != H5::DataType(h5_type_index)  ) {
+             throw FinleyException("Error - finley.load: illegal data type for element nodes in HDF5 file.");
+        }
+std::cout <<  h5_ds_nds.getStorageSize() << " " <<  num_Elements << " " <<  (elements->numNodes) << " " <<  h5_type_nds.getSize()  << " " <<  h5_numNodes << std::endl;
+        if ( h5_ds_nds.getStorageSize() !=  num_Elements * (elements->numNodes) * h5_type_nds.getSize() ) {
+             throw FinleyException("Error - finley.load: number of element nodes in HDF5 file is incorrect.");
+        }
+        h5_ds_nds.read(&elements->Nodes[0], h5_type_nds);
+
+       // .... Now we need to adjust maxColor
+       elements->minColor = 0;
+       elements->maxColor = num_Elements-1;
+       if  ( num_Elements > 0 ) {
+            index_t mc = elements->Color[0];
+            #pragma omp parallel
+            for (index_t i = 1; i < num_Elements; ++i) {
+                if (mc < elements->Color[i]) {
+                    #pragma omp critical
+                    {
+                        mc = elements->Color[i];
+                    }
+                }
+            }
+            elements->maxColor = mc;
+       }
+       elements->updateTagList();
+       return elements;
+}
+#endif // ESYS_HAVE_HDF5
 } // namespace finley
 

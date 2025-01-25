@@ -981,6 +981,7 @@ class MinimizerLBFGS(AbstractMinimizer):
             while not converged and not break_down and k < self._restart and iterCount < self._iterMax:
                 self.logger.info("********** iteration %3d **********" % iterCount)
                 self.logger.info("\tF(m) = %g" % Fm)
+                print(Fm)
                 # determine search direction
                 p = -self._twoLoop(H_scale, grad_Fm, s_and_y, m, args_m)
                 # Now we call the line search with F(m+alpha*p)

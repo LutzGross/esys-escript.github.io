@@ -20,9 +20,6 @@
 
 #ifndef VISIT_PLUGIN
 
-#ifdef USE_DUDLEY
-#include <dudley/DudleyDomain.h>
-#endif
 #ifdef USE_FINLEY
 #include <finley/FinleyDomain.h>
 #endif
@@ -31,25 +28,9 @@
 
 #include <iostream>
 
-#ifdef ESYS_HAVE_NETCDF
- #ifdef NETCDF4
-  #include <ncVar.h>
-  #include <ncAtt.h>
-  #include <escript/NCHelper.h>
- #else
-   #include <netcdfcpp.h>
- #endif
-#endif
-
-
 #ifdef ESYS_HAVE_SILO
 #include <silo.h>
 #endif
-
-#ifdef NETCDF4
-using namespace netCDF;
-#endif
-
 
 using namespace std;
 

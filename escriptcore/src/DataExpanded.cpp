@@ -1205,7 +1205,7 @@ void DataExpanded::dump_hdf5(const H5::Group h5_grp) const
         for (uint i = 0; i < rank; i++) {
             h5_shape[i]= shape[i];
         }
-        hsize_t h5_shape_dims[1] = {rank};
+        hsize_t h5_shape_dims[1] = {static_cast<hsize_t>(rank)};
         H5::DataSet h5_dmeta = h5_grp.createDataSet("Meta", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_shape_dims ) );
         h5_dmeta.write( h5_shape, H5::PredType::NATIVE_UINT);
         // data type
@@ -1214,7 +1214,7 @@ void DataExpanded::dump_hdf5(const H5::Group h5_grp) const
         H5::Attribute h5_typeid_attr = h5_dmeta.createAttribute("type_id", H5::PredType::NATIVE_INT, H5::DataSpace(1,h5_typeid_dims ) );
         h5_typeid_attr.write( H5::PredType::NATIVE_INT , h5_type_id );
 
-        uint h5_rank[1] = { rank };
+        uint h5_rank[1] = { static_cast<uint>(rank) };
         H5::Attribute h5_rank_attr = h5_dmeta.createAttribute("rank", H5::PredType::NATIVE_UINT, H5::DataSpace(1,h5_typeid_dims ) );
         h5_rank_attr.write( H5::PredType::NATIVE_UINT , h5_rank );
 
@@ -1223,7 +1223,7 @@ void DataExpanded::dump_hdf5(const H5::Group h5_grp) const
         h5_fs_type_attr.write( H5::PredType::NATIVE_INT , dfs_type );
         // .... end meta data ............
         // ... add index of samples ....
-        hsize_t h5_id_dims[1] = { getFunctionSpace().getNumSamples() };
+        hsize_t h5_id_dims[1] = { static_cast<hsize_t>(getFunctionSpace().getNumSamples()) };
         H5::DataSpace h5_dataspace_ids(1 , h5_id_dims );
         #ifdef ESYS_INDEXTYPE_LONG
             H5::DataSet h5_dataset_ids = h5_grp.createDataSet("sample_id", H5::PredType::NATIVE_LONG, h5_dataspace_ids );
@@ -1234,7 +1234,7 @@ void DataExpanded::dump_hdf5(const H5::Group h5_grp) const
         #endif
         // ... add data ....
         const double* d_ptr=&(m_data_r[0]);
-        hsize_t h5_data_length[1] = { m_data_r.size() };
+        hsize_t h5_data_length[1] = {  static_cast<hsize_t>(m_data_r.size()) };
         H5::DataSet h5_dataset_data = h5_grp.createDataSet("data", H5::PredType::NATIVE_DOUBLE, H5::DataSpace(1 , h5_data_length ) );
         h5_dataset_data.write(d_ptr, H5::PredType::NATIVE_DOUBLE);
     }

@@ -31,16 +31,6 @@
 #include <iostream>
 
 
-#ifdef ESYS_HAVE_NETCDF
- #ifdef NETCDF4
-  #include <ncVar.h>
-  #include <ncDim.h>
-  #include <escript/NCHelper.h>
- #else
-   #include <netcdfcpp.h>
- #endif
-#endif
-
 #ifdef ESYS_HAVE_SILO
 #include <silo.h>
 #endif

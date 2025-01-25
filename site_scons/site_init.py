@@ -90,7 +90,9 @@ def detectModule(env, module):
     return True
 
 def write_buildvars(env):
+    print("SDSA")
     buildvars=open(os.path.join(env['libinstall'], 'buildvars'), 'w')
+    print(buildvars.name)
     for k,v in sorted(env['buildvars'].items()):
         buildvars.write("%s=%s\n"%(k,v))
     buildvars.close()

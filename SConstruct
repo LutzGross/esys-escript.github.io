@@ -873,6 +873,8 @@ if env['weipa']:
         install_all_list += ['install_escriptreader']
 
 
+
+
 variant='$BUILD_DIR/$PLATFORM/'
 env.SConscript('escriptcore/SConscript', variant_dir=variant+'escriptcore', duplicate=0)
 env.SConscript('escript/SConscript', variant_dir=variant+'escript', duplicate=0)
@@ -942,11 +944,9 @@ env.Alias('testscripts',[])
 generateTestScripts(env, TestGroups)
 
 ######################## Populate the buildvars file #########################
-
 write_buildvars(env)
 # delete buildvars upon cleanup - target_init is default so use it
 env.Clean('target_init', File('buildvars', env['libinstall']))
-
 write_launcher(env)
 
 # remove obsolete files

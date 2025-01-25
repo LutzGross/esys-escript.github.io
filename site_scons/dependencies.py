@@ -228,7 +228,6 @@ def checkPython(env):
             verstring = lines[3].strip()
         else:
             (python_lib_path, python_libs,verstring, python_inc_path)=call_python_config(env['pythoncmd'])
-    
     if isinstance(python_inc_path, bytes):
         python_inc_path=python_inc_path.decode()
     if isinstance(python_lib_path, bytes):
@@ -621,7 +620,6 @@ def checkOptionalLibraries(env):
         env['buildvars']['hdf5_inc_path'] = hdf5_inc_path
         env['buildvars']['hdf5_lib_path'] = hdf5_lib_path
     env['buildvars']['hdf5'] = int(env['hdf5'])
-
     ######## MKL
     mkl_inc_path=''
     mkl_lib_path=''

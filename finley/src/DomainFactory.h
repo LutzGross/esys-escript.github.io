@@ -171,6 +171,7 @@ FINLEY_DLL_API
 escript::Domain_ptr joinFaces(const boost::python::list& meshList,
                               double safetyFactor = 0.2, double tolerance = 1.e-8,
                               bool optimize = false);
+
  
 } // end of namespace
 

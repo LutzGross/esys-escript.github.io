@@ -69,8 +69,8 @@ EscriptParams::EscriptParams()
         // Given c++11 we assume that this is
         // supported now
     features.insert("NAN_CHECK");
-#ifdef ESYS_HAVE_NETCDF
-    features.insert("netcdf");
+#ifdef ESYS_HAVE_HDF5
+    features.insert("hdf5");
 #endif
 #ifdef _OPENMP
     features.insert("openmp");

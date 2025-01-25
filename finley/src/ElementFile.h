@@ -23,6 +23,10 @@
 #include "ReferenceElementSets.h"
 #include "Util.h"
 
+#ifdef ESYS_HAVE_HDF5
+  #include <H5Cpp.h>
+#endif
+
 namespace finley {
 
 struct ElementFile_Jacobians
@@ -184,6 +188,14 @@ inline void ElementFile::updateTagList()
 {
     util::setValuesInUse(Tag, numElements, tagsInUse, MPIInfo);
 }
+
+#ifdef ESYS_HAVE_HDF5
+FINLEY_DLL_API
+ElementFile* loadElements_hdf5(const H5::Group h5_grp,
+                                const int integration_order,
+                                const int reduced_integration_order,
+                                const escript::JMPI mpiInfo);
+#endif // ESYS_HAVE_HDF5
 
 } // namespace finley
 

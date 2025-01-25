@@ -27,25 +27,11 @@
 using escript::DataTypes::index_t;
 #endif // VISIT_PLUGIN
 
-#ifdef ESYS_HAVE_NETCDF
- #ifdef NETCDF4
-  #include <ncVar.h>
-  #include <ncAtt.h>
-  #include <escript/NCHelper.h>
- #else
-   #include <netcdfcpp.h>
- #endif
-#endif
-
 #ifdef ESYS_HAVE_SILO
 #include <silo.h>
 #endif
 
 using namespace std;
-
-#ifdef NETCDF4
-using namespace netCDF;
-#endif
 
 namespace weipa {
 

@@ -24,29 +24,11 @@
 #include <iostream>
 #include <fstream>
 
-
-#ifdef ESYS_HAVE_NETCDF
- #ifdef NETCDF4
-  #include <ncDim.h>
-  #include <ncVar.h>
-  #include <ncFile.h>
-
- #include "NCHelper.h"
-
- #else
-  #include <netcdfcpp.h>
- #endif
-#endif
-
 #ifdef ESYS_HAVE_HDF5
   #include <H5Cpp.h>
 #endif
 
 namespace bp = boost::python;
-#ifdef NETCDF4
-using namespace netCDF;
-#endif
-
 
 namespace escript {
 
@@ -474,10 +456,10 @@ Data load_hdf5grp(const H5::Group h5_grp, const AbstractDomain& domain)
                  throw DataException("Error - load_hdf5: rank in HDF5 file needs to be a single value.");
             }
             h5_attr_rank.read(h5_type_rank, &rank);
-            // .. rank:
+            // .. type id:
             H5::Attribute h5_attr_type(h5_meta_data.openAttribute("type_id"));
             H5::DataType h5_type_type(h5_attr_type.getDataType());
-            if ( h5_type_type != H5::PredType::NATIVE_INT ) {
+            if ( h5_type_type != H5::PredType::NATIVE_UINT ) {
                  throw DataException("Error - load_hdf5: illegal type_id data type in HDF5 file.");
             }
             if ( h5_attr_type.getStorageSize() !=  1 * h5_type_type.getSize() ) {

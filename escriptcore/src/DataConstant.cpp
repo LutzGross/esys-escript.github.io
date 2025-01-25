@@ -636,7 +636,7 @@ void DataConstant::dump_hdf5(const H5::Group h5_grp) const
         H5::Attribute h5_typeid_attr = h5_dmeta.createAttribute("type_id", H5::PredType::NATIVE_INT, H5::DataSpace(1,h5_typeid_dims ) );
         h5_typeid_attr.write( H5::PredType::NATIVE_INT , h5_type_id );
 
-        int h5_rank[1] = { rank };
+        uint h5_rank[1] = { static_cast<uint>(rank) };
         H5::Attribute h5_rank_attr = h5_dmeta.createAttribute("rank", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_typeid_dims ) );
         h5_rank_attr.write( H5::PredType::NATIVE_UINT , h5_rank );
 
@@ -645,7 +645,7 @@ void DataConstant::dump_hdf5(const H5::Group h5_grp) const
         h5_fs_type_attr.write( H5::PredType::NATIVE_INT , dfs_type );
         // .... end meta data ............
         // ... add data ....
-        hsize_t h5_data_length[1] = { m_data_r.size() };
+        hsize_t h5_data_length[1] = { static_cast<hsize_t>(m_data_r.size()) };
         const double* d_ptr=&(m_data_r[0]);
         H5::DataSet h5_dataset_data = h5_grp.createDataSet("data", H5::PredType::NATIVE_DOUBLE, H5::DataSpace(1 , h5_data_length ) );
         h5_dataset_data.write(d_ptr, H5::PredType::NATIVE_DOUBLE);
