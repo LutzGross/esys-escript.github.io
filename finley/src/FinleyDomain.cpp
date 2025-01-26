@@ -251,26 +251,26 @@ void FinleyDomain::dump(const string& fileName) const
         H5::Group h5_grp_nodes = h5_file.createGroup("Nodes");
 
         hsize_t h5_dims_numDim[1] = { 1 };
-        uint h5_values_numDim[1] = { numDim };
+        uint h5_values_numDim[1] = { static_cast<uint>(numDim) };
         H5::Attribute h5_attr_numDim = h5_grp_nodes.createAttribute("numDim", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_dims_numDim ) );
         h5_attr_numDim.write( H5::PredType::NATIVE_UINT, h5_values_numDim );
 
         hsize_t h5_dims_numNodes[1] = { 1 };
-        long h5_values_numNodes[1] = { numNodes };
+        long h5_values_numNodes[1] = { static_cast<long>(numNodes) };
         H5::Attribute h5_attr_numNodes = h5_grp_nodes.createAttribute("numNodes", H5::PredType::NATIVE_LONG, H5::DataSpace(1, h5_dims_numNodes ) );
         h5_attr_numNodes.write( H5::PredType::NATIVE_LONG, h5_values_numNodes );
 
-        hsize_t h5_dims_nodes[1] = { numNodes * numDim };
+        hsize_t h5_dims_nodes[1] = { static_cast<hsize_t>(numNodes * numDim) };
         H5::DataSet h5_ds_nodes = h5_grp_nodes.createDataSet("Coordinates",  H5::DataType(h5_type_double), H5::DataSpace(1, h5_dims_nodes ) );
         h5_ds_nodes.write( &m_nodes->Coordinates[0],  H5::DataType(h5_type_double) );
 
-        hsize_t h5_dims_node_distr[1] = { mpi_size + 1 };
+        hsize_t h5_dims_node_distr[1] = { static_cast<hsize_t>(mpi_size + 1) };
         H5::DataSet h5_ds_node_distr = h5_grp_nodes.createDataSet("NodeDistribution",  H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_node_distr ) );
         h5_ds_node_distr.write( &m_nodes->nodesDistribution->first_component[0],  H5::DataType(h5_type_index));
         H5::DataSet h5_ds_dof_distr = h5_grp_nodes.createDataSet("DoFDistribution", H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_node_distr ) );
         h5_ds_dof_distr.write( &m_nodes->degreesOfFreedomDistribution->first_component[0], H5::DataType(h5_type_index));
 
-        hsize_t h5_dims_ids[1] = { numNodes  };
+        hsize_t h5_dims_ids[1] = { static_cast<hsize_t>(numNodes)  };
         H5::DataSet h5_ds_node_ids = h5_grp_nodes.createDataSet("Ids", H5::DataType(h5_type_index), H5::DataSpace(1, h5_dims_ids ) );
         h5_ds_node_ids.write( &m_nodes->Id[0], H5::DataType(h5_type_index));
 

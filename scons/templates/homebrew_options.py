@@ -81,12 +81,18 @@ omp_flags = ["-fopenmp"]
 omp_ldflags = ["-fopenmp"]
 
 boost_prefix = HOMEBREW_PREFIX
-boost_libs = [f'boost_python3{subversion}-mt']
-compression_libs = ['boost_iostreams-mt']
+boost_libs = [f'boost_python3{subversion}']
+compression_libs = ['boost_iostreams']
+
+#boost_libs = [f'boost_python3{subversion}-mt']
+#compression_libs = ['boost_iostreams-mt']
 #============================================================
-netcdf = 4
-netcdf_prefix = HOMEBREW_PREFIX
-netcdf_libs=['netcdf-cxx4', 'netcdf']
+#netcdf = 4
+#netcdf_prefix = HOMEBREW_PREFIX
+#netcdf_libs=['netcdf-cxx4', 'netcdf']
+hdf5 = True
+hdf5_prefix = HOMEBREW_PREFIX
+hdf5_libs=['hdf5_cpp', 'hdf5']
 #===========================================================
 silo = True
 silo_prefix = HOMEBREW_PREFIX

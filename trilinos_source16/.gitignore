@@ -40,12 +40,6 @@ doxygen_objdb_*.tmp
 # Ignore user-specific pre-commit files
 /.pre-commit-config.yaml
 
-# Allow github Kokkos to be cloned under Trilinos
-/kokkos/
-
-# Allow github kokkos-kernels under Trilinos
-/kokkos-kernels/
-
 # RPI SCOREC extra repos
 /SCOREC
 
@@ -100,8 +94,6 @@ MPI_DEBUG/
 SERIAL_DEBUG/
 SERIAL_RELEASE/
 
-# People usually build Trilinos in a 'build' directory. Ignore it.
-build*/
 
 packages/tpetra/test/MatrixMatrix/matrices/*.m
 
