@@ -301,6 +301,76 @@ Domain_ptr FinleyDomain::load(const string& fileName)
     return NULL;
 }
 
+Domain_ptr readMesh_driver(const bp::list& args)
+{
+    int l = len(args);
+    if (l < 7) {
+        throw ValueError("Insufficient arguments to readMesh_driver");
+    }
+    string fileName = bp::extract<string>(args[0])();
+    int integrationOrder = bp::extract<int>(args[1])();
+    int reducedIntegrationOrder = bp::extract<int>(args[2])();
+    bool optimize = bp::extract<bool>(args[3])();
+    vector<double> points;
+    vector<int> tags;
+
+    // we need to convert lists to stl vectors
+    bp::list pypoints = bp::extract<bp::list>(args[4]);
+    bp::list pytags = bp::extract<bp::list>(args[5]);
+    int numpts = bp::extract<int>(pypoints.attr("__len__")());
+    int numtags = bp::extract<int>(pytags.attr("__len__")());
+
+    JMPI info = makeInfo(MPI_COMM_WORLD);
+    Domain_ptr dom(FinleyDomain::read(info, fileName, integrationOrder,
+                                      reducedIntegrationOrder, optimize));
+
+    FinleyDomain* fd = dynamic_cast<FinleyDomain*>(dom.get());
+
+    for (int i = 0; i < numpts; ++i) {
+        bp::object temp = pypoints[i];
+        int l = bp::extract<int>(temp.attr("__len__")());
+        for (int k = 0; k < l; ++k) {
+              points.push_back(bp::extract<double>(temp[k]));
+        }
+    }
+    // bricks use up to 200 but the existing tag check will find that
+    int curmax = 40;
+    const TagMap& tagmap = fd->getTagMap();
+    // first we work out what tags are already in use
+    for (TagMap::const_iterator it = tagmap.begin(); it != tagmap.end(); ++it) {
+        if (it->second > curmax) {
+            curmax = it->second+1;
+        }
+    }
+
+    tags.resize(numtags, -1);
+    for (int i = 0; i < numtags; ++i) {
+        bp::extract<int> ex_int(pytags[i]);
+        bp::extract<string> ex_str(pytags[i]);
+        if (ex_int.check()) {
+            tags[i] = ex_int();
+            if (tags[i] >= curmax) {
+                curmax = tags[i]+1;
+            }
+        } else if (ex_str.check()) {
+            string s = ex_str();
+            TagMap::const_iterator it = tagmap.find(s);
+            if (it != tagmap.end()) {
+                // we have the tag already so look it up
+                tags[i] = it->second;
+            } else {
+                fd->setTagMap(s, curmax);
+                tags[i] = curmax;
+                curmax++;
+            }
+        } else {
+            throw FinleyException("Unable to extract tag value.");
+        }
+    }
+    // now we need to add the dirac points
+    fd->addDiracPoints(points, tags);
+    return dom;
+}
 
 Domain_ptr readGmsh_driver(const bp::list& args)
 {
