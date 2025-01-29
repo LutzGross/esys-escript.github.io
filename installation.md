@@ -9,6 +9,7 @@ For support and questions please visit the [Issues site](https://github.com/Lutz
 
 Dependencies are
 
+- c++ compiler
 - python3 
 - scons
 - cmake
@@ -93,7 +94,7 @@ These instructions have been tested on Debian 6.
 As a preliminary step, you need to install the dependencies that *esys-escript* requires from the distribution repository:
 
     sudo apt-get install python3-dev python3-numpy 
-    sudo apt-get install scons cmake 
+    sudo apt-get install g++ scons cmake 
     sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
     sudo apt-get install libhdf5-serial-dev libsilo-dev libsuitesparse-dev
     #sudo apt-get install python3-sympy
@@ -109,7 +110,7 @@ These instructions have been tested on Ubuntu 24.
 You should instead install the following packages:
 
     sudo apt-get install python3-dev python3-numpy
-    sudo apt-get install scons cmake 
+    sudo apt-get install g++ scons cmake 
     sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
     sudo apt-get install libhdf5-serial-dev libsilo-dev libsuitesparse-dev
     #sudo apt-get install python3-sympy
