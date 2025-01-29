@@ -24,7 +24,8 @@ mpi='NO'
 mpi_prefix = ['/usr/include/x86_64-linux-gnu/openmpi', '/usr/lib/x86_64-linux-gnu/openmpi' ]
 openmp = 1
 paso=1
-cxx_extra = ['-freference fixed. diagnostics-color=always', '-Wno-format-truncation']
+#cxx_extra = ['-freference fixed. diagnostics-color=always', '-Wno-format-truncation']
+cxx_extra= ['-O3', '-fdiagnostics-color=always', '-fstack-protector-strong',  '-Wformat', '-Werror=format-security' ]
 pythoncmd = 'python3'
 
 parmetis = True
