@@ -812,8 +812,8 @@ class AbstractMinimizer(object):
         :key m_tol: relative tolerance for solution `m` for termination of iteration
         :type m_tol: `float`
         :default m_tol: 1e-4
-        :key grad_tol: tolerance for gradient relative to initial costfunction value for termination of iteration
-        :type grad_tol: `float`
+        :key grad_tol: tolerance for gradient relative to initial cost function value for termination of iteration
+        :type grad_tol: `float` or None
         :default grad_tol: 1e-4
         :key truncation: sets the number of previous LBFGS iterations to keep
         :type truncation : `int`
@@ -854,7 +854,10 @@ class AbstractMinimizer(object):
             elif o == "m_tol":
                 self._m_tol = max(float(opts[o]), EPSILON)
             elif o == "grad_tol":
-                self._grad_tol = max(float(opts[o]), EPSILON)
+                if opts[o] is None:
+                    self._grad_tol = None
+                else:
+                    self._grad_tol = max(float(opts[o]), EPSILON)
             elif o == 'historySize' or o == 'truncation':
                 assert opts[o] > 2, "Trancation must be greater than 2."
                 self._truncation = max(0, int(opts[o]))
@@ -946,7 +949,8 @@ class MinimizerLBFGS(AbstractMinimizer):
         :rtype: m-type
         """
         assert self._m_tol > 0.
-        assert self._grad_tol > 0.
+        if not self._grad_tol is None:
+            assert self._grad_tol > 0.
         assert self._iterMax > 1
         assert self._relAlphaMin > 0.
         assert self._truncation > 0
@@ -981,7 +985,6 @@ class MinimizerLBFGS(AbstractMinimizer):
             while not converged and not break_down and k < self._restart and iterCount < self._iterMax:
                 self.logger.info("********** iteration %3d **********" % iterCount)
                 self.logger.info("\tF(m) = %g" % Fm)
-                print(Fm)
                 # determine search direction
                 p = -self._twoLoop(H_scale, grad_Fm, s_and_y, m, args_m)
                 # Now we call the line search with F(m+alpha*p)
@@ -1040,16 +1043,17 @@ class MinimizerLBFGS(AbstractMinimizer):
                     args_new = self.getCostFunction().getArgumentsAndCount(m_new)
                     grad_Fm_new = self.getCostFunction().getGradientAndCount(m_new, *args_new)
 
-                Ftol_abs = self._grad_tol * abs(max(abs(Fm), abs(Fm_new)))
-                dFm = abs(Fm - Fm_new)
-                flag = dFm <= Ftol_abs
-                if flag:
-                    converged = True
-                    self.logger.info("F(m) = %g" % Fm_new)
-                    self.logger.info("Gradient has converged: |F-Fold|=%g < g_tol*max(|F|,|Fold|)=%g" % (dFm, Ftol_abs))
-                    break
-                else:
-                    self.logger.info("Gradient checked: |F-Fold|=%g, g_tol*max(|F|,|Fold|)=%g" % (dFm, Ftol_abs))
+                if not self._grad_tol is None:
+                    Ftol_abs = self._grad_tol * abs(max(abs(Fm), abs(Fm_new)))
+                    dFm = abs(Fm - Fm_new)
+                    flag = dFm <= Ftol_abs
+                    if flag:
+                        converged = True
+                        self.logger.info("F(m) = %g" % Fm_new)
+                        self.logger.info("Gradient has converged: |F-Fold|=%g < g_tol*max(|F|,|Fold|)=%g" % (dFm, Ftol_abs))
+                        break
+                    else:
+                        self.logger.info("Gradient checked: |F-Fold|=%g, g_tol*max(|F|,|Fold|)=%g" % (dFm, Ftol_abs))
 
                 delta_g = grad_Fm_new - grad_Fm
                 rho = self.getCostFunction().getDualProductAndCount(delta_m, delta_g)

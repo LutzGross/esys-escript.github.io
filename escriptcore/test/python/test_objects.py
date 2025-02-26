@@ -614,8 +614,9 @@ class Test_Dump(unittest.TestCase):
             ]:
 
             for rank in range(5):
+                print(spacename, rank)
                 filename=os.path.join(self.filename_base,
-                        "constant_{0}_rank{1}.nc".format(spacename, rank))
+                        "constant_{0}_rank{1}.h5".format(spacename, rank))
                 d=Data(self.args[rank], functionspace(self.domain))
                 self._diffDataObjects(d,filename)
 

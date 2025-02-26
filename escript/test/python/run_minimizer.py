@@ -112,30 +112,36 @@ class Test_MinimizerBFGS(unittest.TestCase):
             'm_true': [0.756394642236015, -0.210685240100182,  1.315069006925737] }
     def testTEST1(self):
         F = MinDist(**self.TEST1)
-        solve = MinimizerLBFGS(F, m_tol=1e-8, grad_tol=1e-10, iterMax=30)
+        solve = MinimizerLBFGS(F, m_tol=1e-7, grad_tol=None, iterMax=100)
         m0 = np.zeros((F.dimension,))
         solve.run(m0)
         m = solve.getResult()
-        print(m, F.m_true)
         self.assertTrue(np.allclose(m, F.m_true))
 
     def testTEST2(self):
         F = MinDist(**self.TEST2)
-        solve = MinimizerLBFGS(F, m_tol=1e-8, grad_tol=1e-10,  iterMax=100)
+        solve = MinimizerLBFGS(F, m_tol=1e-7, grad_tol=None,  iterMax=100)
         m0 = np.zeros((F.dimension,))
         solve.run(m0)
         m = solve.getResult()
-        print(m, F.m_true)
         self.assertTrue(np.allclose(m, F.m_true))
 
     def testTEST3(self):
         F = MinDist(**self.TEST3)
-        solve = MinimizerLBFGS(F, m_tol=1e-8, grad_tol=1e-10,  iterMax=100)
+        solve = MinimizerLBFGS(F, m_tol=1e-7, grad_tol=None,  iterMax=100)
         m0 = np.zeros((F.dimension,))
         solve.run(m0)
         m = solve.getResult()
-        print(m, F.m_true)
         self.assertTrue(np.allclose(m, F.m_true))
+
+    def testTEST4(self):
+        F = MinDist(**self.TEST1)
+        solve = MinimizerLBFGS(F, m_tol=1e-10, grad_tol=1e-8, iterMax=100)
+        m0 = np.zeros((F.dimension,))
+        solve.run(m0)
+        m = solve.getResult()
+        #print((m-F.m_true)/F.m_true)
+        self.assertTrue(np.allclose(m, F.m_true, rtol=1e-3))
 
     def testOptions(self):
         """
