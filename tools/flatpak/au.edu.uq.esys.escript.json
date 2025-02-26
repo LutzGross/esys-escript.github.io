@@ -1,7 +1,7 @@
 {
     "app-id": "au.edu.uq.esys.escript",
     "runtime": "org.freedesktop.Platform",
-    "runtime-version": "18.08",
+    "runtime-version": "24.08",
     "sdk": "org.freedesktop.Sdk",
     "command": "run-escript",
     "cleanup": [
@@ -13,74 +13,6 @@
         "cxxflags": "-O3 -fPIC"
     },
     "modules": [
-                {
-            "name": "python",
-            "builddir": true,
-            "buildsystem": "simple",
-            "build-commands": [
-                "./configure --prefix=/app --exec-prefix=/app --enable-shared",
-                "make install -j`nproc --all`",
-                "chmod 755 /app/lib/*"
-            ],
-            "sources": [
-                {
-                    "type": "archive",
-                    "url": "https://www.python.org/ftp/python/3.7.2/Python-3.7.2.tgz",
-                    "sha256": "f09d83c773b9cc72421abba2c317e4e6e05d919f9bcf34468e192b6a6c8e328d"
-                }
-            ]
-        },
-        {
-            "name": "boost",
-            "buildsystem": "simple",
-            "build-commands": [
-                "echo import sys > v.py",
-                "echo ver=sys.version_info >> v.py",
-                "echo \"print(\\\"%d.%d\\\"%(ver.major,ver.minor))\" >> v.py",
-                "python3 v.py > VERSION",
-                "sed -i 's+include/python$(version)+include/python$(version)m+g' ./tools/build/src/tools/python.jam",
-                "./bootstrap.sh --with-python-version=`cat VERSION` --prefix=/app",
-                "./b2 cxxflags=\"-fPIC\" --with-python --with-iostreams --with-random -j`nproc --all` install"
-            ],
-            "sources": [
-                {
-                    "type": "archive",
-                    "url": "https://dl.bintray.com/boostorg/release/1.72.0/source/boost_1_72_0.tar.gz",
-                    "sha256": "c66e88d5786f2ca4dbebb14e06b566fb642a1a6947ad8cc9091f9f445134143f"
-                }
-            ]
-        },
-        {
-            "name": "hdf5",
-            "sources": [
-                {
-                    "type": "git",
-                    "url": "https://bitbucket.hdfgroup.org/scm/hdffv/hdf5.git",
-                    "tag": "hdf5-1_10_5",
-                    "commit": "dc9412f73acfd0f887f7a112533ea078fedd1f19"
-                }
-            ]
-        },
-        {
-            "name": "netcdf-c",
-            "sources": [
-                {
-                    "type": "archive",
-                    "url": "https://mirror.sobukus.de/files/src/netcdf/netcdf-c-4.7.3.tar.gz",
-                    "sha256": "8e8c9f4ee15531debcf83788594744bd6553b8489c06a43485a15c93b4e0448b"
-                }
-            ]
-        },
-        {
-            "name": "netcdf-cxx",
-            "sources": [
-                {
-                    "type": "archive",
-                    "url":  "https://mirror.sobukus.de/files/src/netcdf/netcdf-cxx4-4.3.0.tar.gz",
-                    "sha256": "e34fbc6aba243ec82c23e9ee99db2430555ada849c54c1f3ab081b0ddd0f5f30"
-                }
-            ]
-        },
         {
             "name": "python3-numpy",
             "buildsystem": "simple",
@@ -90,62 +22,108 @@
             "sources": [
                 {
                     "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/2b/26/07472b0de91851b6656cbc86e2f0d5d3a3128e7580f23295ef58b6862d6c/numpy-1.16.1.zip",
-                    "sha256": "31d3fe5b673e99d33d70cfee2ea8fe8dccd60f265c3ed990873a88647e3dd288"
-                }
-            ]
-        },
-        {
-            "name": "python3-matplotlib",
-            "buildsystem": "simple",
-            "build-commands": [
-                "pip3 install --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} matplotlib"
-            ],
-            "sources": [
-                {
-                    "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/c2/f7/c7b501b783e5a74cf1768bc174ee4fb0a8a6ee5af6afa92274ff964703e0/setuptools-40.8.0.zip",
-                    "sha256": "6e4eec90337e849ade7103723b9a99631c1f0d19990d6e8412dc42f5ae8b304d"
+                    "url": "https://files.pythonhosted.org/packages/47/1b/1d565e0f6e156e1522ab564176b8b29d71e13d8caf003a08768df3d5cec5/numpy-2.2.0.tar.gz",
+                    "sha256": "140dd80ff8981a583a60980be1a655068f8adebf7a45a06a6858c873fcdcd4a0"
                 },
                 {
                     "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/89/0c/653aec68e9cfb775c4fbae8f71011206e5e7fe4d60fcf01ea1a9d3bc957f/matplotlib-3.0.2.tar.gz",
-                    "sha256": "c94b792af431f6adb6859eb218137acd9a35f4f7442cea57e4a59c54751c36af"
+                    "url": "https://files.pythonhosted.org/packages/67/66/91d242ea8dd1729addd36069318ba2cd03874872764f316c3bb51b633ed2/meson_python-0.17.1.tar.gz",
+                    "sha256": "efb91f69f2e19eef7bc9a471ed2a4e730088cc6b39eacaf3e49fc4f930eb5f83"
                 },
                 {
                     "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/c2/4b/137dea450d6e1e3d474e1d873cd1d4f7d3beed7e0dc973b06e8e10d32488/cycler-0.10.0.tar.gz",
-                    "sha256": "cd7b2d1018258d7247a71425e9f26463dfb444d411c39569972f4ce586b0c9d8"
+                    "url": "https://files.pythonhosted.org/packages/3a/7b/e4a0c98ae02418d08af5b69f129bcd0f15f13edb708b496867d85377f4e5/meson-1.2.3.tar.gz",
+                    "sha256": "4533a43c34548edd1f63a276a42690fce15bde9409bcf20c4b8fa3d7e4d7cac1"
                 },
                 {
                     "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/b9/b8/6b32b3e84014148dcd60dd05795e35c2e7f4b72f918616c61fdce83d27fc/pyparsing-2.3.1.tar.gz",
-                    "sha256": "66c9268862641abcac4a96ba74506e594c884e3f57690a696d21ad8210ed667a"
+                    "url": "https://files.pythonhosted.org/packages/92/ec/089608b791d210aec4e7f97488e67ab0d33add3efccb83a056cbafe3a2a6/setuptools-75.8.0.tar.gz",
+                    "sha256": "c5afc8f407c626b8313a86e10311dd3f661c6cd9c09d4bf8c15c0e11f9f2b0e6"
                 },
                 {
                     "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/ad/99/5b2e99737edeb28c71bcbec5b5dda19d0d9ef3ca3e92e3e925e7c0bb364c/python-dateutil-2.8.0.tar.gz",
-                    "sha256": "c89805f6f4d64db21ed966fda138f8a5ed7a4fdbc1a8ee329ce1b74e3c74da9e"
+                    "url": "https://files.pythonhosted.org/packages/8a/98/2d9906746cdc6a6ef809ae6338005b3f21bb568bea3165cfc6a243fdc25c/wheel-0.45.1.tar.gz",
+                    "sha256": "661e1abd9198507b1409a20c02106d9670b2576e916d58f520316666abca6729"
                 },
                 {
                     "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/31/60/494fcce70d60a598c32ee00e71542e52e27c978e5f8219fae0d4ac6e2864/kiwisolver-1.0.1.tar.gz",
-                    "sha256": "ce3be5d520b4d2c3e5eeb4cd2ef62b9b9ab8ac6b6fedbaa0e39cdb6f50644278"
+                    "url": "https://files.pythonhosted.org/packages/bc/18/b9b81cab2b8f63e6e7f72e1ba2766a0454fcd563e7a77b8299cb917ba805/flit_core-3.11.0.tar.gz",
+                    "sha256": "6ceeee3219e9d2ea282041f3e027c441597b450b33007cb81168e887b6113a8f"
                 },
                 {
                     "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/dd/bf/4138e7bfb757de47d1f4b6994648ec67a51efe58fa907c1e11e350cddfca/six-1.12.0.tar.gz",
-                    "sha256": "d16a0141ec1a18405cd4ce8b4613101da75da0e9a7aec5bdd4fa804d0e0eba73"
+                    "url": "https://files.pythonhosted.org/packages/d0/63/68dbb6eb2de9cb10ee4c9c14a0148804425e13c4fb20d61cce69f53106da/packaging-24.2.tar.gz",
+                    "sha256": "c228a6dc5e932d346bc5739379109d49e8853dd8223571c7c5b55260edc0b97f"
                 },
                 {
                     "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/54/85/514ba3ca2a022bddd68819f187ae826986051d130ec5b972076e4f58a9f3/setuptools_scm-3.2.0.tar.gz",
-                    "sha256": "52ab47715fa0fc7d8e6cd15168d1a69ba995feb1505131c3e814eb7087b57358"
+                    "url": "https://files.pythonhosted.org/packages/c0/79/406a9f56c435caaaca4a1c66397e4f63ecd48a72a6c4fc1d9ecdaac66acb/pyproject_metadata-0.9.0.tar.gz",
+                    "sha256": "8511c00a4cad96686af6a6b4143433298beb96105a9379afdc9b0328f4f260c9"
                 },
                 {
                     "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/d9/7d/86df15e317027f6e87aa68ea854abf8437e796b4c0fadd3ae5ee67b77cb2/wheel-0.33.0.tar.gz",
-                    "sha256": "12363e6df5678ecf9daf8429f06f97e7106e701405898f24318ce7f0b79c611a"
+                    "url": "https://files.pythonhosted.org/packages/83/ec/ac383eb82792e092d8037649b382cf78a7b79c2ce4e5b861f61519b9b14e/patchelf-0.17.2.1.tar.gz",
+                    "sha256": "a6eb0dd452ce4127d0d5e1eb26515e39186fa609364274bc1b0b77539cfa7031"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/56/54/2beb41f3fcddb4ea238634c6c23fe93115090d8799a45f626a83e6934c16/scikit_build-0.18.1.tar.gz",
+                    "sha256": "a4152ac5a084d499c28a7797be0628d8366c336e2fb0e1a063eb32e55efcb8e7"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/8f/8a/cc1debe3514da292094f1c3a700e4ca25442489731ef7c0814358816bb03/hatchling-1.27.0.tar.gz",
+                    "sha256": "971c296d9819abb3811112fc52c7a9751c8d381898f36533bb16f9791e941fd6"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/96/2d/02d4312c973c6050a18b314a5ad0b3210edb65a906f868e31c111dede4a6/pluggy-1.5.0.tar.gz",
+                    "sha256": "2cffa88e94fdc978c4c574f15f9e59b7f4201d439195c3715ca9e2486f1d0cf1"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/ca/bc/f35b8446f4531a7cb215605d100cd88b7ac6f44ab3fc94870c120ab3adbf/pathspec-0.12.1.tar.gz",
+                    "sha256": "a482d51503a1ab33b1c67a6c3813a26953dbdc71c31dacaef9a838c4e29f5712"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/13/8e/15ba2980e2704edecc53d15506a5bfa6efb3b1cadc5e4df7dc277bc199f8/trove_classifiers-2025.2.18.16.tar.gz",
+                    "sha256": "b1ee2e1668589217d4edf506743e28b1834da128f8a122bad522c02d837006e1"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/b5/00/96cbed7c019c49ee04b8a08357a981983db7698ae6de402e57097cefc9ad/calver-2022.6.26.tar.gz",
+                    "sha256": "e05493a3b17517ef1748fbe610da11f10485faa7c416b9d33fd4a52d74894f8b"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/4b/bd/c5d16dd95900567e09744af92119da7abc5f447320d53ec1d9415ec30263/setuptools_scm-8.2.0.tar.gz",
+                    "sha256": "a18396a1bc0219c974d1a74612b11f9dce0d5bd8b1dc55c65f6ac7fd609e8c28"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/b4/c2/c9094283a07dd96c5a8f7a5f1910259d40d2e29223b95dd875a6ca13b58f/hatch_fancy_pypi_readme-24.1.0.tar.gz",
+                    "sha256": "44dd239f1a779b9dcf8ebc9401a611fd7f7e3e14578dcf22c265dfaf7c1514b8"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/f5/c9/54bb4fa27b4e4a014ef3bb17710cdf692b3aa2cbc7953da885f1bf7e06ea/hatch_vcs-0.4.0.tar.gz",
+                    "sha256": "093810748fe01db0d451fabcf2c1ac2688caefd232d4ede967090b1c1b07d9f7"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/56/54/2beb41f3fcddb4ea238634c6c23fe93115090d8799a45f626a83e6934c16/scikit_build-0.18.1.tar.gz",
+                    "sha256": "a4152ac5a084d499c28a7797be0628d8366c336e2fb0e1a063eb32e55efcb8e7"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/fc/f8/98eea607f65de6527f8a2e8885fc8015d3e6f5775df186e443e0964a11c3/distro-1.9.0.tar.gz",
+                    "sha256": "2fa77c6fd8940f116ee1d6b94a2f90b13b5ea8d019b98bc8bafdcabcdd9bdbed"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/5a/25/886e197c97a4b8e254173002cdc141441e878ff29aaa7d9ba560cd6e4866/cython-3.0.12.tar.gz",
+                    "sha256": "b988bb297ce76c671e28c97d017b95411010f7c77fa6623dd0bb47eed1aee1bc"
                 }
             ]
         },
@@ -169,6 +147,74 @@
             ]
         },
         {
+            "name": "boost",
+            "buildsystem": "simple",
+            "build-commands": [
+                "./bootstrap.sh --with-libraries=python,iostreams,random --prefix=${FLATPAK_DEST}",
+                "./b2 cxxflags=\"-fPIC\" -j`nproc --all` install"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz",
+                    "sha256": "f55c340aa49763b1925ccf02b2e83f35fdcf634c9d5164a2acb87540173c741d"
+                }
+            ]
+        },
+        {
+            "name": "openmpi",
+            "buildsystem": "simple",
+            "build-commands": [
+                "./configure --prefix=${FLATPAK_DEST}",
+                "make -j`nproc`",
+                "make -j`nproc` install"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.7.tar.gz",
+                    "sha256": "67435fdb2560f897882e69fead171d38e7f44a6dfe1d3c90506f549a943050b8"
+                }
+            ]
+        },
+        {
+            "name": "hdf5",
+            "buildsystem": "simple",
+            "build-commands": [
+                "export PATH=/app/bin:$PATH",
+                "CC=/app/bin/mpicc ./configure --enable-parallel --prefix=${FLATPAK_DEST}",
+                "make -j`nproc`",
+                "make -j`nproc` install"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_1.14.6.tar.gz",
+                    "sha256": "09ee1c671a87401a5201c06106650f62badeea5a3b3941e9b1e2e1e08317357f"
+                }
+            ]
+        },
+        {
+            "name": "netcdf-c",
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://mirror.sobukus.de/object/c8/e1/c8e196f5f0b9e0d5792fce6ed6289867-13236715-1738965123/netcdf-c-4.9.3.tar.gz",
+                    "sha256": "a474149844e6144566673facf097fea253dc843c37bc0a7d3de047dc8adda5dd"
+                }
+            ]
+        },
+        {
+            "name": "netcdf-cxx",
+            "sources": [
+                {
+                    "type": "archive",
+                    "url":  "https://mirror.sobukus.de/files/src/netcdf/netcdf-cxx4-4.3.0.tar.gz",
+                    "sha256": "e34fbc6aba243ec82c23e9ee99db2430555ada849c54c1f3ab081b0ddd0f5f30"
+                }
+            ]
+        },
+        {
             "name": "gmsh",
             "buildsystem": "cmake",
             "config-opts": [
@@ -186,18 +232,37 @@
             ]
         },
         {
-            "name": "scons",
+            "name": "lapack",
             "buildsystem": "simple",
             "build-commands": [
-                "python3 bootstrap.py build/scons",
-                "python3 build/scons/setup.py install --prefix=/app"
+                "cmake -Bbuild -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=${FLATPAK_DEST} ",
+                "cd build && make -j`nproc` && make install"
             ],
             "sources": [
                 {
-                    "type": "git",
-                    "url": "https://github.com/SCons/scons",
-                    "tag": "3.0.4",
-                    "commit": "73b2c02d7088c6d6490fdede8396d88103b00482"
+                    "type": "archive",
+                    "url": "https://github.com/Reference-LAPACK/lapack/archive/refs/tags/v3.12.1.tar.gz",
+                    "sha256": "2ca6407a001a474d4d4d35f3a61550156050c48016d949f0da0529c0aa052422"
+                }
+            ]
+        },
+        {
+            "name": "scons",
+            "buildsystem": "simple",
+            "build-commands": [
+                "mv 4.8.1.tar.gz scons-4.8.1.tar.gz",
+                "pip3 install --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} scons"
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://github.com/SCons/scons/archive/refs/tags/4.8.1.tar.gz",
+                    "sha256": "9735ac24f345a11c76561991e3c3bdf943f97c772ded54156243e7f4ea5f4bc5"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/92/ec/089608b791d210aec4e7f97488e67ab0d33add3efccb83a056cbafe3a2a6/setuptools-75.8.0.tar.gz",
+                    "sha256": "c5afc8f407c626b8313a86e10311dd3f661c6cd9c09d4bf8c15c0e11f9f2b0e6"
                 }
             ]
         },
@@ -215,12 +280,13 @@
                 "cp ./tools/flatpak/256x256_au.edu.uq.esys.escript.png /app/share/icons/hicolor/256x256/apps/au.edu.uq.esys.escript.png",
                 "cp ./tools/flatpak/au.edu.uq.esys.escript.desktop /app/share/applications/au.edu.uq.esys.escript.desktop",
                 "cp ./tools/flatpak/au.edu.uq.esys.escript.appdata.xml /app/share/metainfo/au.edu.uq.esys.escript.appdata.xml",
-                "scons options_file=scons/flatpak_options.py umfpack=0 trilinos=0 werror=0 silo=0 cxx_extra='-fPIC -Wno-psabi' -j`nproc --all`"
+                "export PATH=/app/bin:$PATH",
+                "scons  cxx_extra='-fPIC' -j`nproc --all` pythoncmd=`which python` pythonincpath=/usr/include/python3.12/ pythonlibpath=/app/lib boost_prefix=/app boost_libs=boost_python312,boost_iostreams,boost_random trilinos_make_sh=`pwd`/tools/flatpak/flatpak_trilinos.sh paso=1 trilinos=1 werror=0 || cat config.log"
             ],
             "sources": [
                 {
                     "type": "git",
-                    "url": "https://github.com/esys-escript/esys-escript.github.io"
+                    "url": "https://github.com/adaell/esys-escript.github.io"
                 }
             ]
         }
