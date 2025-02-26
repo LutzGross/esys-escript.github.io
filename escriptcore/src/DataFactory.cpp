@@ -459,7 +459,7 @@ Data load_hdf5grp(const H5::Group h5_grp, const AbstractDomain& domain)
             // .. type id:
             H5::Attribute h5_attr_type(h5_meta_data.openAttribute("type_id"));
             H5::DataType h5_type_type(h5_attr_type.getDataType());
-            if ( h5_type_type != H5::PredType::NATIVE_UINT ) {
+            if ( h5_type_type != H5::PredType::NATIVE_INT ) {
                  throw DataException("Error - load_hdf5: illegal type_id data type in HDF5 file.");
             }
             if ( h5_attr_type.getStorageSize() !=  1 * h5_type_type.getSize() ) {
