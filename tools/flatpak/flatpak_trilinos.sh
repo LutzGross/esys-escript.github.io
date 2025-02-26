@@ -6,7 +6,9 @@ cmake \
       -D Trilinos_ENABLE_CXX11=ON \
       -D Trilinos_ENABLE_Fortran=OFF \
       -D CMAKE_C_COMPILER=$2 \
+      -D CMAKE_C_FLAGS=" -Wno-error=implicit-function-declaration " \
       -D CMAKE_CXX_COMPILER=$3 \
+      -D CMAKE_CXX_FLAGS=" -Wno-unused-parameter -Wno-error=implicit-function-declaration " \
       -D BUILD_SHARED_LIBS=ON \
       -D Trilinos_ENABLE_Amesos=ON \
       -D Trilinos_ENABLE_Amesos2=ON \
