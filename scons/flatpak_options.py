@@ -35,6 +35,7 @@ pythonincpath = '/usr/include/python3.12'
 
 boost_prefix=['/app/include','/app/lib']
 boost_libs = ['boost_python312','boost_iostreams','boost_random']
+domains=['finley','ripley','speckley']
 hdf5_prefix=['/app/include','/app/lib']
 hdf5_libs=['hdf5_cpp','hdf5','hdf5_hl_cpp']
 mpi_prefix=['/app/include','/app/lib']
