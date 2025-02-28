@@ -50,7 +50,7 @@ trilinos_prefix = ['/app/include/', '/app/lib']
 dudley_assemble_flags = '-funroll-loops'
 
 # boost-python library/libraries to link against
-boost_libs = ['boost_python312','boost_iostreams','boost_random','boost_numpy312']
+boost_libs = ['boost_python312','boost_iostreams','boost_random']
 
 trilinos_make_sh='tools/flatpak/flatpak_trilinos.sh'
 
