@@ -21,9 +21,6 @@ escript_opts_version = 203
 #cxx_extra = '-Wno-literal-suffix'
 openmp = True
 # mpi='OPENMPI'
-umfpack=True
-silo=True
-trilinos=True
 
 prefix='/app'
 
@@ -49,12 +46,16 @@ paso=1
 silo=0
 silo_prefix = ['/app/include/', '/app/lib']
 silo_libs = ['silo','hdf5']
+trilinos=True
 trilinos_prefix = ['/app/include/', '/app/lib']
 trilinos_make_sh='tools/flatpak/flatpak_trilinos.sh'
+umfpack=False
 umfpack_prefix = ['/app/include','/app/lib']
 umfpack_libs = ['umfpack', 'blas', 'amd']
 visit=0
 werror=0
+
+
 
 dudley_assemble_flags = '-funroll-loops'
 
