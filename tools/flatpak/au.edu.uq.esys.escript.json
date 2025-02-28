@@ -183,6 +183,7 @@
             "build-commands": [
                 "export PATH=/app/bin:$PATH",
                 "CC=/app/bin/mpicc ./configure --enable-parallel --prefix=${FLATPAK_DEST}",
+                "CC=/app/bin/mpicc ./configure --enable-cxx --enable-fortran --enable-build-all --prefix=${FLATPAK_DEST}",
                 "make -j`nproc`",
                 "make -j`nproc` install"
             ],
@@ -281,7 +282,8 @@
                 "cp ./tools/flatpak/au.edu.uq.esys.escript.desktop /app/share/applications/au.edu.uq.esys.escript.desktop",
                 "cp ./tools/flatpak/au.edu.uq.esys.escript.appdata.xml /app/share/metainfo/au.edu.uq.esys.escript.appdata.xml",
                 "export PATH=/app/bin:$PATH",
-                "scons  cxx_extra='-fPIC' -j`nproc --all` pythoncmd=`which python` pythonincpath=/usr/include/python3.12/ pythonlibpath=/app/lib boost_prefix=/app boost_libs=boost_python312,boost_iostreams,boost_random trilinos_make_sh=`pwd`/tools/flatpak/flatpak_trilinos.sh paso=1 trilinos=1 werror=0 || cat config.log"
+                "ls /app/lib",
+                "scons options_file=scons/flatpak_options.py cxx_extra='-fPIC' -j`nproc --all` || cat config.log"
             ],
             "sources": [
                 {
