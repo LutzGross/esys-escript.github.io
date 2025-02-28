@@ -32,7 +32,7 @@ import sys
 
 cxx_extra='-w -O3'
 
-pythoncmd='/app/bin/python3'
+#pythoncmd='/app/bin/python3'
 pythonlibpath = '/app/lib'
 pythonincpath = '/app/include/python3.12'
 
