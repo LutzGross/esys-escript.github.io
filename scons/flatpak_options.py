@@ -34,7 +34,7 @@ cxx_extra='-w -O3'
 
 pythoncmd='/app/bin/python3'
 pythonlibpath = '/app/lib'
-pythonincpath = '/app/include/python3.7m'
+pythonincpath = '/app/include/python3.12'
 
 boost_prefix=['/app/include','/app/lib']
 hdf5_prefix=['/app/include','/app/lib']
@@ -49,13 +49,10 @@ trilinos_prefix = ['/app/include/', '/app/lib']
 
 dudley_assemble_flags = '-funroll-loops'
 
-p3name = ''
-for x in os.listdir("/app/lib"):
-  if x.startswith('libboost_python3') and x.endswith('.so'):
-    p3name=x
-
 # boost-python library/libraries to link against
-boost_libs = [p3name[3:-3]]
+boost_libs = ['boost_python312','boost_iostreams','boost_random','boost_numpy312']
 
-# this can be used by options files importing us
-boost_py3_libs = [p3name[3:-3]]
+trilinos_make_sh='tools/flatpak/flatpak_trilinos.sh'
+
+paso=1
+werror=0
