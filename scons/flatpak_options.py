@@ -34,7 +34,7 @@ cxx_extra='-w -O3'
 
 #pythoncmd='/app/bin/python3'
 pythonlibpath = '/app/lib'
-pythonincpath = '/app/include/python3.12'
+pythonincpath = '/use/include/python3.12'
 
 boost_prefix=['/app/include','/app/lib']
 hdf5_prefix=['/app/include','/app/lib']
