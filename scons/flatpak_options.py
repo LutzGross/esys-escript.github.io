@@ -30,29 +30,33 @@ prefix='/app'
 import os
 import sys
 
-cxx_extra='-w -O3'
+cxx_extra='-w -O3 -march=native'
 
 #pythoncmd='/app/bin/python3'
 pythonlibpath = '/app/lib'
 pythonincpath = '/usr/include/python3.12'
 
 boost_prefix=['/app/include','/app/lib']
+boost_libs = ['boost_python312','boost_iostreams','boost_random']
 hdf5_prefix=['/app/include','/app/lib']
 mpi_prefix=['/app/include','/app/lib']
 mpi_libs=['mpi_cxx']
-umfpack_prefix = ['/app/include','/app/lib']
-umfpack_libs = ['umfpack', 'blas', 'amd']
 lapack_prefix = ['/app/include/', '/app/lib']
+ld_extra=''
+paso=1
 silo_prefix = ['/app/include/', '/app/lib']
 silo_libs = ['silo','hdf5']
 trilinos_prefix = ['/app/include/', '/app/lib']
+trilinos_make_sh='tools/flatpak/flatpak_trilinos.sh'
+umfpack_prefix = ['/app/include','/app/lib']
+umfpack_libs = ['umfpack', 'blas', 'amd']
+werror=0
 
 dudley_assemble_flags = '-funroll-loops'
 
 # boost-python library/libraries to link against
-boost_libs = ['boost_python312','boost_iostreams','boost_random']
 
-trilinos_make_sh='tools/flatpak/flatpak_trilinos.sh'
 
-paso=1
-werror=0
+
+
+
