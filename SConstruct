@@ -515,7 +515,7 @@ if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
             print("Building (no MPI) trilinos..............................")
             SH = "trilinos_nompi.sh"
     else:
-        shutil.copy(env['trilinos_make_sh'], env['trilinos_build'] + "hostmake.sh")
+        shutil.copy(env['trilinos_make_sh'], os.path.join(env['trilinos_build'],"hostmake.sh"))
         SH = "hostmake.sh"
     import subprocess
     p_init = subprocess.run(['sh', SH ] + SHARGS, capture_output=False, cwd =  env['trilinos_build'],  text=True)
