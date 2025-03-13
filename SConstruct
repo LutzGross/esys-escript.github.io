@@ -249,9 +249,16 @@ if env['tools_names'] != ['default']:
 Help(vars.GenerateHelpText(env))
 # Check for superfluous options
 if len(vars.UnknownVariables())>0:
+    APPROVED_VARIABLES = [ 'os', 'subprocess']
+    DEL= ""
     for k in vars.UnknownVariables():
-        print("Unknown option '%s'" % k)
-    Exit(1)
+        if not k in APPROVED_VARIABLES:
+            print("Unknown option variable '%s'" % k)
+            DEL+=k+", "
+    if len(DEL)>0:
+        print("Most likely these variables are set in the options file. Add the following statement to delete them:")
+        print("\n  del "+DEL[:-2]+"\n")
+        Exit(1)
 
 env['domains'] = sorted(set(env['domains']))
 #===== First thing we do is to install Trilinos if requested to do so:

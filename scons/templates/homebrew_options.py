@@ -30,6 +30,7 @@ import os
 escript_opts_version = 203
 
 HOMEBREW_PREFIX = '/opt/homebrew'
+
 pythoncmd = os.path.join(HOMEBREW_PREFIX, 'bin', 'python3')
 import subprocess
 p=subprocess.run([pythoncmd, '-V'], capture_output=True, text=True)
@@ -113,3 +114,5 @@ build_trilinos = True
 ld_extra = ["-L/opt/homebrew/opt/llvm/lib", "-lz", "-Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++" ]
 
 
+# clean up:
+del HOMEBREW_PREFIX, p, subversion, revversion, t

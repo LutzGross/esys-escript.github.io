@@ -20,6 +20,10 @@ If you can't find a matching template file you can either import one that
 comes close or start from scratch and set the options as required. All
 recognised options are explained below.
 
+Delete all variables that are not option variables. In some cases, variables
+that are introduced in option files and that are not option variables can trigger
+an error in scons.
+
 Prefixes
 ========
 
