@@ -49,7 +49,7 @@ For parallelization *esys-escript* supports
 ### General setup 
 
 The first step is to download the newest version of *esys-escript* source from 
-[github](https://github.com/LutzGross/esys-escript.github.io) using  
+[gitHub](https://github.com/LutzGross/esys-escript.github.io) using  
 
     mkdir esys6
     git clone --single-branch --branch master https://github.com/LutzGross/esys-escript.github.io.git esys6
@@ -61,8 +61,8 @@ After you have installed the required dependencies (see below) start *scons* to 
 
     scons -j4 options_file=scons/templates/<OS>_options.py
 
-where `<OS>` is your operating system/kernel name. Typically the templates are assuming installation with MPI. 
-By default libraries and *Python* modules are installed into `./lib/esys` and `./esys`, respectively.
+where `<OS>` is your operating system/kernel name. Typically, the templates are assuming installation with MPI. 
+By default, libraries and *Python* modules are installed into `./lib/esys` and `./esys`, respectively.
 *Trilinos* libraries are installed into `esys.trilions/lib`. So you need to add 
     
     export PYTHONPATH=$ESYSESCRIPT
@@ -74,13 +74,12 @@ If you wish to test your build, you can use the following:
 
     scons -j4 py_tests options_file=scons/templates/<OS>_options.py
 
-If the options file of your operating system/kernel is not available yet or you want to modify the options
+If the options file of your operating system/kernel is not available yet, or you want to modify the options
 (for instance switching off MPI) you can create your own option file  `scons/<HOST>_options.py` typically by copying and modifying one of the available
-template options files. `<HOST>` refers to the hostname which can be obtained by
+template options files in [scons/templates](scons/templates). `<HOST>` refers to the hostname which can be obtained by
 
     HOST=`uname -n`
     echo $HOST
-
 
 Installation can then be run by
 
@@ -183,7 +182,7 @@ docker run -ti -v $(pwd):/app/ esys*esys-escript*/*esys-escript*\
 
 ### Parallelization
 It is likely that the computer you run *esys-escript* on, will have more than one processor core.
-*esys-escript* can make use of multiple cores in order to solve problems more quickly] if it is told to do so,
+*esys-escript* can make use of multiple cores in order to solve problems more quickly if it is told to do so,
 but this functionality must be enabled at compile time.
 Section~\ref{sec:needpar} gives some rough guidelines to help you determine what you need.
 
@@ -243,7 +242,7 @@ manager\footnote{Note that package managers will make changes to your computer b
 various places around the internet. It is important to satisfy yourself as to the security of those systems.}.
 You can of course install prerequisite software in other ways.
 For example, we have had \emph{some} success changing the default
-compilers used by those systems. However this is more complicated and we do not provide a guide here.
+compilers used by those systems. However, this is more complicated, and we do not provide a guide here.
 
 \noindent Both of those systems require the XCode command line tools to be installed\footnote{As of OSX10.9, the
 command \texttt{xcode-select --install} will allow you to download and install the commandline tools.}.
@@ -737,7 +736,7 @@ Note that a careless selection of these parameters may cause the testing program
 
 
 \esysappendix
-## Required compiler features}
+## Required compiler features
 \label{app:cxxfeatures}
 
 Building *esys-escript* from source requires that your c++ compiler supports at least the following features:
