@@ -3,7 +3,7 @@ This is for Version 6.
 
 (sorry this document is still a mess)
 
-*esys-escript* is primarily developed on Linux systems and MacOS systems. 
+*esys-escript* is primarily developed on Linux systems and macOS systems. 
 The current version has not been ported to Windows. 
 For support and questions please visit the [Issues site](https://github.com/LutzGross/esys-escript.github.io/issues) for help.
 
@@ -219,7 +219,7 @@ so you should use it. MSVC 2017 and 2019 also have \openmp support on Windows
 cluster. MPI is not recommended on Windows as it will interfer with Jupyter.
 
 If you are using BSD or MacOSX and you are just experimenting with *esys-escript*, then performance is
-probably not a major issue for you at the moment so you don't need to use either \openmp or MPI.
+probably not a major issue for you at the moment, so you don't need to use either \openmp or MPI.
 This also applies if you write and polish your scripts on your computer and then send them to a cluster to execute.
 If in the future you find *esys-escript* useful and your scripts take significant time to run, then you may want to recompile
 *esys-escript* with more options.
