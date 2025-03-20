@@ -88,17 +88,10 @@ struct PASO_DLL_API Pattern : boost::enable_shared_from_this<Pattern>
     inline dim_t maxDeg() const
     {
         dim_t deg = 0;
-#pragma omp parallel
-        {
-            dim_t loc_deg=0;
-#pragma omp for
-            for (dim_t i = 0; i < numInput; ++i) {
-                loc_deg=std::max(loc_deg, ptr[i+1]-ptr[i]);
-            }
-#pragma omp critical
-            {
-                deg = std::max(deg, loc_deg);
-            }
+
+        #pragma omp parallel for reduction(max:deg)
+        for (dim_t i = 0; i < numInput; ++i) {
+                deg=std::max(deg, ptr[i+1]-ptr[i]);
         }
         return deg;
     }
