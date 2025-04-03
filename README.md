@@ -21,7 +21,7 @@ For geophyscial inversion see also the extensions [gambit](https://github.com/An
 - platform is Linux; there is limited support for MacOS and Windows  
 
 Further documentation including examples and a user guide for the latest release can be found at
-https://esys-escript.github.io/
+[https://github.com/LutzGross/esys-escript.github.io/](https://github.com/LutzGross/esys-escript.github.io/)
 
 
 ## Questions & Bugs 
