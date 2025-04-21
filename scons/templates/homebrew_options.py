@@ -49,6 +49,12 @@ for t in p.stdout.split(" "):
     if t.startswith("-L") :
         pythonlibpath=p.stdout.split(" ")[0][2:]
 
+try:
+    p=subprocess.run(['xcrun', '--show-sdk-path'], capture_output=True, text=True)
+    if p.stdout.strip():
+        os.putenv("SDKROOT", p.stdout.strip())
+except FileNotFoundError:
+    print("xcrun not found. SDKROOT is not set.")
 #pythonpath = os.path.join(HOMEBREW_PREFIX,  "Cellar", f"python@3.{subversion}",
 #                             f"3.{subversion}.{revversion}", "Frameworks", "Python.framework",
 #                             "Versions", f"3.{subversion}" )

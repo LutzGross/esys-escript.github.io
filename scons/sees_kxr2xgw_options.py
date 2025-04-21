@@ -53,7 +53,7 @@
 # "-I/opt/local/include/libomp -L/opt/local/lib/libomp -fopenmp" ???
 
 from templates.homebrew_options import *
-build_trilinos="never"
+build_trilinos="True"
 
 #cxx_extra = '-Wimplicit-function-declaration -Wno-string-concatenation -fopenmp' # --target arm64-apple-macosx13.0.0'
 # ld_extra='-v'# -L/Users/uqlgross/PycharmProjects/esys-escript.github.io/build/darwin/escriptcore/src'

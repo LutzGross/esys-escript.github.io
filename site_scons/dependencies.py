@@ -332,7 +332,7 @@ def checkBoost(env):
     if boostversion >= 106300 and not env['disable_boost_numpy'] :
         pyv = env['python_version'].split(".")
         if env["IS_OSX"]:
-            libname = f'boost_numpy{pyv[0]}{pyv[1]}-mt'
+            libname = f'boost_numpy{pyv[0]}{pyv[1]}'
         else:
             libname = f'boost_numpy{pyv[0]}{pyv[1]}'
         try:
@@ -450,12 +450,12 @@ def checkForTrilinos(env):
                     'BelosTFQMRIter.hpp', 'BelosTFQMRSolMgr.hpp', 'BelosTpetraAdapter.hpp', 'BelosTypes.hpp', \
                     'Ifpack2_Factory.hpp',  'Tpetra_KokkosCompat_DefaultNode.hpp', \
                     'MatrixMarket_Tpetra.hpp', 'MueLu_CreateTpetraPreconditioner.hpp', \
-                    'Teuchos_DefaultComm.hpp', 'Teuchos_ParameterList.hpp', \
+                    'Teuchos_DefaultComm.hpp', 'Teuchos_ParameterList.hpp', 'Tpetra_BlockCrsMatrix.hpp', \
                     'Teuchos_Comm.hpp', 'Teuchos_TimeMonitor.hpp', 'Tpetra_CrsMatrix_decl.hpp', \
-                    'Tpetra_BlockCrsMatrix_decl.hpp', \
+                    'Tpetra_BlockCrsMatrix_decl.hpp', 'kokkos/Kokkos_Core.hpp', \
                     'Tpetra_CrsGraph.hpp', 'Tpetra_CrsMatrix.hpp', 'Tpetra_RowMatrix.hpp', \
-                    'TpetraExt_TripleMatrixMultiply_def.hpp', \
-                    'Tpetra_Vector.hpp', 'Trilinos_version.h']
+                    'TpetraExt_TripleMatrixMultiply_def.hpp', 'Tpetra_BlockVector.hpp', \
+                    'Tpetra_Vector.hpp', 'Trilinos_version.h', 'Tpetra_BlockCrsMatrix_Helpers.hpp']
     packages = ['Tpetra', 'Kokkos', 'Belos', 'Amesos2', 'Ifpack2', 'MueLu']
 
     # 'Tpetra_createDeepCopy_CrsMatrix.hpp', \
@@ -467,10 +467,10 @@ def checkForTrilinos(env):
     trilinos_inc_path,trilinos_lib_path=findLibWithHeader(env,
             env['trilinos_libs'], 'Amesos2.hpp',
             env['trilinos_prefix'], lang='c++', try_link=havelibs)
-    env.AppendUnique(CPPPATH = [trilinos_inc_path])
+    env.AppendUnique(CPPPATH = [trilinos_inc_path, os.path.join(trilinos_inc_path,'kokkos')])
     env.AppendUnique(LIBPATH = [trilinos_lib_path])
     env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], trilinos_lib_path)
-    env['buildvars']['trilinos_inc_path']=trilinos_inc_path
+    env['buildvars']['trilinos_inc_path']=[trilinos_inc_path, os.path.join(trilinos_inc_path,'kokkos')]
     env['buildvars']['trilinos_lib_path']=trilinos_lib_path
     #conf = Configure(env.Clone())
 
@@ -480,7 +480,7 @@ def checkForTrilinos(env):
         if not os.path.isfile(os.path.join(trilinos_inc_path,check)):
             print("Could not find the  Trilinos header file %s (tried looking in directory %s)" % (check, trilinos_inc_path))
             env.Exit(1)
-
+    # .. not relevant for new trilinos versions (REMOVE):
     if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')):
         print("Checking for %s... %s" %('Tpetra_DefaultPlatform.hpp', "yes"))
         env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_DP'])
@@ -506,7 +506,7 @@ def checkForTrilinos(env):
 #                env.Append(CPPDEFINES = ['ESYS_TRILINOS_14_2'])
 #            else:
             env.Append(CPPDEFINES = [f'ESYS_TRILINOS_{major}'])
-
+    # REVISE: remove 'ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRS'     'ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH' ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKV
     if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix.hpp')):
         print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix.hpp', "yes") )
     elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockCrsMatrix.hpp')):
