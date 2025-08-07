@@ -443,6 +443,11 @@ def checkForTrilinos(env):
     if env['trilinos'] == False:
         env['trilinos_version']='none'
         return env
+    havelibs = (len(env['trilinos_libs']) > 0)
+    trilinos_inc_path, trilinos_lib_path=findLibWithHeader(env,
+            env['trilinos_libs'], 'Amesos2.hpp',
+            env['trilinos_prefix'], lang='c++', try_link=havelibs)
+
     # Try to extract the trilinos version from Trilinos_version.h
     versionh = open(os.path.join(trilinos_inc_path, 'Trilinos_version.h'))
     env['trilinos_version'] = 'unknown'
@@ -464,8 +469,8 @@ def checkForTrilinos(env):
             #            else:
             env.Append(CPPDEFINES=[f'ESYS_TRILINOS_{major}'])
 
-    trilinos_inc_path=''
-    trilinos_lib_path=''
+    packages = ['Tpetra', 'Kokkos', 'Belos', 'Amesos2', 'Ifpack2', 'MueLu']
+
     dependencies = ['Amesos2.hpp', 'Amesos2_Solver_decl.hpp', 'BelosSolverFactory.hpp', 'BelosSolverManager.hpp', \
                     'BelosTFQMRIter.hpp', 'BelosTFQMRSolMgr.hpp', 'BelosTpetraAdapter.hpp', 'BelosTypes.hpp', \
                     'Ifpack2_Factory.hpp',  'Tpetra_KokkosCompat_DefaultNode.hpp', \
@@ -477,27 +482,19 @@ def checkForTrilinos(env):
                     'TpetraExt_TripleMatrixMultiply_def.hpp', 'Tpetra_BlockVector.hpp', \
                     'Tpetra_Vector.hpp', 'Trilinos_version.h', 'Tpetra_BlockCrsMatrix_Helpers.hpp']
 
-    if major > 16 or ( major == 16 and minor > 0) :
-        dependencies +=['kokkos/Kokkos_Core.hpp']
-    else:
-        dependencies +=['Kokkos_Core.hpp']
-    packages = ['Tpetra', 'Kokkos', 'Belos', 'Amesos2', 'Ifpack2', 'MueLu']
-
-    # 'Tpetra_createDeepCopy_CrsMatrix.hpp', \
-
-    if env['trilinos']:
-        havelibs = (len(env['trilinos_libs']) > 0)
-    else:
-        havelibs = False
-    trilinos_inc_path,trilinos_lib_path=findLibWithHeader(env,
-            env['trilinos_libs'], 'Amesos2.hpp',
-            env['trilinos_prefix'], lang='c++', try_link=havelibs)
-    env.AppendUnique(CPPPATH = [trilinos_inc_path, os.path.join(trilinos_inc_path,'kokkos')])
     env.AppendUnique(LIBPATH = [trilinos_lib_path])
     env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], trilinos_lib_path)
-    env['buildvars']['trilinos_inc_path']=[trilinos_inc_path, os.path.join(trilinos_inc_path,'kokkos')]
     env['buildvars']['trilinos_lib_path']=trilinos_lib_path
-    #conf = Configure(env.Clone())
+
+
+    if major > 16 or ( major == 16 and minor > 0) :
+        dependencies +=[ os.path.join('kokkos', 'Kokkos_Core.hpp' ) ]
+        env.AppendUnique(CPPPATH=[trilinos_inc_path, os.path.join(trilinos_inc_path, 'kokkos')])
+        env['buildvars']['trilinos_inc_path'] = [trilinos_inc_path, os.path.join(trilinos_inc_path, 'kokkos')]
+    else:
+        env.AppendUnique(CPPPATH=[trilinos_inc_path])
+        env['buildvars']['trilinos_inc_path'] = [ trilinos_inc_path ]
+        dependencies +=['Kokkos_Core.hpp']
 
     print("Looking for the Trilinos headers...")
     for check in dependencies:
