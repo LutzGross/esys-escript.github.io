@@ -136,7 +136,7 @@ vars.AddVariables(
   EnumVariable('build_trilinos', 'Instructs scons to build the trilinos library.', "make", allowed_values = build_trilinos_flavours),
   ('trilinos_prefix', 'Prefix/Paths to Trilinos installation (need to be set  if build_trilinos = False).', default_prefix),
   ('trilinos_libs', 'Trilinos libraries to link with', []),
-  PathVariable('trilinos_src', 'Top-level source directory for trilinos.', Dir('trilinos_source16_1_0').abspath, PathVariable.PathIsDir),
+  PathVariable('trilinos_src', 'Top-level source directory for trilinos.', Dir('trilinos_source16').abspath, PathVariable.PathIsDir),
   PathVariable('trilinos_build', 'Top-level build directory for trilinos.', Dir('#/build_trilinos').abspath, PathVariable.PathIsDirCreate),
   PathVariable('trilinos_install', 'Top-level install directory for trilinos when built', Dir('#/esys.trilinos').abspath, PathVariable.PathIsDirCreate),
   #('trilinos_install', 'path to install trilinos libs, default is <prefix>/lib/esys', 'default'),
