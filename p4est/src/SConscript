@@ -204,7 +204,7 @@ local_env = env.Clone()
 p4estlibs = []
 if env['lapack']:
     p4estlibs = ['lapack']
-if env['mpi']:
+if not env['mpi'] in ['no', 'none', 0, False]:
     p4estlibs += env['mpi_libs']
 local_env.PrependUnique(LIBS = p4estlibs)
 
