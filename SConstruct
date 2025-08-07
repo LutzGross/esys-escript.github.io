@@ -145,7 +145,7 @@ vars.AddVariables(
   ('visit_prefix', 'Prefix/Paths to VisIt installation', default_prefix),
   ('visit_libs', 'VisIt libraries to link with', ['simV2']),
   #ListVariable('domains', 'Which domains to build', 'all', all_domains),
-  ('domains', 'Which domains to build', all_domains),
+  ('domains', 'which domains to build', all_domains),
   BoolVariable('paso', 'Build Paso solver library', True),
   BoolVariable('weipa', 'Build Weipa data export library', True),
   ('mathjax_path', 'Path to MathJax.js file', 'default'),
@@ -511,7 +511,7 @@ if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
 
     print("Initialization of Trilinos build using", SHARGS )
     if env['trilinos_make_sh'] == 'default':
-        if env['mpi'] not in [ 'none', 'no', True]:
+        if env['mpi'] not in [ 'none', 'no', False]:
             #source=startdir + "/scripts/trilinos_mpi.sh"
             shutil.copy("scripts/trilinos_mpi.sh", env['trilinos_build'] + "/trilinos_mpi.sh ")
             print("Building (MPI) trilinos..............................")

@@ -443,6 +443,26 @@ def checkForTrilinos(env):
     if env['trilinos'] == False:
         env['trilinos_version']='none'
         return env
+    # Try to extract the trilinos version from Trilinos_version.h
+    versionh = open(os.path.join(trilinos_inc_path, 'Trilinos_version.h'))
+    env['trilinos_version'] = 'unknown'
+    for line in versionh:
+        ver = re.match(r'#define TRILINOS_MAJOR_MINOR_VERSION (\d+)', line)
+        if ver:
+            trilinos_version = ver.group(1)
+            trilinos_version = int(trilinos_version)
+            major = int(str(trilinos_version)[:2])
+            minor = int(str(trilinos_version)[2:4])
+            subminor = int(str(trilinos_version)[4:6])
+            env['trilinos_version'] = str(major) + "." + str(minor) + "." + str(subminor)
+            if major < 14:
+                raise RuntimeError('Trilinos version greater than 14 expected.')
+            #            if major == 14 and minor <2 :
+            #                env.Append(CPPDEFINES = ['ESYS_TRILINOS_14'])
+            #            elif major == 14 and minor >=2:
+            #                env.Append(CPPDEFINES = ['ESYS_TRILINOS_14_2'])
+            #            else:
+            env.Append(CPPDEFINES=[f'ESYS_TRILINOS_{major}'])
 
     trilinos_inc_path=''
     trilinos_lib_path=''
@@ -452,10 +472,15 @@ def checkForTrilinos(env):
                     'MatrixMarket_Tpetra.hpp', 'MueLu_CreateTpetraPreconditioner.hpp', \
                     'Teuchos_DefaultComm.hpp', 'Teuchos_ParameterList.hpp', 'Tpetra_BlockCrsMatrix.hpp', \
                     'Teuchos_Comm.hpp', 'Teuchos_TimeMonitor.hpp', 'Tpetra_CrsMatrix_decl.hpp', \
-                    'Tpetra_BlockCrsMatrix_decl.hpp', 'kokkos/Kokkos_Core.hpp', \
+                    'Tpetra_BlockCrsMatrix_decl.hpp',  \
                     'Tpetra_CrsGraph.hpp', 'Tpetra_CrsMatrix.hpp', 'Tpetra_RowMatrix.hpp', \
                     'TpetraExt_TripleMatrixMultiply_def.hpp', 'Tpetra_BlockVector.hpp', \
                     'Tpetra_Vector.hpp', 'Trilinos_version.h', 'Tpetra_BlockCrsMatrix_Helpers.hpp']
+
+    if major > 16 or ( major == 16 and minor > 0) :
+        dependencies +=['kokkos/Kokkos_Core.hpp']
+    else:
+        dependencies +=['Kokkos_Core.hpp']
     packages = ['Tpetra', 'Kokkos', 'Belos', 'Amesos2', 'Ifpack2', 'MueLu']
 
     # 'Tpetra_createDeepCopy_CrsMatrix.hpp', \
@@ -486,26 +511,7 @@ def checkForTrilinos(env):
         env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_DP'])
     else:
         print("Checking for %s... %s" %('Tpetra_DefaultPlatform.hpp', "no"))
-    # Try to extract the trilinos version from Trilinos_version.h
-    versionh=open(os.path.join(trilinos_inc_path, 'Trilinos_version.h'))
-    env['trilinos_version']='unknown'
-    for line in versionh:
-        ver=re.match(r'#define TRILINOS_MAJOR_MINOR_VERSION (\d+)',line)
-        if ver:
-            trilinos_version=ver.group(1)
-            trilinos_version = int(trilinos_version)
-            major=int(str(trilinos_version)[:2])
-            minor=int(str(trilinos_version)[2:4])
-            tmp=int(str(trilinos_version)[4:6])
-            env['trilinos_version'] = str(major)+"."+str(minor)+"."+str(tmp)
-            if major < 14 :
-                raise RuntimeError('Trilinos version greater than 14 expected.')
-#            if major == 14 and minor <2 :
-#                env.Append(CPPDEFINES = ['ESYS_TRILINOS_14'])
-#            elif major == 14 and minor >=2:
-#                env.Append(CPPDEFINES = ['ESYS_TRILINOS_14_2'])
-#            else:
-            env.Append(CPPDEFINES = [f'ESYS_TRILINOS_{major}'])
+
     # REVISE: remove 'ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRS'     'ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH' ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKV
     if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix.hpp')):
         print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix.hpp', "yes") )
