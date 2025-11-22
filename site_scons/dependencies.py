@@ -25,7 +25,10 @@ http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
 
 import os, re, sys
-from distutils import sysconfig
+try:
+    import sysconfig
+except ImportError:
+    from distutils import sysconfig
 from subprocess import PIPE, Popen
 from SCons.Script.SConscript import Configure
 from site_init import findLibWithHeader, detectModule
