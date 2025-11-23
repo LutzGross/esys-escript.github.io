@@ -14,8 +14,8 @@
 //
 //@HEADER
 
-#ifndef _KOKKOSKERNELS_TPLS_VERSIONS_HPP
-#define _KOKKOSKERNELS_TPLS_VERSIONS_HPP
+#ifndef KOKKOSKERNELS_TPLS_VERSIONS_HPP
+#define KOKKOSKERNELS_TPLS_VERSIONS_HPP
 
 #include "KokkosKernels_config.h"
 #include <sstream>
@@ -50,8 +50,7 @@ inline std::string cusparse_version_string() {
   // Print version
   std::stringstream ss;
 
-  ss << CUSPARSE_VER_MAJOR << "." << CUSPARSE_VER_MINOR << "."
-     << CUSPARSE_VER_PATCH << "." << CUSPARSE_VER_BUILD;
+  ss << CUSPARSE_VER_MAJOR << "." << CUSPARSE_VER_MINOR << "." << CUSPARSE_VER_PATCH << "." << CUSPARSE_VER_BUILD;
 
   return ss.str();
 }
@@ -61,12 +60,11 @@ inline std::string cusparse_version_string() {
 inline std::string cusolver_version_string() {
   std::stringstream ss;
 
-  ss << CUSOLVER_VER_MAJOR << "." << CUSOLVER_VER_MINOR << "."
-     << CUSOLVER_VER_PATCH << "." << CUSOLVER_VER_BUILD;
+  ss << CUSOLVER_VER_MAJOR << "." << CUSOLVER_VER_MINOR << "." << CUSOLVER_VER_PATCH << "." << CUSOLVER_VER_BUILD;
 
   return ss.str();
 }
 #endif
 
 }  // namespace KokkosKernels
-#endif  // _KOKKOSKERNELS_TPLS_VERSIONS_HPP
+#endif  // KOKKOSKERNELS_TPLS_VERSIONS_HPP

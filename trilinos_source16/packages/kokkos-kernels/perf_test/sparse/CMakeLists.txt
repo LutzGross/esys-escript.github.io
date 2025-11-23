@@ -103,7 +103,6 @@ KOKKOSKERNELS_ADD_EXECUTABLE(
 KOKKOSKERNELS_ADD_EXECUTABLE(
         sparse_gs
         SOURCES KokkosSparse_gs.cpp
-        TESTONLYLIBS kokkoskernelsperf_gtest
 )
 
 KOKKOSKERNELS_ADD_EXECUTABLE(
@@ -116,38 +115,11 @@ KOKKOSKERNELS_ADD_EXECUTABLE(
         SOURCES KokkosSparse_mdf.cpp
 )
 
-if (KokkosKernels_ENABLE_BENCHMARK)
-  KOKKOSKERNELS_ADD_BENCHMARK(
-    sparse_par_ilut
-    SOURCES KokkosSparse_par_ilut.cpp
-  )
-
-  # Provide -DGinkgo_DIR to cmake to enable the ginkgo test in sparse_par_ilut. Ginkgo_DIR should
-  # point to the dir in the ginkgo install area that contains the GinkgoConfig.cmake file.
-  # For me, this was $gingko_install_dir/lib64/cmake/Ginkgo
-  if (Ginkgo_DIR)
-    find_package(Ginkgo REQUIRED)
-
-    target_compile_definitions(KokkosKernels_sparse_par_ilut PRIVATE "USE_GINKGO")
-    target_link_libraries(KokkosKernels_sparse_par_ilut PRIVATE Ginkgo::ginkgo)
-  endif()
-
-  KOKKOSKERNELS_ADD_BENCHMARK(
-    sparse_spmv_benchmark SOURCES KokkosSparse_spmv_benchmark.cpp
-  )
-
-  KOKKOSKERNELS_ADD_BENCHMARK(
-    sparse_spmv_bsr_benchmark SOURCES KokkosSparse_spmv_bsr_benchmark.cpp
-  )
-
-  # hipcc 5.2 has an underlying clang that has the std::filesystem
-  # in an experimental namespace and a different library
-  if (Kokkos_CXX_COMPILER_ID STREQUAL HIPCC AND Kokkos_CXX_COMPILER_VERSION VERSION_LESS 5.3)
-    target_link_libraries(KokkosKernels_sparse_spmv_bsr_benchmark PRIVATE -lstdc++fs)
-  endif()
-  # IntelLLVM < 2023.1.0 (and possible higher versions too) have an underlying clang that has the std::filesystem
-  # in an experimental namespace and a different library
-  if (Kokkos_CXX_COMPILER_ID STREQUAL IntelLLVM AND Kokkos_CXX_COMPILER_VERSION VERSION_LESS_EQUAL 2023.1.0)
-    target_link_libraries(KokkosKernels_sparse_spmv_bsr_benchmark PRIVATE -lstdc++fs)
-  endif()
-endif()
+# For the sake of build times, don't build this CRS sorting perf test by default.
+# It can be enabled if needed by setting -DKokkosKernels_ENABLE_SORT_CRS_PERFTEST=ON.
+if (KokkosKernels_ENABLE_SORT_CRS_PERFTEST)
+  KOKKOSKERNELS_ADD_EXECUTABLE(
+    sparse_sort_crs
+    SOURCES KokkosSparse_sort_crs.cpp
+)
+endif ()

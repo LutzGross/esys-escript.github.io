@@ -13,8 +13,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //@HEADER
-#ifndef __KOKKOSBATCHED_QR_DECL_HPP__
-#define __KOKKOSBATCHED_QR_DECL_HPP__
+#ifndef KOKKOSBATCHED_QR_DECL_HPP
+#define KOKKOSBATCHED_QR_DECL_HPP
 
 /// \author Kyungjoo Kim (kyukim@sandia.gov)
 
@@ -29,9 +29,7 @@ namespace KokkosBatched {
 template <typename ArgAlgo>
 struct SerialQR {
   template <typename AViewType, typename tViewType, typename wViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(const AViewType &A,
-                                           const tViewType &t,
-                                           const wViewType &w);
+  KOKKOS_INLINE_FUNCTION static int invoke(const AViewType &A, const tViewType &t, const wViewType &w);
 };
 
 ///
@@ -41,10 +39,8 @@ struct SerialQR {
 template <typename MemberType, typename ArgAlgo>
 struct TeamQR {
   template <typename AViewType, typename tViewType, typename wViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType & /*member*/,
-                                           const AViewType & /*A*/,
-                                           const tViewType & /*t*/,
-                                           const wViewType & /*w*/) {
+  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType & /*member*/, const AViewType & /*A*/,
+                                           const tViewType & /*t*/, const wViewType & /*w*/) {
     /// not implemented
     return -1;
   }
@@ -57,9 +53,7 @@ struct TeamQR {
 template <typename MemberType, typename ArgAlgo>
 struct TeamVectorQR {
   template <typename AViewType, typename tViewType, typename wViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member,
-                                           const AViewType &A,
-                                           const tViewType &t,
+  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member, const AViewType &A, const tViewType &t,
                                            const wViewType &w);
 };
 
@@ -69,16 +63,14 @@ struct TeamVectorQR {
 template <typename MemberType, typename ArgMode, typename ArgAlgo>
 struct QR {
   template <typename AViewType, typename tViewType, typename wViewType>
-  KOKKOS_FORCEINLINE_FUNCTION static int invoke(const MemberType &member,
-                                                const AViewType &A,
-                                                const tViewType &t,
+  KOKKOS_FORCEINLINE_FUNCTION static int invoke(const MemberType &member, const AViewType &A, const tViewType &t,
                                                 const wViewType &w) {
     int r_val = 0;
-    if (std::is_same<ArgMode, Mode::Serial>::value) {
+    if constexpr (std::is_same_v<ArgMode, Mode::Serial>) {
       r_val = SerialQR<ArgAlgo>::invoke(A, t, w);
-    } else if (std::is_same<ArgMode, Mode::Team>::value) {
+    } else if constexpr (std::is_same_v<ArgMode, Mode::Team>) {
       r_val = TeamQR<MemberType, ArgAlgo>::invoke(member, A, t, w);
-    } else if (std::is_same<ArgMode, Mode::TeamVector>::value) {
+    } else if constexpr (std::is_same_v<ArgMode, Mode::TeamVector>) {
       r_val = TeamVectorQR<MemberType, ArgAlgo>::invoke(member, A, t, w);
     }
     return r_val;

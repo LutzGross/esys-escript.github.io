@@ -27,8 +27,10 @@ __url__="https://launchpad.net/escript-finley"
 import os, re, sys
 try:
     import sysconfig
+    USE_DISTUTILS = False
 except ImportError:
     from distutils import sysconfig
+    USE_DISTUTILS = True
 from subprocess import PIPE, Popen
 from SCons.Script.SConscript import Configure
 from site_init import findLibWithHeader, detectModule
@@ -136,7 +138,10 @@ def call_python_config(bin=None):
     cmd+='import subprocess\n'
     cmd+='import os\n'
     cmd+='import sys\n'
-    cmd+='from distutils import sysconfig\n'
+    if USE_DISTUTILS:
+        cmd+='from distutils import sysconfig\n'
+    else:
+        cmd += 'import sysconfig\n'
     cmd+='pyversion=sysconfig.get_python_version()\n'
     cmd+='try:\n'
     cmd+='  sp=subprocess.Popen(["python"+pyversion+"-config","--ldflags"], stdout=subprocess.PIPE)\n'
@@ -174,7 +179,10 @@ def call_python_config(bin=None):
     if bin is None:
        exec(cmd)
        ver=str(sys.version_info[0])+'.'+str(sys.version_info[1])+'.'+str(sys.version_info[2])
-       return (target,libname,ver, sysconfig.get_python_inc())
+       if USE_DISTUTILS:
+           return (target,libname,ver, sysconfig.get_python_inc())
+       else:
+           return (target, libname, ver, sysconfig.get_path('include'))
     # run an external python to get its library location
     # yes we are starting another python just to run python?-config
     cmd+="if hasattr(target,'decode'):\n"
@@ -184,7 +192,10 @@ def call_python_config(bin=None):
     cmd+="print(libname)\n"
     cmd+="import sys\n"
     cmd+="print(str(sys.version_info[0])+'.'+str(sys.version_info[1])+'.'+str(sys.version_info[2]))\n"
-    cmd+="print(sysconfig.get_python_inc())\n"
+    if USE_DISTUTILS:
+        cmd += "print(sysconfig.get_python_inc())\n"
+    else:
+        cmd += "print(sysconfig.get_path('include'))\n"
     sp=subprocess.Popen([bin, '-c', cmd], stdin=None, stderr=None, stdout=subprocess.PIPE)
     target = sp.stdout.readline()
     libname = sp.stdout.readline()
@@ -204,7 +215,10 @@ def checkPython(env):
     # Use the python scons is running
     if env['pythoncmd'] == sys.executable:
         if env['IS_WINDOWS']:
-            python_inc_path=sysconfig.get_python_inc()
+            if USE_DISTUTILS:
+                python_inc_path = sysconfig.get_python_inc()
+            else:
+                python_inc_path = sysconfig.get_path('include')
             python_lib_path=os.path.join(sysconfig.get_config_var('prefix'), 'libs')
             python_libs=['python%s%s'%(sys.version_info[0], sys.version_info[1])]
             verstring=".".join([str(i) for i in sys.version_info[:3]])
@@ -216,7 +230,10 @@ def checkPython(env):
     else:
         if env['IS_WINDOWS']:
             cmd = "import os, sys\n"
-            cmd += "from distutils import sysconfig\n"
+            if USE_DISTUTILS:
+                cmd += 'from distutils import sysconfig\n'
+            else:
+                cmd += 'import sysconfig\n'
             cmd += "print(sysconfig.get_python_inc())\n"
             cmd += "print(os.path.join(sysconfig.get_config_var('prefix'), 'libs'))\n"
             cmd += "print('python%s%s'%(sys.version_info[0], sys.version_info[1]))\n"
@@ -386,8 +403,21 @@ def checkNumpy(env):
         else:
             conf.env['CPPPATH'] = cpp_path_old
     else:
+        cpp_path_old = conf.env.get('CPPPATH', []).copy()
         if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
             numpy_h = True
+        else:
+            conf.env.Append(CPPPATH=['/usr/lib/x86_64-linux-gnu/python3-numpy/numpy/_core/include'])
+            if conf.CheckCXXHeader(['Python.h', 'numpy/ndarrayobject.h']):
+                numpy_h = True
+            else:
+                pypth = env['pythoncmd'][:env['pythoncmd'].index('bin')-1]
+                conf.env.Append(CPPPATH=[
+                    f'{pypth}/lib/python{env["python_version"][:env["python_version"].find(".",2)]}/site-packages/numpy/_core/include'])
+                if conf.CheckCXXHeader(['Python.h', 'numpy/ndarrayobject.h']):
+                    numpy_h = True
+                else:
+                    conf.env['CPPPATH'] = cpp_path_old
     conf.env['numpy_h'] = numpy_h
     if numpy_h:
         conf.env.Append(CPPDEFINES = ['ESYS_HAVE_NUMPY_H'])

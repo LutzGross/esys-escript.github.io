@@ -25,14 +25,15 @@
 namespace KokkosKernels {
 namespace Impl {
 
-CusparseSingleton::CusparseSingleton() {
-  KOKKOS_CUSPARSE_SAFE_CALL(cusparseCreate(&cusparseHandle));
+CusparseSingleton::CusparseSingleton() { KOKKOSSPARSE_IMPL_CUSPARSE_SAFE_CALL(cusparseCreate(&cusparseHandle)); }
+CusparseSingleton::~CusparseSingleton() { KOKKOSSPARSE_IMPL_CUSPARSE_SAFE_CALL(cusparseDestroy(cusparseHandle)); }
 
-  Kokkos::push_finalize_hook([&]() { cusparseDestroy(cusparseHandle); });
-}
+CusparseSingleton& CusparseSingleton::singleton() { return get_instance().get(); }
 
-CusparseSingleton& CusparseSingleton::singleton() {
-  static CusparseSingleton s;
+bool CusparseSingleton::is_initialized() { return get_instance().is_initialized(); }
+
+KokkosKernels::Impl::Singleton<CusparseSingleton>& CusparseSingleton::get_instance() {
+  static KokkosKernels::Impl::Singleton<CusparseSingleton> s;
   return s;
 }
 
@@ -47,15 +48,19 @@ namespace KokkosKernels {
 namespace Impl {
 
 RocsparseSingleton::RocsparseSingleton() {
-  KOKKOS_ROCSPARSE_SAFE_CALL_IMPL(rocsparse_create_handle(&rocsparseHandle));
-
-  Kokkos::push_finalize_hook([&]() {
-    KOKKOS_ROCSPARSE_SAFE_CALL_IMPL(rocsparse_destroy_handle(rocsparseHandle));
-  });
+  KOKKOSSPARSE_IMPL_ROCSPARSE_SAFE_CALL(rocsparse_create_handle(&rocsparseHandle));
 }
 
-RocsparseSingleton& RocsparseSingleton::singleton() {
-  static RocsparseSingleton s;
+RocsparseSingleton::~RocsparseSingleton() {
+  KOKKOSSPARSE_IMPL_ROCSPARSE_SAFE_CALL(rocsparse_destroy_handle(rocsparseHandle));
+}
+
+RocsparseSingleton& RocsparseSingleton::singleton() { return get_instance().get(); }
+
+bool RocsparseSingleton::is_initialized() { return get_instance().is_initialized(); }
+
+KokkosKernels::Impl::Singleton<RocsparseSingleton>& RocsparseSingleton::get_instance() {
+  static KokkosKernels::Impl::Singleton<RocsparseSingleton> s;
   return s;
 }
 

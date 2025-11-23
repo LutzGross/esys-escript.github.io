@@ -42,6 +42,12 @@ ELSE()
     FetchContent_MakeAvailable(googlebenchmark)
     LIST(POP_BACK CMAKE_MESSAGE_INDENT)
 
+    # remove the CXX_CLANG_TIDY property from google benchmark
+    # when we're running clang-tidy we don't care if google benchmark passes or not
+    SET_PROPERTY(TARGET benchmark PROPERTY CXX_CLANG_TIDY "")
+    SET_PROPERTY(TARGET benchmark_main PROPERTY CXX_CLANG_TIDY "")
+
+    # disable warnings for google benchmark
     TARGET_COMPILE_OPTIONS(benchmark PRIVATE -w)
     TARGET_COMPILE_OPTIONS(benchmark_main PRIVATE -w)
 ENDIF()
@@ -96,4 +102,10 @@ FUNCTION(KOKKOSKERNELS_ADD_BENCHMARK NAME)
         NAME ${BENCHMARK_NAME}
         COMMAND ${BENCHMARK_NAME} ${BENCHMARK_ARGS}
     )
+
+    SET_PROPERTY(TEST ${BENCHMARK_NAME} PROPERTY LABELS Benchmark)
+
+    IF(NOT KokkosKernels_RUN_BENCHMARKS)
+        SET_PROPERTY(TEST ${BENCHMARK_NAME} PROPERTY DISABLED TRUE)
+    ENDIF()
 ENDFUNCTION()

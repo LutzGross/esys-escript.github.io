@@ -31,36 +31,31 @@ namespace KokkosLapack {
 namespace Impl {
 
 template <class RViewType, class AViewType>
-void SerialTrtri_Invoke(const RViewType &R, const char uplo[],
-                        const char diag[], const AViewType &A) {
+void SerialTrtri_Invoke(const RViewType &R, const char uplo[], const char diag[], const AViewType &A) {
   using KokkosBatched::Algo;
   using KokkosBatched::Diag;
   using KokkosBatched::SerialTrtriInternalLower;
   using KokkosBatched::SerialTrtriInternalUpper;
 
-  char __uplo = tolower(uplo[0]), __diag = tolower(diag[0]);
+  char _uplo = tolower(uplo[0]), _diag = tolower(diag[0]);
 
   //// Lower ////
-  if (__uplo == 'l') {
-    if (__diag == 'u') {
-      R() = SerialTrtriInternalLower<Algo::Trtri::Unblocked>::invoke(
-          Diag::Unit::use_unit_diag, A.extent(0), A.extent(1), A.data(),
-          A.stride(0), A.stride(1));
+  if (_uplo == 'l') {
+    if (_diag == 'u') {
+      R() = SerialTrtriInternalLower<Algo::Trtri::Unblocked>::invoke(Diag::Unit::use_unit_diag, A.extent(0),
+                                                                     A.extent(1), A.data(), A.stride(0), A.stride(1));
     } else {
-      R() = SerialTrtriInternalLower<Algo::Trtri::Unblocked>::invoke(
-          Diag::NonUnit::use_unit_diag, A.extent(0), A.extent(1), A.data(),
-          A.stride(0), A.stride(1));
+      R() = SerialTrtriInternalLower<Algo::Trtri::Unblocked>::invoke(Diag::NonUnit::use_unit_diag, A.extent(0),
+                                                                     A.extent(1), A.data(), A.stride(0), A.stride(1));
     }
   } else {
     //// Upper ////
-    if (__diag == 'u') {
-      R() = SerialTrtriInternalUpper<Algo::Trtri::Unblocked>::invoke(
-          Diag::Unit::use_unit_diag, A.extent(0), A.extent(1), A.data(),
-          A.stride(0), A.stride(1));
+    if (_diag == 'u') {
+      R() = SerialTrtriInternalUpper<Algo::Trtri::Unblocked>::invoke(Diag::Unit::use_unit_diag, A.extent(0),
+                                                                     A.extent(1), A.data(), A.stride(0), A.stride(1));
     } else {
-      R() = SerialTrtriInternalUpper<Algo::Trtri::Unblocked>::invoke(
-          Diag::NonUnit::use_unit_diag, A.extent(0), A.extent(1), A.data(),
-          A.stride(0), A.stride(1));
+      R() = SerialTrtriInternalUpper<Algo::Trtri::Unblocked>::invoke(Diag::NonUnit::use_unit_diag, A.extent(0),
+                                                                     A.extent(1), A.data(), A.stride(0), A.stride(1));
     }
   }
 }

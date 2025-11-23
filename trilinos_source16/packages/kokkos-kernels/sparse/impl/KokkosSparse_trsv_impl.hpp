@@ -33,19 +33,16 @@ namespace KokkosSparse {
 namespace Impl {
 namespace Sequential {
 
-template <class CrsMatrixType, class DomainMultiVectorType,
-          class RangeMultiVectorType>
+template <class CrsMatrixType, class DomainMultiVectorType, class RangeMultiVectorType>
 struct TrsvWrap {
-  using offset_type =
-      typename CrsMatrixType::row_map_type::non_const_value_type;
-  using lno_t    = typename CrsMatrixType::index_type::non_const_value_type;
-  using scalar_t = typename CrsMatrixType::values_type::non_const_value_type;
-  using device_t = typename CrsMatrixType::device_type;
-  using sview_1d = typename Kokkos::View<scalar_t*, device_t>;
-  using STS      = Kokkos::ArithTraits<scalar_t>;
+  using offset_type = typename CrsMatrixType::row_map_type::non_const_value_type;
+  using lno_t       = typename CrsMatrixType::index_type::non_const_value_type;
+  using scalar_t    = typename CrsMatrixType::values_type::non_const_value_type;
+  using device_t    = typename CrsMatrixType::device_type;
+  using sview_1d    = typename Kokkos::View<scalar_t*, device_t>;
+  using STS         = Kokkos::ArithTraits<scalar_t>;
 
-  static inline void manual_copy(RangeMultiVectorType X,
-                                 DomainMultiVectorType Y) {
+  static inline void manual_copy(RangeMultiVectorType X, DomainMultiVectorType Y) {
     auto numRows = X.extent(0);
     auto numVecs = X.extent(1);
     for (decltype(numRows) i = 0; i < numRows; ++i) {
@@ -57,8 +54,7 @@ struct TrsvWrap {
 
   struct CommonUnblocked {
     CommonUnblocked(const lno_t block_size) {
-      KK_REQUIRE_MSG(block_size == 1,
-                     "Tried to use block_size>1 for non-block-enabled Common");
+      KK_REQUIRE_MSG(block_size == 1, "Tried to use block_size>1 for non-block-enabled Common");
     }
 
     scalar_t zero() { return STS::zero(); }
@@ -70,14 +66,13 @@ struct TrsvWrap {
 
     void pluseq(scalar_t& lhs, const scalar_t& rhs) { lhs += rhs; }
 
-    void gemv(RangeMultiVectorType X, const scalar_t& A, const lno_t r,
-              const lno_t c, const lno_t j, const char = 'N') {
+    void gemv(RangeMultiVectorType X, const scalar_t& A, const lno_t r, const lno_t c, const lno_t j,
+              const char = 'N') {
       X(r, j) -= A * X(c, j);
     }
 
     template <bool IsLower, bool Transpose = false>
-    void divide(RangeMultiVectorType X, const scalar_t& A, const lno_t r,
-                const lno_t j) {
+    void divide(RangeMultiVectorType X, const scalar_t& A, const lno_t r, const lno_t j) {
       X(r, j) /= A;
     }
   };
@@ -86,20 +81,17 @@ struct TrsvWrap {
     // BSR data is in LayoutRight!
     using Layout = Kokkos::LayoutRight;
 
-    using UBlock = Kokkos::View<
-        scalar_t**, Layout, typename CrsMatrixType::device_type,
-        Kokkos::MemoryTraits<Kokkos::Unmanaged | Kokkos::RandomAccess> >;
+    using UBlock = Kokkos::View<scalar_t**, Layout, typename CrsMatrixType::device_type,
+                                Kokkos::MemoryTraits<Kokkos::Unmanaged | Kokkos::RandomAccess> >;
 
-    using Block =
-        Kokkos::View<scalar_t**, Layout, typename CrsMatrixType::device_type,
-                     Kokkos::MemoryTraits<Kokkos::RandomAccess> >;
+    using Block = Kokkos::View<scalar_t**, Layout, typename CrsMatrixType::device_type,
+                               Kokkos::MemoryTraits<Kokkos::RandomAccess> >;
 
-    using Vector = Kokkos::View<scalar_t*, typename CrsMatrixType::device_type,
-                                Kokkos::MemoryTraits<Kokkos::RandomAccess> >;
+    using Vector =
+        Kokkos::View<scalar_t*, typename CrsMatrixType::device_type, Kokkos::MemoryTraits<Kokkos::RandomAccess> >;
 
-    using UVector = Kokkos::View<
-        scalar_t*, typename CrsMatrixType::device_type,
-        Kokkos::MemoryTraits<Kokkos::Unmanaged | Kokkos::RandomAccess> >;
+    using UVector = Kokkos::View<scalar_t*, typename CrsMatrixType::device_type,
+                                 Kokkos::MemoryTraits<Kokkos::Unmanaged | Kokkos::RandomAccess> >;
 
     lno_t m_block_size;
     lno_t m_block_items;
@@ -135,12 +127,10 @@ struct TrsvWrap {
       return rv;
     }
 
-    void pluseq(UBlock& lhs, const UBlock& rhs) {
-      KokkosBatched::SerialAxpy::invoke(m_ones, rhs, lhs);
-    }
+    void pluseq(UBlock& lhs, const UBlock& rhs) { KokkosBatched::SerialAxpy::invoke(m_ones, rhs, lhs); }
 
-    void gemv(RangeMultiVectorType X, const UBlock& A, const lno_t r,
-              const lno_t c, const lno_t j, const char transpose = 'N') {
+    void gemv(RangeMultiVectorType X, const UBlock& A, const lno_t r, const lno_t c, const lno_t j,
+              const char transpose = 'N') {
       // Create and populate x and y
       UVector x(m_vec_data1.data(), m_block_size);
       UVector y(m_vec_data2.data(), m_block_size);
@@ -157,8 +147,7 @@ struct TrsvWrap {
     }
 
     template <bool IsLower, bool Transpose = false>
-    void divide(RangeMultiVectorType X, const UBlock& A, const lno_t r,
-                const lno_t j) {
+    void divide(RangeMultiVectorType X, const UBlock& A, const lno_t r, const lno_t j) {
       UVector x(m_vec_data1.data(), m_block_size);
       UVector y(m_vec_data2.data(), m_block_size);
       for (lno_t b = 0; b < m_block_size; ++b) {
@@ -177,13 +166,10 @@ struct TrsvWrap {
     }
   };
 
-  using CommonOps = std::conditional_t<
-      KokkosSparse::Experimental::is_bsr_matrix<CrsMatrixType>::value,
-      CommonBlocked, CommonUnblocked>;
+  using CommonOps = std::conditional_t<KokkosSparse::Experimental::is_bsr_matrix<CrsMatrixType>::value, CommonBlocked,
+                                       CommonUnblocked>;
 
-  static void lowerTriSolveCsrUnitDiag(RangeMultiVectorType X,
-                                       const CrsMatrixType& A,
-                                       DomainMultiVectorType Y) {
+  static void lowerTriSolveCsrUnitDiag(RangeMultiVectorType X, const CrsMatrixType& A, DomainMultiVectorType Y) {
     const lno_t numRows = A.numRows();
     if (numRows == 0) return;
 
@@ -211,8 +197,7 @@ struct TrsvWrap {
     }    // for each row r
   }
 
-  static void lowerTriSolveCsr(RangeMultiVectorType X, const CrsMatrixType& A,
-                               DomainMultiVectorType Y) {
+  static void lowerTriSolveCsr(RangeMultiVectorType X, const CrsMatrixType& A, DomainMultiVectorType Y) {
     const lno_t numRows = A.numRows();
     if (numRows == 0) return;
 
@@ -255,9 +240,7 @@ struct TrsvWrap {
     }  // for each row r
   }
 
-  static void upperTriSolveCsrUnitDiag(RangeMultiVectorType X,
-                                       const CrsMatrixType& A,
-                                       DomainMultiVectorType Y) {
+  static void upperTriSolveCsrUnitDiag(RangeMultiVectorType X, const CrsMatrixType& A, DomainMultiVectorType Y) {
     const lno_t numRows = A.numRows();
     if (numRows == 0) return;
 
@@ -278,10 +261,8 @@ struct TrsvWrap {
       return;
     }
 
-    // Don't use r >= 0 as the test, because that fails if
-    // lno_t is unsigned.  We do r == 0 (last
-    // iteration) below.
-    for (lno_t r = numRows - 1; r != 0; --r) {
+    // Iterate backwards with care due to potentially unsigned type
+    for (lno_t r = numRows - 1; r != static_cast<lno_t>(-1); --r) {
       const offset_type beg = ptr(r);
       const offset_type end = ptr(r + 1);
       for (offset_type k = beg; k < end; ++k) {
@@ -292,24 +273,9 @@ struct TrsvWrap {
         }
       }  // for each entry A_rc in the current row r
     }    // for each row r
-
-    // Last iteration: r = 0.
-    {
-      const lno_t r         = 0;
-      const offset_type beg = ptr(r);
-      const offset_type end = ptr(r + 1);
-      for (offset_type k = beg; k < end; ++k) {
-        const scalar_t A_rc = val(k);
-        const lno_t c       = ind(k);
-        for (lno_t j = 0; j < numVecs; ++j) {
-          X(r, j) -= A_rc * X(c, j);
-        }
-      }  // for each entry A_rc in the current row r
-    }    // last iteration: r = 0
   }
 
-  static void upperTriSolveCsr(RangeMultiVectorType X, const CrsMatrixType& A,
-                               DomainMultiVectorType Y) {
+  static void upperTriSolveCsr(RangeMultiVectorType X, const CrsMatrixType& A, DomainMultiVectorType Y) {
     const lno_t numRows = A.numRows();
     if (numRows == 0) return;
 
@@ -330,10 +296,8 @@ struct TrsvWrap {
       return;
     }
 
-    // Don't use r >= 0 as the test, because that fails if
-    // lno_t is unsigned.  We do r == 0 (last
-    // iteration) below.
-    for (lno_t r = numRows - 1; r != 0; --r) {
+    // Iterate backwards with care due to potentially unsigned type
+    for (lno_t r = numRows - 1; r != static_cast<lno_t>(-1); --r) {
       const offset_type beg = ptr(r);
       const offset_type end = ptr(r + 1);
       auto A_rr             = co.zero();
@@ -352,33 +316,9 @@ struct TrsvWrap {
         co.template divide<false>(X, A_rr, r, j);
       }
     }  // for each row r
-
-    // Last iteration: r = 0.
-    {
-      const lno_t r         = 0;
-      const offset_type beg = ptr(r);
-      const offset_type end = ptr(r + 1);
-      auto A_rr             = co.zero();
-      for (offset_type k = beg; k < end; ++k) {
-        const auto A_rc = co.get(val, k);
-        const lno_t c   = ind(k);
-        if (r == c) {
-          co.pluseq(A_rr, A_rc);
-        } else {
-          for (lno_t j = 0; j < numVecs; ++j) {
-            co.gemv(X, A_rc, r, c, j);
-          }
-        }
-      }  // for each entry A_rc in the current row r
-      for (lno_t j = 0; j < numVecs; ++j) {
-        co.template divide<false>(X, A_rr, r, j);
-      }
-    }  // last iteration: r = 0
   }
 
-  static void upperTriSolveCscUnitDiag(RangeMultiVectorType X,
-                                       const CrsMatrixType& A,
-                                       DomainMultiVectorType Y) {
+  static void upperTriSolveCscUnitDiag(RangeMultiVectorType X, const CrsMatrixType& A, DomainMultiVectorType Y) {
     const lno_t numRows = A.numRows();
     if (numRows == 0) return;
 
@@ -400,10 +340,8 @@ struct TrsvWrap {
       return;
     }
 
-    // Don't use c >= 0 as the test, because that fails if
-    // lno_t is unsigned.  We do c == 0 (last
-    // iteration) below.
-    for (lno_t c = numCols - 1; c != 0; --c) {
+    // Iterate backwards with care due to potentially unsigned type
+    for (lno_t c = numCols - 1; c != static_cast<lno_t>(-1); --c) {
       const offset_type beg = ptr(c);
       const offset_type end = ptr(c + 1);
       for (offset_type k = beg; k < end; ++k) {
@@ -414,24 +352,9 @@ struct TrsvWrap {
         }
       }  // for each entry A_rc in the current column c
     }    // for each column c
-
-    // Last iteration: c = 0.
-    {
-      const lno_t c         = 0;
-      const offset_type beg = ptr(c);
-      const offset_type end = ptr(c + 1);
-      for (offset_type k = beg; k < end; ++k) {
-        const scalar_t A_rc = val(k);
-        const lno_t r       = ind(k);
-        for (lno_t j = 0; j < numVecs; ++j) {
-          X(r, j) -= A_rc * X(c, j);
-        }
-      }  // for each entry A_rc in the current column c
-    }
   }
 
-  static void upperTriSolveCsc(RangeMultiVectorType X, const CrsMatrixType& A,
-                               DomainMultiVectorType Y) {
+  static void upperTriSolveCsc(RangeMultiVectorType X, const CrsMatrixType& A, DomainMultiVectorType Y) {
     const lno_t numRows = A.numRows();
     if (numRows == 0) return;
 
@@ -453,13 +376,11 @@ struct TrsvWrap {
       return;
     }
 
-    // Don't use c >= 0 as the test, because that fails if
-    // lno_t is unsigned.  We do c == 0 (last
-    // iteration) below.
-    for (lno_t c = numCols - 1; c != 0; --c) {
+    // Iterate backwards with care due to potentially unsigned type
+    for (lno_t c = numCols - 1; c != static_cast<lno_t>(-1); --c) {
       const offset_type beg = ptr(c);
       const offset_type end = ptr(c + 1);
-      for (offset_type k = end - 1; k >= beg; --k) {
+      for (offset_type k = end - 1; k != beg - 1; --k) {
         const lno_t r   = ind(k);
         const auto A_rc = val(k);
         /*(vqd 20 Jul 2020) This assumes that the diagonal entry
@@ -475,24 +396,9 @@ struct TrsvWrap {
         }
       }  // for each entry A_rc in the current column c
     }    // for each column c
-
-    // Last iteration: c = 0.
-    {
-      const offset_type beg = ptr(0);
-      const auto A_rc       = val(beg);
-      /*(vqd 20 Jul 2020) This assumes that the diagonal entry
-        has equal local row and column indices.  That may not
-        necessarily hold, depending on the row and column Maps.  See
-        note above.*/
-      for (lno_t j = 0; j < numVecs; ++j) {
-        X(0, j) = X(0, j) / A_rc;
-      }
-    }
   }
 
-  static void lowerTriSolveCscUnitDiag(RangeMultiVectorType X,
-                                       const CrsMatrixType& A,
-                                       DomainMultiVectorType Y) {
+  static void lowerTriSolveCscUnitDiag(RangeMultiVectorType X, const CrsMatrixType& A, DomainMultiVectorType Y) {
     const lno_t numRows = A.numRows();
     if (numRows == 0) return;
 
@@ -521,9 +427,7 @@ struct TrsvWrap {
     }    // for each column c
   }
 
-  static void upperTriSolveCscUnitDiagConj(RangeMultiVectorType X,
-                                           const CrsMatrixType& A,
-                                           DomainMultiVectorType Y) {
+  static void upperTriSolveCscUnitDiagConj(RangeMultiVectorType X, const CrsMatrixType& A, DomainMultiVectorType Y) {
     const lno_t numRows = A.numRows();
     if (numRows == 0) return;
 
@@ -545,10 +449,8 @@ struct TrsvWrap {
       return;
     }
 
-    // Don't use c >= 0 as the test, because that fails if
-    // lno_t is unsigned.  We do c == 0 (last
-    // iteration) below.
-    for (lno_t c = numCols - 1; c != 0; --c) {
+    // Iterate backwards with care due to potentially unsigned type
+    for (lno_t c = numCols - 1; c != static_cast<lno_t>(-1); --c) {
       const offset_type beg = ptr(c);
       const offset_type end = ptr(c + 1);
       for (offset_type k = beg; k < end; ++k) {
@@ -559,25 +461,9 @@ struct TrsvWrap {
         }
       }  // for each entry A_rc in the current column c
     }    // for each column c
-
-    // Last iteration: c = 0.
-    {
-      const lno_t c         = 0;
-      const offset_type beg = ptr(c);
-      const offset_type end = ptr(c + 1);
-      for (offset_type k = beg; k < end; ++k) {
-        const lno_t r       = ind(k);
-        const scalar_t A_rc = STS::conj(val(k));
-        for (lno_t j = 0; j < numVecs; ++j) {
-          X(r, j) -= A_rc * X(c, j);
-        }
-      }  // for each entry A_rc in the current column c
-    }
   }
 
-  static void upperTriSolveCscConj(RangeMultiVectorType X,
-                                   const CrsMatrixType& A,
-                                   DomainMultiVectorType Y) {
+  static void upperTriSolveCscConj(RangeMultiVectorType X, const CrsMatrixType& A, DomainMultiVectorType Y) {
     const lno_t numRows = A.numRows();
     if (numRows == 0) return;
 
@@ -599,13 +485,11 @@ struct TrsvWrap {
       return;
     }
 
-    // Don't use c >= 0 as the test, because that fails if
-    // lno_t is unsigned.  We do c == 0 (last
-    // iteration) below.
-    for (lno_t c = numCols - 1; c != 0; --c) {
+    // Iterate backwards with care due to potentially unsigned type
+    for (lno_t c = numCols - 1; c != static_cast<lno_t>(-1); --c) {
       const offset_type beg = ptr(c);
       const offset_type end = ptr(c + 1);
-      for (offset_type k = end - 1; k >= beg; --k) {
+      for (offset_type k = end - 1; k != beg - 1; --k) {
         const lno_t r       = ind(k);
         const scalar_t A_rc = STS::conj(val(k));
         /*(vqd 20 Jul 2020) This assumes that the diagonal entry
@@ -621,23 +505,9 @@ struct TrsvWrap {
         }
       }  // for each entry A_rc in the current column c
     }    // for each column c
-
-    // Last iteration: c = 0.
-    {
-      const offset_type beg = ptr(0);
-      const scalar_t A_rc   = STS::conj(val(beg));
-      /*(vqd 20 Jul 2020) This assumes that the diagonal entry
-        has equal local row and column indices.  That may not
-        necessarily hold, depending on the row and column Maps.  See
-        note above.*/
-      for (lno_t j = 0; j < numVecs; ++j) {
-        X(0, j) = X(0, j) / A_rc;
-      }
-    }
   }
 
-  static void lowerTriSolveCsc(RangeMultiVectorType X, const CrsMatrixType& A,
-                               DomainMultiVectorType Y) {
+  static void lowerTriSolveCsc(RangeMultiVectorType X, const CrsMatrixType& A, DomainMultiVectorType Y) {
     const lno_t numRows = A.numRows();
     if (numRows == 0) return;
 
@@ -674,9 +544,7 @@ struct TrsvWrap {
     }    // for each column c
   }
 
-  static void lowerTriSolveCscUnitDiagConj(RangeMultiVectorType X,
-                                           const CrsMatrixType& A,
-                                           DomainMultiVectorType Y) {
+  static void lowerTriSolveCscUnitDiagConj(RangeMultiVectorType X, const CrsMatrixType& A, DomainMultiVectorType Y) {
     const lno_t numRows = A.numRows();
     if (numRows == 0) return;
 
@@ -705,9 +573,7 @@ struct TrsvWrap {
     }    // for each column c
   }
 
-  static void lowerTriSolveCscConj(RangeMultiVectorType X,
-                                   const CrsMatrixType& A,
-                                   DomainMultiVectorType Y) {
+  static void lowerTriSolveCscConj(RangeMultiVectorType X, const CrsMatrixType& A, DomainMultiVectorType Y) {
     const lno_t numRows = A.numRows();
     if (numRows == 0) return;
 

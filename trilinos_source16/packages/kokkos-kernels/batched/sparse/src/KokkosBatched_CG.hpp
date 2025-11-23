@@ -13,8 +13,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //@HEADER
-#ifndef __KOKKOSBATCHED_CG_HPP__
-#define __KOKKOSBATCHED_CG_HPP__
+#ifndef KOKKOSBATCHED_CG_HPP
+#define KOKKOSBATCHED_CG_HPP
 
 /// \author Kim Liegeois (knliege@sandia.gov)
 
@@ -42,22 +42,14 @@ namespace KokkosBatched {
 
 template <typename MemberType, typename ArgMode>
 struct CG {
-  template <typename OperatorType, typename VectorViewType,
-            typename KrylovHandleType>
-  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member,
-                                           const OperatorType &A,
-                                           const VectorViewType &B,
-                                           const VectorViewType &X,
-                                           const KrylovHandleType &handle) {
+  template <typename OperatorType, typename VectorViewType, typename KrylovHandleType>
+  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member, const OperatorType &A, const VectorViewType &B,
+                                           const VectorViewType &X, const KrylovHandleType &handle) {
     int status = 0;
     if (std::is_same<ArgMode, Mode::Team>::value) {
-      status =
-          TeamCG<MemberType>::template invoke<OperatorType, VectorViewType>(
-              member, A, B, X, handle);
+      status = TeamCG<MemberType>::template invoke<OperatorType, VectorViewType>(member, A, B, X, handle);
     } else if (std::is_same<ArgMode, Mode::TeamVector>::value) {
-      status = TeamVectorCG<MemberType>::template invoke<OperatorType,
-                                                         VectorViewType>(
-          member, A, B, X, handle);
+      status = TeamVectorCG<MemberType>::template invoke<OperatorType, VectorViewType>(member, A, B, X, handle);
     }
     return status;
   }

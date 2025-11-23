@@ -13,8 +13,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //@HEADER
-#ifndef __KOKKOSBATCHED_XPAY_HPP__
-#define __KOKKOSBATCHED_XPAY_HPP__
+#ifndef KOKKOSBATCHED_XPAY_HPP
+#define KOKKOSBATCHED_XPAY_HPP
 
 /// \author Kim Liegeois (knliege@sandia.gov)
 
@@ -44,9 +44,7 @@ namespace KokkosBatched {
 
 struct SerialXpay {
   template <typename ViewType, typename alphaViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(const alphaViewType &alpha,
-                                           const ViewType &X,
-                                           const ViewType &Y);
+  KOKKOS_INLINE_FUNCTION static int invoke(const alphaViewType &alpha, const ViewType &X, const ViewType &Y);
 };
 
 /// \brief Team Batched XPAY:
@@ -72,9 +70,7 @@ struct SerialXpay {
 template <typename MemberType>
 struct TeamXpay {
   template <typename ViewType, typename alphaViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member,
-                                           const alphaViewType &alpha,
-                                           const ViewType &X,
+  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member, const alphaViewType &alpha, const ViewType &X,
                                            const ViewType &Y);
 };
 
@@ -102,9 +98,7 @@ struct TeamXpay {
 template <typename MemberType>
 struct TeamVectorXpay {
   template <typename ViewType, typename alphaViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member,
-                                           const alphaViewType &alpha,
-                                           const ViewType &X,
+  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member, const alphaViewType &alpha, const ViewType &X,
                                            const ViewType &Y);
 };
 

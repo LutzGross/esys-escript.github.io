@@ -14,6 +14,7 @@ Dependencies are
 - scons
 - cmake
 - python3-numpy
+- python3-matplotlib
 - boost-python
 - boost-random
 - boost-iostreams
@@ -92,7 +93,7 @@ These instructions have been tested on Debian 6.
 
 As a preliminary step, you need to install the dependencies that *esys-escript* requires from the distribution repository:
 
-    sudo apt-get install python3-dev python3-numpy 
+    sudo apt-get install python3-dev python3-numpy python3-matplotlib
     sudo apt-get install g++ scons cmake 
     sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
     sudo apt-get install libhdf5-serial-dev libsilo-dev libsuitesparse-dev
@@ -108,7 +109,7 @@ These instructions have been tested on Ubuntu 24.
 
 You should instead install the following packages:
 
-    sudo apt-get install python3-dev python3-numpy
+    sudo apt-get install python3-dev python3-numpy python3-matplotlib
     sudo apt-get install g++ scons cmake 
     sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
     sudo apt-get install libhdf5-serial-dev libsilo-dev libsuitesparse-dev

@@ -7,6 +7,9 @@
 KOKKOSKERNELS_INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/test_common)
 KOKKOSKERNELS_INCLUDE_DIRECTORIES(REQUIRED_DURING_INSTALLATION_TESTING ${PACKAGE_SOURCE_DIR}/test_common)
 
+KOKKOSKERNELS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+KOKKOSKERNELS_INCLUDE_DIRECTORIES(REQUIRED_DURING_INSTALLATION_TESTING ${CMAKE_CURRENT_SOURCE_DIR})
+
 #####################
 #                   #
 # Define unit-tests #
@@ -95,3 +98,17 @@ IF (KOKKOS_ENABLE_THREADS)
   )
 ENDIF ()
 
+# Add eager_initialize test, which is not backend-specific
+KOKKOSKERNELS_ADD_UNIT_TEST(
+  common_eager_initialize
+  SOURCES Test_Common_EagerInitialize.cpp
+  COMPONENTS common
+)
+
+# Testing singletons with atexit(Kokkos::finalize)
+# which is also not backend specific
+KOKKOSKERNELS_ADD_UNIT_TEST(
+  common_atexit_finalize
+  SOURCES Test_Common_atexit_finalize.cpp
+  COMPONENTS common
+)

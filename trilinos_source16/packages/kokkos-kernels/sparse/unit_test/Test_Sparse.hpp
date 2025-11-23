@@ -38,10 +38,13 @@
 #include "Test_Sparse_gmres.hpp"
 #include "Test_Sparse_Transpose.hpp"
 #include "Test_Sparse_TestUtils_RandCsMat.hpp"
+#include "Test_Sparse_IOUtils.hpp"
 #include "Test_Sparse_ccs2crs.hpp"
 #include "Test_Sparse_crs2ccs.hpp"
 #include "Test_Sparse_removeCrsMatrixZeros.hpp"
 #include "Test_Sparse_extractCrsDiagonalBlocks.hpp"
+#include "Test_Sparse_extractCrsDiagonalBlocksRCB.hpp"
+#include "Test_Sparse_StaticCrsGraph.hpp"
 
 // TPL specific tests, these require
 // particular pairs of backend and TPL

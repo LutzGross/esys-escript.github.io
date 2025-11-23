@@ -14,12 +14,36 @@
 //
 //@HEADER
 
-#ifndef KOKKOS_BLAS_UTIL_HPP
-#define KOKKOS_BLAS_UTIL_HPP
+#ifndef KOKKOSBLAS_UTIL_HPP
+#define KOKKOSBLAS_UTIL_HPP
 
 #include "Kokkos_ArithTraits.hpp"
 
 namespace KokkosBlas {
+namespace Impl {
+struct OpID {
+  template <typename ValueType>
+  KOKKOS_INLINE_FUNCTION ValueType operator()(ValueType v) const {
+    return v;
+  }
+};
+
+struct OpConj {
+  template <typename ValueType>
+  KOKKOS_INLINE_FUNCTION ValueType operator()(ValueType v) const {
+    using KAT = Kokkos::ArithTraits<ValueType>;
+    return KAT::conj(v);
+  }
+};
+
+struct OpReal {
+  template <typename ValueType>
+  KOKKOS_INLINE_FUNCTION typename Kokkos::ArithTraits<ValueType>::mag_type operator()(ValueType v) const {
+    using KAT = Kokkos::ArithTraits<ValueType>;
+    return KAT::real(v);
+  }
+};
+}  // namespace Impl
 
 //////// Tags for BLAS ////////
 
@@ -35,11 +59,41 @@ struct Mode {
   };
 };
 
+template <class T>
+struct is_mode : std::false_type {};
+
+template <>
+struct is_mode<Mode::Serial> : std::true_type {};
+
+template <>
+struct is_mode<Mode::Team> : std::true_type {};
+
+template <>
+struct is_mode<Mode::TeamVector> : std::true_type {};
+
+template <class T>
+static constexpr bool is_mode_v = is_mode<T>::value;
+
 struct Trans {
   struct Transpose {};
   struct NoTranspose {};
   struct ConjTranspose {};
 };
+
+template <class T>
+struct is_trans : std::false_type {};
+
+template <>
+struct is_trans<Trans::Transpose> : std::true_type {};
+
+template <>
+struct is_trans<Trans::NoTranspose> : std::true_type {};
+
+template <>
+struct is_trans<Trans::ConjTranspose> : std::true_type {};
+
+template <class T>
+static constexpr bool is_trans_v = is_trans<T>::value;
 
 struct Algo {
   struct Level3 {
@@ -85,6 +139,12 @@ struct Algo {
   using SolveLU   = Level3;
   using QR        = Level3;
   using UTV       = Level3;
+  using Pttrf     = Level3;
+  using Pttrs     = Level3;
+  using Getrf     = Level3;
+  using Getrs     = Level3;
+  using Gbtrf     = Level3;
+  using Gbtrs     = Level3;
 
   struct Level2 {
     struct Unblocked {};
@@ -116,7 +176,28 @@ struct Algo {
   using Gemv   = Level2;
   using Trsv   = Level2;
   using ApplyQ = Level2;
+  using Tbsv   = Level2;
+  using Pbtrf  = Level2;
+  using Pbtrs  = Level2;
 };
+
+template <class T>
+struct is_level2 : std::false_type {};
+
+template <>
+struct is_level2<Algo::Level2::Unblocked> : std::true_type {};
+
+template <>
+struct is_level2<Algo::Level2::Blocked> : std::true_type {};
+
+template <>
+struct is_level2<Algo::Level2::MKL> : std::true_type {};
+
+template <>
+struct is_level2<Algo::Level2::CompactMKL> : std::true_type {};
+
+template <class T>
+static constexpr bool is_level2_v = is_level2<T>::value;
 
 namespace Impl {
 
@@ -133,12 +214,9 @@ namespace Impl {
 // Output params:
 //  * teamsPerReduction: number of teams to use for each reduction
 template <typename ExecSpace, typename size_type>
-void multipleReductionWorkDistribution(size_type length,
-                                       size_type numReductions,
-                                       size_type &teamsPerDot) {
-  constexpr size_type workPerTeam = 4096;  // Amount of work per team
-  size_type appxNumTeams =
-      (length * numReductions) / workPerTeam;  // Estimation for appxNumTeams
+void multipleReductionWorkDistribution(size_type length, size_type numReductions, size_type &teamsPerDot) {
+  constexpr size_type workPerTeam = 4096;                                    // Amount of work per team
+  size_type appxNumTeams          = (length * numReductions) / workPerTeam;  // Estimation for appxNumTeams
 
   // Adjust appxNumTeams in case it is too small or too large
   if (appxNumTeams < 1) appxNumTeams = 1;
@@ -175,4 +253,4 @@ struct TakeSqrtFunctor {
 }  // namespace Impl
 }  // namespace KokkosBlas
 
-#endif
+#endif  // KOKKOSBLAS_UTIL_HPP

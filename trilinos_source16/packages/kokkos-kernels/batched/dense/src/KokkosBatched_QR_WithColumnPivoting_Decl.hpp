@@ -13,8 +13,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //@HEADER
-#ifndef __KOKKOSBATCHED_QR_WITH_COLUMNPIVOTING_DECL_HPP__
-#define __KOKKOSBATCHED_QR_WITH_COLUMNPIVOTING_DECL_HPP__
+#ifndef KOKKOSBATCHED_QR_WITH_COLUMNPIVOTING_DECL_HPP
+#define KOKKOSBATCHED_QR_WITH_COLUMNPIVOTING_DECL_HPP
 
 /// \author Kyungjoo Kim (kyukim@sandia.gov)
 
@@ -28,13 +28,9 @@ namespace KokkosBatched {
 
 template <typename MemberType, typename ArgAlgo>
 struct TeamVectorQR_WithColumnPivoting {
-  template <typename AViewType, typename tViewType, typename pViewType,
-            typename wViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member,
-                                           const AViewType &A,
-                                           const tViewType &t,
-                                           const pViewType &p,
-                                           const wViewType &w,
+  template <typename AViewType, typename tViewType, typename pViewType, typename wViewType>
+  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member, const AViewType &A, const tViewType &t,
+                                           const pViewType &p, const wViewType &w,
                                            /* */ int &matrix_rank);
 };
 

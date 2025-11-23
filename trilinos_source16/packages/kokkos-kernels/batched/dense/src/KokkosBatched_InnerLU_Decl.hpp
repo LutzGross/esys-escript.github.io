@@ -13,8 +13,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //@HEADER
-#ifndef __KOKKOSBATCHED_INNER_LU_DECL_HPP__
-#define __KOKKOSBATCHED_INNER_LU_DECL_HPP__
+#ifndef KOKKOSBATCHED_INNER_LU_DECL_HPP
+#define KOKKOSBATCHED_INNER_LU_DECL_HPP
 
 /// \author Kyungjoo Kim (kyukim@sandia.gov)
 
@@ -33,13 +33,11 @@ struct InnerLU {
 
   // for remainder square
   template <typename ValueType>
-  KOKKOS_INLINE_FUNCTION int serial_invoke(const int m,
-                                           ValueType *KOKKOS_RESTRICT A);
+  KOKKOS_INLINE_FUNCTION int serial_invoke(const int m, ValueType *KOKKOS_RESTRICT A);
 
   // for remainder
   template <typename ValueType>
-  KOKKOS_INLINE_FUNCTION int serial_invoke(const int m, const int n,
-                                           ValueType *KOKKOS_RESTRICT A);
+  KOKKOS_INLINE_FUNCTION int serial_invoke(const int m, const int n, ValueType *KOKKOS_RESTRICT A);
 };
 }  // namespace KokkosBatched
 

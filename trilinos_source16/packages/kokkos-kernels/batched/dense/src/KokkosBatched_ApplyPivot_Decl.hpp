@@ -13,8 +13,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //@HEADER
-#ifndef __KOKKOSBATCHED_APPLY_PIVOT_DECL_HPP__
-#define __KOKKOSBATCHED_APPLY_PIVOT_DECL_HPP__
+#ifndef KOKKOSBATCHED_APPLY_PIVOT_DECL_HPP
+#define KOKKOSBATCHED_APPLY_PIVOT_DECL_HPP
 
 /// \author Kyungjoo Kim (kyukim@sandia.gov)
 
@@ -28,13 +28,10 @@ namespace KokkosBatched {
 template <typename MemberType, typename ArgSide, typename ArgDirect>
 struct TeamVectorApplyPivot {
   template <typename AViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member,
-                                           const int piv, const AViewType &A);
+  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member, const int piv, const AViewType &A);
 
   template <typename PivViewType, typename AViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member,
-                                           const PivViewType piv,
-                                           const AViewType &A);
+  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member, const PivViewType piv, const AViewType &A);
 };
 
 }  // namespace KokkosBatched

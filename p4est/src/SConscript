@@ -199,7 +199,10 @@ headers = """
     sc_warp.h
 """.split()
 
+env.Append( CPPDEFINES = ['SC_WITH_BLAS'])
 local_env = env.Clone()
+
+
 # collect dependencies for other modules
 p4estlibs = []
 if env['lapack']:
@@ -223,7 +226,9 @@ else:
 build = env.Alias('build_p4est', [hdr_inst, lib])
 env.Alias('install_p4est', ['build_p4est', lib_inst])
 
+
 import os
-local_env.PrependUnique(CPPPATH = os.path.abspath(os.getcwd()))
-local_env.PrependUnique(CPPPATH = os.path.abspath(os.path.join(os.getcwd(),"iniparser")))
-local_env.PrependUnique(CPPPATH = os.path.abspath(os.path.join(os.getcwd(),"libb64")))
+local_env.PrependUnique(CPPPATH = [ os.path.abspath(os.getcwd()) ] )
+local_env.PrependUnique(CPPPATH = [ os.path.abspath(os.path.join(os.getcwd(),"iniparser")) ] )
+local_env.PrependUnique(CPPPATH = [ os.path.abspath(os.path.join(os.getcwd(),"libb64")) ] )
+print(local_env['CPPDEFINES' ])

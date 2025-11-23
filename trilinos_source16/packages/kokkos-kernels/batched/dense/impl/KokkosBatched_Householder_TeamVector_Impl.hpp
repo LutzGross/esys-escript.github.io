@@ -13,8 +13,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //@HEADER
-#ifndef __KOKKOSBATCHED_HOUSEHOLDER_TEAMVECTOR_IMPL_HPP__
-#define __KOKKOSBATCHED_HOUSEHOLDER_TEAMVECTOR_IMPL_HPP__
+#ifndef KOKKOSBATCHED_HOUSEHOLDER_TEAMVECTOR_IMPL_HPP
+#define KOKKOSBATCHED_HOUSEHOLDER_TEAMVECTOR_IMPL_HPP
 
 /// \author Kyungjoo Kim (kyukim@sandia.gov)
 
@@ -29,11 +29,10 @@ namespace KokkosBatched {
 
 template <typename MemberType>
 template <typename aViewType, typename tauViewType>
-KOKKOS_INLINE_FUNCTION int TeamVectorHouseholder<Side::Left>::invoke(
-    const MemberType &member, const aViewType &a, const tauViewType &tau) {
-  return TeamVectorLeftHouseholderInternal::invoke(
-      member, a.extent(0) - 1, a.data(), a.data() + a.stride(0), a.stride(0),
-      tau.data());
+KOKKOS_INLINE_FUNCTION int TeamVectorHouseholder<Side::Left>::invoke(const MemberType &member, const aViewType &a,
+                                                                     const tauViewType &tau) {
+  return TeamVectorLeftHouseholderInternal::invoke(member, a.extent(0) - 1, a.data(), a.data() + a.stride(0),
+                                                   a.stride(0), tau.data());
 }
 
 }  // namespace KokkosBatched

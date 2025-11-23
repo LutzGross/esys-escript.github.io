@@ -13,8 +13,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //@HEADER
-#ifndef __KOKKOSBATCHED_EIGENDECOMPOSITION_DECL_HPP__
-#define __KOKKOSBATCHED_EIGENDECOMPOSITION_DECL_HPP__
+#ifndef KOKKOSBATCHED_EIGENDECOMPOSITION_DECL_HPP
+#define KOKKOSBATCHED_EIGENDECOMPOSITION_DECL_HPP
 
 /// \author Kyungjoo Kim (kyukim@sandia.gov)
 
@@ -49,21 +49,17 @@ namespace KokkosBatched {
 ///     dimension of matrix A.
 
 struct SerialEigendecomposition {
-  template <typename AViewType, typename EViewType, typename UViewType,
-            typename WViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(
-      const AViewType &A, const EViewType &er, const EViewType &ei,
-      const UViewType &UL, const UViewType &UR, const WViewType &W);
+  template <typename AViewType, typename EViewType, typename UViewType, typename WViewType>
+  KOKKOS_INLINE_FUNCTION static int invoke(const AViewType &A, const EViewType &er, const EViewType &ei,
+                                           const UViewType &UL, const UViewType &UR, const WViewType &W);
 };
 
 template <typename MemberType>
 struct TeamVectorEigendecomposition {
-  template <typename AViewType, typename EViewType, typename UViewType,
-            typename WViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(
-      const MemberType &member, const AViewType &A, const EViewType &er,
-      const EViewType &ei, const UViewType &UL, const UViewType &UR,
-      const WViewType &W);
+  template <typename AViewType, typename EViewType, typename UViewType, typename WViewType>
+  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member, const AViewType &A, const EViewType &er,
+                                           const EViewType &ei, const UViewType &UL, const UViewType &UR,
+                                           const WViewType &W);
 };
 
 }  // namespace KokkosBatched

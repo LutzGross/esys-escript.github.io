@@ -13,8 +13,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //@HEADER
-#ifndef __KOKKOSBATCHED_HOUSEHOLDER_DECL_HPP__
-#define __KOKKOSBATCHED_HOUSEHOLDER_DECL_HPP__
+#ifndef KOKKOSBATCHED_HOUSEHOLDER_DECL_HPP
+#define KOKKOSBATCHED_HOUSEHOLDER_DECL_HPP
 
 /// \author Kyungjoo Kim (kyukim@sandia.gov)
 
@@ -30,8 +30,7 @@ namespace KokkosBatched {
 template <typename ArgSide>
 struct SerialHouseholder {
   template <typename aViewType, typename tauViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(const aViewType &a,
-                                           const tauViewType &tau);
+  KOKKOS_INLINE_FUNCTION static int invoke(const aViewType &a, const tauViewType &tau);
 };
 
 ///
@@ -42,9 +41,7 @@ struct SerialHouseholder {
 template <typename MemberType, typename ArgSide>
 struct TeamVectorHouseholder {
   template <typename MemberType, typename aViewType, typename tauViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member,
-                                           const aViewType &a,
-                                           const tauViewType &tau);
+  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member, const aViewType &a, const tauViewType &tau);
 };
 
 }  // namespace KokkosBatched

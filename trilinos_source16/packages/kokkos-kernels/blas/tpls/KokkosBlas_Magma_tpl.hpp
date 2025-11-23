@@ -25,12 +25,16 @@ namespace Impl {
 MagmaSingleton::MagmaSingleton() {
   magma_int_t stat = magma_init();
   if (stat != MAGMA_SUCCESS) Kokkos::abort("MAGMA initialization failed\n");
-
-  Kokkos::push_finalize_hook([&]() { magma_finalize(); });
 }
 
-MagmaSingleton& MagmaSingleton::singleton() {
-  static MagmaSingleton s;
+MagmaSingleton::~MagmaSingleton() { magma_finalize(); }
+
+MagmaSingleton& MagmaSingleton::singleton() { return get_instance().get(); }
+
+bool MagmaSingleton::is_initialized() { return get_instance().is_initialized(); }
+
+KokkosKernels::Impl::Singleton<MagmaSingleton>& MagmaSingleton::get_instance() {
+  static KokkosKernels::Impl::Singleton<MagmaSingleton> s;
   return s;
 }
 

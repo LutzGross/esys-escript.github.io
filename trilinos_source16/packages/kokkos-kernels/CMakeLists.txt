@@ -10,8 +10,8 @@ SET(KOKKOSKERNELS_TOP_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR})
 SET(KOKKOSKERNELS_TOP_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 SET(KokkosKernels_VERSION_MAJOR 4)
-SET(KokkosKernels_VERSION_MINOR 3)
-SET(KokkosKernels_VERSION_PATCH 1)
+SET(KokkosKernels_VERSION_MINOR 7)
+SET(KokkosKernels_VERSION_PATCH 01)
 SET(KokkosKernels_VERSION "${KokkosKernels_VERSION_MAJOR}.${KokkosKernels_VERSION_MINOR}.${KokkosKernels_VERSION_PATCH}")
 
 #Set variables for config file
@@ -32,7 +32,7 @@ IF(NOT KOKKOSKERNELS_HAS_TRILINOS)
     ENDIF()
   ENDIF()
   IF(NOT DEFINED ${PROJECT_NAME})
-    PROJECT(KokkosKernels CXX)
+    PROJECT(KokkosKernels VERSION ${KokkosKernels_VERSION} LANGUAGES CXX)
   ENDIF()
 ENDIF()
 
@@ -86,10 +86,21 @@ IF (NOT KOKKOSKERNELS_HAS_TRILINOS)
     include_directories(tpls/rajaperf/src)
     set(KokkosKernels_ENABLE_PERFTESTS ON CACHE BOOL "Whether to build tests including Perfsuite. Default: OFF" FORCE)
   ENDIF()
-  IF(KokkosKernels_ENABLE_BENCHMARK)
-    SET(KOKKOSKERNELS_ENABLE_BENCHMARK ON CACHE BOOL "Benchmark enabled")
+  KOKKOSKERNELS_ADD_OPTION(
+          "ENABLE_BENCHMARKS"
+          OFF
+          BOOL
+          "Whether to build benchmarks. Default: OFF"
+  )
+  IF(KokkosKernels_ENABLE_BENCHMARKS)
     INCLUDE(cmake/kokkoskernels_benchmarks.cmake)
   ENDIF()
+  KOKKOSKERNELS_ADD_OPTION(
+          "RUN_BENCHMARKS"
+          OFF
+          BOOL
+          "Whether to run benchmarks. Default: OFF"
+  )
 ENDIF ()
 
 KOKKOSKERNELS_ADD_OPTION(
@@ -127,13 +138,22 @@ ELSE()
   IF (NOT KOKKOSKERNELS_HAS_TRILINOS AND NOT KOKKOSKERNELS_HAS_PARENT)
     # This is a standalone build
     FIND_PACKAGE(Kokkos REQUIRED)
-    IF((${Kokkos_VERSION} VERSION_GREATER_EQUAL "4.1.0") AND (${Kokkos_VERSION} VERSION_LESS_EQUAL "4.3.1"))
+    IF(Kokkos_COMPILE_LANGUAGE)
+      ENABLE_LANGUAGE(${Kokkos_COMPILE_LANGUAGE})
+      IF(Kokkos_COMPILE_LANGUAGE STREQUAL CUDA)
+        SET(CMAKE_CUDA_ARCHITECTURES ${Kokkos_CUDA_ARCHITECTURES})
+      ENDIF()
+      IF(Kokkos_COMPILE_LANGUAGE STREQUAL HIP)
+        SET(CMAKE_HIP_ARCHITECTURES ${Kokkos_HIP_ARCHITECTURES})
+      ENDIF()
+    ENDIF()
+    IF(${Kokkos_VERSION} VERSION_GREATER_EQUAL "4.6.01")
       MESSAGE(STATUS "Found Kokkos version ${Kokkos_VERSION} at ${Kokkos_DIR}")
-      IF((${Kokkos_VERSION} VERSION_GREATER "4.3.99"))
+      IF((${Kokkos_VERSION} VERSION_GREATER "4.7.99"))
         MESSAGE(WARNING "Configuring with Kokkos ${Kokkos_VERSION} which is newer than the expected develop branch - version check may need update")
       ENDIF()
     ELSE()
-      MESSAGE(FATAL_ERROR "Kokkos Kernels ${KokkosKernels_VERSION} requires Kokkos_VERSION 4.1.0, 4.2.0, 4.2.1, 4.3.0, or 4.3.1")
+      MESSAGE(FATAL_ERROR "Kokkos Kernels ${KokkosKernels_VERSION} requires Kokkos 4.6.01 or greater (found ${Kokkos_VERSION})")
     ENDIF()
   ENDIF()
 
@@ -338,7 +358,6 @@ ELSE()
   IF (KOKKOSKERNELS_HAS_TRILINOS)
     #no linking commands required - tribits does this
   ELSE()
-    ADD_LIBRARY(Kokkos::kokkoskernels ALIAS kokkoskernels)
     # Address kokkos/kokkos-kernels#1749
     ADD_LIBRARY(KokkosKernels::kokkoskernels ALIAS kokkoskernels)
     # all_libs target is required for TriBITS-compliance
@@ -350,7 +369,7 @@ ELSE()
     TARGET_INCLUDE_DIRECTORIES(kokkoskernels PUBLIC
       $<INSTALL_INTERFACE:${KOKKOSKERNELS_HEADER_INSTALL_DIR}>)
 
-    IF(KokkosKernels_ENABLE_BENCHMARK)
+    IF(KokkosKernels_ENABLE_BENCHMARKS)
       INCLUDE(cmake/kokkoskernels_version_info.cmake)
       check_version_info()
     ENDIF()
@@ -440,6 +459,10 @@ ELSE()
       MESSAGE(STATUS "Enabling examples.")
       KOKKOSKERNELS_ADD_EXAMPLE_DIRECTORIES(example)
     ENDIF ()
+    IF(KokkosKernels_ENABLE_BENCHMARKS)
+      MESSAGE(STATUS "Enabling benchmarks.")
+      add_subdirectory(benchmarks)
+    ENDIF()
   ELSE ()
     # all components were not enabled, so perftests and examples can't be enabled.
     # Warn if they were requested.

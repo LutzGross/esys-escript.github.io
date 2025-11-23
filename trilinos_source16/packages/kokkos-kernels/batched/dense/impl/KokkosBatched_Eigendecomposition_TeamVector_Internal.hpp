@@ -13,8 +13,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //@HEADER
-#ifndef __KOKKOSBATCHED_EIGENDECOMPOSITION_TEAMVECTOR_INTERNAL_HPP__
-#define __KOKKOSBATCHED_EIGENDECOMPOSITION_TEAMVECTOR_INTERNAL_HPP__
+#ifndef KOKKOSBATCHED_EIGENDECOMPOSITION_TEAMVECTOR_INTERNAL_HPP
+#define KOKKOSBATCHED_EIGENDECOMPOSITION_TEAMVECTOR_INTERNAL_HPP
 
 /// \author Kyungjoo Kim (kyukim@sandia.gov)
 
@@ -40,11 +40,11 @@ namespace KokkosBatched {
 
 struct TeamVectorEigendecompositionInternal {
   template <typename MemberType, typename RealType>
-  KOKKOS_INLINE_FUNCTION static int device_invoke(
-      const MemberType &member, const int m, RealType *A, const int as0,
-      const int as1, RealType *er, const int ers, RealType *ei, const int eis,
-      RealType *UL, const int uls0, const int uls1, RealType *UR,
-      const int urs0, const int urs1, RealType *w, const int wlen) {
+  KOKKOS_INLINE_FUNCTION static int device_invoke(const MemberType &member, const int m, RealType *A, const int as0,
+                                                  const int as1, RealType *er, const int ers, RealType *ei,
+                                                  const int eis, RealType *UL, const int uls0, const int uls1,
+                                                  RealType *UR, const int urs0, const int urs1, RealType *w,
+                                                  const int wlen) {
     /// not yet implemented
     return 0;
   }
@@ -74,13 +74,11 @@ struct TeamVectorEigendecompositionInternal {
   ///   [out]w, [in]wlen
   ///     Workspace
   template <typename MemberType, typename RealType>
-  KOKKOS_INLINE_FUNCTION static int invoke(
-      const MemberType &member, const int m, RealType *A, const int as0,
-      const int as1, RealType *er, const int ers, RealType *ei, const int eis,
-      RealType *UL, const int uls0, const int uls1, RealType *UR,
-      const int urs0, const int urs1, RealType *w, const int wlen) {
-    static_assert(false,
-                  "TeamVector eigendecomposition is not implemented yet.");
+  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member, const int m, RealType *A, const int as0,
+                                           const int as1, RealType *er, const int ers, RealType *ei, const int eis,
+                                           RealType *UL, const int uls0, const int uls1, RealType *UR, const int urs0,
+                                           const int urs1, RealType *w, const int wlen) {
+    static_assert(false, "TeamVector eigendecomposition is not implemented yet.");
     /*
     // DO NOT USE
     //

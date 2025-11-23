@@ -13,6 +13,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //@HEADER
+
 #ifndef KOKKOSBLAS_CUDA_TPL_HPP_
 #define KOKKOSBLAS_CUDA_TPL_HPP_
 
@@ -24,14 +25,17 @@ namespace Impl {
 
 CudaBlasSingleton::CudaBlasSingleton() {
   cublasStatus_t stat = cublasCreate(&handle);
-  if (stat != CUBLAS_STATUS_SUCCESS)
-    Kokkos::abort("CUBLAS initialization failed\n");
-
-  Kokkos::push_finalize_hook([&]() { cublasDestroy(handle); });
+  if (stat != CUBLAS_STATUS_SUCCESS) Kokkos::abort("CUBLAS initialization failed\n");
 }
 
-CudaBlasSingleton& CudaBlasSingleton::singleton() {
-  static CudaBlasSingleton s;
+CudaBlasSingleton::~CudaBlasSingleton() { cublasDestroy(handle); }
+
+CudaBlasSingleton& CudaBlasSingleton::singleton() { return get_instance().get(); }
+
+bool CudaBlasSingleton::is_initialized() { return get_instance().is_initialized(); }
+
+KokkosKernels::Impl::Singleton<CudaBlasSingleton>& CudaBlasSingleton::get_instance() {
+  static KokkosKernels::Impl::Singleton<CudaBlasSingleton> s;
   return s;
 }
 

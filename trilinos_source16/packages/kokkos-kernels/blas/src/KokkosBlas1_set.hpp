@@ -27,10 +27,11 @@ namespace KokkosBlas {
 
 struct SerialSet {
   template <typename ScalarType, typename AViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(const ScalarType alpha,
-                                           const AViewType &A) {
-    return Impl::SerialSetInternal::invoke(
-        A.extent(0), A.extent(1), alpha, A.data(), A.stride_0(), A.stride_1());
+  KOKKOS_INLINE_FUNCTION static int invoke(const ScalarType alpha, const AViewType &A) {
+    if constexpr (AViewType::rank() == 1)
+      return Impl::SerialSetInternal::invoke(A.extent(0), alpha, A.data(), A.stride(0));
+    else
+      return Impl::SerialSetInternal::invoke(A.extent(0), A.extent(1), alpha, A.data(), A.stride(0), A.stride(1));
   }
 };
 
@@ -41,12 +42,11 @@ struct SerialSet {
 template <typename MemberType>
 struct TeamSet {
   template <typename ScalarType, typename AViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member,
-                                           const ScalarType alpha,
-                                           const AViewType &A) {
-    return Impl::TeamSetInternal::invoke(member, A.extent(0), A.extent(1),
-                                         alpha, A.data(), A.stride_0(),
-                                         A.stride_1());
+  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member, const ScalarType alpha, const AViewType &A) {
+    if constexpr (AViewType::rank() == 1)
+      return Impl::TeamSetInternal::invoke(member, A.extent(0), alpha, A.data(), A.stride(0));
+    else
+      return Impl::TeamSetInternal::invoke(member, A.extent(0), A.extent(1), alpha, A.data(), A.stride(0), A.stride(1));
   }
 };
 
@@ -57,12 +57,12 @@ struct TeamSet {
 template <typename MemberType>
 struct TeamVectorSet {
   template <typename ScalarType, typename AViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member,
-                                           const ScalarType alpha,
-                                           const AViewType &A) {
-    return Impl::TeamVectorSetInternal::invoke(member, A.extent(0), A.extent(1),
-                                               alpha, A.data(), A.stride_0(),
-                                               A.stride_1());
+  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member, const ScalarType alpha, const AViewType &A) {
+    if constexpr (AViewType::rank() == 1)
+      return Impl::TeamVectorSetInternal::invoke(member, A.extent(0), alpha, A.data(), A.stride(0));
+    else
+      return Impl::TeamVectorSetInternal::invoke(member, A.extent(0), A.extent(1), alpha, A.data(), A.stride(0),
+                                                 A.stride(1));
   }
 };
 

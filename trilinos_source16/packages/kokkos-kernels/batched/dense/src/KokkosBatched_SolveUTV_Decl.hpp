@@ -13,8 +13,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //@HEADER
-#ifndef __KOKKOSBATCHED_SOLVE_UTV_DECL_HPP__
-#define __KOKKOSBATCHED_SOLVE_UTV_DECL_HPP__
+#ifndef KOKKOSBATCHED_SOLVE_UTV_DECL_HPP
+#define KOKKOSBATCHED_SOLVE_UTV_DECL_HPP
 
 /// \author Kyungjoo Kim (kyukim@sandia.gov)
 
@@ -46,13 +46,11 @@ namespace KokkosBatched {
 
 template <typename MemberType, typename ArgAlgo>
 struct TeamVectorSolveUTV {
-  template <typename UViewType, typename TViewType, typename VViewType,
-            typename pViewType, typename XViewType, typename BViewType,
-            typename wViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(
-      const MemberType &member, const int matrix_rank, const UViewType &U,
-      const TViewType &T, const VViewType &V, const pViewType &p,
-      const XViewType &X, const BViewType &B, const wViewType &w);
+  template <typename UViewType, typename TViewType, typename VViewType, typename pViewType, typename XViewType,
+            typename BViewType, typename wViewType>
+  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member, const int matrix_rank, const UViewType &U,
+                                           const TViewType &T, const VViewType &V, const pViewType &p,
+                                           const XViewType &X, const BViewType &B, const wViewType &w);
 };
 
 }  // namespace KokkosBatched

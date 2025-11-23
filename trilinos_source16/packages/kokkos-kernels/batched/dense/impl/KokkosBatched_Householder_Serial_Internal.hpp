@@ -13,8 +13,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //@HEADER
-#ifndef __KOKKOSBATCHED_HOUSEHOLDER_SERIAL_INTERNAL_HPP__
-#define __KOKKOSBATCHED_HOUSEHOLDER_SERIAL_INTERNAL_HPP__
+#ifndef KOKKOSBATCHED_HOUSEHOLDER_SERIAL_INTERNAL_HPP
+#define KOKKOSBATCHED_HOUSEHOLDER_SERIAL_INTERNAL_HPP
 
 /// \author Kyungjoo Kim (kyukim@sandia.gov)
 
@@ -46,7 +46,7 @@ struct SerialLeftHouseholderInternal {
     mag_type norm_x2_square(0);
     for (int i = 0; i < m_x2; ++i) {
       const auto x2_at_i = x2[i * x2s];
-      norm_x2_square += x2_at_i * x2_at_i;
+      norm_x2_square += Kokkos::abs(x2_at_i) * Kokkos::abs(x2_at_i);
     }
 
     /// if norm_x2 is zero, return with trivial values
@@ -61,11 +61,10 @@ struct SerialLeftHouseholderInternal {
     const mag_type norm_chi1 = Kokkos::ArithTraits<value_type>::abs(*chi1);
 
     /// compute 2 norm of x using norm_chi1 and norm_x2
-    const mag_type norm_x = Kokkos::ArithTraits<mag_type>::sqrt(
-        norm_x2_square + norm_chi1 * norm_chi1);
+    const mag_type norm_x = Kokkos::ArithTraits<mag_type>::sqrt(norm_x2_square + norm_chi1 * norm_chi1);
 
     /// compute alpha
-    const mag_type alpha = (*chi1 < 0 ? one : minus_one) * norm_x;
+    const mag_type alpha = (*chi1 < Kokkos::ArithTraits<value_type>::zero() ? one : minus_one) * norm_x;
 
     /// overwrite x2 with u2
     const value_type chi1_minus_alpha     = *chi1 - alpha;
@@ -76,9 +75,8 @@ struct SerialLeftHouseholderInternal {
     // SerialScaleInternal::invoke(m_x2, inv_chi1_minus_alpha, x2, x2s);
 
     /// compute tau
-    const mag_type chi1_minus_alpha_square =
-        chi1_minus_alpha * chi1_minus_alpha;
-    *tau = half + half * (norm_x2_square / chi1_minus_alpha_square);
+    const mag_type chi1_minus_alpha_square = Kokkos::abs(chi1_minus_alpha) * Kokkos::abs(chi1_minus_alpha);
+    *tau                                   = half + half * (norm_x2_square / chi1_minus_alpha_square);
 
     /// overwrite chi1 with alpha
     *chi1 = alpha;

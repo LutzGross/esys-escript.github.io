@@ -13,8 +13,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //@HEADER
-#ifndef __KOKKOSBATCHED_JACOBIPREC_HPP__
-#define __KOKKOSBATCHED_JACOBIPREC_HPP__
+#ifndef KOKKOSBATCHED_JACOBIPREC_HPP
+#define KOKKOSBATCHED_JACOBIPREC_HPP
 
 /// \author Kim Liegeois (knliege@sandia.gov)
 
@@ -68,58 +68,45 @@ class JacobiPrec {
         }
     } else if (std::is_same<ArgMode, Mode::Team>::value) {
       auto diag_values_array = diag_values.data();
-      auto vs0               = diag_values.stride_0();
-      auto vs1               = diag_values.stride_1();
+      auto vs0               = diag_values.stride(0);
+      auto vs1               = diag_values.stride(1);
 
       Kokkos::parallel_reduce(
           Kokkos::TeamThreadRange(member, 0, n_operators * n_rows),
           [&](const int &iTemp, int &ltooSmall) {
             int i, j;
-            getIndices<int, typename ValuesViewType::array_layout>(
-                iTemp, n_rows, n_operators, j, i);
-            if (Kokkos::abs<ScalarType>(diag_values_array[i * vs0 + j * vs1]) <=
-                epsilon) {
+            getIndices<int, typename ValuesViewType::array_layout>(iTemp, n_rows, n_operators, j, i);
+            if (Kokkos::abs<ScalarType>(diag_values_array[i * vs0 + j * vs1]) <= epsilon) {
               ltooSmall++;
               diag_values_array[i * vs0 + j * vs1] = one;
             } else
-              diag_values_array[i * vs0 + j * vs1] =
-                  one / diag_values_array[i * vs0 + j * vs1];
+              diag_values_array[i * vs0 + j * vs1] = one / diag_values_array[i * vs0 + j * vs1];
           },
           tooSmall);
     } else if (std::is_same<ArgMode, Mode::TeamVector>::value) {
       auto diag_values_array = diag_values.data();
-      auto vs0               = diag_values.stride_0();
-      auto vs1               = diag_values.stride_1();
+      auto vs0               = diag_values.stride(0);
+      auto vs1               = diag_values.stride(1);
 
       Kokkos::parallel_reduce(
           Kokkos::TeamVectorRange(member, 0, n_operators * n_rows),
           [&](const int &iTemp, int &ltooSmall) {
             int i, j;
-            getIndices<int, typename ValuesViewType::array_layout>(
-                iTemp, n_rows, n_operators, j, i);
-            if (Kokkos::abs<ScalarType>(diag_values_array[i * vs0 + j * vs1]) <=
-                epsilon) {
+            getIndices<int, typename ValuesViewType::array_layout>(iTemp, n_rows, n_operators, j, i);
+            if (Kokkos::abs<ScalarType>(diag_values_array[i * vs0 + j * vs1]) <= epsilon) {
               ltooSmall++;
               diag_values_array[i * vs0 + j * vs1] = one;
             } else
-              diag_values_array[i * vs0 + j * vs1] =
-                  one / diag_values_array[i * vs0 + j * vs1];
+              diag_values_array[i * vs0 + j * vs1] = one / diag_values_array[i * vs0 + j * vs1];
           },
           tooSmall);
     }
 
     if (tooSmall > 0)
-#if KOKKOS_VERSION < 40199
-      KOKKOS_IMPL_DO_NOT_USE_PRINTF(
-          "KokkosBatched::JacobiPrec: %d entrie(s) has/have a too small "
-          "magnitude and have been replaced by one, \n",
-          (int)tooSmall);
-#else
       Kokkos::printf(
           "KokkosBatched::JacobiPrec: %d entrie(s) has/have a too small "
           "magnitude and have been replaced by one, \n",
           (int)tooSmall);
-#endif
     computed_inverse = true;
   }
 
@@ -138,45 +125,32 @@ class JacobiPrec {
       }
 
     if (tooSmall > 0)
-#if KOKKOS_VERSION < 40199
-      KOKKOS_IMPL_DO_NOT_USE_PRINTF(
-          "KokkosBatched::JacobiPrec: %d entrie(s) has/have a too small "
-          "magnitude and have been replaced by one, \n",
-          (int)tooSmall);
-#else
       Kokkos::printf(
           "KokkosBatched::JacobiPrec: %d entrie(s) has/have a too small "
           "magnitude and have been replaced by one, \n",
           (int)tooSmall);
-#endif
     computed_inverse = true;
   }
 
-  template <typename ArgTrans, typename ArgMode, int sameXY,
-            typename MemberType, typename XViewType, typename YViewType>
-  KOKKOS_INLINE_FUNCTION void apply(const MemberType &member,
-                                    const XViewType &X,
-                                    const YViewType &Y) const {
+  template <typename ArgTrans, typename ArgMode, int sameXY, typename MemberType, typename XViewType,
+            typename YViewType>
+  KOKKOS_INLINE_FUNCTION void apply(const MemberType &member, const XViewType &X, const YViewType &Y) const {
     if (!computed_inverse) {
       this->computeInverse<MemberType, ArgMode>(member);
       member.team_barrier();  // Finish writing to this->diag_values
     }
 
-    KokkosBatched::HadamardProduct<MemberType, ArgMode>::template invoke<
-        ValuesViewType, XViewType, YViewType>(member, diag_values, X, Y);
+    KokkosBatched::HadamardProduct<MemberType, ArgMode>::template invoke<ValuesViewType, XViewType, YViewType>(
+        member, diag_values, X, Y);
   }
 
-  template <typename ArgTrans, int sameXY, typename XViewType,
-            typename YViewType>
-  KOKKOS_INLINE_FUNCTION void apply(const XViewType &X,
-                                    const YViewType &Y) const {
+  template <typename ArgTrans, int sameXY, typename XViewType, typename YViewType>
+  KOKKOS_INLINE_FUNCTION void apply(const XViewType &X, const YViewType &Y) const {
     if (!computed_inverse) {
       this->computeInverse();
     }
 
-    KokkosBatched::SerialHadamardProduct::template invoke<ValuesViewType,
-                                                          XViewType, YViewType>(
-        diag_values, X, Y);
+    KokkosBatched::SerialHadamardProduct::template invoke<ValuesViewType, XViewType, YViewType>(diag_values, X, Y);
   }
 };
 

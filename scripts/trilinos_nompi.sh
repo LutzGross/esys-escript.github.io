@@ -50,5 +50,6 @@ cmake \
       -D Amesos2_ENABLE_Basker=ON \
       -D Tpetra_INST_SERIAL:BOOL=ON \
       -D Trilinos_ENABLE_TESTS=OFF \
+      -D Trilinos_ENABLE_EXAMPLES=OFF \
       $5
 #-D TPL_Cholmod_LIBRARIES='libcholmod.so;libamd.so;libcolamd.so' \

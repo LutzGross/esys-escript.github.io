@@ -13,8 +13,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //@HEADER
-#ifndef __KOKKOSBATCHED_ADD_RADIAL_DECL_HPP__
-#define __KOKKOSBATCHED_ADD_RADIAL_DECL_HPP__
+#ifndef KOKKOSBATCHED_ADD_RADIAL_DECL_HPP
+#define KOKKOSBATCHED_ADD_RADIAL_DECL_HPP
 
 /// \author Kyungjoo Kim (kyukim@sandia.gov)
 
@@ -34,8 +34,7 @@ namespace KokkosBatched {
 
 struct SerialAddRadial {
   template <typename ScalarType, typename AViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(const ScalarType tiny,
-                                           const AViewType &A);
+  KOKKOS_INLINE_FUNCTION static int invoke(const ScalarType tiny, const AViewType &A);
 };
 
 ///
@@ -45,11 +44,11 @@ struct SerialAddRadial {
 template <typename MemberType>
 struct TeamAddRadial {
   template <typename ScalarType, typename AViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member,
-                                           const ScalarType tiny,
-                                           const AViewType &A);
+  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member, const ScalarType tiny, const AViewType &A);
 };
 
 }  // namespace KokkosBatched
+
+#include "KokkosBatched_AddRadial_Impl.hpp"
 
 #endif

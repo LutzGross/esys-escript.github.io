@@ -13,8 +13,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //@HEADER
-#ifndef __KOKKOSBATCHED_APPLY_Q_DECL_HPP__
-#define __KOKKOSBATCHED_APPLY_Q_DECL_HPP__
+#ifndef KOKKOSBATCHED_APPLY_Q_DECL_HPP
+#define KOKKOSBATCHED_APPLY_Q_DECL_HPP
 
 /// \author Kyungjoo Kim (kyukim@sandia.gov)
 
@@ -28,11 +28,13 @@ namespace KokkosBatched {
 
 template <typename ArgSide, typename ArgTrans, typename ArgAlgo>
 struct SerialApplyQ {
-  template <typename AViewType, typename tViewType, typename BViewType,
-            typename wViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(const AViewType &A,
-                                           const tViewType &t,
-                                           const BViewType &B,
+  static_assert(is_side_v<ArgSide>, "KokkosBatched::SerialApplyQ: ArgSide must be a KokkosBatched::Side.");
+  static_assert(KokkosBlas::is_trans_v<ArgTrans>, "KokkosBatched::SerialApplyQ: ArgTrans must be a KokkosBlas::Trans.");
+  static_assert(KokkosBlas::is_level2_v<ArgAlgo>,
+                "KokkosBatched::SerialApplyQ: ArgAlgo must be a KokkosBlas::Algo::Level2.");
+
+  template <typename AViewType, typename tViewType, typename BViewType, typename wViewType>
+  KOKKOS_INLINE_FUNCTION static int invoke(const AViewType &A, const tViewType &t, const BViewType &B,
                                            const wViewType &w);
 };
 
@@ -40,56 +42,54 @@ struct SerialApplyQ {
 /// Team ApplyQ
 ///
 
-template <typename MemberType, typename ArgSide, typename ArgTrans,
-          typename ArgAlgo>
+template <typename MemberType, typename ArgSide, typename ArgTrans, typename ArgAlgo>
 struct TeamApplyQ {
-  template <typename AViewType, typename tViewType, typename BViewType,
-            typename wViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member,
-                                           const AViewType &A,
-                                           const tViewType &t,
-                                           const BViewType &B,
-                                           const wViewType &w);
+  static_assert(is_side_v<ArgSide>, "KokkosBatched::SerialApplyQ: ArgSide must be a KokkosBatched::Side.");
+  static_assert(KokkosBlas::is_trans_v<ArgTrans>, "KokkosBatched::SerialApplyQ: ArgTrans must be a KokkosBlas::Trans.");
+  static_assert(KokkosBlas::is_level2_v<ArgAlgo>,
+                "KokkosBatched::SerialApplyQ: ArgAlgo must be a KokkosBlas::Algo::Level2.");
+
+  template <typename AViewType, typename tViewType, typename BViewType, typename wViewType>
+  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member, const AViewType &A, const tViewType &t,
+                                           const BViewType &B, const wViewType &w);
 };
 
 ///
 /// TeamVector ApplyQ
 ///
 
-template <typename MemberType, typename ArgSide, typename ArgTrans,
-          typename ArgAlgo>
+template <typename MemberType, typename ArgSide, typename ArgTrans, typename ArgAlgo>
 struct TeamVectorApplyQ {
-  template <typename AViewType, typename tViewType, typename BViewType,
-            typename wViewType>
-  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member,
-                                           const AViewType &A,
-                                           const tViewType &t,
-                                           const BViewType &B,
-                                           const wViewType &w);
+  static_assert(is_side_v<ArgSide>, "KokkosBatched::SerialApplyQ: ArgSide must be a KokkosBatched::Side.");
+  static_assert(KokkosBlas::is_trans_v<ArgTrans>, "KokkosBatched::SerialApplyQ: ArgTrans must be a KokkosBlas::Trans.");
+  static_assert(KokkosBlas::is_level2_v<ArgAlgo>,
+                "KokkosBatched::SerialApplyQ: ArgAlgo must be a KokkosBlas::Algo::Level2.");
+
+  template <typename AViewType, typename tViewType, typename BViewType, typename wViewType>
+  KOKKOS_INLINE_FUNCTION static int invoke(const MemberType &member, const AViewType &A, const tViewType &t,
+                                           const BViewType &B, const wViewType &w);
 };
 
 ///
 /// Selective Interface
 ///
-template <typename MemberType, typename ArgSide, typename ArgTrans,
-          typename ArgMode, typename ArgAlgo>
+template <typename MemberType, typename ArgSide, typename ArgTrans, typename ArgMode, typename ArgAlgo>
 struct ApplyQ {
-  template <typename AViewType, typename tViewType, typename BViewType,
-            typename wViewType>
-  KOKKOS_FORCEINLINE_FUNCTION static int invoke(const MemberType &member,
-                                                const AViewType &A,
-                                                const tViewType &t,
-                                                const BViewType &B,
-                                                const wViewType &w) {
+  static_assert(is_side_v<ArgSide>, "KokkosBatched::ApplyQ: ArgSide must be a KokkosBatched::Side.");
+  static_assert(KokkosBlas::is_trans_v<ArgTrans>, "KokkosBatched::ApplyQ: ArgTrans must be a KokkosBlas::Trans.");
+  static_assert(KokkosBlas::is_mode_v<ArgMode>, "KokkosBatched::ApplyQ: ArgMode must be a KokkosBlas::Mode.");
+  static_assert(KokkosBlas::is_level2_v<ArgAlgo>, "KokkosBatched::ApplyQ: ArgAlgo must be a KokkosBlas::Algo::Level2.");
+
+  template <typename AViewType, typename tViewType, typename BViewType, typename wViewType>
+  KOKKOS_FORCEINLINE_FUNCTION static int invoke(const MemberType &member, const AViewType &A, const tViewType &t,
+                                                const BViewType &B, const wViewType &w) {
     int r_val = 0;
-    if (std::is_same<ArgMode, Mode::Serial>::value) {
+    if constexpr (std::is_same_v<ArgMode, Mode::Serial>) {
       r_val = SerialApplyQ<ArgSide, ArgTrans, ArgAlgo>::invoke(A, t, B, w);
-    } else if (std::is_same<ArgMode, Mode::Team>::value) {
-      r_val = TeamApplyQ<MemberType, ArgSide, ArgTrans, ArgAlgo>::invoke(
-          member, A, t, B, w);
-    } else if (std::is_same<ArgMode, Mode::Team>::value) {
-      r_val = TeamVectorApplyQ<MemberType, ArgSide, ArgTrans, ArgAlgo>::invoke(
-          member, A, t, B, w);
+    } else if constexpr (std::is_same_v<ArgMode, Mode::Team>) {
+      r_val = TeamApplyQ<MemberType, ArgSide, ArgTrans, ArgAlgo>::invoke(member, A, t, B, w);
+    } else if constexpr (std::is_same_v<ArgMode, Mode::TeamVector>) {
+      r_val = TeamVectorApplyQ<MemberType, ArgSide, ArgTrans, ArgAlgo>::invoke(member, A, t, B, w);
     }
     return r_val;
   }

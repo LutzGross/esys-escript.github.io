@@ -19,12 +19,14 @@ template <class Scalar, class ExecutionSpace>
 int test_rot() {
   using mag_type        = typename Kokkos::ArithTraits<Scalar>::mag_type;
   using vector_type     = Kokkos::View<Scalar*, ExecutionSpace>;
-  using scalar_type     = Kokkos::View<mag_type, ExecutionSpace>;
+  using magnitude_type  = Kokkos::View<mag_type, ExecutionSpace>;
+  using scalar_type     = Kokkos::View<Scalar, ExecutionSpace>;
   using vector_ref_type = Kokkos::View<Scalar*, Kokkos::HostSpace>;
 
   vector_type X("X", 4), Y("Y", 4);
   vector_ref_type Xref("Xref", 4), Yref("Yref", 4);
-  scalar_type c("c"), s("s");
+  magnitude_type c("c");
+  scalar_type s("s");
 
   // Initialize inputs
   typename vector_type::HostMirror X_h = Kokkos::create_mirror_view(X);
@@ -71,8 +73,7 @@ int test_rot() {
 }
 
 #if defined(KOKKOSKERNELS_INST_FLOAT) || \
-    (!defined(KOKKOSKERNELS_ETI_ONLY) && \
-     !defined(KOKKOSKERNELS_IMPL_CHECK_ETI_CALLS))
+    (!defined(KOKKOSKERNELS_ETI_ONLY) && !defined(KOKKOSKERNELS_IMPL_CHECK_ETI_CALLS))
 TEST_F(TestCategory, rot_float) {
   Kokkos::Profiling::pushRegion("KokkosBlas::Test::rot");
   test_rot<float, TestDevice>();
@@ -81,8 +82,7 @@ TEST_F(TestCategory, rot_float) {
 #endif
 
 #if defined(KOKKOSKERNELS_INST_DOUBLE) || \
-    (!defined(KOKKOSKERNELS_ETI_ONLY) &&  \
-     !defined(KOKKOSKERNELS_IMPL_CHECK_ETI_CALLS))
+    (!defined(KOKKOSKERNELS_ETI_ONLY) && !defined(KOKKOSKERNELS_IMPL_CHECK_ETI_CALLS))
 TEST_F(TestCategory, rot_double) {
   Kokkos::Profiling::pushRegion("KokkosBlas::Test::rot");
   test_rot<double, TestDevice>();
@@ -91,8 +91,7 @@ TEST_F(TestCategory, rot_double) {
 #endif
 
 #if defined(KOKKOSKERNELS_INST_COMPLEX_FLOAT) || \
-    (!defined(KOKKOSKERNELS_ETI_ONLY) &&         \
-     !defined(KOKKOSKERNELS_IMPL_CHECK_ETI_CALLS))
+    (!defined(KOKKOSKERNELS_ETI_ONLY) && !defined(KOKKOSKERNELS_IMPL_CHECK_ETI_CALLS))
 TEST_F(TestCategory, rot_complex_float) {
   Kokkos::Profiling::pushRegion("KokkosBlas::Test::rot");
   test_rot<Kokkos::complex<float>, TestDevice>();
@@ -101,8 +100,7 @@ TEST_F(TestCategory, rot_complex_float) {
 #endif
 
 #if defined(KOKKOSKERNELS_INST_COMPLEX_DOUBLE) || \
-    (!defined(KOKKOSKERNELS_ETI_ONLY) &&          \
-     !defined(KOKKOSKERNELS_IMPL_CHECK_ETI_CALLS))
+    (!defined(KOKKOSKERNELS_ETI_ONLY) && !defined(KOKKOSKERNELS_IMPL_CHECK_ETI_CALLS))
 TEST_F(TestCategory, rot_complex_double) {
   Kokkos::Profiling::pushRegion("KokkosBlas::Test::rot");
   test_rot<Kokkos::complex<double>, TestDevice>();

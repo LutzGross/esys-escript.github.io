@@ -17,6 +17,8 @@
 #ifndef KOKKOSBLAS_TPL_SPEC_HPP_
 #define KOKKOSBLAS_TPL_SPEC_HPP_
 
+#include "KokkosKernels_Singleton.hpp"
+
 #ifdef KOKKOSKERNELS_ENABLE_TPL_CUBLAS
 #include "cuda_runtime.h"
 #include "cublas_v2.h"
@@ -28,12 +30,16 @@ struct CudaBlasSingleton {
   cublasHandle_t handle;
 
   CudaBlasSingleton();
+  ~CudaBlasSingleton();
 
+  static bool is_initialized();
   static CudaBlasSingleton& singleton();
+
+ private:
+  static KokkosKernels::Impl::Singleton<CudaBlasSingleton>& get_instance();
 };
 
-inline void cublas_internal_error_throw(cublasStatus_t cublasState,
-                                        const char* name, const char* file,
+inline void cublas_internal_error_throw(cublasStatus_t cublasState, const char* name, const char* file,
                                         const int line) {
   std::ostringstream out;
   // out << name << " error( " << cublasGetStatusName(cublasState)
@@ -43,9 +49,7 @@ inline void cublas_internal_error_throw(cublasStatus_t cublasState,
     case CUBLAS_STATUS_NOT_INITIALIZED:
       out << "CUBLAS_STATUS_NOT_INITIALIZED): the library was not initialized.";
       break;
-    case CUBLAS_STATUS_ALLOC_FAILED:
-      out << "CUBLAS_STATUS_ALLOC_FAILED): the resource allocation failed.";
-      break;
+    case CUBLAS_STATUS_ALLOC_FAILED: out << "CUBLAS_STATUS_ALLOC_FAILED): the resource allocation failed."; break;
     case CUBLAS_STATUS_INVALID_VALUE:
       out << "CUBLAS_STATUS_INVALID_VALUE): an invalid numerical value was "
              "used as an argument.";
@@ -62,9 +66,7 @@ inline void cublas_internal_error_throw(cublasStatus_t cublasState,
       out << "CUBLAS_STATUS_EXECUTION_FAILED): the GPU program failed to "
              "execute.";
       break;
-    case CUBLAS_STATUS_INTERNAL_ERROR:
-      out << "CUBLAS_STATUS_INTERNAL_ERROR): an internal operation failed.";
-      break;
+    case CUBLAS_STATUS_INTERNAL_ERROR: out << "CUBLAS_STATUS_INTERNAL_ERROR): an internal operation failed."; break;
     case CUBLAS_STATUS_NOT_SUPPORTED:
       out << "CUBLAS_STATUS_NOT_SUPPORTED): the feature required is not "
              "supported.";
@@ -77,10 +79,8 @@ inline void cublas_internal_error_throw(cublasStatus_t cublasState,
   throw std::runtime_error(out.str());
 }
 
-inline void cublas_internal_safe_call(cublasStatus_t cublasState,
-                                      const char* name,
-                                      const char* file = nullptr,
-                                      const int line   = 0) {
+inline void cublas_internal_safe_call(cublasStatus_t cublasState, const char* name, const char* file = nullptr,
+                                      const int line = 0) {
   if (CUBLAS_STATUS_SUCCESS != cublasState) {
     cublas_internal_error_throw(cublasState, name, file, line);
   }
@@ -89,7 +89,7 @@ inline void cublas_internal_safe_call(cublasStatus_t cublasState,
 // The macro below defines the interface for the safe cublas calls.
 // The functions themselves are protected by impl namespace and this
 // is not meant to be used by external application or libraries.
-#define KOKKOS_CUBLAS_SAFE_CALL_IMPL(call) \
+#define KOKKOSBLAS_IMPL_CUBLAS_SAFE_CALL(call) \
   KokkosBlas::Impl::cublas_internal_safe_call(call, #call, __FILE__, __LINE__)
 
 /// \brief This function converts KK transpose mode to cuBLAS transpose mode
@@ -118,12 +118,17 @@ struct RocBlasSingleton {
   rocblas_handle handle;
 
   RocBlasSingleton();
+  ~RocBlasSingleton();
+
+  static bool is_initialized();
 
   static RocBlasSingleton& singleton();
+
+ private:
+  static KokkosKernels::Impl::Singleton<RocBlasSingleton>& get_instance();
 };
 
-inline void rocblas_internal_error_throw(rocblas_status rocblasState,
-                                         const char* name, const char* file,
+inline void rocblas_internal_error_throw(rocblas_status rocblasState, const char* name, const char* file,
                                          const int line) {
   std::ostringstream out;
   out << name << " error( ";
@@ -132,29 +137,19 @@ inline void rocblas_internal_error_throw(rocblas_status rocblasState,
       out << "rocblas_status_invalid_handle): handle not initialized, invalid "
              "or null.";
       break;
-    case rocblas_status_not_implemented:
-      out << "rocblas_status_not_implemented): function is not implemented.";
-      break;
-    case rocblas_status_invalid_pointer:
-      out << "rocblas_status_invalid_pointer): invalid pointer argument.";
-      break;
-    case rocblas_status_invalid_size:
-      out << "rocblas_status_invalid_size): invalid size argument.";
-      break;
+    case rocblas_status_not_implemented: out << "rocblas_status_not_implemented): function is not implemented."; break;
+    case rocblas_status_invalid_pointer: out << "rocblas_status_invalid_pointer): invalid pointer argument."; break;
+    case rocblas_status_invalid_size: out << "rocblas_status_invalid_size): invalid size argument."; break;
     case rocblas_status_memory_error:
       out << "rocblas_status_memory_error): failed internal memory allocation, "
              "copy or dealloc.";
       break;
-    case rocblas_status_internal_error:
-      out << "rocblas_status_internal_error): other internal library failure.";
-      break;
+    case rocblas_status_internal_error: out << "rocblas_status_internal_error): other internal library failure."; break;
     case rocblas_status_perf_degraded:
       out << "rocblas_status_perf_degraded): performance degraded due to low "
              "device memory.";
       break;
-    case rocblas_status_size_query_mismatch:
-      out << "unmatched start/stop size query): .";
-      break;
+    case rocblas_status_size_query_mismatch: out << "unmatched start/stop size query): ."; break;
     case rocblas_status_size_increased:
       out << "rocblas_status_size_increased): queried device memory size "
              "increased.";
@@ -163,9 +158,7 @@ inline void rocblas_internal_error_throw(rocblas_status rocblasState,
       out << "rocblas_status_size_unchanged): queried device memory size "
              "unchanged.";
       break;
-    case rocblas_status_invalid_value:
-      out << "rocblas_status_invalid_value): passed argument not valid.";
-      break;
+    case rocblas_status_invalid_value: out << "rocblas_status_invalid_value): passed argument not valid."; break;
     case rocblas_status_continue:
       out << "rocblas_status_continue): nothing preventing function to "
              "proceed.";
@@ -182,10 +175,8 @@ inline void rocblas_internal_error_throw(rocblas_status rocblasState,
   throw std::runtime_error(out.str());
 }
 
-inline void rocblas_internal_safe_call(rocblas_status rocblasState,
-                                       const char* name,
-                                       const char* file = nullptr,
-                                       const int line   = 0) {
+inline void rocblas_internal_safe_call(rocblas_status rocblasState, const char* name, const char* file = nullptr,
+                                       const int line = 0) {
   if (rocblas_status_success != rocblasState) {
     rocblas_internal_error_throw(rocblasState, name, file, line);
   }
@@ -194,7 +185,7 @@ inline void rocblas_internal_safe_call(rocblas_status rocblasState,
 // The macro below defines the interface for the safe rocblas calls.
 // The functions themselves are protected by impl namespace and this
 // is not meant to be used by external application or libraries.
-#define KOKKOS_ROCBLAS_SAFE_CALL_IMPL(call) \
+#define KOKKOSBLAS_IMPL_ROCBLAS_SAFE_CALL(call) \
   KokkosBlas::Impl::rocblas_internal_safe_call(call, #call, __FILE__, __LINE__)
 
 /// \brief This function converts KK transpose mode to rocBLAS transpose mode
