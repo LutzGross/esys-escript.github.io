@@ -199,9 +199,9 @@ headers = """
     sc_warp.h
 """.split()
 
-env.Append( CPPDEFINES = ['SC_WITH_BLAS'])
-local_env = env.Clone()
 
+local_env = env.Clone()
+local_env.Append( CPPDEFINES = ['SC_WITH_BLAS', 'SC_WITH_LAPACK'])
 
 # collect dependencies for other modules
 p4estlibs = []
@@ -231,4 +231,3 @@ import os
 local_env.PrependUnique(CPPPATH = [ os.path.abspath(os.getcwd()) ] )
 local_env.PrependUnique(CPPPATH = [ os.path.abspath(os.path.join(os.getcwd(),"iniparser")) ] )
 local_env.PrependUnique(CPPPATH = [ os.path.abspath(os.path.join(os.getcwd(),"libb64")) ] )
-print(local_env['CPPDEFINES' ])
