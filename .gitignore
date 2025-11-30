@@ -1,0 +1,23 @@
+# Build artifacts and generated documentation
+docs/
+
+# SCons build files
+.sconsign.dblite
+.sconf_temp/
+build/
+build_trilinos/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE files
+.idea/
+.vscode/
+
+# Generated files
+*.o
+*.so
+*.a
+config.log

@@ -1,0 +1,40 @@
+/* Custom styles for esys-escript documentation */
+
+/* Enhance the documentation resources section */
+div.section h2 {
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+    margin-top: 30px;
+}
+
+/* Style for documentation resource links */
+.section ul li a {
+    font-size: 1.1em;
+    padding: 5px 0;
+    display: inline-block;
+}
+
+/* Add some spacing and styling to the main sections */
+.section p {
+    line-height: 1.6;
+    margin: 15px 0;
+}
+
+/* Highlight the resource boxes */
+.section strong {
+    color: #2980b9;
+    font-size: 1.1em;
+}
+
+/* Improve readability */
+.body {
+    max-width: 1000px;
+}
+
+/* Style for the welcome message */
+.section > p:first-of-type {
+    font-size: 1.1em;
+    color: #34495e;
+    margin-bottom: 25px;
+}
