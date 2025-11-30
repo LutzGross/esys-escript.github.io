@@ -942,7 +942,8 @@ env.Alias('pdfdocs',['user_pdf'  ])
 env.Alias('basedocs', ['pdfdocs','examples_tarfile', 'examples_zipfile', 'api_doxygen'])
 env.Alias('docs', ['basedocs', 'sphinxdoc'])
 env.Alias('release_prep', ['docs', 'install'])
-env.Alias('release_prep_old', ['basedocs', 'api_epydoc', 'install'])
+# Epydoc removed - use Sphinx instead
+#env.Alias('release_prep_old', ['basedocs', 'api_epydoc', 'install'])
 
 # The test scripts are always generated, this target allows us to
 # generate the testscripts without doing a full build
