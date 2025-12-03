@@ -36,12 +36,15 @@ __url__="https://launchpad.net/escript-finley"
 import numpy
 from time import time
 import esys.escriptcore.linearPDEs as lpe
-from esys.escriptcore import util, HAVE_SYMBOLS
+from esys.escriptcore import util
 from esys.escriptcore.escriptcpp import Data
 
-if HAVE_SYMBOLS:
+try:
     import sympy
     import esys.escriptcore.symboliccore as symb
+    HAVE_SYMBOLS = True
+except ImportError:
+    HAVE_SYMBOLS = False
 
 __author__="Cihan Altinay, Lutz Gross"
 

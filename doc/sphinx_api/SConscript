@@ -34,25 +34,13 @@ if env['mathjax_path']!='default':
 
 sphinxstuff=local.Command('stuff', [epy_dir, int_dir, env['pyinstall']], env['pythoncmd'] + ' doc/sphinx_api/genrst.py '+env['prefix']+' esys '+int_dir+" && sphinx-build -v -E --color -b html -d "+int_dir+"/tree -c doc/sphinx_api "+mjpath+" "+int_dir+" "+epy_dir)
 
-# Create symlinks/copies for user guide PDF and example archives
-user_pdf_source = os.path.join(release_dir, 'user', 'user.pdf')
-user_pdf_target = os.path.join(epy_dir, '..', 'user')
-examples_zip_source = os.path.join(release_dir, 'escript_examples.zip')
-examples_tar_source = os.path.join(release_dir, 'escript_examples.tar.gz')
-examples_zip_target = os.path.join(epy_dir, '..', 'escript_examples.zip')
-examples_tar_target = os.path.join(epy_dir, '..', 'escript_examples.tar.gz')
+# Create dependency on example archives (user PDF may not be built if LaTeX unavailable)
+# These files are created by other build steps, we just ensure Sphinx build waits for them
+examples_zip_file = os.path.join(release_dir, 'escript_examples.zip')
+examples_tar_file = os.path.join(release_dir, 'escript_examples.tar.gz')
 
-# Ensure user directory exists and copy PDF
-user_dir_create = local.Command(user_pdf_target, [], [Mkdir(user_pdf_target)])
-user_pdf_copy = local.Command(os.path.join(user_pdf_target, 'user.pdf'), user_pdf_source, Copy('$TARGET', '$SOURCE'))
-Depends(user_pdf_copy, user_dir_create)
-
-# Copy example archives to be accessible from Sphinx documentation
-examples_zip_copy = local.Command(examples_zip_target, examples_zip_source, Copy('$TARGET', '$SOURCE'))
-examples_tar_copy = local.Command(examples_tar_target, examples_tar_source, Copy('$TARGET', '$SOURCE'))
-
-# Ensure Sphinx build depends on these resources
-Depends(sphinxstuff, [user_pdf_copy, examples_zip_copy, examples_tar_copy])
+# Ensure Sphinx build depends on these resources being available
+Depends(sphinxstuff, [examples_zip_file, examples_tar_file])
 
 env.Alias('sphinxdoc', sphinxstuff)
 #env.Alias('sphinxdoc', [epy_dir, int_dir], 'doc/sphinx_api/genrst.py '+env['prefix']+' esys '+int_dir+" && sphinx-build -b html -d "+int_dir+"/tree -c doc/sphinx_api "+int_dir+" "+epy_dir)

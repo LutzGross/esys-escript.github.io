@@ -53,7 +53,8 @@ Click on this button to try out *esys-escript* in your web browser (needs valida
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/esys-escript/esys-escript.github.io/HEAD)
 
 
-## The project was funded by the
+## Funding 
+The project was funded by the
    - [AuScope National Collaborative Research Infrastructure Strategy (NCRIS)](https://www.auscope.org.au/) (until end of 2023),
    - Australian Geophysical Observing System (AGOS) (ended 2014),
    - [The University of Queensland](https://www.uq.edu.au)
@@ -69,17 +70,18 @@ Pages 23-34](doi:10.1016/j.pepi.2007.04.004)
 
 
 ### Contributors
-        Lutz Gross
-        Adam Ellery
-        Andrea Codd
-        Joel Fenwick
-        Cihan Altinay
-        Simon Shaw
-        Jaco Du Plessis
-        Ralf Schaa
-        Peter Hornby
-        Thomas Poulet
-        Lin Gao
-        Artak Amirbekyan
-        Ken Steube
+
+- Lutz Gross
+- Adam Ellery
+- Andrea Codd
+- Joel Fenwick
+- Cihan Altinay
+- Simon Shaw
+- Jaco Du Plessis
+- Ralf Schaa
+- Peter Hornby (late)
+- Thomas Poulet
+- Lin Gao
+- Artak Amirbekyan
+- Ken Steube
 

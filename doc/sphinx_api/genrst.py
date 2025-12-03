@@ -40,7 +40,8 @@ def dumpPackage(mname, ignorelist, modset, banset):
     PP=importlib.import_module(mname)
   except ImportError as ie:
     print("Import error for "+mname+"  "+str(ie))
-    exit(1)
+    print("Skipping module "+mname)
+    return
   nonempty = False
   for x in dir(PP):
       if not x.startswith("__"):
@@ -151,7 +152,7 @@ def listmods():
   main.write('\n')
   main.write('**User Guide (PDF)**\n\n')
   main.write('The comprehensive user guide is available as a PDF document:\n\n')
-  main.write('* `User Guide PDF <../user/user.pdf>`_\n\n')
+  main.write('* `User Guide PDF <../../user/user.pdf>`_\n\n')
   main.write('**Examples**\n\n')
   main.write('Example scripts demonstrating esys-escript usage:\n\n')
   main.write('* `Example Scripts (ZIP) <../escript_examples.zip>`_\n')
