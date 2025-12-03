@@ -166,6 +166,30 @@ tar = local_env.Command(tar_path, None, dir_cmd+"tar -cf "+tar_path+" "+" ".join
 targz = local_env.Command(targz_path, tar, "gzip -n -9 "+tar_path)
 env.Alias('examples_tarfile', targz)
 
+# Convert markdown documentation to HTML
+md2html_script = os.path.join(src_dir, 'md2html.py')
+readme_md = '#/README.md'
+installation_md = '#/installation.md'
+index_html = os.path.join(release_dir, 'index.html')
+installation_html = os.path.join(release_dir, 'installation.html')
+
+# Build index.html from README.md
+readme_html = local_env.Command(index_html, [readme_md, md2html_script],
+                                'python3 ${SOURCES[1]} readme ${SOURCES[0]} $TARGET')
+env.Alias('readme_html', readme_html)
+
+# Build installation.html from installation.md
+install_html = local_env.Command(installation_html, [installation_md, md2html_script],
+                                 'python3 ${SOURCES[1]} installation ${SOURCES[0]} $TARGET')
+env.Alias('installation_html', install_html)
+
+# Copy user.pdf to doc directory for consistent documentation structure
+user_pdf_src = os.path.join(env['prefix'], 'release', 'user', 'user.pdf')
+user_pdf_dest = os.path.join(release_dir, 'user', 'user.pdf')
+user_pdf_copy = local_env.Command(user_pdf_dest, user_pdf_src,
+                                  'mkdir -p ${TARGET.dir} && cp $SOURCE $TARGET')
+env.Alias('copy_user_pdf', user_pdf_copy)
+
 #env=Environment(TARFLAGS = "-c -z",chdir=src_dir)
 #if 'Tar' in dir(env):
 # tar=env.Tar(tar_path, example_files, chdir=src_dir)

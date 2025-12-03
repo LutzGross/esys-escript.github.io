@@ -3,14 +3,17 @@ This is for Version 6.
 
 (sorry this document is still a mess)
 
-*esys-escript* is primarily developed on Linux systems and macOS systems. 
-The current version has not been ported to Windows. 
+*esys-escript* is primarily developed on Linux systems.
+The current version is providing some sopport for macOS but
+has not been ported to Windows.
 For support and questions please visit the [Issues site](https://github.com/LutzGross/esys-escript.github.io/issues) for help.
+
+For complete documentation including user guide and API reference, see the [main documentation page](https://esys-escript.github.io/).
 
 Dependencies are
 
 - c++ compiler
-- python3 
+- python3
 - scons
 - cmake
 - python3-numpy
@@ -24,6 +27,8 @@ Dependencies are
 - silo (optional,  recommended when using VisIt)
 - boost-numpy (optional, recommended when using Jupyter)
 - python3-sympy (optional, **currently deactivated**)
+- python3-sphinx (optional, for building documentation)
+- python3-markdown (optional, for building documentation)
 - cppunit (optional, for testing)
 
 The source code is shipped with [Trilinos](https://trilinos.github.io/) and [p4est](https://www.p4est.org/).
@@ -84,9 +89,26 @@ template options files in [scons/templates](scons/templates). `<HOST>` refers to
 
 Installation can then be run by
 
-    scons -j4    
+    scons -j4
 
+### Building Documentation
 
+To build the documentation, you need to install additional dependencies:
+
+    sudo apt-get install python3-sphinx python3-markdown
+
+Then you can build the documentation using:
+
+    scons -j4 docs
+
+This will generate:
+- starting point `release/doc/index.html`
+- User guide (PDF) in `release/user/user.pdf`
+- Python API documentation (Sphinx) in `release/doc/sphinx_api/`
+- HTML documentation pages in `release/doc/`
+- Example scripts archives in `release/doc/`
+
+## Platform Specifics
 
 ### Debian
 These instructions have been tested on Debian 6.
@@ -94,10 +116,11 @@ These instructions have been tested on Debian 6.
 As a preliminary step, you need to install the dependencies that *esys-escript* requires from the distribution repository:
 
     sudo apt-get install python3-dev python3-numpy python3-matplotlib
-    sudo apt-get install g++ scons cmake 
+    sudo apt-get install g++ scons cmake
     sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
     sudo apt-get install libhdf5-serial-dev libsilo-dev libsuitesparse-dev
     #sudo apt-get install python3-sympy
+    #sudo apt-get install python3-sphinx python3-markdown  # Optional, for building documentation
 
 If you want to use MPI you additionally need to install 
     
@@ -110,10 +133,11 @@ These instructions have been tested on Ubuntu 24.
 You should instead install the following packages:
 
     sudo apt-get install python3-dev python3-numpy python3-matplotlib
-    sudo apt-get install g++ scons cmake 
+    sudo apt-get install g++ scons cmake
     sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
     sudo apt-get install libhdf5-serial-dev libsilo-dev libsuitesparse-dev
     #sudo apt-get install python3-sympy
+    #sudo apt-get install python3-sphinx python3-markdown  # Optional, for building documentation
 
 If you want to use MPI you additionally need to install 
     
