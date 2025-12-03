@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Convert markdown files to HTML with custom templates
+Convert markdown files to HTML with Sphinx theme
 """
 
 import sys
@@ -12,8 +12,95 @@ except ImportError:
     print("ERROR: markdown library not found. Please install python3-markdown")
     sys.exit(1)
 
+def get_sphinx_template(title, content, current_page=""):
+    """Generate HTML using Sphinx classic theme structure"""
+
+    # Determine navigation links based on current page
+    nav_links = []
+    if current_page != "index":
+        nav_links.append('<li class="right" style="margin-right: 10px"><a href="index.html">Home</a> |</li>')
+    if current_page != "installation":
+        nav_links.append('<li class="right"><a href="installation.html">Installation</a> |</li>')
+    nav_links.append('<li class="right"><a href="sphinx_api/index.html">Python API</a> |</li>')
+    nav_links.append('<li class="right"><a href="user/user.pdf">User Guide (PDF)</a></li>')
+
+    nav_html = '\n        '.join(nav_links)
+
+    template = """<!DOCTYPE html>
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} &#8212; esys-escript documentation</title>
+    <link rel="stylesheet" type="text/css" href="sphinx_api/_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="sphinx_api/_static/classic.css" />
+    <link rel="stylesheet" type="text/css" href="sphinx_api/_static/custom.css" />
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        {nav_links}
+        <li class="nav-item nav-item-0"><a href="index.html">esys-escript documentation</a> &#187;</li>
+      </ul>
+    </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            {content}
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+          <h3><a href="index.html">Table of Contents</a></h3>
+          <ul>
+            <li><a href="index.html">Documentation Home</a></li>
+            <li><a href="installation.html">Installation Guide</a></li>
+            <li><a href="sphinx_api/index.html">Python API Reference</a></li>
+            <li><a href="user/user.pdf">User Guide (PDF)</a></li>
+          </ul>
+          <h3>Downloads</h3>
+          <ul>
+            <li><a href="escript_examples.zip">Examples (ZIP)</a></li>
+            <li><a href="escript_examples.tar.gz">Examples (TAR.GZ)</a></li>
+          </ul>
+          <h3>Resources</h3>
+          <ul>
+            <li><a href="https://github.com/esys-escript/esys-escript.github.io">GitHub Repository</a></li>
+            <li><a href="https://github.com/esys-escript/esys-escript.github.io/issues">Report Issues</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer" role="contentinfo">
+      <p>&copy; Copyright 2003-2024, The University of Queensland and contributors.</p>
+      <p>
+        Last updated on {date}.
+        Created using <a href="https://www.python.org/">Python</a> and
+        <a href="https://www.sphinx-doc.org/">Sphinx</a> theme.
+      </p>
+    </div>
+  </body>
+</html>
+"""
+
+    from datetime import datetime
+    date = datetime.now().strftime("%b %d, %Y")
+
+    return template.format(
+        title=title,
+        content=content,
+        nav_links=nav_html,
+        date=date
+    )
+
 def convert_readme_to_html(md_file, html_file):
-    """Convert README.md to index.html with links to sphinx and installation docs"""
+    """Convert README.md to index.html with Sphinx theme"""
 
     with open(md_file, 'r') as f:
         md_content = f.read()
@@ -25,103 +112,43 @@ def convert_readme_to_html(md_file, html_file):
     html_body = html_body.replace('href="installation.md"', 'href="installation.html"')
     html_body = html_body.replace('href="./user.pdf"', 'href="user/user.pdf"')
 
+    # Wrap in section tags for Sphinx styling
+    html_body = '<section id="esys-escript">\n' + html_body + '\n</section>'
+
     # Create the documentation resources navigation section
-    doc_nav_section = """<h2>Documentation Resources</h2>
-<ul>
-<li><a href="sphinx_api/index.html">Python API Reference (Sphinx)</a></li>
-<li><a href="installation.html">Installation Guide</a></li>
-<li><a href="user/user.pdf">User Guide (PDF)</a></li>
-<li><a href="escript_examples.zip">Example Scripts (ZIP)</a></li>
-<li><a href="escript_examples.tar.gz">Example Scripts (TAR.GZ)</a></li>
+    doc_nav_section = """<section id="documentation-resources">
+<h2>Documentation Resources</h2>
+<p><strong>Installation Guide</strong></p>
+<ul class="simple">
+<li><a class="reference external" href="installation.html">Installation Guide (HTML)</a></li>
+<li>Source: <code>installation.md</code> in the repository root</li>
 </ul>
+<p><strong>User Guide (PDF)</strong></p>
+<ul class="simple">
+<li><a class="reference external" href="user/user.pdf">User Guide PDF</a></li>
+</ul>
+<p><strong>Python API Reference</strong></p>
+<ul class="simple">
+<li><a class="reference external" href="sphinx_api/index.html">Python API Documentation</a></li>
+</ul>
+<p><strong>Examples</strong></p>
+<ul class="simple">
+<li><a class="reference external" href="escript_examples.zip">Example Scripts (ZIP)</a></li>
+<li><a class="reference external" href="escript_examples.tar.gz">Example Scripts (TAR.GZ)</a></li>
+</ul>
+</section>
 """
 
-    # Insert documentation resources section after "Using esys-escript" section
-    # Look for the heading that comes after "Using esys-escript"
-    if '<h2>The project was funded by the</h2>' in html_body:
+    # Insert documentation resources section
+    if '<h2>Funding' in html_body or '<h2>The project was funded by the</h2>' in html_body:
+        html_body = html_body.replace('<h2>Funding', doc_nav_section + '<h2>Funding')
         html_body = html_body.replace('<h2>The project was funded by the</h2>',
                                      doc_nav_section + '<h2>The project was funded by the</h2>')
     else:
-        # Fallback: add it at the end if we can't find the marker
-        html_body = html_body + doc_nav_section
+        # Fallback: add before closing section tag
+        html_body = html_body.replace('</section>', doc_nav_section + '</section>')
 
-    # Create full HTML page with navigation
-    html_template = """<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>esys-escript Documentation</title>
-    <style>
-        body {{
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            line-height: 1.6;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            color: #333;
-        }}
-        h1 {{
-            color: #2c3e50;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 10px;
-        }}
-        h2 {{
-            color: #34495e;
-            margin-top: 30px;
-            border-bottom: 1px solid #bdc3c7;
-            padding-bottom: 5px;
-        }}
-        a {{
-            color: #3498db;
-            text-decoration: none;
-        }}
-        a:hover {{
-            text-decoration: underline;
-        }}
-        code {{
-            background: #f4f4f4;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: "Courier New", Courier, monospace;
-        }}
-        pre {{
-            background: #f4f4f4;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-        }}
-        .doc-nav {{
-            background: #ecf0f1;
-            padding: 20px;
-            border-radius: 5px;
-            margin: 30px 0;
-        }}
-        .doc-nav h3 {{
-            margin-top: 0;
-            color: #2c3e50;
-        }}
-        .doc-nav ul {{
-            list-style: none;
-            padding: 0;
-        }}
-        .doc-nav li {{
-            margin: 10px 0;
-            font-size: 1.1em;
-        }}
-        .doc-nav li:before {{
-            content: "📄 ";
-            margin-right: 8px;
-        }}
-    </style>
-</head>
-<body>
-    {content}
-</body>
-</html>
-"""
-
-    full_html = html_template.format(content=html_body)
+    full_html = get_sphinx_template("esys-escript", html_body, "index")
 
     with open(html_file, 'w') as f:
         f.write(full_html)
@@ -129,100 +156,18 @@ def convert_readme_to_html(md_file, html_file):
     print(f"Converted {md_file} to {html_file}")
 
 def convert_installation_to_html(md_file, html_file):
-    """Convert installation.md to HTML with navigation"""
+    """Convert installation.md to HTML with Sphinx theme"""
 
     with open(md_file, 'r') as f:
         md_content = f.read()
 
     # Convert markdown to HTML
-    html_body = markdown.markdown(md_content, extensions=['extra', 'tables', 'fenced_code'])
+    html_body = markdown.markdown(md_content, extensions=['extra', 'tables', 'fenced_code', 'toc'])
 
-    # Create full HTML page with navigation
-    html_template = """<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>esys-escript Installation Guide</title>
-    <style>
-        body {{
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            line-height: 1.6;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            color: #333;
-        }}
-        h1 {{
-            color: #2c3e50;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 10px;
-        }}
-        h2 {{
-            color: #34495e;
-            margin-top: 30px;
-            border-bottom: 1px solid #bdc3c7;
-            padding-bottom: 5px;
-        }}
-        h3 {{
-            color: #34495e;
-            margin-top: 20px;
-        }}
-        a {{
-            color: #3498db;
-            text-decoration: none;
-        }}
-        a:hover {{
-            text-decoration: underline;
-        }}
-        code {{
-            background: #f4f4f4;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: "Courier New", Courier, monospace;
-        }}
-        pre {{
-            background: #2c3e50;
-            color: #ecf0f1;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-        }}
-        pre code {{
-            background: transparent;
-            color: inherit;
-            padding: 0;
-        }}
-        ul {{
-            margin: 10px 0;
-        }}
-        li {{
-            margin: 5px 0;
-        }}
-        .back-link {{
-            background: #ecf0f1;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            display: inline-block;
-        }}
-    </style>
-</head>
-<body>
-    <div class="back-link">
-        <a href="index.html">← Back to Documentation Home</a>
-    </div>
+    # Wrap in section tag for Sphinx styling
+    html_body = '<section id="installation-guide">\n' + html_body + '\n</section>'
 
-    {content}
-
-    <div class="back-link" style="margin-top: 30px;">
-        <a href="index.html">← Back to Documentation Home</a>
-    </div>
-</body>
-</html>
-"""
-
-    full_html = html_template.format(content=html_body)
+    full_html = get_sphinx_template("Installation Guide", html_body, "installation")
 
     with open(html_file, 'w') as f:
         f.write(full_html)

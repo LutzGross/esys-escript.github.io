@@ -55,9 +55,10 @@ Click on this button to try out *esys-escript* in your web browser (needs valida
 
 ## Funding 
 The project was funded by the
-   - [AuScope National Collaborative Research Infrastructure Strategy (NCRIS)](https://www.auscope.org.au/) (until end of 2023),
-   - Australian Geophysical Observing System (AGOS) (ended 2014),
-   - [The University of Queensland](https://www.uq.edu.au)
+
+- [AuScope National Collaborative Research Infrastructure Strategy (NCRIS)](https://www.auscope.org.au/) (until end of 2023),
+- Australian Geophysical Observing System (AGOS) (ended 2014),
+- [The University of Queensland](https://www.uq.edu.au)
 
 If you publish work that makes use of esys-escript, we would appreciate it if you would cite the following reference:
 
