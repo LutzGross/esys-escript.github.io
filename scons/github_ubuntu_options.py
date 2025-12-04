@@ -46,7 +46,7 @@ trilinos = False  # Disabled for faster build
 build_trilinos = False  # Don't build Trilinos from source
 
 # Domain families to build
-domains = ['finley', 'ripley', 'speckley', 'oxley']
+domains = ['finley', 'ripley', 'speckley' ] # + [ 'oxley']
 
 # Export library
 weipa = True
