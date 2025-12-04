@@ -59,14 +59,31 @@ jobs:
 
       - name: Configure build options
         run: |
-          # Detect Python version for boost libraries
+          # Detect Python version
           PYVER=$(python3 -c "import sys; print(f'{sys.version_info.major}{sys.version_info.minor}')")
-          echo "Python version for boost: $PYVER"
+          echo "Python version: $PYVER"
 
-          # Add boost_libs to the options file based on Python version
+          # Detect actual boost library names
+          echo "=== Detecting boost libraries ==="
+          ls -la /usr/lib/x86_64-linux-gnu/libboost_python* || true
+          ls -la /usr/lib/x86_64-linux-gnu/libboost_numpy* || true
+
+          # Try to find the correct boost library suffix
+          if [ -f "/usr/lib/x86_64-linux-gnu/libboost_python${PYVER}.so" ]; then
+            BOOST_PY_SUFFIX="${PYVER}"
+          elif [ -f "/usr/lib/x86_64-linux-gnu/libboost_python3.so" ]; then
+            BOOST_PY_SUFFIX="3"
+          else
+            # Try to auto-detect from available files
+            BOOST_PY_SUFFIX=$(ls /usr/lib/x86_64-linux-gnu/libboost_python*.so 2>/dev/null | head -1 | sed 's/.*libboost_python\([^.]*\)\.so/\1/')
+          fi
+
+          echo "Detected boost Python suffix: $BOOST_PY_SUFFIX"
+
+          # Add boost_libs to the options file based on detected libraries
           echo "" >> scons/github_ubuntu_options.py
-          echo "# Dynamic configuration based on detected Python version" >> scons/github_ubuntu_options.py
-          echo "boost_libs = ['boost_python${PYVER}', 'boost_numpy${PYVER}', 'boost_random', 'boost_iostreams']" >> scons/github_ubuntu_options.py
+          echo "# Dynamic configuration based on detected boost libraries" >> scons/github_ubuntu_options.py
+          echo "boost_libs = ['boost_python${BOOST_PY_SUFFIX}', 'boost_numpy${BOOST_PY_SUFFIX}', 'boost_random', 'boost_iostreams']" >> scons/github_ubuntu_options.py
           echo "" >> scons/github_ubuntu_options.py
           echo "# Compression support" >> scons/github_ubuntu_options.py
           echo "compression_libs = ['boost_iostreams', 'z', 'bz2']" >> scons/github_ubuntu_options.py
