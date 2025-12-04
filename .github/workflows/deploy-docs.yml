@@ -1,0 +1,95 @@
+name: Build and Deploy Documentation
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            scons \
+            python3-markdown \
+            python3-sphinx \
+            python3-numpy \
+            texlive-latex-base \
+            texlive-latex-extra \
+            texlive-fonts-recommended \
+            texlive-fonts-extra \
+            gzip \
+            git
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install sphinx markdown
+
+      - name: Build documentation with SCons
+        run: |
+          # Build markdown documentation (doesn't require full build)
+          mkdir -p release/doc
+          python3 doc/md2html.py readme README.md release/doc/index.html
+          python3 doc/md2html.py installation installation.md release/doc/installation.html
+
+          # Create placeholder for full API docs
+          mkdir -p release/doc/sphinx_api
+          cat > release/doc/sphinx_api/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>API Documentation - Build Required</title>
+            <meta http-equiv="refresh" content="0; url=../index.html">
+          </head>
+          <body>
+            <p>Full API documentation requires building esys-escript. Redirecting to <a href="../index.html">main documentation</a>...</p>
+          </body>
+          </html>
+          EOF
+
+      - name: Add .nojekyll file
+        run: |
+          touch release/doc/.nojekyll
+          echo "User-agent: *" > release/doc/robots.txt
+          echo "Allow: /" >> release/doc/robots.txt
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'release/doc'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
