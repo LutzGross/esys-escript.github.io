@@ -53,13 +53,13 @@ jobs:
       - name: Build documentation with SCons
         run: |
           # Build markdown documentation (doesn't require full build)
-          mkdir -p release/doc
-          python3 doc/md2html.py readme README.md release/doc/index.html
-          python3 doc/md2html.py installation installation.md release/doc/installation.html
+          mkdir -p docs
+          python3 doc/md2html.py readme README.md docs/index.html
+          python3 doc/md2html.py installation installation.md docs/installation.html
 
           # Create placeholder for full API docs
-          mkdir -p release/doc/sphinx_api
-          cat > release/doc/sphinx_api/index.html << 'EOF'
+          mkdir -p docs/sphinx_api
+          cat > docs/sphinx_api/index.html << 'EOF'
           <!DOCTYPE html>
           <html>
           <head>
@@ -74,14 +74,14 @@ jobs:
 
       - name: Add .nojekyll file
         run: |
-          touch release/doc/.nojekyll
-          echo "User-agent: *" > release/doc/robots.txt
-          echo "Allow: /" >> release/doc/robots.txt
+          touch docs/.nojekyll
+          echo "User-agent: *" > docs/robots.txt
+          echo "Allow: /" >> docs/robots.txt
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'release/doc'
+          path: 'docs'
 
   deploy:
     environment:
