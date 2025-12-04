@@ -411,7 +411,13 @@ def checkNumpy(env):
             if conf.CheckCXXHeader(['Python.h', 'numpy/ndarrayobject.h']):
                 numpy_h = True
             else:
-                pypth = env['pythoncmd'][:env['pythoncmd'].index('bin')-1]
+                # Extract Python prefix from pythoncmd
+                if 'bin' in env['pythoncmd']:
+                    pypth = env['pythoncmd'][:env['pythoncmd'].index('bin')-1]
+                else:
+                    # pythoncmd is just the command name, use sys.prefix
+                    import sys
+                    pypth = sys.prefix
                 conf.env.Append(CPPPATH=[
                     f'{pypth}/lib/python{env["python_version"][:env["python_version"].find(".",2)]}/site-packages/numpy/_core/include'])
                 if conf.CheckCXXHeader(['Python.h', 'numpy/ndarrayobject.h']):
