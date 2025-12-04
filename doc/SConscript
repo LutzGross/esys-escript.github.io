@@ -33,7 +33,7 @@ if env['pythoncmd']=='python':
     pass
 else:
   # we need to fire up the external command
-    p=Popen([env['pythoncmd'], '-c', 'from __future__ import print_function;import matplotlib;print(matplotlib.__version__)'], stdout=PIPE)
+    p=Popen([env['pythoncmd'], '-c', 'from __future__ import print_function;try:\n import matplotlib;print(matplotlib.__version__)\nexcept ImportError:\n pass'], stdout=PIPE, stderr=PIPE)
     try:
         mplversion=p.stdout.readline().strip()
         if mplversion!='':
