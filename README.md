@@ -51,7 +51,7 @@ To get started using *esys-escript*, you can use the [user guide](./user.pdf).
 Click on this button to try out *esys-escript* in your web browser (needs validation):
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/esys-escript/esys-escript.github.io/HEAD)
-
+[![pages-build-deployment](https://github.com/LutzGross/esys-escript.github.io/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/LutzGross/esys-escript.github.io/actions/workflows/pages/pages-build-deployment)
 
 ## Funding 
 The project was funded by the
