@@ -50,10 +50,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install sphinx markdown
 
-      - name: Build documentation with SCons
+      - name: Build documentation
         run: |
           # Build markdown documentation (doesn't require full build)
           mkdir -p docs
+
+          # Add .nojekyll FIRST to disable Jekyll
+          touch docs/.nojekyll
+
+          # Build HTML files
           python3 doc/md2html.py readme README.md docs/index.html
           python3 doc/md2html.py installation installation.md docs/installation.html
 
@@ -72,11 +77,16 @@ jobs:
           </html>
           EOF
 
-      - name: Add .nojekyll file
-        run: |
-          touch docs/.nojekyll
+          # Add robots.txt
           echo "User-agent: *" > docs/robots.txt
           echo "Allow: /" >> docs/robots.txt
+
+          # List what we created for debugging
+          ls -la docs/
+          echo "Documentation built successfully"
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v4
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
