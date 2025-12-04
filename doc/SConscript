@@ -29,11 +29,11 @@ if env['pythoncmd']=='python':
     import matplotlib
     haveMPL=True
     mplversion=matplotlib.__version__
-  except ImportError:
+  except ImportError, ModuleNotFoundError:
     pass
 else:
   # we need to fire up the external command
-    p=Popen([env['pythoncmd'], '-c', 'from __future__ import print_function;try:\n import matplotlib;print(matplotlib.__version__)\nexcept ImportError:\n pass'], stdout=PIPE, stderr=PIPE)
+    p=Popen([env['pythoncmd'], '-c', 'from __future__ import print_function;try:\n import matplotlib;print(matplotlib.__version__)\nexcept ImportError, ModuleNotFoundError:\n pass'], stdout=PIPE, stderr=PIPE)
     try:
         mplversion=p.stdout.readline().strip()
         if mplversion!='':
@@ -50,7 +50,7 @@ else:
         mplversion = str(mplversion, 'utf-8')
     else:
         mplversion = str(mplversion)
-    if mplversion<mplmagicversion:
+    if mplversion < mplmagicversion:
         env['warnings'].append("matplotlib found, but version too early. Some unit tests will be skipped.")
 
 example_files_allow_mpi = []
