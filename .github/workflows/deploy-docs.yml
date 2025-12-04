@@ -58,12 +58,15 @@ jobs:
           # Add .nojekyll FIRST to disable Jekyll
           touch docs/.nojekyll
 
+          # Copy Sphinx static assets (CSS, JS, images)
+          mkdir -p docs/sphinx_api/_static
+          cp -r doc/sphinx_api/_static_built/* docs/sphinx_api/_static/
+
           # Build HTML files
           python3 doc/md2html.py readme README.md docs/index.html
           python3 doc/md2html.py installation installation.md docs/installation.html
 
           # Create placeholder for full API docs
-          mkdir -p docs/sphinx_api
           cat > docs/sphinx_api/index.html << 'EOF'
           <!DOCTYPE html>
           <html>
@@ -83,6 +86,7 @@ jobs:
 
           # List what we created for debugging
           ls -la docs/
+          ls -la docs/sphinx_api/_static/ | head -10
           echo "Documentation built successfully"
 
       - name: Configure Pages
