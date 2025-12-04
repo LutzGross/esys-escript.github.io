@@ -29,11 +29,13 @@ if env['pythoncmd']=='python':
     import matplotlib
     haveMPL=True
     mplversion=matplotlib.__version__
-  except ImportError, ModuleNotFoundError:
+  except ImportError:
+      pass
+  except ModuleNotFoundError:
     pass
 else:
   # we need to fire up the external command
-    p=Popen([env['pythoncmd'], '-c', 'from __future__ import print_function;try:\n import matplotlib;print(matplotlib.__version__)\nexcept ImportError, ModuleNotFoundError:\n pass'], stdout=PIPE, stderr=PIPE)
+    p=Popen([env['pythoncmd'], '-c', 'from __future__ import print_function;try:\n import matplotlib;print(matplotlib.__version__)\n except ImportError:\n   pass \n except ModuleNotFoundError:\n   pass'], stdout=PIPE, stderr=PIPE)
     try:
         mplversion=p.stdout.readline().strip()
         if mplversion!='':
