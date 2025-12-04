@@ -63,34 +63,23 @@ jobs:
           PYVER=$(python3 -c "import sys; print(f'{sys.version_info.major}{sys.version_info.minor}')")
           echo "Python version for boost: $PYVER"
 
-          # Create options file for minimal build (no Trilinos)
-          cat > scons/babelsberg_options.py << EOF
-          # Minimal build configuration for documentation
-          boost_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu/']
-          boost_libs = ['boost_python${PYVER}', 'boost_numpy${PYVER}', 'boost_random', 'boost_iostreams']
-          umfpack = True
-          umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
-          umfpack_libs = ['umfpack', 'blas', 'amd']
-          netcdf = 4
-          netcdf_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
-          hdf5 = True
-          hdf5_prefix = ['/usr/include/hdf5/serial', '/usr/lib/x86_64-linux-gnu/hdf5/serial']
-          silo = True
-          silo_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
-          pythoncmd = 'python3'
-          build_dir = 'build'
-          openmp = True
-          # Disable Trilinos for faster build
-          trilinos = False
-          paso = True
-          EOF
+          # Add boost_libs to the options file based on Python version
+          cat >> scons/github_ubuntu_options.py << EOF
 
-          cat scons/babelsberg_options.py
+# Dynamic configuration based on detected Python version
+boost_libs = ['boost_python${PYVER}', 'boost_numpy${PYVER}', 'boost_random', 'boost_iostreams']
+
+# Compression support
+compression_libs = ['boost_iostreams', 'z', 'bz2']
+EOF
+
+          echo "=== Build options file ==="
+          cat scons/github_ubuntu_options.py
 
       - name: Build esys-escript (minimal for docs)
         run: |
           # Build only what's needed for Python API documentation
-          scons -j2 options_file=scons/babelsberg_options.py py_inst 2>&1 | tail -100
+          scons -j2 options_file=scons/github_ubuntu_options.py py_inst 2>&1 | tail -100
 
       - name: Build Sphinx API documentation
         run: |
@@ -99,7 +88,7 @@ jobs:
           export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${LD_LIBRARY_PATH}"
 
           # Build full Sphinx documentation
-          scons -j2 options_file=scons/babelsberg_options.py api_sphinx 2>&1 | tail -50
+          scons -j2 options_file=scons/github_ubuntu_options.py api_sphinx 2>&1 | tail -50
 
       - name: Build complete documentation
         run: |
