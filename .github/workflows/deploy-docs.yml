@@ -64,14 +64,17 @@ jobs:
           echo "Python version for boost: $PYVER"
 
           # Add boost_libs to the options file based on Python version
-          cat >> scons/github_ubuntu_options.py << EOF
+          cat >> scons/github_ubuntu_options.py <<'EOFCONFIG'
 
 # Dynamic configuration based on detected Python version
 boost_libs = ['boost_python${PYVER}', 'boost_numpy${PYVER}', 'boost_random', 'boost_iostreams']
 
 # Compression support
 compression_libs = ['boost_iostreams', 'z', 'bz2']
-EOF
+EOFCONFIG
+
+          # Replace ${PYVER} placeholder with actual version
+          sed -i "s/\${PYVER}/$PYVER/g" scons/github_ubuntu_options.py
 
           echo "=== Build options file ==="
           cat scons/github_ubuntu_options.py
