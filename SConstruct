@@ -513,7 +513,7 @@ if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' or
     if env['trilinos_make_sh'] == 'default':
         if env['mpi'] not in [ 'none', 'no', False]:
             #source=startdir + "/scripts/trilinos_mpi.sh"
-            shutil.copy("scripts/trilinos_mpi.sh", env['trilinos_build'] + "/trilinos_mpi.sh ")
+            shutil.copy("scripts/trilinos_mpi.sh", env['trilinos_build'] + "/trilinos_mpi.sh")
             print("Building (MPI) trilinos..............................")
             SH ="trilinos_mpi.sh"
         else:
