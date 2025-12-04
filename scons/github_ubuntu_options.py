@@ -43,6 +43,7 @@ pythoncmd = 'python3'
 # Solver configuration
 paso = True
 trilinos = False  # Disabled for faster build
+build_trilinos = False  # Don't build Trilinos from source
 
 # Domain families to build
 domains = ['finley', 'ripley', 'speckley', 'oxley']

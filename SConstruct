@@ -209,7 +209,7 @@ if options_file:
         print("Using options in %s." % options_file)
     else:
         print("\nOptions file %s" % options_file)
-        print("is outdated! Please update the file after reading scons/templates/README_FIRST")
+        print("is outdated! Please update the file after reading scons/templates/options.md")
         print("and setting escript_opts_version to %d.\n"%REQUIRED_OPTS_VERSION)
         Exit(1)
 env['IS_WINDOWS']=IS_WINDOWS
@@ -495,7 +495,7 @@ if env['IS_OSX']:
 else:
     env.AppendUnique(SHLIBSONAMEFLAGS =   ["-Wl,-soname=$_SHLIBSONAME" ] )
 
-if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
+if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' or env['build_trilinos'] is False ):
     if os.path.isdir(env['trilinos_build']) is False: # create a build folder if the user deleted it
         os.mkdir(env['trilinos_build'])
     #os.chdir(env['trilinos_build'])
