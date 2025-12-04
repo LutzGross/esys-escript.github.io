@@ -21,7 +21,7 @@ For geophyscial inversion see also the extensions [gambit](https://github.com/An
 - platform is Linux; there is limited support for MacOS and Windows  
 
 Further documentation including examples and a user guide for the latest release can be found at
-https://esys-escript.github.io/
+[https://github.com/LutzGross/esys-escript.github.io](https://github.com/LutzGross/esys-escript.github.io)
 
 
 ## Questions & Bugs 
@@ -40,18 +40,14 @@ Debian packages [python3-escript-mpi] and [python3-escript] for **version 5** ar
 
 To install *esys-escript* for [anaconda](https://www.anaconda.com), first run `conda` and then the command
 
-conda install esys-escript -c conda-forge
+    conda install esys-escript -c conda-forge
 
 At present, this is the recommended way to run esys-escript on Windows.
 
 ## Using *esys-escript*
 
+Documentation for most [master branch](https://github.com/LutzGross/esys-escript.github.io/tree/master) is available [here](https://lutzgross.github.io/esys-escript.github.io).
 To get started using *esys-escript*, you can use the [user guide](./user.pdf). 
-
-Click on this button to try out *esys-escript* in your web browser (needs validation):
-
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/esys-escript/esys-escript.github.io/HEAD)
-[![pages-build-deployment](https://github.com/LutzGross/esys-escript.github.io/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/LutzGross/esys-escript.github.io/actions/workflows/pages/pages-build-deployment)
 
 ## Funding 
 The project was funded by the
