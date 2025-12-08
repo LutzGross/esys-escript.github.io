@@ -164,6 +164,9 @@ def convert_installation_to_html(md_file, html_file):
     # Convert markdown to HTML
     html_body = markdown.markdown(md_content, extensions=['extra', 'tables', 'fenced_code', 'toc'])
 
+    # Fix links to point to the correct HTML files
+    html_body = html_body.replace('href="./scons/templates/options.md"', 'href="options.html"')
+
     # Wrap in section tag for Sphinx styling
     html_body = '<section id="installation-guide">\n' + html_body + '\n</section>'
 

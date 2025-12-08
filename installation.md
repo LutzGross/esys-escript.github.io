@@ -100,7 +100,7 @@ cp scons/templates/<closest_match>_options.py scons/${HOST}_options.py
 scons -j4
 ```
 
-**For a complete list of all available configuration options, see the [Build Options Reference](options.html).**
+**For a complete list of all available configuration options, see the [Build Options Reference](./scons/templates/options.md).**
 
 The options file must include `escript_opts_version = 203` to be accepted by the build system.
 
