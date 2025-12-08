@@ -1,9 +1,7 @@
 # Option files
 
-**THIS NEEDS REVISION !!!!**
-
 The directory [scons/templates](.) contains
-template configuration files for escript for some targets.
+template configuration files for escript for various platforms and configurations.
 
 ## Configuring build
 
@@ -11,8 +9,7 @@ To build escript on a specific machine create a file named
 
     <sourcedir>/scons/<hostname>_options.py
 
-where `<sourcedir>` is the escript source directory and `
-<hostname>` is the
+where `<sourcedir>` is the escript source directory and `<hostname>` is the
 machine's short hostname.
 If you find a template file whose name matches what you are 
 running, you can import that file from your new options file
@@ -70,9 +67,6 @@ Each option is followed by a brief explanation.
 
 - `verbose = True`:
   Set to True to print the full compiler/linker command line.  DEFAULT: False
-
-- `build_trilinos = True`:
-   Set to True to build trilinos
 
 - `cxx = 'g++'`:
   C++ compiler command name or full path. DEFAULT: auto-detected
@@ -258,7 +252,7 @@ Each option is followed by a brief explanation.
 - `visit_prefix = '/opt/visit/2.1.0/linux-intel/libsim/V2'`:
   Prefix or paths to VisIt's sim2 headers and libraries. See note above.
 
-- `isit_libs = ['simV2']`:
+- `visit_libs = ['simV2']`:
   Sim2 library/libraries to link against
 
 - `domains = ['finley', 'ripley', 'speckley', 'oxley']`:
@@ -290,8 +284,8 @@ Setting the following options may break your build.
      - %f = name of hostfile, %h = comma-separated list of hosts,
      - %e = comma-separated list of environment variables to export
 
-- `iknowwhatimdoing = True
-  enables code that is non-standard and not recommended for general use.
+- `iknowwhatimdoing = True`:
+  Enables code that is non-standard and not recommended for general use.
 
 - `insane = True`:
   For testing use only: Skips the sanity check after compilation

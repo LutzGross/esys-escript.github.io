@@ -91,7 +91,7 @@ scons -j4 py_tests options_file=scons/templates/<OS>_options.py
 
 ### Custom Build Configuration
 
-If you need to customize the build (e.g., disable MPI, change compilers), create your own options file:
+If you need to customize the build (e.g., disable MPI, change compilers, enable/disable dependencies), create your own options file:
 
 ```bash
 HOST=`uname -n`
@@ -99,6 +99,10 @@ cp scons/templates/<closest_match>_options.py scons/${HOST}_options.py
 # Edit scons/${HOST}_options.py as needed
 scons -j4
 ```
+
+**For a complete list of all available configuration options, see the [Build Options Reference](./scons/templates/options.md).**
+
+The options file must include `escript_opts_version = 203` to be accepted by the build system.
 
 ### Building Documentation
 
