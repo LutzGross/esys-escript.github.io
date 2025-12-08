@@ -94,7 +94,7 @@ jobs:
       - name: Build esys-escript (minimal for docs)
         run: |
           # Build only what's needed for Python API documentation
-          scons -j2 options_file=scons/github_ubuntu_options.py py_inst 2>&1 | tail -100
+          scons -j2 options_file=scons/github_ubuntu_options.py build 2>&1 | tail -100
 
       - name: Build Sphinx API documentation
         run: |
