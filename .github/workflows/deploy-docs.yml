@@ -103,7 +103,7 @@ jobs:
           export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${LD_LIBRARY_PATH}"
 
           # Build full Sphinx documentation
-          scons -j2 options_file=scons/github_ubuntu_options.py api_sphinx 2>&1 | tail -50
+          scons -j2 options_file=scons/github_ubuntu_options.py sphinxdoc 2>&1 | tail -50
 
       - name: Build complete documentation
         run: |
