@@ -50,7 +50,10 @@ jobs:
             libsuitesparse-dev \
             g++ \
             gfortran \
-            git
+            git \
+            texlive-latex-base \
+            texlive-latex-extra \
+            texlive-fonts-recommended
 
       - name: Install Python dependencies
         run: |
@@ -109,6 +112,15 @@ jobs:
         run: |
           # Build example ZIP and TAR.GZ archives
           scons -j2 options_file=scons/github_ubuntu_options.py examples_zipfile examples_tarfile 2>&1 | tail -20
+
+      - name: Build user guide PDF
+        run: |
+          # Set up Python path
+          export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${LD_LIBRARY_PATH}"
+
+          # Build user guide PDF with pdflatex
+          scons -j2 options_file=scons/github_ubuntu_options.py user_pdf 2>&1 | tail -30
 
       - name: Build complete documentation
         run: |
