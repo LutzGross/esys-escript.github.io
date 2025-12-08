@@ -100,7 +100,7 @@ def get_sphinx_template(title, content, current_page=""):
     )
 
 def convert_readme_to_html(md_file, html_file):
-    """Convert README.md to index.html with Sphinx theme"""
+    """Convert options.md to index.html with Sphinx theme"""
 
     with open(md_file, 'r') as f:
         md_content = f.read()
@@ -174,10 +174,26 @@ def convert_installation_to_html(md_file, html_file):
 
     print(f"Converted {md_file} to {html_file}")
 
+def convert_options_to_html(md_file, html_file):
+    """Convert options.md to HTML with Sphinx theme"""
+
+    with open(md_file, 'r') as f:
+        md_content = f.read()
+
+    # Convert markdown to HTML
+    html_body = markdown.markdown(md_content, extensions=['extra', 'tables'])
+
+    full_html = get_sphinx_template("Build Options Reference", html_body, "options")
+
+    with open(html_file, 'w') as f:
+        f.write(full_html)
+
+    print(f"Converted {md_file} to {html_file}")
+
 if __name__ == '__main__':
     if len(sys.argv) < 4:
         print("Usage: md2html.py <type> <input.md> <output.html>")
-        print("  type: 'readme' or 'installation'")
+        print("  type: 'readme', 'installation', or 'options'")
         sys.exit(1)
 
     doc_type = sys.argv[1]
@@ -197,6 +213,8 @@ if __name__ == '__main__':
         convert_readme_to_html(input_file, output_file)
     elif doc_type == 'installation':
         convert_installation_to_html(input_file, output_file)
+    elif doc_type == 'options':
+        convert_options_to_html(input_file, output_file)
     else:
-        print(f"ERROR: Unknown type '{doc_type}'. Use 'readme' or 'installation'")
+        print(f"ERROR: Unknown type '{doc_type}'. Use 'readme', 'installation', or 'options'")
         sys.exit(1)

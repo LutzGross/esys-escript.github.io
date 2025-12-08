@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>esys-escript &#8212; esys-escript documentation</title>
+    <link rel="stylesheet" type="text/css" href="sphinx_api/_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="sphinx_api/_static/classic.css" />
+    <link rel="stylesheet" type="text/css" href="sphinx_api/_static/custom.css" />
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right"><a href="installation.html">Installation</a> |</li>
+        <li class="right"><a href="sphinx_api/index.html">Python API</a> |</li>
+        <li class="right"><a href="user/user.pdf">User Guide (PDF)</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">esys-escript documentation</a> &#187;</li>
+      </ul>
+    </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            <section id="esys-escript">
+<h1><em>esys-escript</em></h1>
+<p><em>esys-escript</em> is a module for implementing mathematical models in Python using the finite element method (FEM).  As users do not access the underlying data structures it is very easy to use and scripts can run on desktop computers as well as massive parallel supercomputers without changes. Application areas for esys-escript include geophysical inversion, earthquakes, porous media flow, reactive transport, plate subduction, erosion, earth mantle convection, and tsunamis.</p>
+<p>esys-escript is designed as an easy-to-use environment for implementing mathematical models based on non-linear, coupled, time-dependent partial differential equations. It uses the finite element method (FEM) for spatial discretization and data representation and is used through Python. It is suitable for rapid prototyping (e.g. for a student project or thesis) as well as for large software projects. Scripts are executed sequentially, on multi-core platforms via OpenMP and distributed computing clusters using MPI. The hybrid mode of OpenMP and MPI is supported and allows for solving problems with over 200 million unknowns on several thousand cores on a parallel computer.</p>
+<p>For geophyscial inversion see also the extensions <a href="https://github.com/AndreaCodd/gambit">gambit</a> and <a href="https://github.com/LutzGross/fingal">fingal</a>.</p>
+<h2>Main Features:</h2>
+<ul>
+<li>python based user interface</li>
+<li>two- and three-dimensional finite and spectral element simulations</li>
+<li>specialized geophysical inversion module</li>
+<li>support for VTK and SILO file format</li>
+<li>unstructured meshes from gmsh</li>
+<li>parallelization with OpenMP and MPI support</li>
+<li>Flux Controlled Transport solver (FEM-FCT)</li>
+<li>visualization with VisIt</li>
+<li>platform is Linux; there is limited support for MacOS and Windows  </li>
+</ul>
+<p>Further documentation including examples and a user guide for the latest release can be found at
+<a href="https://github.com/LutzGross/esys-escript.github.io">https://github.com/LutzGross/esys-escript.github.io</a></p>
+<h2>Questions &amp; Bugs</h2>
+<p>To raise a question or to report a bug please start a <a href="https://github.com/esys-escript/esys-escript.github.io/issues">github issue</a>.</p>
+<h2>Linux or MacOS Installation from Source</h2>
+<p>Please inspect the <a href="installation.html">installation guide</a> for information on a specific Linux distribution.</p>
+<h2>Debian Distribution</h2>
+<p>Debian packages [python3-escript-mpi] and [python3-escript] for <strong>version 5</strong> are available.</p>
+<h2>Anaconda Installation <strong>Version 5</strong> (needs validation)</h2>
+<p>To install <em>esys-escript</em> for <a href="https://www.anaconda.com">anaconda</a>, first run <code>conda</code> and then the command</p>
+<pre><code>conda install esys-escript -c conda-forge
+</code></pre>
+<p>At present, this is the recommended way to run esys-escript on Windows.</p>
+<h2>Using <em>esys-escript</em></h2>
+<p>Documentation for most <a href="https://github.com/LutzGross/esys-escript.github.io/tree/master">master branch</a> is available <a href="https://lutzgross.github.io/esys-escript.github.io">here</a>.
+To get started using <em>esys-escript</em>, you can use the <a href="user/user.pdf">user guide</a>. </p>
+<section id="documentation-resources">
+<h2>Documentation Resources</h2>
+<p><strong>Installation Guide</strong></p>
+<ul class="simple">
+<li><a class="reference external" href="installation.html">Installation Guide (HTML)</a></li>
+<li>Source: <code>installation.md</code> in the repository root</li>
+</ul>
+<p><strong>User Guide (PDF)</strong></p>
+<ul class="simple">
+<li><a class="reference external" href="user/user.pdf">User Guide PDF</a></li>
+</ul>
+<p><strong>Python API Reference</strong></p>
+<ul class="simple">
+<li><a class="reference external" href="sphinx_api/index.html">Python API Documentation</a></li>
+</ul>
+<p><strong>Examples</strong></p>
+<ul class="simple">
+<li><a class="reference external" href="escript_examples.zip">Example Scripts (ZIP)</a></li>
+<li><a class="reference external" href="escript_examples.tar.gz">Example Scripts (TAR.GZ)</a></li>
+</ul>
+</section>
+<h2>Funding</h2>
+<p>The project was funded by the</p>
+<ul>
+<li><a href="https://www.auscope.org.au/">AuScope National Collaborative Research Infrastructure Strategy (NCRIS)</a> (until end of 2023),</li>
+<li>Australian Geophysical Observing System (AGOS) (ended 2014),</li>
+<li><a href="https://www.uq.edu.au">The University of Queensland</a></li>
+</ul>
+<p>If you publish work that makes use of esys-escript, we would appreciate it if you would cite the following reference:</p>
+<ul>
+<li><a href="https://doi.org/10.1088/1742-2132/13/2/S59">R Schaa, L Gross, J du Plessis, PDE-based geophysical modelling using finite elements: examples from 3D resistivity and 2D magnetotellurics, Journal of Geophysics and Engineering, Volume 13, Issue 2, April 2016, Pages S59–S73</a></li>
+<li><a href="doi:10.1016/j.pepi.2007.04.004">L. Gross, L. Bourgouin, A.J. Hale, H.-B. Mühlhaus,
+Interface modeling in incompressible media using level sets in Escript,
+Physics of the Earth and Planetary Interiors,
+Volume 163, Issues 1–4, 2007,
+Pages 23-34</a></li>
+</ul>
+<h3>Contributors</h3>
+<ul>
+<li>Lutz Gross</li>
+<li>Adam Ellery</li>
+<li>Andrea Codd</li>
+<li>Joel Fenwick</li>
+<li>Cihan Altinay</li>
+<li>Simon Shaw</li>
+<li>Jaco Du Plessis</li>
+<li>Ralf Schaa</li>
+<li>Peter Hornby (late)</li>
+<li>Thomas Poulet</li>
+<li>Lin Gao</li>
+<li>Artak Amirbekyan</li>
+<li>Ken Steube</li>
+</ul>
+</section>
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+          <h3><a href="index.html">Table of Contents</a></h3>
+          <ul>
+            <li><a href="index.html">Documentation Home</a></li>
+            <li><a href="installation.html">Installation Guide</a></li>
+            <li><a href="sphinx_api/index.html">Python API Reference</a></li>
+            <li><a href="user/user.pdf">User Guide (PDF)</a></li>
+          </ul>
+          <h3>Downloads</h3>
+          <ul>
+            <li><a href="escript_examples.zip">Examples (ZIP)</a></li>
+            <li><a href="escript_examples.tar.gz">Examples (TAR.GZ)</a></li>
+          </ul>
+          <h3>Resources</h3>
+          <ul>
+            <li><a href="https://github.com/esys-escript/esys-escript.github.io">GitHub Repository</a></li>
+            <li><a href="https://github.com/esys-escript/esys-escript.github.io/issues">Report Issues</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer" role="contentinfo">
+      <p>&copy; Copyright 2003-2024, The University of Queensland and contributors.</p>
+      <p>
+        Last updated on Dec 08, 2025.
+        Created using <a href="https://www.python.org/">Python</a> and
+        <a href="https://www.sphinx-doc.org/">Sphinx</a> theme.
+      </p>
+    </div>
+  </body>
+</html>
