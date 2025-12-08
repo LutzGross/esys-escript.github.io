@@ -105,6 +105,11 @@ jobs:
           # Build full Sphinx documentation
           scons -j2 options_file=scons/github_ubuntu_options.py sphinxdoc 2>&1 | tail -50
 
+      - name: Build example archives
+        run: |
+          # Build example ZIP and TAR.GZ archives
+          scons -j2 options_file=scons/github_ubuntu_options.py examples_zipfile examples_tarfile 2>&1 | tail -20
+
       - name: Build complete documentation
         run: |
           # Build markdown documentation
@@ -116,6 +121,7 @@ jobs:
           # Build HTML files
           python3 doc/md2html.py readme README.md docs/index.html
           python3 doc/md2html.py installation installation.md docs/installation.html
+          python3 doc/md2html.py options scons/templates/options.md docs/options.html
 
           # Copy full Sphinx API documentation
           if [ -d "release/doc/sphinx_api" ]; then
@@ -140,13 +146,48 @@ jobs:
             echo "Warning: Sphinx API docs not found, using placeholder"
           fi
 
+          # Copy example archives if available
+          if [ -f "release/doc/escript_examples.zip" ]; then
+            cp release/doc/escript_examples.zip docs/
+            echo "Copied example ZIP archive"
+          fi
+          if [ -f "release/doc/escript_examples.tar.gz" ]; then
+            cp release/doc/escript_examples.tar.gz docs/
+            echo "Copied example TAR.GZ archive"
+          fi
+
+          # Copy user guide PDF if available
+          mkdir -p docs/user
+          if [ -f "release/doc/user/user.pdf" ]; then
+            cp release/doc/user/user.pdf docs/user/
+            echo "Copied user guide PDF"
+          else
+            # Create placeholder page for user guide
+            cat > docs/user/user.pdf.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>User Guide PDF - Not Available</title>
+            <meta http-equiv="refresh" content="5; url=../index.html">
+          </head>
+          <body>
+            <h1>User Guide PDF Not Available</h1>
+            <p>The user guide PDF requires LaTeX compilation which is not available in this automated build.</p>
+            <p>Please refer to the <a href="../sphinx_api/index.html">Python API documentation</a> instead.</p>
+            <p>Redirecting to <a href="../index.html">main documentation</a> in 5 seconds...</p>
+          </body>
+          </html>
+          EOF
+            echo "Warning: User guide PDF not found, created placeholder"
+          fi
+
           # Add robots.txt
           echo "User-agent: *" > docs/robots.txt
           echo "Allow: /" >> docs/robots.txt
 
           # List what we created for debugging
           echo "=== Documentation structure ==="
-          find docs -type f | head -30
+          find docs -type f | head -40
           echo "Documentation built successfully"
 
       - name: Configure Pages
