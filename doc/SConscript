@@ -160,12 +160,8 @@ install_html = local_env.Command(installation_html, [installation_md, md2html_sc
                                  'python3 ${SOURCES[1]} installation ${SOURCES[0]} $TARGET')
 env.Alias('installation_html', install_html)
 
-# Copy user.pdf to doc directory for consistent documentation structure
-user_pdf_src = os.path.join(env['prefix'], 'release', 'user', 'user.pdf')
-user_pdf_dest = os.path.join(release_dir, 'user', 'user.pdf')
-user_pdf_copy = local_env.Command(user_pdf_dest, user_pdf_src,
-                                  'mkdir -p ${TARGET.dir} && cp $SOURCE $TARGET')
-env.Alias('copy_user_pdf', user_pdf_copy)
+# Note: user.pdf is built directly to release/doc/user/user.pdf by doc/user/SConscript
+# No need for a separate copy step
 
 #env=Environment(TARFLAGS = "-c -z",chdir=src_dir)
 #if 'Tar' in dir(env):

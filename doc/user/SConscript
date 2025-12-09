@@ -29,7 +29,7 @@ if local_env['pdflatex']:
     else:
         interaction='-interaction=batchmode'
 
-    # Define command to include SVN revision 
+    # Define command to include SVN revision
     local_env.Append(PDFLATEXFLAGS=[interaction,'\\\\newcommand{\\\\RepVersion}{%s\\\\xspace}\\\\input{user.tex}'%(local_env['svn_revision'])])
     pdf=local_env.PDF(target='user.pdf', source='user.tex')
     Depends(pdf, figures+tex_src)
@@ -45,7 +45,9 @@ if local_env['pdflatex']:
         pdf_inst=local_env.InstallAs(target=pdf_path, source='user.pdf')
     env.Alias('user_pdf', pdf_inst)
 else:
-    env.Alias('user_pdf', '', '@echo "Not building user\'s guide: PDF output not supported!"')
+    # Add warning to build summary
+    env['warnings'].append("pdflatex not found. User guide PDF will not be built. Install texlive-latex-base to enable PDF generation.")
+    env.Alias('user_pdf', '', '@echo "*** Warning: pdflatex not found. Skipping user guide PDF build." && echo "*** Install texlive-latex-base texlive-latex-extra to build the PDF user guide."')
     env.AlwaysBuild('user_pdf')
 
 # html version
