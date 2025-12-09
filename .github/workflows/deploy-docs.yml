@@ -106,16 +106,25 @@ jobs:
 
       - name: Build all documentation
         run: |
+          # Debug: Check HDF5 installation
+          echo "=== Checking HDF5 libraries ==="
+          find /usr/lib -name "*hdf5*" -type f 2>/dev/null | head -20
+          ldconfig -p | grep hdf5 | head -10
+
           # Set up Python path
           export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
 
           # Set up library paths for runtime linking
-          # Include HDF5, SILO, and esys libraries
-          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/lib:${GITHUB_WORKSPACE}/esys.trilinos/lib:/usr/lib/x86_64-linux-gnu/hdf5/serial:${LD_LIBRARY_PATH}"
+          # Include HDF5, SILO, and esys libraries - add both serial and standard paths
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/lib:${GITHUB_WORKSPACE}/esys.trilinos/lib:/usr/lib/x86_64-linux-gnu/hdf5/serial:/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
 
           echo "=== Environment for docs build ==="
           echo "PYTHONPATH=$PYTHONPATH"
           echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+
+          # Test if esys modules can be imported
+          echo "=== Testing esys module import ==="
+          python3 -c "import sys; sys.path.insert(0, '${GITHUB_WORKSPACE}'); import esys.escript; print('esys.escript imported successfully')" || echo "Failed to import esys.escript"
 
           # Build all documentation using the 'docs' target
           # This includes: basedocs (pdfdocs, examples, HTML files) + sphinxdoc
