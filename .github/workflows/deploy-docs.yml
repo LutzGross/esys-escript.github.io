@@ -46,7 +46,8 @@ jobs:
             libboost-iostreams-dev \
             libnetcdf-dev \
             libsilo-dev \
-            libhdf5-dev \
+            libhdf5-serial-dev \
+            libhdf5-cpp-103 \
             libsuitesparse-dev \
             g++ \
             gfortran \
