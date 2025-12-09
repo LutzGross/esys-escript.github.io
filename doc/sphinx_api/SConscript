@@ -55,12 +55,19 @@ if env['mathjax_path']!='default':
     mjpath='-D mathjax_path='+env['mathjax_path']
 
 sphinxstuff=local.Command('stuff', [epy_dir, int_dir, env['pyinstall']],
-    'echo "=== Generating Sphinx RST files from Python modules ===" && ' +
+    'echo "=== Environment Check ===" && ' +
     'echo "PYTHONPATH=$PYTHONPATH" && ' +
     'echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" && ' +
+    'echo "PREFIX='+env['prefix']+'" && ' +
+    'echo "Testing esys module import..." && ' +
+    env['pythoncmd'] + ' -c "import sys; print(\'Python path:\', sys.path[:3]); import esys; print(\'esys imported successfully from:\', esys.__file__)" && ' +
+    'echo "=== Generating Sphinx RST files from Python modules ===" && ' +
     env['pythoncmd'] + ' doc/sphinx_api/genrst.py '+env['prefix']+' esys '+int_dir+
     ' && echo "=== Building Sphinx HTML documentation ===" && ' +
-    'sphinx-build -v -E --color -b html -d '+int_dir+'/tree -c doc/sphinx_api '+mjpath+' '+int_dir+' '+epy_dir)
+    'sphinx-build -v -E --color -b html -d '+int_dir+'/tree -c doc/sphinx_api '+mjpath+' '+int_dir+' '+epy_dir +
+    ' && echo "=== Verifying genindex.html ===" && ' +
+    'wc -l '+epy_dir+'/genindex.html && ' +
+    'grep -c "href=" '+epy_dir+'/genindex.html || echo "genindex.html has no links!"')
 
 # Create dependency on example archives (user PDF may not be built if LaTeX unavailable)
 # These files are created by other build steps, we just ensure Sphinx build waits for them
