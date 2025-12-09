@@ -21,4 +21,5 @@ __pycache__/
 *.o
 *.so
 *.a
+*.pdf
 config.log
