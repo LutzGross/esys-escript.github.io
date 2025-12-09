@@ -114,6 +114,17 @@ jobs:
           # This includes: basedocs (pdfdocs, examples, HTML files) + sphinxdoc
           scons -j2 options_file=scons/github_ubuntu_options.py docs 2>&1 | tail -100
 
+          # Verify Sphinx documentation was built
+          echo "=== Verifying Sphinx API documentation ==="
+          if [ -d "release/doc/sphinx_api" ]; then
+            echo "Sphinx API directory exists"
+            ls -lh release/doc/sphinx_api/*.html | head -10
+            du -sh release/doc/sphinx_api
+          else
+            echo "ERROR: Sphinx API directory not found!"
+            exit 1
+          fi
+
       - name: Build complete documentation
         run: |
           # Build markdown documentation
@@ -131,6 +142,13 @@ jobs:
           if [ -d "release/doc/sphinx_api" ]; then
             cp -r release/doc/sphinx_api docs/
             echo "Copied full Sphinx API documentation"
+
+            # Verify genindex.html was copied
+            if [ -f "docs/sphinx_api/genindex.html" ]; then
+              echo "genindex.html copied successfully ($(du -h docs/sphinx_api/genindex.html | cut -f1))"
+            else
+              echo "WARNING: genindex.html not found in docs/sphinx_api/"
+            fi
           else
             # Fallback: copy static assets only
             mkdir -p docs/sphinx_api/_static
