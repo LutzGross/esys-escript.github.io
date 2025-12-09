@@ -138,16 +138,23 @@ This generates:
 Install required packages:
 
 ```bash
-sudo apt-get install python3-dev python3-numpy python3-matplotlib
-sudo apt-get install g++ scons cmake
+sudo apt-get install python3-dev python3-numpy python3-scipy python3-matplotlib
+sudo apt-get install g++ gfortran scons cmake
 sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
-sudo apt-get install libhdf5-serial-dev libsilo-dev libsuitesparse-dev
+sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev
 ```
 
 For MPI support, additionally install:
 
 ```bash
 sudo apt-get install python3-mpi4py libparmetis-dev
+```
+
+For building documentation, additionally install:
+
+```bash
+sudo apt-get install python3-sphinx python3-markdown
+sudo apt-get install texlive-latex-base texlive-latex-extra texlive-fonts-recommended
 ```
 
 Build esys-escript:
@@ -161,16 +168,23 @@ scons -j4 options_file=scons/templates/debian_options.py
 Install required packages:
 
 ```bash
-sudo apt-get install python3-dev python3-numpy python3-matplotlib
-sudo apt-get install g++ scons cmake
+sudo apt-get install python3-dev python3-numpy python3-scipy python3-matplotlib
+sudo apt-get install g++ gfortran scons cmake
 sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
-sudo apt-get install libhdf5-serial-dev libsilo-dev libsuitesparse-dev
+sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev
 ```
 
 For MPI support, additionally install:
 
 ```bash
 sudo apt-get install python3-mpi4py libparmetis-dev
+```
+
+For building documentation, additionally install:
+
+```bash
+sudo apt-get install python3-sphinx python3-markdown
+sudo apt-get install texlive-latex-base texlive-latex-extra texlive-fonts-recommended
 ```
 
 Build esys-escript:
@@ -188,15 +202,22 @@ Mint Linux is based on Ubuntu, use the same commands as Ubuntu above.
 Install required packages:
 
 ```bash
-sudo pacman -Sy python python-numpy python-matplotlib
+sudo pacman -Sy python python-numpy python-scipy python-matplotlib
 sudo pacman -Sy gcc scons cmake
-sudo pacman -Sy boost boost-libs suitesparse hdf5
+sudo pacman -Sy boost boost-libs suitesparse hdf5 netcdf
 ```
 
 For MPI support:
 
 ```bash
 sudo pacman -Sy python-mpi4py parmetis
+```
+
+For building documentation:
+
+```bash
+sudo pacman -Sy python-sphinx python-markdown
+sudo pacman -Sy texlive-core texlive-latexextra
 ```
 
 Build esys-escript:
@@ -211,15 +232,22 @@ Install required packages:
 
 ```bash
 sudo dnf install python3-devel python3-numpy python3-scipy python3-matplotlib
-sudo dnf install gcc-c++ scons cmake
+sudo dnf install gcc-c++ gcc-gfortran scons cmake
 sudo dnf install boost-devel boost-python3-devel boost-python3 boost-numpy3 boost-iostreams boost-random
-sudo dnf install hdf5-devel suitesparse-devel
+sudo dnf install hdf5-devel netcdf-devel suitesparse-devel
 ```
 
 For MPI support:
 
 ```bash
 sudo dnf install python3-mpi4py parmetis-devel
+```
+
+For building documentation:
+
+```bash
+sudo dnf install python3-sphinx python3-markdown
+sudo dnf install texlive-scheme-basic texlive-latex texlive-latex-extra
 ```
 
 Build esys-escript:
@@ -233,16 +261,23 @@ scons -j4 options_file=scons/templates/fedora_py3_options.py
 Install required packages:
 
 ```bash
-sudo zypper in python3-devel python3-numpy python3-matplotlib
-sudo zypper in gcc gcc-c++ scons cmake
+sudo zypper in python3-devel python3-numpy python3-scipy python3-matplotlib
+sudo zypper in gcc gcc-c++ gcc-fortran scons cmake
 sudo zypper in libboost_python3-devel libboost_numpy3-devel libboost_random-devel libboost_iostreams-devel
-sudo zypper in hdf5-devel suitesparse-devel
+sudo zypper in hdf5-devel netcdf-devel suitesparse-devel
 ```
 
 For MPI support:
 
 ```bash
 sudo zypper in python3-mpi4py parmetis-devel
+```
+
+For building documentation:
+
+```bash
+sudo zypper in python3-Sphinx python3-Markdown
+sudo zypper in texlive-latex texlive-latex-extra
 ```
 
 Build esys-escript:
@@ -264,15 +299,22 @@ Install required packages:
 
 ```bash
 sudo dnf install python3-devel python3-numpy python3-scipy python3-matplotlib
-sudo dnf install gcc gcc-c++ scons cmake
+sudo dnf install gcc gcc-c++ gcc-gfortran scons cmake
 sudo dnf install boost-devel boost-python3 boost-python3-devel
-sudo dnf install hdf5-devel suitesparse suitesparse-devel
+sudo dnf install hdf5-devel netcdf-devel suitesparse suitesparse-devel
 ```
 
 For MPI support:
 
 ```bash
 sudo dnf install python3-mpi4py parmetis-devel
+```
+
+For building documentation:
+
+```bash
+sudo dnf install python3-sphinx python3-markdown
+sudo dnf install texlive-scheme-basic texlive-latex
 ```
 
 Build esys-escript:
@@ -291,7 +333,7 @@ Install Homebrew from [https://brew.sh](https://brew.sh), then:
 brew install python3 numpy scipy matplotlib
 brew install scons cmake
 brew install boost boost-python3
-brew install hdf5 suite-sparse
+brew install hdf5 netcdf suite-sparse
 ```
 
 Some Python packages may need pip:
@@ -305,6 +347,13 @@ For MPI support:
 ```bash
 brew install open-mpi
 pip3 install mpi4py
+```
+
+For building documentation:
+
+```bash
+pip3 install sphinx markdown
+brew install --cask mactex  # For LaTeX/PDF documentation
 ```
 
 Build esys-escript:
@@ -324,13 +373,20 @@ sudo port install python311
 sudo port select --set python python311
 sudo port select --set python3 python311
 sudo port install py311-numpy py311-scipy py311-matplotlib
-sudo port install scons cmake boost hdf5 suitesparse
+sudo port install scons cmake boost hdf5 netcdf suitesparse
 ```
 
 For MPI support:
 
 ```bash
 sudo port install openmpi py311-mpi4py
+```
+
+For building documentation:
+
+```bash
+sudo port install py311-sphinx py311-markdown
+sudo port install texlive  # For LaTeX/PDF documentation
 ```
 
 Build esys-escript:
@@ -345,7 +401,14 @@ scons -j4 options_file=scons/templates/macports_options.py
 
 ```bash
 sudo pkg install python3 py39-numpy py39-scipy py39-matplotlib
-sudo pkg install scons cmake boost-python-libs hdf5 suitesparse
+sudo pkg install scons cmake boost-python-libs hdf5 netcdf suitesparse
+```
+
+For building documentation:
+
+```bash
+sudo pkg install py39-sphinx py39-markdown
+sudo pkg install texlive-full  # For LaTeX/PDF documentation
 ```
 
 ## Advanced Configuration
