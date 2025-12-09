@@ -6,7 +6,7 @@ esys-escript is primarily developed on Linux systems. The current version provid
 
 For support and questions, please visit the [Issues site](https://github.com/esys-escript/esys-escript.github.io/issues).
 
-For complete documentation including user guide and API reference, see the [main documentation page](https://esys-escript.github.io/).
+For complete documentation including user guide and API reference, see the [main documentation page](https://lutzgross.github.io/esys-escript.github.io/index.html).
 
 ## Dependencies
 
@@ -30,7 +30,8 @@ For complete documentation including user guide and API reference, see the [main
 - ParMETIS (for MPI builds)
 - HDF5-serial (for HDF5 file I/O)
 - SILO (recommended for VisIt visualization)
-- python3-sphinx and python3-markdown (for building documentation)
+- python3-sphinx and python3-markdown (for building API documentation)
+- LaTeX (texlive-latex-base, texlive-latex-extra) for building user guide PDF
 - CppUnit (for running tests)
 
 The source code is shipped with [Trilinos](https://trilinos.github.io/) and [p4est](https://www.p4est.org/).
@@ -110,6 +111,12 @@ To build the documentation, install additional dependencies:
 
 ```bash
 sudo apt-get install python3-sphinx python3-markdown
+```
+
+For the user guide PDF, also install LaTeX:
+
+```bash
+sudo apt-get install texlive-latex-base texlive-latex-extra texlive-fonts-recommended
 ```
 
 Then build the docs:

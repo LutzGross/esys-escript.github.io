@@ -28,7 +28,7 @@
 <p>This guide is for <strong>Version 6</strong> of esys-escript.</p>
 <p>esys-escript is primarily developed on Linux systems. The current version provides some support for macOS but has not been ported to Windows.</p>
 <p>For support and questions, please visit the <a href="https://github.com/esys-escript/esys-escript.github.io/issues">Issues site</a>.</p>
-<p>For complete documentation including user guide and API reference, see the <a href="https://esys-escript.github.io/">main documentation page</a>.</p>
+<p>For complete documentation including user guide and API reference, see the <a href="https://lutzgross.github.io/esys-escript.github.io/index.html">main documentation page</a>.</p>
 <h2 id="dependencies">Dependencies</h2>
 <h3 id="required-dependencies">Required Dependencies</h3>
 <ul>
@@ -50,7 +50,8 @@
 <li>ParMETIS (for MPI builds)</li>
 <li>HDF5-serial (for HDF5 file I/O)</li>
 <li>SILO (recommended for VisIt visualization)</li>
-<li>python3-sphinx and python3-markdown (for building documentation)</li>
+<li>python3-sphinx and python3-markdown (for building API documentation)</li>
+<li>LaTeX (texlive-latex-base, texlive-latex-extra) for building user guide PDF</li>
 <li>CppUnit (for running tests)</li>
 </ul>
 <p>The source code is shipped with <a href="https://trilinos.github.io/">Trilinos</a> and <a href="https://www.p4est.org/">p4est</a>.</p>
@@ -113,6 +114,9 @@ scons -j4
 <h3 id="building-documentation">Building Documentation</h3>
 <p>To build the documentation, install additional dependencies:</p>
 <pre><code class="language-bash">sudo apt-get install python3-sphinx python3-markdown
+</code></pre>
+<p>For the user guide PDF, also install LaTeX:</p>
+<pre><code class="language-bash">sudo apt-get install texlive-latex-base texlive-latex-extra texlive-fonts-recommended
 </code></pre>
 <p>Then build the docs:</p>
 <pre><code class="language-bash">scons -j4 docs
@@ -414,7 +418,7 @@ brew install gmsh          # macOS
     <div class="footer" role="contentinfo">
       <p>&copy; Copyright 2003-2024, The University of Queensland and contributors.</p>
       <p>
-        Last updated on Dec 08, 2025.
+        Last updated on Dec 09, 2025.
         Created using <a href="https://www.python.org/">Python</a> and
         <a href="https://www.sphinx-doc.org/">Sphinx</a> theme.
       </p>
