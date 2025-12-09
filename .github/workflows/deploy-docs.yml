@@ -99,28 +99,14 @@ jobs:
           # Build only what's needed for Python API documentation
           scons -j2 options_file=scons/github_ubuntu_options.py build 2>&1 | tail -100
 
-      - name: Build Sphinx API documentation
+      - name: Build all documentation
         run: |
           # Set up Python path
           export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
           export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${LD_LIBRARY_PATH}"
 
-          # Build full Sphinx documentation
-          scons -j2 options_file=scons/github_ubuntu_options.py sphinxdoc 2>&1 | tail -50
-
-      - name: Build example archives
-        run: |
-          # Build example ZIP and TAR.GZ archives
-          scons -j2 options_file=scons/github_ubuntu_options.py examples_zipfile examples_tarfile 2>&1 | tail -20
-
-      - name: Build user guide PDF
-        run: |
-          # Set up Python path
-          export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
-          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${LD_LIBRARY_PATH}"
-
-          # Build user guide PDF with pdflatex
-          scons -j2 options_file=scons/github_ubuntu_options.py user_pdf 2>&1 | tail -30
+          # Build all documentation targets in a single SCons invocation to avoid conflicts
+          scons -j2 options_file=scons/github_ubuntu_options.py examples_zipfile examples_tarfile user_pdf sphinxdoc 2>&1 | tail -100
 
       - name: Build complete documentation
         run: |
