@@ -6,6 +6,8 @@
 \ProvidesClass{esysdoc}
 \LoadClass[a4paper, twoside]{book}
 
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
 \usepackage[a4paper, left=2.5cm, right=2.5cm, nohead, vcentering, scale=0.8]{geometry}
 \usepackage{times}
 \usepackage{listings}
