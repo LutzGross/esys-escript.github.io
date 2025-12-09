@@ -105,8 +105,9 @@ jobs:
           export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
           export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${LD_LIBRARY_PATH}"
 
-          # Build all documentation targets in a single SCons invocation to avoid conflicts
-          scons -j2 options_file=scons/github_ubuntu_options.py examples_zipfile examples_tarfile user_pdf sphinxdoc 2>&1 | tail -100
+          # Build pdfdocs (includes user_pdf), examples, and sphinxdoc
+          # Note: pdfdocs is the correct target for user PDF, not user_pdf directly
+          scons -j2 options_file=scons/github_ubuntu_options.py pdfdocs examples_zipfile examples_tarfile sphinxdoc 2>&1 | tail -100
 
       - name: Build complete documentation
         run: |
