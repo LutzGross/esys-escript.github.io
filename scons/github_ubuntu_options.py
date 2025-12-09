@@ -27,11 +27,11 @@ umfpack_libs = ['umfpack', 'blas', 'amd']
 # File I/O libraries
 hdf5 = True
 hdf5_prefix = ['/usr/include/hdf5/serial', '/usr/lib/x86_64-linux-gnu/hdf5/serial']
-hdf5_libs = ['hdf5_serial']
+hdf5_libs = ['hdf5_serial', 'hdf5_serial_cpp']
 
 silo = True
 silo_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
-silo_libs = ['siloh5', 'hdf5_serial']
+silo_libs = ['siloh5', 'hdf5_serial', 'hdf5_serial_cpp']
 
 # Compression support
 compressed_files = True
