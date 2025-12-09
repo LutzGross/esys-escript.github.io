@@ -24,7 +24,29 @@ local.Command(epy_dir, [], [Mkdir(epy_dir)])
 
 int_dir=os.path.join(env['BUILD_DIR'], 'sphinx_int')
 local.Command(int_dir, [], [Mkdir(int_dir)])
-local['ENV']['LD_LIBRARY_PATH']+=(os.path.pathsep+os.path.join(local['prefix'],'lib'))
+
+# Set up environment for genrst.py to import esys modules
+# Add PYTHONPATH so Python can find the esys modules
+pythonpath_prefix = local['prefix']
+if 'PYTHONPATH' in os.environ:
+    pythonpath_prefix += os.pathsep + os.environ['PYTHONPATH']
+local['ENV']['PYTHONPATH'] = pythonpath_prefix
+
+# Add LD_LIBRARY_PATH so libraries can be found
+lib_esys_path = os.path.join(local['prefix'], 'lib', 'esys')
+lib_path = os.path.join(local['prefix'], 'lib')
+ldlibpath = lib_esys_path + os.pathsep + lib_path
+
+# Add Trilinos library path if available
+trilinos_lib = os.path.join(local['prefix'], 'esys.trilinos', 'lib')
+if os.path.exists(trilinos_lib):
+    ldlibpath += os.pathsep + trilinos_lib
+
+# Add existing LD_LIBRARY_PATH if present
+if 'LD_LIBRARY_PATH' in os.environ:
+    ldlibpath += os.pathsep + os.environ['LD_LIBRARY_PATH']
+
+local['ENV']['LD_LIBRARY_PATH'] = ldlibpath
 
 #env.Alias(os.path.join(int_dir,'index.rst'),[env['pyinstall'], int_dir],'doc/sphinx_api/genrst.py ./esys esys '+int_dir)
 
@@ -32,7 +54,13 @@ mjpath=''
 if env['mathjax_path']!='default':
     mjpath='-D mathjax_path='+env['mathjax_path']
 
-sphinxstuff=local.Command('stuff', [epy_dir, int_dir, env['pyinstall']], env['pythoncmd'] + ' doc/sphinx_api/genrst.py '+env['prefix']+' esys '+int_dir+" && sphinx-build -v -E --color -b html -d "+int_dir+"/tree -c doc/sphinx_api "+mjpath+" "+int_dir+" "+epy_dir)
+sphinxstuff=local.Command('stuff', [epy_dir, int_dir, env['pyinstall']],
+    'echo "=== Generating Sphinx RST files from Python modules ===" && ' +
+    'echo "PYTHONPATH=$PYTHONPATH" && ' +
+    'echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" && ' +
+    env['pythoncmd'] + ' doc/sphinx_api/genrst.py '+env['prefix']+' esys '+int_dir+
+    ' && echo "=== Building Sphinx HTML documentation ===" && ' +
+    'sphinx-build -v -E --color -b html -d '+int_dir+'/tree -c doc/sphinx_api '+mjpath+' '+int_dir+' '+epy_dir)
 
 # Create dependency on example archives (user PDF may not be built if LaTeX unavailable)
 # These files are created by other build steps, we just ensure Sphinx build waits for them
