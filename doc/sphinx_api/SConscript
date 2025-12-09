@@ -72,9 +72,11 @@ lib_paths = [
 ]
 if os.path.exists(trilinos_lib):
     lib_paths.append(trilinos_lib)
+# Add HDF5 library paths - check both common locations
 lib_paths.extend([
-    '/usr/lib/x86_64-linux-gnu/hdf5/serial',
-    '/usr/lib/x86_64-linux-gnu',
+    '/lib/x86_64-linux-gnu',              # Where ldconfig finds HDF5 libraries
+    '/usr/lib/x86_64-linux-gnu',          # Standard library location
+    '/usr/lib/x86_64-linux-gnu/hdf5/serial',  # HDF5 serial build location
 ])
 ldlib_str = ':'.join(lib_paths)
 
