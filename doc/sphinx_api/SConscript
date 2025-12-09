@@ -65,13 +65,28 @@ mjpath=''
 if env['mathjax_path']!='default':
     mjpath='-D mathjax_path='+env['mathjax_path']
 
+# Build the library path explicitly
+lib_paths = [
+    os.path.join(local['prefix'], 'lib', 'esys'),
+    os.path.join(local['prefix'], 'lib'),
+]
+if os.path.exists(trilinos_lib):
+    lib_paths.append(trilinos_lib)
+lib_paths.extend([
+    '/usr/lib/x86_64-linux-gnu/hdf5/serial',
+    '/usr/lib/x86_64-linux-gnu',
+])
+ldlib_str = ':'.join(lib_paths)
+
+# Create command with explicit environment variable settings
 sphinxstuff=local.Command('stuff', [epy_dir, int_dir, env['pyinstall']],
+    'export PYTHONPATH='+local['prefix']+':$$PYTHONPATH && ' +
+    'export LD_LIBRARY_PATH='+ldlib_str+':$$LD_LIBRARY_PATH && ' +
     'echo "=== Environment Check ===" && ' +
-    'echo "PYTHONPATH=$PYTHONPATH" && ' +
-    'echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" && ' +
-    'echo "PREFIX='+env['prefix']+'" && ' +
+    'echo "PYTHONPATH=$$PYTHONPATH" && ' +
+    'echo "LD_LIBRARY_PATH=$$LD_LIBRARY_PATH" && ' +
     'echo "Testing esys module import..." && ' +
-    env['pythoncmd'] + ' -c "import sys; print(\'Python path:\', sys.path[:3]); import esys; print(\'esys imported successfully from:\', esys.__file__)" && ' +
+    env['pythoncmd'] + ' -c "import sys; import esys.escript; print(\'SUCCESS: esys.escript imported from:\', esys.escript.__file__)" && ' +
     'echo "=== Generating Sphinx RST files from Python modules ===" && ' +
     env['pythoncmd'] + ' doc/sphinx_api/genrst.py '+env['prefix']+' esys '+int_dir+
     ' && echo "=== Building Sphinx HTML documentation ===" && ' +
