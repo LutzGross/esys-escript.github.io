@@ -60,6 +60,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install sphinx markdown numpy scipy
 
+      - name: Verify LaTeX installation
+        run: |
+          which pdflatex
+          pdflatex --version
+
       - name: Configure build options
         run: |
           # Detect Python version
