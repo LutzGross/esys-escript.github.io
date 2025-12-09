@@ -6,6 +6,7 @@ docs/
 .sconf_temp/
 build/
 build_trilinos/
+release/
 
 # Python cache
 __pycache__/
