@@ -8,7 +8,6 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 #
 ##############################################################################
-from __future__ import division, print_function
 
 __copyright__ = """Copyright (c) 2003-2018 by The University of Queensland
 http://www.uq.edu.au

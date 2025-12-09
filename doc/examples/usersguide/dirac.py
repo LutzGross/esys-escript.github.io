@@ -16,7 +16,6 @@
 """
 example to demonstrate the use of Dirac Delta functions 
 """
-from __future__ import division, print_function
 
 __copyright__="""Copyright (c) 2012-2018 by The University of Queensland
 http://www.uq.edu.au

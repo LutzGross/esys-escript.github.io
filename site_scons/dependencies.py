@@ -15,7 +15,6 @@
 #
 ##############################################################################
 
-from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2003-2019 by the University of Queensland
 http://www.uq.edu.au

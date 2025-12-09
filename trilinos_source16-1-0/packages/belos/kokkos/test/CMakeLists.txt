@@ -1,0 +1,8 @@
+TRIBITS_INCLUDE_DIRECTORIES(${Belos_SOURCE_DIR}/kokkos/src)
+
+TRIBITS_ADD_EXECUTABLE_AND_TEST(
+  KokkosMVOPTest
+  SOURCES KokkosMVOPTest.cpp
+  COMM serial mpi
+  )
+

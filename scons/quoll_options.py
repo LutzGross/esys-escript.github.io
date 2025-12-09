@@ -52,8 +52,6 @@ import subprocess
 #prelaunch = "EE=$(echo %e|sed -e 's/,/ -x /g')"
 #launcher = "mpirun -x ${EE} --map-by node --bind-to none -np %N %b"
 
-python = 3
-
 mpi_prefix=['/usr/lib/x86_64-linux-gnu/openmpi/include/','/usr/lib/x86_64-linux-gnu/openmpi/lib/']
 netcdf = 4
 
@@ -72,39 +70,7 @@ visit_prefix = ['/usr/local/3.1.4/linux-x86_64/libsim/V2/include/','/usr/local/3
 
 
 
-p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
-out,err = p.communicate()
-spath = [x[13:-3] for x in out.split() if 'SEARCH_DIR' in x]
-p2name = ''
-p3name = ''
-for name in spath:
-  try:
-    l=os.listdir(name)
-    p2res=[x for x in l if x.startswith('libboost_python-py2') and x.endswith('.so')]
-    p3res=[x for x in l if x.startswith('libboost_python-py3') and x.endswith('.so')]
-    if len(p2name)==0 and len(p2res)>0:
-      p2name=p2res[-1]
-    if len(p3name)==0 and len(p3res)>0:
-      p3name=p3res[-1]
-  except OSError:
-    pass
-
-# boost-python library/libraries to link against
-if python == 2:
-  boost_libs = [p2name[3:-3]]
-  pythoncmd = '/usr/bin/python'
-else:
-  boost_libs = [p3name[3:-3]]
-  pythoncmd = '/usr/bin/python3'
-
-#boost_libs = [p2name[3:-3], 'boost_numpy27']
-# boost_libs = ['boost_python27', 'boost_numpy27']
-
-# this can be used by options files importing us
-boost_py2_libs = [p2name[3:-3]]
-boost_py3_libs = [p3name[3:-3]]
-
-
+pythoncmd = '/usr/bin/python3'
 boost_libs=["boost_python37"]
 
 from site_init import getdebbuildflags

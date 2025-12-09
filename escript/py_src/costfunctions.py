@@ -16,7 +16,6 @@
 
 """General cost functions for minimization"""
 
-from __future__ import print_function, division
 
 __copyright__ = """Copyright (c) 2003-2020 by The University of Queensland
 http://www.uq.edu.au

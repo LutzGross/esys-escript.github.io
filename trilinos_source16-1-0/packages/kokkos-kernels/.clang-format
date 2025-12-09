@@ -1,0 +1,7 @@
+#Official Tool: clang-format version 8.0.0
+BasedOnStyle: google
+SortIncludes: false
+AlignConsecutiveAssignments: true
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: true
+ColumnLimit: 120

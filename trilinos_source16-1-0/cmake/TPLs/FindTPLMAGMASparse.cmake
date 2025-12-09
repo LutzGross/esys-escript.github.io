@@ -1,0 +1,6 @@
+
+TRIBITS_TPL_FIND_INCLUDE_DIRS_AND_LIBRARIES( MAGMASparse
+  REQUIRED_HEADERS magmasparse.h
+  REQUIRED_LIBS_NAMES magma_sparse magma
+  )
+

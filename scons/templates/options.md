@@ -115,8 +115,8 @@ Each option is followed by a brief explanation.
 - `boost_prefix = '/usr/local'`:
   Prefix or paths to boost headers and libraries. See note above.
 
-- `boost_libs = ['boost_python-py27']`:
-  boost-python library/libraries to link against
+- `boost_libs = ['boost_python3', 'boost_numpy3']`:
+  boost-python library/libraries to link against (Python 3)
 
 - `build_trilinos = False`:
   Whether to build the trilinos library

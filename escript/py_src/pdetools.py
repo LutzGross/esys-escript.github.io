@@ -15,7 +15,6 @@
 #
 ##############################################################################
 
-from __future__ import print_function, division
 import logging
 logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
 

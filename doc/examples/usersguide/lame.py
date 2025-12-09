@@ -13,7 +13,6 @@
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
 #
 ##############################################################################
-from __future__ import division, print_function
 
 #set up domain and symbols
 from esys.escript import *

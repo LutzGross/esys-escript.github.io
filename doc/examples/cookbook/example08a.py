@@ -1,4 +1,3 @@
-from __future__ import division, print_function
 ##############################################################################
 #
 # Copyright (c) 2009-2018 by The University of Queensland

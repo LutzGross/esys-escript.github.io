@@ -14,7 +14,6 @@
 #
 ##############################################################################
 
-from __future__ import division, print_function
 
 import pylab as pl
 import numpy as np

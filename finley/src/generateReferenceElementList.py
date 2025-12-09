@@ -16,7 +16,6 @@
 #
 #  this code generates the ReferenceElement_InfoList in ReferenceElements.cpp
 #
-from __future__ import print_function, division
 
 GEOBASE = {
 "Point": (1, 1, "Point", [0] ),

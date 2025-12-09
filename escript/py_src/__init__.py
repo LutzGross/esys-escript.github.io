@@ -17,7 +17,6 @@
 """Classes and tools that form the basis of the escript system.
 Specific solvers and domains are found in their respective packages."""
 
-from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2013-2018 by The University of Queensland
 http://www.uq.edu.au

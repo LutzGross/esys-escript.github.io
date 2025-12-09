@@ -12,7 +12,6 @@
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
 #
 ##############################################################################
-from __future__ import division, print_function
 
 __copyright__="""Copyright (c) 2009-2018 by The University of Queensland
 http://www.uq.edu.au

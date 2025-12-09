@@ -18,7 +18,6 @@
 """Our most general domain representation. Imports submodules into its namespace
 """
 
-from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2003-2020 by The University of Queensland
 http://www.uq.edu.au

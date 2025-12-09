@@ -1,0 +1,1 @@
+#include "MueLu_RebalanceBlockRestrictionFactory_decl.hpp"
