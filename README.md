@@ -17,11 +17,16 @@ For geophyscial inversion see also the extensions [gambit](https://github.com/An
 - unstructured meshes from gmsh
 - parallelization with OpenMP and MPI support
 - Flux Controlled Transport solver (FEM-FCT)
-- visualization with VisIt
+- visualization with VisIt, paraview, mayavi and others
 - platform is Linux; there is limited support for MacOS and Windows  
 
-Further documentation including examples and a user guide for the latest release can be found at
-[https://github.com/LutzGross/esys-escript.github.io](https://github.com/LutzGross/esys-escript.github.io)
+## Access: 
+
+Source code is available at
+[https://github.com/LutzGross/esys-escript.github.io](https://github.com/LutzGross/esys-escript.github.io).
+
+A version of the documentation for the current master brunch is available
+[here](https://lutzgross.github.io/esys-escript.github.io/).
 
 
 ## Questions & Bugs 
@@ -46,8 +51,8 @@ At present, this is the recommended way to run esys-escript on Windows.
 
 ## Using *esys-escript*
 
-Documentation for most [master branch](https://github.com/LutzGross/esys-escript.github.io/tree/master) is available [here](https://lutzgross.github.io/esys-escript.github.io).
-To get started using *esys-escript*, you can use the [user guide](./user.pdf). 
+Online documentation for [master branch](https://github.com/LutzGross/esys-escript.github.io/tree/master) 
+is available [here](https://lutzgross.github.io/esys-escript.github.io).
 
 ## Funding 
 The project was funded by the
