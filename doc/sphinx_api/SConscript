@@ -42,6 +42,17 @@ trilinos_lib = os.path.join(local['prefix'], 'esys.trilinos', 'lib')
 if os.path.exists(trilinos_lib):
     ldlibpath += os.pathsep + trilinos_lib
 
+# Add HDF5 library paths (needed for symbol resolution)
+# Check common HDF5 locations
+hdf5_paths = [
+    '/usr/lib/x86_64-linux-gnu/hdf5/serial',  # Debian/Ubuntu
+    '/usr/lib64',  # Fedora/RedHat
+    '/usr/local/lib',  # From source
+]
+for hdf5_path in hdf5_paths:
+    if os.path.exists(hdf5_path):
+        ldlibpath += os.pathsep + hdf5_path
+
 # Add existing LD_LIBRARY_PATH if present
 if 'LD_LIBRARY_PATH' in os.environ:
     ldlibpath += os.pathsep + os.environ['LD_LIBRARY_PATH']
