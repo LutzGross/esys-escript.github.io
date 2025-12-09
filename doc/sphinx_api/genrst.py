@@ -156,7 +156,7 @@ def listmods():
   main.write('* `Installation Guide <../installation.html>`_ - Installation instructions\n\n')
   main.write('**User Guide (PDF)**\n\n')
   main.write('The comprehensive user guide is available as a PDF document:\n\n')
-  main.write('* `User Guide PDF <../../user/user.pdf>`_\n\n')
+  main.write('* `User Guide PDF <../user/user.pdf>`_\n\n')
   main.write('**Examples**\n\n')
   main.write('Example scripts demonstrating esys-escript usage:\n\n')
   main.write('* `Example Scripts (ZIP) <../escript_examples.zip>`_\n')
