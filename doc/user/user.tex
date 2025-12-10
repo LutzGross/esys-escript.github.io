@@ -62,10 +62,9 @@ Brisbane, Australia \\
 It consists of four major components:
 \begin{itemize}
 \item \escript core library
-\item finite element solvers \finley, \ripley, and \speckley (which
-    use fast vendor-supplied solvers or the included \PASO linear solver library)
-\item a model library
-\item an inversion module.
+\item PDE solver interface
+\item finite element solvers \finley, \ripley, \speckley and \oxley
+\item interface to visualization tools
 \end{itemize}
 
 All \escript modules require \PYTHON 3 (version 3.7 or later).
@@ -79,7 +78,7 @@ In particular, if you wish to solve PDEs with complex coefficients, please consu
 
 If you use this software in your research, then we would appreciate (but do not
 require) a citation.
-Some relevant references can be found in Appendix~\ref{app:ourrefs}.
+Please see the README.md file for relevant references.
 \end{abstract}
 
 \cleardoublepage\pdfbookmark[0]{Contents}{contents}%
@@ -89,7 +88,6 @@ Some relevant references can be found in Appendix~\ref{app:ourrefs}.
 \include{execute}
 \include{escript}
 \include{linearPDE}
-%\include{Models} - this has been moved to esys-escript-applications
 \include{finley}
 \include{ripley}
 \include{speckley}
