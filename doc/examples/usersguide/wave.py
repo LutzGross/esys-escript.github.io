@@ -30,14 +30,14 @@ from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
 from esys.escript.pdetools import Locator
 try:
-    from esys.dudley import Brick
-    HAVE_DUDLEY = True
+    from esys.finley import Brick
+    HAVE_FINLEY = True
 except ImportError:
-    HAVE_DUDLEY = False
+    HAVE_FINLEY = False
 from esys.weipa import saveVTK
 
-if not HAVE_DUDLEY:
-    print("Dudley module not available")
+if not HAVE_FINLEY:
+    print("Finley module not available")
 else:
     ne=32          # number of cells in x_0 and x_1 directions
     width=10000.  # length in x_0 and x_1 directions

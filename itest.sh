@@ -492,76 +492,6 @@ weipa () {
 	$PYTHONTESTRUNNER run_savesilo_tests.py -failfile=$BUILD_DIR/weipa/test/python/run_savesilo_tests.failed -skipfile=$BUILD_DIR/weipa/test/python/run_savesilo_tests.skipped || failed run_savesilo_tests.py
 	echo Completed run_savesilo_tests.py
 }
-usersguide () {
-	if [ ! -d $BATCH_ROOT/doc/examples/usersguide ]
-	then
-		mkdir -p $BATCH_ROOT/doc/examples/usersguide
-	fi
-	export PYTHONPATH=$OLD_PYTHON
-	cd $BATCH_ROOT/doc/examples/usersguide
-	if [ $MPIPROD -le 1 ]; then
-		echo Starting trapezoid.py
-		date
-		$PYTHONRUNNER trapezoid.py || failed trapezoid.py
-		echo Completed trapezoid.py
-		echo Starting quad.py
-		date
-		$PYTHONRUNNER quad.py || failed quad.py
-		echo Completed quad.py
-		echo Starting brick.py
-		date
-		$PYTHONRUNNER brick.py || failed brick.py
-		echo Completed brick.py
-		echo Starting refine.py
-		date
-		$PYTHONRUNNER refine.py || failed refine.py
-		echo Completed refine.py
-		echo Starting poisson_matplotlib.py
-		date
-		$PYTHONRUNNER poisson_matplotlib.py || failed poisson_matplotlib.py
-		echo Completed poisson_matplotlib.py
-		echo Starting rosenbrock.py
-		date
-		$PYTHONRUNNER rosenbrock.py || failed rosenbrock.py
-		echo Completed rosenbrock.py
-		echo Starting MT.py
-		date
-		$PYTHONRUNNER MT.py || failed MT.py
-		echo Completed MT.py
-	fi
-	echo Starting heatedblock.py
-	date
-	$PYTHONRUNNER heatedblock.py || failed heatedblock.py
-	echo Completed heatedblock.py
-	echo Starting helmholtz.py
-	date
-	$PYTHONRUNNER helmholtz.py || failed helmholtz.py
-	echo Completed helmholtz.py
-	echo Starting poisson.py
-	date
-	$PYTHONRUNNER poisson.py || failed poisson.py
-	echo Completed poisson.py
-	echo Starting diffusion.py
-	date
-	$PYTHONRUNNER diffusion.py || failed diffusion.py
-	echo Completed diffusion.py
-	echo Starting poisson_vtk.py
-	date
-	$PYTHONRUNNER poisson_vtk.py || failed poisson_vtk.py
-	echo Completed poisson_vtk.py
-	echo Starting dirac.py
-	date
-	$PYTHONRUNNER dirac.py || failed dirac.py
-	echo Completed dirac.py
-	echo Starting int_save.py
-	date
-	$PYTHONRUNNER int_save.py || failed int_save.py
-	echo Completed int_save.py
-	echo Starting wave.py
-	date
-	$PYTHONRUNNER wave.py || failed wave.py
-	echo Completed wave.py
-}
 cookbook () {
 	if [ ! -d $BATCH_ROOT/doc/examples/cookbook ]
 	then
@@ -668,6 +598,76 @@ cookbook () {
 	$PYTHONRUNNER example03b.py || failed example03b.py
 	echo Completed example03b.py
 }
+usersguide () {
+	if [ ! -d $BATCH_ROOT/doc/examples/usersguide ]
+	then
+		mkdir -p $BATCH_ROOT/doc/examples/usersguide
+	fi
+	export PYTHONPATH=$OLD_PYTHON
+	cd $BATCH_ROOT/doc/examples/usersguide
+	if [ $MPIPROD -le 1 ]; then
+		echo Starting trapezoid.py
+		date
+		$PYTHONRUNNER trapezoid.py || failed trapezoid.py
+		echo Completed trapezoid.py
+		echo Starting quad.py
+		date
+		$PYTHONRUNNER quad.py || failed quad.py
+		echo Completed quad.py
+		echo Starting brick.py
+		date
+		$PYTHONRUNNER brick.py || failed brick.py
+		echo Completed brick.py
+		echo Starting refine.py
+		date
+		$PYTHONRUNNER refine.py || failed refine.py
+		echo Completed refine.py
+		echo Starting poisson_matplotlib.py
+		date
+		$PYTHONRUNNER poisson_matplotlib.py || failed poisson_matplotlib.py
+		echo Completed poisson_matplotlib.py
+		echo Starting rosenbrock.py
+		date
+		$PYTHONRUNNER rosenbrock.py || failed rosenbrock.py
+		echo Completed rosenbrock.py
+		echo Starting MT.py
+		date
+		$PYTHONRUNNER MT.py || failed MT.py
+		echo Completed MT.py
+	fi
+	echo Starting heatedblock.py
+	date
+	$PYTHONRUNNER heatedblock.py || failed heatedblock.py
+	echo Completed heatedblock.py
+	echo Starting helmholtz.py
+	date
+	$PYTHONRUNNER helmholtz.py || failed helmholtz.py
+	echo Completed helmholtz.py
+	echo Starting poisson.py
+	date
+	$PYTHONRUNNER poisson.py || failed poisson.py
+	echo Completed poisson.py
+	echo Starting diffusion.py
+	date
+	$PYTHONRUNNER diffusion.py || failed diffusion.py
+	echo Completed diffusion.py
+	echo Starting poisson_vtk.py
+	date
+	$PYTHONRUNNER poisson_vtk.py || failed poisson_vtk.py
+	echo Completed poisson_vtk.py
+	echo Starting dirac.py
+	date
+	$PYTHONRUNNER dirac.py || failed dirac.py
+	echo Completed dirac.py
+	echo Starting int_save.py
+	date
+	$PYTHONRUNNER int_save.py || failed int_save.py
+	echo Completed int_save.py
+	echo Starting wave.py
+	date
+	$PYTHONRUNNER wave.py || failed wave.py
+	echo Completed wave.py
+}
 if [ $# -gt 2 ]; then
 	eval $3
 else
@@ -678,7 +678,7 @@ else
 	ripley
 	speckley
 	weipa
-	usersguide
 	cookbook
+	usersguide
 fi
 find $BUILD_DIR -name '*.failed' | xargs cat; find $BUILD_DIR -name '*.failed' | xargs cat | diff -q - /dev/null >/dev/null

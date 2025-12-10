@@ -30,6 +30,15 @@ autodoc_default_flags=['show-inheritance', 'inherited-members', 'members', 'undo
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.mathjax']
 
+# Enable numbered figures, tables and code-blocks
+numfig = True
+numfig_format = {
+    'figure': 'Figure %s',
+    'table': 'Table %s',
+    'code-block': 'Listing %s',
+    'section': 'Section %s'
+}
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 

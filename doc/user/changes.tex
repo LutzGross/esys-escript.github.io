@@ -46,7 +46,7 @@
 \subsection*{5.7}
 \begin{itemize}
 \item atan2 is now consistent with numpy's arctan2 function
-\item Finley and Dudley can now read gmsh MSH 4.0 and MSH 4.1 files correctly, including tag information.
+\item Finley can now read gmsh MSH 4.0 and MSH 4.1 files correctly, including tag information.
 \item Bug fix in getNumpy
 \item getVersion() now returns the git hash
 \item escript is now compatible with boost 1.74.0 and higher
@@ -71,7 +71,7 @@
 \item Extended escript support for numpy with several new functions (getNumpyX, convertToNumpy).
 \item The getX function now works on Data objects.
 \item Finley, Ripley and Speckley now allow integration over Dirac Delta Data objects.
-\item Finley and Dudley now allow users to interpolate from Reduced Function Data to Function Data.
+\item Finley now allows users to interpolate from Reduced Function Data to Function Data.
 \item Added complex version of Scalar, Vector and Tensor objects (ComplexScalar, ComplexVector, ComplexTensor).
 \item Added a new function, ComplexData, that returns a Complex Data object.
 \item Speckley has a new assembler that allows a user to assembled a lumped matrix with complex values.
@@ -103,7 +103,7 @@
 \begin{itemize}
 \item Improvements to saveDataCSV, including support for \speckley and the ability to output reference IDs
 \item Support for the Python numpy module, including the ability to output Data objects as numpy arrays
-\item Both \finley and \dudley now support GMSH version 4.0 MSH files
+\item \finley now supports GMSH version 4.0 MSH files
 \item Improved inversion in downunder.
 \item \escript no longer supports CUDA
 \item \escript no longer supports boomerAMG
@@ -281,7 +281,7 @@ Please see the \module{weipa} documentation for export functionality.
  \item Experimental support for \pythonthree.
  \item Parameter order for the table interpolation methods has changed to be consistent. 
  Please test your scripts if you use these functions.
- \item setX on \finley and \dudley domains will now only accept coordinates from ContinuousFunction spaces.
+ \item setX on \finley domains will now only accept coordinates from ContinuousFunction spaces.
  This is to avoid some potentially nasty behaviour when using periodic boundary conditions.
  You can still use setX, just make sure that you interpolate first.
 \end{itemize}

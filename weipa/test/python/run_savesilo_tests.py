@@ -38,11 +38,6 @@ try:
 except ImportError:
     HAVE_SILO=False
 try:
-    from esys import dudley
-    HAVE_DUDLEY=True
-except ImportError:
-    HAVE_DUDLEY=False
-try:
     from esys import finley
     HAVE_FINLEY=True
 except ImportError:
@@ -1338,99 +1333,6 @@ class Test_Finley_SaveSilo(SiloSaver):
 @unittest.skipIf(not HAVE_DUDLEY, "dudley module not available")
 @unittest.skipIf(not HAVE_SILO, "Silo module not available")
 class Test_Dudley_SaveSilo(SiloSaver):
-
-  # === Dudley 2D =============================================================
-
-  def test_tet_2D_dudley_ContinuousFunction(self):
-     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_dudley.fly"),optimize=False)
-     x=ContinuousFunction(dom).getX()
-     self.check_silo("tet_2D_o1_node", data_s=x[0], data_v=x[0]*[1.,2.],
-                                       data_t=x[0]*[[11.,12.],[21.,22.]])
-
-  def test_tet_2D_dudley_Solution(self):
-     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_dudley.fly"),optimize=False)
-     x=Solution(dom).getX()
-     self.check_silo("tet_2D_o1_node", data_s=x[0], data_v=x[0]*[1.,2.],
-                                       data_t=x[0]*[[11.,12.],[21.,22.]])
-
-  def test_tet_2D_dudley_ReducedSolution(self):
-     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_dudley.fly"),optimize=False)
-     x=ReducedSolution(dom).getX()
-     self.check_silo("tet_2D_o1_node", data_s=x[0], data_v=x[0]*[1.,2.],
-                                       data_t=x[0]*[[11.,12.],[21.,22.]])
-
-  def test_tet_2D_dudley_Function(self):
-     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_dudley.fly"),optimize=False)
-     x=Function(dom).getX()
-     self.check_silo("tet_2D_o1_cell", data_s=x[0], data_v=x[0]*[1.,2.],
-                                       data_t=x[0]*[[11.,12.],[21.,22.]])
-
-  def test_tet_2D_dudley_ReducedFunction(self):
-     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_dudley.fly"),optimize=False)
-     x=ReducedFunction(dom).getX()
-     self.check_silo("tet_2D_o1_cell", data_s=x[0], data_v=x[0]*[1.,2.],
-                                       data_t=x[0]*[[11.,12.],[21.,22.]])
-
-  def test_tet_2D_dudley_FunctionOnBoundary(self):
-     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_dudley.fly"),optimize=False)
-     x=FunctionOnBoundary(dom).getX()
-     self.check_silo("tet_2D_o1_boundary", data_s=x[0], data_v=x[0]*[1.,2.],
-                                           data_t=x[0]*[[11.,12.],[21.,22.]])
-
-  def test_tet_2D_dudley_ReducedFunctionOnBoundary(self):
-     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_dudley.fly"),optimize=False)
-     x=ReducedFunctionOnBoundary(dom).getX()
-     self.check_silo("tet_2D_o1_boundary", data_s=x[0], data_v=x[0]*[1.,2.],
-                                           data_t=x[0]*[[11.,12.],[21.,22.]])
-
-  # === Dudley 3D =============================================================
-
-  def test_tet_3D_dudley_ContinuousFunction(self):
-     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_dudley.fly"),optimize=False)
-     x=ContinuousFunction(dom).getX()
-     self.check_silo("tet_3D_o1_node", data_s=x[0], data_v=x[0]*[1.,2.,3.],
-                                       data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
-
-  def test_tet_3D_dudley_Solution(self):
-     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_dudley.fly"),optimize=False)
-     x=Solution(dom).getX()
-     self.check_silo("tet_3D_o1_node", data_s=x[0], data_v=x[0]*[1.,2.,3.],
-                                       data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
-
-  def test_tet_3D_dudley_ReducedSolution(self):
-     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_dudley.fly"),optimize=False)
-     x=ReducedSolution(dom).getX()
-     self.check_silo("tet_3D_o1_node", data_s=x[0], data_v=x[0]*[1.,2.,3.],
-                                       data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
-
-  def test_tet_3D_dudley_Function(self):
-     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_dudley.fly"),optimize=False)
-     x=Function(dom).getX()
-     self.check_silo("tet_3D_o1_cell", data_s=x[0], data_v=x[0]*[1.,2.,3.],
-                                       data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
-
-  def test_tet_3D_dudley_ReducedFunction(self):
-     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_dudley.fly"),optimize=False)
-     x=ReducedFunction(dom).getX()
-     self.check_silo("tet_3D_o1_cell", data_s=x[0], data_v=x[0]*[1.,2.,3.],
-                                       data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
-
-  def test_tet_3D_dudley_FunctionOnBoundary(self):
-     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_dudley.fly"),optimize=False)
-     x=FunctionOnBoundary(dom).getX()
-     self.check_silo("tet_3D_o1_boundary", data_s=x[0], data_v=x[0]*[1.,2.,3.],
-                                           data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
-
-  def test_tet_3D_dudley_ReducedFunctionOnBoundary(self):
-     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_dudley.fly"),optimize=False)
-     x=ReducedFunctionOnBoundary(dom).getX()
-     self.check_silo("tet_3D_o1_boundary", data_s=x[0], data_v=x[0]*[1.,2.,3.],
-                                           data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
-
-@unittest.skipIf(getMPISizeWorld()>1, "MPI size > 1")
-@unittest.skipIf(not HAVE_RIPLEY, "ripley module not available")
-@unittest.skipIf(not HAVE_SILO, "Silo module not available")
-class Test_Ripley_SaveSilo(SiloSaver):
 
   # === Ripley 2D =============================================================
 

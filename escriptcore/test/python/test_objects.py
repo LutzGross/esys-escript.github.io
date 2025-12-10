@@ -29,8 +29,8 @@ Test suite for data objects.
 The tests must be linked with some function space class object in the setUp
 method to run:
 
-   from esys.dudley import Brick
-   class Test_DumpOnDudley(Test_Dump):
+   from esys.finley import Brick
+   class Test_DumpOnFinley(Test_Dump):
        def setUp(self):
           self.domain=Rectangle(NE,NE+1,2)
           self.domain_with_different_number_of_samples=Rectangle(2*NE,NE+1,2)

@@ -107,7 +107,7 @@ class FinleyOptions(Options):
                       SolverOptions.JACOBI: "JACOBI",
                       SolverOptions.GMRES:  "GMRES",
                       SolverOptions.PRES20:  "PRES20",
-                      SolverOptions.LUMPING:  "LUMPIMG",
+                      SolverOptions.LUMPING:  "LUMPINremG",
                       SolverOptions.NO_REORDERING:  "NO_REORDERING",
                       SolverOptions.MINIMUM_FILL_IN:  "MINIMUM_FILL_IN",
                       SolverOptions.NESTED_DISSECTION: "NESTED_DISSECTION",

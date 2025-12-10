@@ -854,7 +854,7 @@ By default, the seed used to generate the random values will be different each
 time.
 If required, you can specify a seed to ensure the same sequence is produced.
 \begin{python}
-from esys.dudley import *
+from esys.finley import *
 from esys.escript import *
 
 seed=-17171717
@@ -2142,7 +2142,7 @@ Escript's lazy evaluation features record operations performed on Data objects b
 Consider the following code:
 \begin{python}
 from esys.escript import *
-from esys.dudley import Rectangle
+from esys.finley import Rectangle
 x=Rectangle(3,3)
 x=Rectangle(3,3).getX()
 c=Data((1.5, 1), x.getFunctionSpace())

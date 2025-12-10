@@ -75,7 +75,6 @@ def dumpPackage(mname, ignorelist, modset, banset):
     print('---------')
   except AttributeError:
     pass
-  # esys.escript.models does not get picked up by this loop
   for (name, mem) in inspect.getmembers(PP):
       print("    "+name)
       if name.startswith("__"):
@@ -153,9 +152,10 @@ def listmods():
   main.write('**Main Documentation**\n\n')
   main.write('* `Documentation Home <../index.html>`_ - Main documentation page\n')
   main.write('* `Installation Guide <../installation.html>`_ - Installation instructions\n\n')
-  main.write('**User Guide (PDF)**\n\n')
-  main.write('The comprehensive user guide is available as a PDF document:\n\n')
-  main.write('* `User Guide PDF <../user/user.pdf>`_\n\n')
+  main.write('**User Guide**\n\n')
+  main.write('The comprehensive user guide is available in HTML and PDF formats:\n\n')
+  main.write('* `User Guide (HTML) <user_guide/index.html>`_ - Interactive HTML version\n')
+  main.write('* `User Guide (PDF) <../user/user.pdf>`_ - Complete PDF document\n\n')
   main.write('**Examples**\n\n')
   main.write('Example scripts demonstrating esys-escript usage:\n\n')
   main.write('* `Example Scripts (ZIP) <../escript_examples.zip>`_\n')

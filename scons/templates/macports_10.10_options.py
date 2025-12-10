@@ -22,6 +22,7 @@ escript_opts_version = 203
 openmp = True
 boost_prefix = '/opt/local'
 cppunit_prefix = '/opt/local'
+
 netcdf = True
 netcdf_prefix = '/opt/local'
 silo = True

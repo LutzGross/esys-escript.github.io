@@ -56,22 +56,19 @@ Brisbane, Australia \\
 
 
 \input{copyrights}
-\input{docguide}
 
 \begin{abstract}\pdfbookmark[0]{Abstract}{abstract}%
 \escript is a \PYTHON-based environment for implementing mathematical models, in particular those based on coupled, non-linear, time-dependent partial differential equations.
-It consists of five major components:
+It consists of four major components:
 \begin{itemize}
 \item \escript core library
-\item finite element solvers \finley, \dudley, \ripley, and \speckley (which
+\item finite element solvers \finley, \ripley, and \speckley (which
     use fast vendor-supplied solvers or the included \PASO linear solver library)
-\item the meshing interface \pycad
 \item a model library
 \item an inversion module.
 \end{itemize}
 
-All \escript modules should work under both \PYTHON 2 and \PYTHON 3, see
-Appendix~\ref{app:py3}.
+All \escript modules require \PYTHON 3 (version 3.7 or later).
 The current version supports parallelization through \MPI for distributed
 memory, \OPENMP for shared memory on CPUs, as well as \CUDA for some GPU-based
 solvers.
@@ -85,7 +82,6 @@ require) a citation.
 Some relevant references can be found in Appendix~\ref{app:ourrefs}.
 \end{abstract}
 
-\input{currentdev}
 \cleardoublepage\pdfbookmark[0]{Contents}{contents}%
 \tableofcontents
 
@@ -93,7 +89,6 @@ Some relevant references can be found in Appendix~\ref{app:ourrefs}.
 \include{execute}
 \include{escript}
 \include{linearPDE}
-% \include{pycad}
 %\include{Models} - this has been moved to esys-escript-applications
 \include{finley}
 \include{ripley}

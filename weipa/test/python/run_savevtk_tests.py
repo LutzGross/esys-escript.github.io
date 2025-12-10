@@ -34,11 +34,6 @@ from esys.escript import ContinuousFunction, Function, ReducedFunction,\
 # from esys.weipa import saveVTK
 
 try:
-    from esys import dudley
-    dudleyInstalled = True
-except:
-    dudleyInstalled = False
-try:
     from esys import finley
     finleyInstalled = True
 except:

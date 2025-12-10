@@ -44,7 +44,7 @@ def sortOutExample(name, needsGMSH=False, needsMPL=False, needsMagicMPL=False, n
         skipped_tests.append(name)
         return
 
-    if (not needsGMSH or env['gmsh']) and (not needsMPL or haveMPL) :
+    if (not needsGMSH or env['gmsh']) and (not needsMPL or haveMPL):
         if allowsMPI:
             example_files_allow_mpi.append(name)
         else:

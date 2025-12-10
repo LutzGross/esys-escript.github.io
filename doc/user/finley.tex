@@ -25,8 +25,6 @@ It supports unstructured 1D, 2D and 3D meshes.
 The PDEs themselves are represented by the \LinearPDE class
 of \escript.
 \finley is parallelized under both \OPENMP and \MPI.
-A more restricted form of this library ({\it dudley}) is described in 
-Section~\ref{sec:dudley}.
 
 \section{Formulation}
 For a single PDE that has a solution with a single component the linear PDE is
@@ -451,19 +449,6 @@ If \var{useMacroElements} is set, second order elements are interpreted as
 macro elements\index{macro elements}.
 \end{funcdesc}
 
-\begin{funcdesc}{MakeDomain}{design\optional{, integrationOrder=-1\optional{, optimizeLabeling=True\optional{, useMacroElements=False}}}}
-creates a \finley \Domain from a \pycad \class{Design} object using \gmshextern.
-The \class{Design} \var{design} defines the geometry.
-If \var{integrationOrder} is positive, a numerical integration scheme is chosen
-which is accurate on each element up to a polynomial of degree
-\var{integrationOrder}\index{integration order}.
-Otherwise an appropriate integration order is chosen independently.
-Set \var{optimizeLabeling=False} to switch off relabeling and redistribution
-(not recommended).
-If \var{useMacroElements} is set, macro elements\index{macro elements} are used.
-Currently \function{MakeDomain} does not support \MPI.
-\end{funcdesc}
-
 \begin{funcdesc}{load}{fileName}
 recovers a \Domain object from a dump file \var{fileName} created by the
 \function{dump} method of a \Domain object.
@@ -547,16 +532,4 @@ the diameter of the domain are combined to form a contact element\index{element!
 The corresponding face elements are removed from the mesh.
 \function{JoinFaces} is not supported under \MPI with more than one rank.
 \end{funcdesc}
-
-\section{\dudley}
-\label{sec:dudley}
-The {\it dudley} library is a restricted version of {\it finley}.
-So in many ways it can be used as a ``drop-in'' replacement.
-Dudley domains are simpler in that only triangular (2D), tetrahedral (3D) and line elements are supported.
-Note, this also means that dudley does not support:
-\begin{itemize}
-\item dirac delta functions
-\item contact elements
-\item macro elements
-\end{itemize}
 

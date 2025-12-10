@@ -28,8 +28,8 @@ Test suite for the pdetools module
 
 The tests must be linked with a Domain class object in the setUp method:
 
-   from esys.dudley import Rectangle
-   class Test_LinearPDEOnDudley(Test_LinearPDE):
+   from esys.finley import Rectangle
+   class Test_LinearPDEOnFinley(Test_LinearPDE):
        RES_TOL=1.e-8
        def setUp(self):
            self.domain = Rectangle(10,10,2)
