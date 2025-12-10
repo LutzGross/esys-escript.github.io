@@ -1,49 +1,16 @@
-thereesys-escript Credits
+esys-escript Credits
 ====================
 
-Escript is the product of years of work by many people.
+Esys-escript is the product of years of work by many people.
+The following individuals contributed to the development of esys-escript:
 
-
-Current Research and Development Team
---------------------------------------
-
-The active researchers and developers for the current release series are listed
-here in alphabetical order. While development is collaborative, each person is
-listed with some of their major contributions - this list is not exhaustive.
-
-Andrea Codd
-  Documentation, Python code
-
-Adam Ellery
-  Maintenance of escript module, release wrangler
-
-Ander Garro
-  Development and testing
-
-Lutz Gross
-  Patriarch, technical lead, solvers, large chunks of the original code
-
-Qi Shao
-  Trilinos testing
-
-
-Previous Contributors by Release
----------------------------------
-
-The following individuals contributed to previous releases of esys-escript:
-
-Current Contributors (Releases 5.5 and later):
-  Andrea Codd (since 5.5)
-  Cihan Altinay (since 2.0) - Weipa visualisation package, SCons build
-    system rework, Ripley and CUDA solvers, Trilinos integration
-  Joel Fenwick (since 2.0) - Lazy evaluation, maintenance of escript module,
-    release wrangler
   Lutz Gross (since 1.0)
-  Qi Shao (since 5.1)
-  Adam Ellery
+  Andrea Codd (5.5 - 6.0)
+  Adam Ellery (5.5 - 6.0)
+  Cihan Altinay (2.0 - 5.8)
+  Joel Fenwick (2.0 - 5.8)
+  Qi Shao (5.1 - 5.8)
   Ander Garro
-
-Past Contributors:
   Artak Amirbekyan (2.0 - 3.2.1)
   Imran Syed Azeezullah (1.0)
   Vince Boros (3.2.1 - 4.0)
@@ -62,20 +29,11 @@ Past Contributors:
   Brett Tully (2.0)
   Rob Woodcock (1.0 - 2.0)
 
-
-Development History
--------------------
-
-Development until 2012 by Earth Systems Science Computational Center (ESSCC)
-Development 2012-2013 by School of Earth Sciences
-Development from 2014 by Centre for Geoscience Computing (GeoComp)
-
-
 License
 -------
 
-Copyright (c) 2003-2025 by The University of Queensland
-http://www.uq.edu.au
+Copyright (c) 2003-2025 by esys.escript Group
+https://github.com/LutzGross/esys-escript.github.io
 
 Primary Business: Queensland, Australia
 Licensed under the Apache License, version 2.0
