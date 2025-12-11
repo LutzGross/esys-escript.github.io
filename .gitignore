@@ -1,12 +1,17 @@
 # Build artifacts and generated documentation
 docs/
 
-# SCons build files
+# SCons build files and outputs
 .sconsign.dblite
 .sconf_temp/
 build/
 build_trilinos/
 release/
+lib/
+esys.trilinos/
+esys/
+include/
+bin/
 
 # Python cache
 __pycache__/
