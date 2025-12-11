@@ -1,0 +1,13 @@
+Changes from previous releases
+==============================
+
+6.0
+---
+ - escript now uses Trilinos 14.
+ - escript now has a built-in Trilinos 14 compiler.
+ - escript now utilises the p4est library.
+ - The dudley module has been removed.
+ - The oxley module has been added but is not fully functional yet.
+ - sympy has been switched off.
+ - packages downunder and models have been removed.
+
