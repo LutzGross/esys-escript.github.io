@@ -155,22 +155,39 @@ def generateTestScripts(env, TestGroups):
             script_name, env1, env2 = 'test.py', '%', '%'
         else:
             script_name, env1, env2 = 'test.sh', '$', ''
+
+        # Filter out usersguide tests - these are documentation examples, not unit tests
+        filtered_groups = [tests for tests in TestGroups if tests.name != 'usersguide']
+
         utest=open('u'+script_name,'w')
         utest.write(GroupTest.makeHeader(env['PLATFORM'], env['prefix'], False))
-        for tests in TestGroups:
+        for tests in filtered_groups:
             utest.write(tests.makeString())
-        utest.write(tests.makeFooter())
+        # Use the last test group for makeFooter, but with filtered list
+        if filtered_groups:
+            # Temporarily modify _allfuncs to exclude usersguide
+            saved_allfuncs = GroupTest._allfuncs
+            GroupTest._allfuncs = [name for name in GroupTest._allfuncs if name != 'usersguide']
+            utest.write(filtered_groups[-1].makeFooter())
+            GroupTest._allfuncs = saved_allfuncs
         utest.close()
         env.Execute(Chmod('u'+script_name, 0o755))
         print('Generated u'+script_name+'.')
+
         # This version contains only python tests - I want this to be usable
         # from a binary only install if you have the test files
+        python_groups = [tests for tests in filtered_groups if tests.exec_cmd==env1+'PYTHONRUNNER'+env2+' ']
+
         utest=open('i'+script_name,'w')
         utest.write(GroupTest.makeHeader(env['PLATFORM'], env['prefix'], True))
-        for tests in TestGroups:
-          if tests.exec_cmd==env1+'PYTHONRUNNER'+env2+' ':
+        for tests in python_groups:
             utest.write(tests.makeString())
-        utest.write(tests.makeFooter())
+        if python_groups:
+            # Temporarily modify _allfuncs to exclude usersguide
+            saved_allfuncs = GroupTest._allfuncs
+            GroupTest._allfuncs = [name for name in GroupTest._allfuncs if name != 'usersguide']
+            utest.write(python_groups[-1].makeFooter())
+            GroupTest._allfuncs = saved_allfuncs
         utest.close()
         env.Execute(Chmod('i'+script_name, 0o755))
         print('Generated i'+script_name+'.')

@@ -72,7 +72,7 @@ def __add_tests(suite, modulename):
     for name, cls in clsmembers:
         if modulename == cls.__module__ and name.startswith("Test") \
                 and issubclass(cls, unittest.TestCase):
-            suite.addTest(unittest.makeSuite(cls))
+            suite.addTest(unittest.TestLoader().loadTestsFromTestCase(cls))
 
 def run_single_test(test, exit_on_failure=False):
     suite = unittest.TestSuite()
@@ -95,7 +95,7 @@ def run_tests(modulename, classes = [], exit_on_failure = False):
         __add_tests(suite, modulename)
     else:
         for test_class in classes:
-            suite.addTest(unittest.makeSuite(test_class))
+            suite.addTest(unittest.TestLoader().loadTestsFromTestCase(test_class))
     s=unittest.TextTestRunner(stream=stream,verbosity=verb).run(suite)
     if exit_on_failure and not s.wasSuccessful():
         sys.stderr.flush()

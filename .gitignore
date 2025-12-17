@@ -28,3 +28,8 @@ __pycache__/
 *.a
 *.pdf
 config.log
+build.log
+
+# Generated test scripts
+utest.sh
+itest.sh
