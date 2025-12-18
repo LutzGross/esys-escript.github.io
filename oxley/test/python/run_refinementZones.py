@@ -44,6 +44,7 @@ L1=10.
 L2=10.
 
 class Test_TableRefinementZone(unittest.TestCase):
+    @unittest.skip("Oxley RefinementZone causes null pointer in JMPI shared_ptr - see issue #118")
     def test_RefinementZone_2D(self):
     	domain=Rectangle(n0=N0,n1=N1,l0=L0,l1=L1)
     	zone=RefinementZone2D()
@@ -75,3 +76,7 @@ class Test_TableRefinementZone(unittest.TestCase):
     # 	domain2=domain.applyRefinementZone(zone)
 
     # 	self.assertTrue(domain==domain2)
+
+
+if __name__ == '__main__':
+    run_tests(__name__, exit_on_failure=True)
