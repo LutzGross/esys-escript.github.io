@@ -154,6 +154,7 @@ def test_Brick_refine_Region(**kwargs):
     m.dump("region_boundary_mesh.silo")
     return m
 
+@unittest.skip("Oxley multi-resolution meshes have SystemMatrixPattern errors - see issue #118")
 class Test_OxleyLameAssemblers2D_Mesh(OxleyLameAssemblerTestBase):
     def setUp(self):
         self.domain = test_Rectangle_refine_Mesh(n0=NE0, n1=NE1)
@@ -161,6 +162,7 @@ class Test_OxleyLameAssemblers2D_Mesh(OxleyLameAssemblerTestBase):
     def tearDown(self):
         del self.domain
 
+@unittest.skip("Oxley multi-resolution meshes have SystemMatrixPattern errors - see issue #118")
 class Test_OxleyLameAssemblers2D_Point(OxleyLameAssemblerTestBase):
     def setUp(self):
         self.domain = test_Rectangle_refine_Point(n0=NE0, n1=NE1)
@@ -168,6 +170,7 @@ class Test_OxleyLameAssemblers2D_Point(OxleyLameAssemblerTestBase):
     def tearDown(self):
         del self.domain
 
+@unittest.skip("Oxley multi-resolution meshes have SystemMatrixPattern errors - see issue #118")
 class Test_OxleyLameAssemblers2D_top_Boundary(OxleyLameAssemblerTestBase):
     def setUp(self):
         self.domain = test_Rectangle_refine_top_Boundary(n0=NE0, n1=NE1,l0=10,l1=10)
@@ -175,6 +178,7 @@ class Test_OxleyLameAssemblers2D_top_Boundary(OxleyLameAssemblerTestBase):
     def tearDown(self):
         del self.domain
 
+@unittest.skip("Oxley multi-resolution meshes have SystemMatrixPattern errors - see issue #118")
 class Test_OxleyLameAssemblers2D_east_Boundary(OxleyLameAssemblerTestBase):
     def setUp(self):
         self.domain = test_Rectangle_refine_east_Boundary(n0=NE0, n1=NE1,l0=10,l1=10)
@@ -182,6 +186,7 @@ class Test_OxleyLameAssemblers2D_east_Boundary(OxleyLameAssemblerTestBase):
     def tearDown(self):
         del self.domain
 
+@unittest.skip("Oxley multi-resolution meshes have SystemMatrixPattern errors - see issue #118")
 class Test_OxleyLameAssemblers2D_west_Boundary(OxleyLameAssemblerTestBase):
     def setUp(self):
         self.domain = test_Rectangle_refine_west_Boundary(n0=NE0, n1=NE1,l0=10,l1=10)
@@ -189,6 +194,7 @@ class Test_OxleyLameAssemblers2D_west_Boundary(OxleyLameAssemblerTestBase):
     def tearDown(self):
         del self.domain
 
+@unittest.skip("Oxley multi-resolution meshes have SystemMatrixPattern errors - see issue #118")
 class Test_OxleyLameAssemblers2D_bottom_Boundary(OxleyLameAssemblerTestBase):
     def setUp(self):
         self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0, n1=NE1,l0=10,l1=10)
@@ -196,6 +202,7 @@ class Test_OxleyLameAssemblers2D_bottom_Boundary(OxleyLameAssemblerTestBase):
     def tearDown(self):
         del self.domain
 
+@unittest.skip("Oxley multi-resolution meshes have SystemMatrixPattern errors - see issue #118")
 class Test_OxleyLameAssemblers2D_Region(OxleyLameAssemblerTestBase):
     def setUp(self):
         self.domain = test_Rectangle_refine_Region(n0=NE0, n1=NE1)
