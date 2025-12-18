@@ -56,6 +56,7 @@ def test_Brick(**kwargs):
     return m
 
 @unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
+@unittest.skip("Oxley multi-resolution Brick causes segfault in renumberNodes() - see issue #118")
 class Test_DiracPointsOnMultiResolutionDomains(Test_OxleyDiracPoints):
 
     def setup(self):
