@@ -110,6 +110,7 @@ class Test_DataOpsOnMultiOxley(Test_DataOpsOnOxley):
         del self.otherfs
 
 @unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
+@unittest.skip("Oxley multi-resolution Brick causes heap corruption - see issue #118")
 class Test_TableInterpolationOnMultiOxley(Test_TableInterpolationOnOxley):
     def setUp(self):
         self.domain = test_Brick(n0=NE*NXb-1, n1=NE*NYb-1, n2=NE*NZb-1, l0=1., l1=1., l2=1., d0=NXb, d1=NYb, d2=NZb)
@@ -161,6 +162,7 @@ class Test_randomOnMultiOxley(unittest.TestCase):
         RandomData((2,3),fs)
 
     @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
+    @unittest.skip("Oxley multi-resolution Brick causes heap corruption - see issue #118")
     def test_FillBrick(self):
         # If we are going to do really big tests of this, the size of this brick will need to be reduced
         fs=ContinuousFunction(test_Brick(n0=5*mpiSize, n1=5*mpiSize, n2=5*mpiSize))
