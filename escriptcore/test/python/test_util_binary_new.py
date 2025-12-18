@@ -72,7 +72,7 @@ class Test_util_binary_new(Test_util_values):
         if isinstance(a,float) or isinstance(a, complex):
             a=(a,)
         if isinstance(b,float) or isinstance(b, complex):
-            b=(b,)            
+            b=(b,)
         sa=getShape(a)
         sb=getShape(b)
         a=numpy.array(a)
@@ -82,22 +82,22 @@ class Test_util_binary_new(Test_util_values):
             if sb==():
                 return a*b
             resshape=sb
-            res=numpy.zeros(resshape, dtype=targettype)            
+            res=numpy.zeros(resshape, dtype=targettype)
             for xb in self.generate_indices(sb):
-                res.itemset(xb,a*b.item(xb))  
+                res[xb] = a*b[xb]
             return res
         elif sb==():
             resshape=sa
-            res=numpy.zeros(resshape, dtype=targettype)            
+            res=numpy.zeros(resshape, dtype=targettype)
             for xa in self.generate_indices(sa):
-                res.itemset(xa,a.item(xa)*b)            
+                res[xa] = a[xa]*b
             return res
         else:
             resshape=sa+sb
-            res=numpy.zeros(resshape, dtype=targettype)            
+            res=numpy.zeros(resshape, dtype=targettype)
         for xa in self.generate_indices(sa):
             for xb in self.generate_indices(sb):
-                res.itemset(xa+xb,a.item(xa)*b.item(xb))
+                res[xa+xb] = a[xa]*b[xb]
         return res    
     
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
