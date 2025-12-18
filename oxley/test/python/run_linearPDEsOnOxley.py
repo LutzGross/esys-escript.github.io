@@ -56,6 +56,7 @@ NE=8 # initial number of elements in each spatial direction (must be even)
 mpiSize=getMPISizeWorld()
 
 # class Test_LinearPDEOnOxleyRectangle(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1, Test_TransportPDE):
+@unittest.skip("Oxley Rectangle meshes have SystemMatrixPattern errors with LinearPDE - see issue #118")
 class Test_LinearPDEOnOxleyRectangle(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
