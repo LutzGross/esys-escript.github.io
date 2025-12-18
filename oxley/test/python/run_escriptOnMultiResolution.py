@@ -153,6 +153,7 @@ class Test_CSVOnMultiOxley(Test_CSVOnOxley):
 
 
 class Test_randomOnMultiOxley(unittest.TestCase):
+    @unittest.skip("Oxley multi-resolution domains don't support Gaussian filter options - see issue #118")
     def test_FillRectangle(self):
         fs=ContinuousFunction(test_Rectangle(n0=5*(int(sqrt(mpiSize)+1)),n1=5*(int(sqrt(mpiSize)+1))))
         RandomData((), fs, 2,("gaussian",1,0.5))
