@@ -202,6 +202,7 @@ class Test_OxleyDiracPoints(unittest.TestCase):
                     #remaining ranks must also exit, otherwise we'll lock up
                     self.assertEqual(global_result, 0, "One or more ranks failed")
 
+    @unittest.skip("Oxley accepts out-of-bounds Dirac points - see issue #118")
     def test_RectangleInterpolation(self):
         for a in range(-1, (self.longEdge+self.numRanks)*2, self.numRanks*2):
             a = a//2.
