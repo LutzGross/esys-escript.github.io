@@ -187,6 +187,7 @@ class Test_CSVOnOxley(Test_saveCSV):
         saveDataCSV(fname,A=sol,B=ctsfn,C=bound, D=rbound)
         
 class Test_randomOnOxley(unittest.TestCase):
+    @unittest.skip("Oxley domains don't support Gaussian filter options for RandomData - see issue #118")
     def test_FillRectangle(self):
         fs=ContinuousFunction(Rectangle(10*(int(sqrt(mpiSize)+1)),10*(int(sqrt(mpiSize)+1))))
         RandomData((), fs, 2,("gaussian",1,0.5))
