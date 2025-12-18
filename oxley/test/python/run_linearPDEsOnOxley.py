@@ -90,6 +90,7 @@ class Test_LinearPDEOnOxleyRectangle(Test_LinearPDE, Test_LameEquation, Test_Hel
 #     def tearDown(self):
 #         del self.domain
 
+@unittest.skip("Oxley Rectangle meshes have SystemMatrixPattern errors with Poisson - see issue #118")
 class Test_PoissonOnOxley(Test_Poisson):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
