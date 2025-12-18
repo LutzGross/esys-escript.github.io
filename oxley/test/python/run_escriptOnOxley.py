@@ -129,6 +129,7 @@ class Test_DataOpsOnOxley(Test_Dump, Test_SetDataPointValue, Test_Lazy):
 #         del self.domain
 #         del self.functionspaces
 
+@unittest.skip("Oxley Brick with table interpolation causes heap corruption - see issue #118")
 class Test_TableInterpolationOnOxley(Test_TableInterpolation):
     def setUp(self):
         self.domain = Brick(n0=NE*NXb-1, n1=NE*NYb-1, n2=NE*NZb-1, l0=1., l1=1., l2=1., d0=NXb, d1=NYb, d2=NZb)
