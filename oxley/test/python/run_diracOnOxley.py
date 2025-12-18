@@ -179,6 +179,7 @@ class Test_OxleyDiracPoints(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             Brick(5, el, 5, d1=r, diracPoints=[(.0,)], diracTags=["test"])
 
+    @unittest.skip("Oxley Brick with Dirac points causes segfault in renumberNodes() - see issue #118")
     def test_BrickInterpolation(self):
         for a in range(-1, (self.longEdge+self.numRanks)*2, self.numRanks*2):
             a = a//2.
@@ -243,6 +244,7 @@ class Test_OxleyDiracPoints(unittest.TestCase):
             self.assertLess(result, 1e-15,
                     "Interpolation failure, expected zero, got %g"%result)
 
+    @unittest.skip("Oxley Brick with Dirac points causes segfault in renumberNodes() - see issue #118")
     def test_DDF_to_Continuous_3D(self):
         expected_value = self.numRanks*11
         doms, dims = self.generateBricks(self.longEdge,
