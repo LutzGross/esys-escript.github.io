@@ -33,3 +33,13 @@ build.log
 # Generated test scripts
 utest.sh
 itest.sh
+
+# Test output files (should be in build/ but might be created in source tree)
+*.h5
+*.nc
+*.silo
+test_*.csv
+test_*.log
+test_*.txt
+scons_py_tests*.log
+uniform_mesh_ae.silo
