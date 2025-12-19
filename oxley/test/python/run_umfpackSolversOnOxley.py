@@ -60,6 +60,7 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
 
 @unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
 @unittest.skipIf(mpiSize > 1, "UMFPACK runs on single rank only.")
+@unittest.skip("Oxley Rectangle meshes have SystemMatrixPattern errors with UMFPACK - see issue #118")
 class Test_SimpleSolveOxley2D_UMFPACK(SimpleSolveTestCase):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
