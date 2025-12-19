@@ -216,13 +216,15 @@ Each option is followed by a brief explanation.
 
 - `lapack = auto`:
   Whether to use BLAS/LAPACK. Note, LAPACK is incompatible with long indices.
-  `auto` tries to detect MKL lapack or ATLAS.
+  `auto` tries to detect MKL LAPACK or LAPACKE (modern C interface).
+  DEFAULT: 'auto'
 
-- `lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']`:
+- `lapack_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']`:
   Prefix or paths to LAPACK headers and libraries. See note above.
 
-- `lapack_libs = ['lapack_atlas']`:
-  LAPACK library/libraries to link against
+- `lapack_libs = ['lapacke']`:
+  LAPACK library/libraries to link against. Default is 'lapacke' (modern C interface).
+  On Debian/Ubuntu, install with: `sudo apt-get install liblapacke-dev`
 
 - `silo = False`:
   Whether to use LLNL's SILO library for Silo output file support in weipa

@@ -26,10 +26,12 @@ For complete documentation including user guide and API reference, see the [main
 
 ### Optional Dependencies
 
+- **LAPACKE** (liblapacke-dev on Debian/Ubuntu) - Linear algebra library for matrix operations in PASO solver
 - MPI implementation (OpenMPI or MPICH) with python3-mpi4py for distributed parallelization
 - ParMETIS (for MPI builds)
 - HDF5-serial (for HDF5 file I/O)
 - SILO (recommended for VisIt visualization)
+- UMFPACK (libsuitesparse-dev on Debian/Ubuntu) - Direct sparse matrix solver
 - python3-sphinx and python3-markdown (for building API documentation)
 - LaTeX (texlive-latex-base, texlive-latex-extra) for building user guide PDF
 - CppUnit (for running tests)
@@ -141,7 +143,7 @@ Install required packages:
 sudo apt-get install python3-dev python3-numpy python3-scipy python3-matplotlib
 sudo apt-get install g++ gfortran scons cmake
 sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
-sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev
+sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev liblapacke-dev
 ```
 
 For MPI support, additionally install:
@@ -171,7 +173,7 @@ Install required packages:
 sudo apt-get install python3-dev python3-numpy python3-scipy python3-matplotlib
 sudo apt-get install g++ gfortran scons cmake
 sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
-sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev
+sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev liblapacke-dev
 ```
 
 For MPI support, additionally install:
