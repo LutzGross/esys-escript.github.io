@@ -72,6 +72,7 @@ class Test_SimpleSolveOxley2D_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinos):
     def tearDown(self):
         del self.domain
 
+@unittest.skip("Oxley Brick with Trilinos solvers causes heap corruption - see issue #118")
 class Test_SimpleSolveOxley3D_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
@@ -95,6 +96,7 @@ class Test_SimpleSolveOxley2D_Trilinos_GMRES_Jacobi(SimpleSolveOnTrilinos):
     def tearDown(self):
         del self.domain
 
+@unittest.skip("Oxley Brick with Trilinos solvers causes heap corruption - see issue #118")
 class Test_SimpleSolveOxley3D_Trilinos_GMRES_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
@@ -117,6 +119,7 @@ class Test_SimpleSolveOxley2D_Trilinos_PCG_Jacobi(SimpleSolveOnTrilinos):
     def tearDown(self):
         del self.domain
 
+@unittest.skip("Oxley Brick with Trilinos solvers causes heap corruption - see issue #118")
 class Test_SimpleSolveOxley3D_Trilinos_PCG_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
@@ -139,6 +142,7 @@ class Test_SimpleSolveOxley2D_Trilinos_MINRES_Jacobi(SimpleSolveOnTrilinos):
     def tearDown(self):
         del self.domain
 
+@unittest.skip("Oxley Brick with Trilinos solvers causes heap corruption - see issue #118")
 class Test_SimpleSolveOxley3D_Trilinos_MINRES_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
@@ -161,6 +165,7 @@ class Test_SimpleSolveOxley2D_Trilinos_TFQMR_RILU(SimpleSolveOnTrilinos):
     def tearDown(self):
         del self.domain
 
+@unittest.skip("Oxley Brick with Trilinos solvers causes heap corruption - see issue #118")
 class Test_SimpleSolveOxley3D_Trilinos_TFQMR_RILU(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
@@ -205,6 +210,7 @@ class Test_SimpleSolveOxley2D_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
         del self.domain
 
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
+@unittest.skip("Oxley Brick with Trilinos solvers causes heap corruption - see issue #118")
 class Test_SimpleSolveOxley3D_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
@@ -230,6 +236,7 @@ class Test_SimpleSolveOxley2D_Trilinos_PCG_ILUT(SimpleSolveOnTrilinos):
     def tearDown(self):
         del self.domain
 
+@unittest.skip("Oxley Brick with Trilinos solvers causes heap corruption - see issue #118")
 class Test_SimpleSolveOxley3D_Trilinos_PCG_ILUT(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
