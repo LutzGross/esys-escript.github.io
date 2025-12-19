@@ -22,10 +22,7 @@
 #ifdef ESYS_MKL_LAPACK
 #include <mkl_lapack.h>
 #else	// assuming lapacke
-extern "C"
-{
 #include <lapacke.h>
-}
 #endif
 
 #endif

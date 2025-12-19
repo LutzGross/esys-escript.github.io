@@ -28,10 +28,8 @@
       #include <mkl_lapack.h>
       #include <mkl_cblas.h>
    #else
-      extern "C" {
       #include <lapacke.h>
       #include <cblas.h>
-      }
    #endif
 #endif
 
