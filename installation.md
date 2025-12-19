@@ -206,7 +206,7 @@ Install required packages:
 ```bash
 sudo pacman -Sy python python-numpy python-scipy python-matplotlib
 sudo pacman -Sy gcc scons cmake
-sudo pacman -Sy boost boost-libs suitesparse hdf5 netcdf
+sudo pacman -Sy boost boost-libs suitesparse hdf5 netcdf lapack
 ```
 
 For MPI support:
@@ -236,7 +236,7 @@ Install required packages:
 sudo dnf install python3-devel python3-numpy python3-scipy python3-matplotlib
 sudo dnf install gcc-c++ gcc-gfortran scons cmake
 sudo dnf install boost-devel boost-python3-devel boost-python3 boost-numpy3 boost-iostreams boost-random
-sudo dnf install hdf5-devel netcdf-devel suitesparse-devel
+sudo dnf install hdf5-devel netcdf-devel suitesparse-devel lapack-devel
 ```
 
 For MPI support:
@@ -266,7 +266,7 @@ Install required packages:
 sudo zypper in python3-devel python3-numpy python3-scipy python3-matplotlib
 sudo zypper in gcc gcc-c++ gcc-fortran scons cmake
 sudo zypper in libboost_python3-devel libboost_numpy3-devel libboost_random-devel libboost_iostreams-devel
-sudo zypper in hdf5-devel netcdf-devel suitesparse-devel
+sudo zypper in hdf5-devel netcdf-devel suitesparse-devel lapack-devel
 ```
 
 For MPI support:
@@ -303,7 +303,7 @@ Install required packages:
 sudo dnf install python3-devel python3-numpy python3-scipy python3-matplotlib
 sudo dnf install gcc gcc-c++ gcc-gfortran scons cmake
 sudo dnf install boost-devel boost-python3 boost-python3-devel
-sudo dnf install hdf5-devel netcdf-devel suitesparse suitesparse-devel
+sudo dnf install hdf5-devel netcdf-devel suitesparse suitesparse-devel lapack-devel
 ```
 
 For MPI support:
@@ -335,7 +335,7 @@ Install Homebrew from [https://brew.sh](https://brew.sh), then:
 brew install python3 numpy scipy matplotlib
 brew install scons cmake
 brew install boost boost-python3
-brew install hdf5 netcdf suite-sparse
+brew install hdf5 netcdf suite-sparse lapack
 ```
 
 Some Python packages may need pip:
@@ -375,7 +375,7 @@ sudo port install python311
 sudo port select --set python python311
 sudo port select --set python3 python311
 sudo port install py311-numpy py311-scipy py311-matplotlib
-sudo port install scons cmake boost hdf5 netcdf suitesparse
+sudo port install scons cmake boost hdf5 netcdf suitesparse lapack
 ```
 
 For MPI support:
@@ -403,7 +403,7 @@ scons -j4 options_file=scons/templates/macports_options.py
 
 ```bash
 sudo pkg install python3 py39-numpy py39-scipy py39-matplotlib
-sudo pkg install scons cmake boost-python-libs hdf5 netcdf suitesparse
+sudo pkg install scons cmake boost-python-libs hdf5 netcdf suitesparse lapack
 ```
 
 For building documentation:
