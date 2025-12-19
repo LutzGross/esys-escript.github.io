@@ -21,10 +21,10 @@
 
 #ifdef ESYS_MKL_LAPACK
 #include <mkl_lapack.h>
-#else	// assuming clapack
+#else	// assuming lapacke
 extern "C"
 {
-#include <clapack.h>
+#include <lapacke.h>
 }
 #endif
 
@@ -97,13 +97,13 @@ LapackInverseHelper::invert(double* matrix)
 	{
 	    return ERRINVERT;
 	}
-#else		// assuming clapack
-	int res=clapack_dgetrf(CblasColMajor, N,N,matrix,N, piv);
+#else		// assuming lapacke
+	int res=LAPACKE_dgetrf(LAPACK_COL_MAJOR, N,N,matrix,N, piv);
 	if (res!=0)
 	{
 	    return ERRFACTORISE;
 	}
-	res=clapack_dgetri(CblasColMajor ,N,matrix,N , piv);
+	res=LAPACKE_dgetri(LAPACK_COL_MAJOR ,N,matrix,N , piv);
 	if (res!=0)
 	{
 	    return ERRINVERT;

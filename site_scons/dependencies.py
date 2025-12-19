@@ -726,12 +726,12 @@ def checkOptionalLibraries(env):
                 else:
                     libs = env['lapack_libs']
             else:
-                # try for clapack
-                flavour = 'clapack'
-                header = 'clapack.h'
+                # try for lapacke
+                flavour = 'lapacke'
+                header = 'lapacke.h'
                 prefix = env['lapack_prefix']
                 if len(env['lapack_libs']) == 0:
-                    libs = ['lapack_atlas']
+                    libs = ['lapacke']
                 else:
                     libs = env['lapack_libs']
 

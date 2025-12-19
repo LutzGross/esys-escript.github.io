@@ -29,7 +29,7 @@
       #include <mkl_cblas.h>
    #else
       extern "C" {
-      #include <clapack.h>
+      #include <lapacke.h>
       #include <cblas.h>
       }
    #endif
@@ -154,7 +154,7 @@ inline void BlockOps_invM_N(dim_t N, double* mat, index_t* pivot, int* failed)
     if (res != 0)
         *failed = 1;
 #else
-    int res = clapack_dgetrf(CblasColMajor, N, N, mat, N, pivot);
+    int res = LAPACKE_dgetrf(LAPACK_COL_MAJOR, N, N, mat, N, pivot);
     if (res != 0)
         *failed = 1;
 #endif // ESYS_MKL_LAPACK
@@ -174,7 +174,7 @@ inline void BlockOps_solve_N(dim_t N, double* X, double* mat, index_t* pivot, in
     if (res != 0)
         *failed = 1;
 #else
-    int res = clapack_dgetrs(CblasColMajor, CblasNoTrans, N, 1, mat, N, pivot, X, N);
+    int res = LAPACKE_dgetrs(LAPACK_COL_MAJOR, 'N', N, 1, mat, N, pivot, X, N);
     if (res != 0)
         *failed = 1;
 #endif // ESYS_MKL_LAPACK
