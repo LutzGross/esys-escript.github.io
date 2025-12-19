@@ -178,6 +178,7 @@ def test_Brick_refine_Region(**kwargs):
 
 
 @unittest.skipIf(not HAVE_TRILINOS, "Trilinos not available")
+@unittest.skip("Oxley multi-resolution meshes cause segfaults with Trilinos solvers - see issue #118")
 class SimpleSolveOnTrilinos(SimpleSolveTestCase):
     pass
 
