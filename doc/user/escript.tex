@@ -319,7 +319,7 @@ HDF5\cite{HDF5} file format.
 Use these to save data for checkpoint/restart or simply to save and reuse data
 that was expensive to compute.
 For instance, to save the coordinates of the data points of a
-\ContinuousFunction to the file \file{x.nc} use
+\ContinuousFunction to the file \file{x.h5} use
 \begin{python}
   x=ContinuousFunction(mydomain).getX()
   x.dump("x.h5")
@@ -329,8 +329,8 @@ To recover the object \var{x}, and you know that \var{mydomain} was an \finley
 mesh, use
 \begin{python}
   from esys.finley import LoadMesh
-  mydomain=LoadMesh("dom.nc")
-  x=load("x.nc", mydomain)
+  mydomain=LoadMesh("dom.h5")
+  x=load("x.h5", mydomain)
 \end{python}
 Obviously, it is possible to execute the same steps that were originally used
 to generate \var{mydomain} to recreate it. However, in most cases using
@@ -340,14 +340,14 @@ If \escript is running on more than one \MPI process \member{dump} will create
 an individual file for each process containing the local data.
 In order to avoid conflicts the \MPI processor
 rank is appended to the file names.
-That is instead of one file \file{dom.nc} you would get
-\file{dom.nc.0000}, \file{dom.nc.0001}, etc.
-You still call \code{LoadMesh("dom.nc")} to load the domain but you have to
+That is instead of one file \file{dom.h5} you would get
+\file{dom.h5.0000}, \file{dom.h5.0001}, etc.
+You still call \code{LoadMesh("dom.h5")} to load the domain but you have to
 make sure that the appropriate file is accessible from the corresponding rank,
 and loading will only succeed if you run with as many processes as were used
 when calling \member{dump}.
 
-The function space of the \Data is stored in \file{x.nc}.
+The function space of the \Data is stored in \file{x.h5}.
 If the \Data object is expanded, the number of data points in the file and of
 the \Domain for the particular \FunctionSpace must match.
 Moreover, the ordering of the values is checked using the reference

@@ -2003,7 +2003,10 @@ def MaskFromTag(domain,*tags):
    :return: a mask which marks samples that are touching the boundary tagged
             by any of the given tags
    :rtype: `escript.Data` of rank 0
+
+
    """
+   raise DeprecationWarning("MaskFromTag is deprecated. Use MaskFromBoundaryTag instead.")
    pde=linearPDEs.LinearPDE(domain,numEquations=1, numSolutions=1)
    d=escore.Scalar(0.,escore.Function(domain))
    for t in tags: d.setTaggedValue(t,1.)

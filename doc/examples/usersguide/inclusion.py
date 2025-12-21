@@ -21,6 +21,7 @@ http://www.apache.org/licenses/LICENSE-2.0"""
 __url__ = "https://launchpad.net/escript-finley"
 
 from esys.escript import *
+from esys.escript.pdetools import MaskFromBoundaryTag
 from esys.escript.linearPDEs import LinearPDE
 
 try:
@@ -50,16 +51,16 @@ else:
     q_S.setTaggedValue("Left", q_out)
     q_S.setTaggedValue("Right", q_out)
     # ... set temperature at the bottom of the domain:
-    y=domain.getX()[1]
-    fixedT = whereZero(y - inf(y))
+    # y=domain.getX()[1]
+    # fixedT1 = whereZero(y - inf(y))
+    fixedT = MaskFromBoundaryTag(domain, *('Bottom', ))
     # ... open PDE and set coefficients ...
     mypde = LinearPDE(domain)
     mypde.setSymmetryOn()
-    mypde.setValue(A=kappa * kronecker(domain), Y=q_h, y=q_S, \
+    mypde.setValue(A=kappa * kronecker(domain), Y=q_H, y=q_S, \
                    q=fixedT, r=T_ref)
     # ... calculate error of the PDE solution ...
     T = mypde.getSolution()
     print("Temperature is ", T)
-    # output should be similar to "error is 1.e-7"
     saveVTK("T.vtu", temperature=T)
 

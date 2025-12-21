@@ -35,14 +35,6 @@ esys/escriptcore/__init__.py
 esys/finley/factorywrappers.py
 esys/finley/readers.py
 esys/finley/__init__.py
-esys/pycad/design.py
-esys/pycad/extras.py
-esys/pycad/gmsh.py
-esys/pycad/primitives.py
-esys/pycad/shapes.py
-esys/pycad/transformations.py
-esys/pycad/Triangle.py
-esys/pycad/__init__.py
 esys/ripley/MultiResolutionDomain.py
 esys/ripley/__init__.py
 esys/speckley/__init__.py
