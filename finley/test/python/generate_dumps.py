@@ -25,8 +25,8 @@ this script generates dump files of various data type (scalar, vector, tensor)
 on various function spaces. 
 
 The meshes are read from the MESH_DIRECTORY. filenames need to start with "mesh_" and 
-have the extension ".fly". Besides the mesh dump files (extension ".nc") and the
-coresponding data files with extensions (_<fs_name>_s.nc, _<fs_name>_v.nc and _<fs_name>_t.nc where
+have the extension ".fly". Besides the mesh dump files (extension ".h5") and the
+corresponding data files with extensions (_<fs_name>_s.h5, _<fs_name>_v.h5 and _<fs_name>_t.h5 where
 <fs_name> is the name of the function space)
 
 This script can run under MPI.

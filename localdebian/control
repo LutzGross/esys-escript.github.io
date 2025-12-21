@@ -9,9 +9,6 @@ Build-Depends: python-dev,
                python3-numpy,
                libboost-python-dev,
                libboost-random-dev,
-               libnetcdf-dev,
-               libnetcdf-cxx-legacy-dev,
-               libnetcdf-c++4-dev,
                scons,
                zip,
                python-sphinx,
@@ -57,9 +54,6 @@ Description: Escript/Finley finite elements Python2 system (with OpenMP)
  .
  Scripts can be executed in parallel (on varying numbers of threads or nodes)
  without any special modifications.
- .
- Escript now includes the esys.downunder module for 3D inversion of geophysical
- data sets. The current version supports gravity, magnetic and joint inversion.
  .
  This package contains the commands and libraries for Python2 with
  OpenMP threading.

@@ -15,13 +15,14 @@ Introduction
 
 |escript| is a |python|-based environment for implementing mathematical models, in particular those based on coupled, non-linear, time-dependent partial differential equations.
 
-It consists of five major components:
+It consists of the following major components:
 
 * escript core library
-* finite element solvers finley, dudley, ripley, and speckley (which use fast vendor-supplied solvers or the included PASO linear solver library)
-* the meshing interface pycad
-* a model library
-* an inversion module
+* finite element solvers finley for unstructured meshes
+* finite element solvers ripley for rectangular meshes
+* spectral element solver speckley  for rectangular meshes
+* interfaces to sparse matrix solvers including Trilinos, MUMPS, UMFPACK and the PASO linear solver library
+* some function supporting large scale inversion
 
 The current version supports parallelization through |mpi| for distributed memory, |openmp| for shared memory on CPUs, as well as |cuda| for some GPU-based solvers.
 

@@ -20,6 +20,9 @@ Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Apache License, version 2.0
 http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
+
+import subprocess
+
 """
 this script generates a variety of meshes in the fly format on a unit square with a 
 fixed number of elements NE (approximatively).
@@ -45,12 +48,74 @@ CUT=0.5
 
 from esys.escript import *
 from esys.finley import Rectangle, Brick, Merge, JoinFaces
-from esys.pycad import Point, Line,PlaneSurface, CurveLoop, Volume,SurfaceLoop
-from esys.pycad.gmsh import Design
-from esys.finley import MakeDomain
+from esys.finley import ReadGmsh
 from esys.weipa import saveVTK
 import os
+GEO = { 2 :
+"""
+Mesh.MshFileVersion = 2.2;
+Mesh.ElementOrder = {o};
+l_X={l_X};
+element_size = {element_size};
+Point(10)=\{0.,0.,0.,element_size\};
+Point(11)=\{l_X,0.,0.,element_size\};
+Point(12)=\{l_X,1.,0.,element_size\};
+Point(13)=\{0.,1.,0.,element_size\};
+Line(1)=\{10,11\};
+Line(12)=\{11,12\};
+Line(23)=\{12,13\};
+Line(30)=\{13,10\};
+CurveLoop(10) = \{1,12,23,30\};
+Plane_Surface(1) = \{10\};
+Physical Curve(100) = \{1, 12, 23, 30\};
+Physical Surface(200) = \{1\};
+""",
+        3 :
+"""
+Mesh.MshFileVersion = 2.2;
+Mesh.ElementOrder = {o};
+l_X={l_X};
+element_size = {element_size};
+Point(1000)=\{ 0.,0.,0.,element_size\};
+Point(1100)=\{l_X,0.,0.,element_size\};
+Point(1010)=\{0.,1.,0.,element_size\};
+Point(1110)=\{l_X,1.,0.,element_size\};
+Point(1001)=\{0.,0.,1.,element_size\};
+Point(1101)=\{l_X,0.,1.,element_size\};
+Point(1011)=\{0.,1.,1.,element_size\};
+Point(1111)=\{l_X,1.,1.,element_size\};
 
+Line(10)=\{1000,1100\};
+Line(20)=\{1100,1110\};
+Line(30)=\{1110,1010\};
+Line(40)=\{1010,1000\};
+Line(11)=\{1000,1001\};
+Line(21)=\{1100,1101\};
+Line(31)=\{1110,1111\};
+Line(41)=\{1010,1011\};
+Line(12)=\{1001,1101\};
+Line(22)=\{1101,1111\};
+Line(32)=\{1111,1011\};
+Line(42)=\{1011,1001\};
+CurveLoop(10)=\{10,20,30,40\};
+CurveLoop(11)=\{12,22,32,42\};
+CurveLoop(12)=\{10,21,-12,-11\}; 
+CurveLoop(13)=\{30,41,-32,-31\};
+CurveLoop(14)=\{11,-42,-41,40\};
+CurveLoop(15)=\{-21,20,31,-22\};
+
+PlaneSurface(1)=\{-10\};
+PlaneSurface(2)=\{11\};
+PlaneSurface(3)=\{12}\;
+PlaneSurface(4)=\{13}\;
+PlaneSurface(5)=\{14\};
+PlaneSurface(6)=\{15\};
+SurfaceLoop(10) = \{1,2,3,4,5,6\}; 
+Volume(1) = \{10\};
+Physical Surface(200) = \{1,2,3,4,5,6\}; 
+Physical Volume(300) = \{1\};
+"""
+        }
 def getMesh(NE_X, NE_Y, t,d,o,fullOrder,r,l_X):
    if t == "Hex":
        if d == 2:
@@ -59,57 +124,13 @@ def getMesh(NE_X, NE_Y, t,d,o,fullOrder,r,l_X):
          Brick()
          dom=Brick(n0=NE_X, n1=NE_Y, n2=NE_Y,l0=l_X,order=o, useFullElementOrder=fullOrder,useElementsOnFace=r,optimize=True)
    else:
-       des=Design(dim=d, order=o, element_size =min(l_X/max(3,NE_X),1./max(3,NE_Y)), keep_files=True)
-       des.setScriptFileName("tester.geo")
-       if d == 2:
-          p0=Point(0.,0.)
-          p1=Point(l_X,0.)
-          p2=Point(l_X,1.)
-          p3=Point(0.,1.)
-          l01=Line(p0,p1)
-          l12=Line(p1,p2)
-          l23=Line(p2,p3)
-          l30=Line(p3,p0)
-          s=PlaneSurface(CurveLoop(l01,l12,l23,l30))
-          des.addItems(s,l01,l12,l23,l30)
-       else: 
-          p000=Point( 0.,0.,0.)
-          p100=Point(l_X,0.,0.)
-          p010=Point(0.,1.,0.)
-          p110=Point(l_X,1.,0.)
-          p001=Point(0.,0.,1.)
-          p101=Point(l_X,0.,1.)
-          p011=Point(0.,1.,1.)
-          p111=Point(l_X,1.,1.)
-
-          l10=Line(p000,p100)
-          l20=Line(p100,p110)
-          l30=Line(p110,p010)
-          l40=Line(p010,p000)
-
-          l11=Line(p000,p001)
-          l21=Line(p100,p101)
-          l31=Line(p110,p111)
-          l41=Line(p010,p011)
-
-          l12=Line(p001,p101)
-          l22=Line(p101,p111)
-          l32=Line(p111,p011)
-          l42=Line(p011,p001)
-
-          bottom=PlaneSurface(-CurveLoop(l10,l20,l30,l40))
-          top=PlaneSurface(CurveLoop(l12,l22,l32,l42))
-
-          front=PlaneSurface(CurveLoop(l10,l21,-l12,-l11)) 
-          back=PlaneSurface(CurveLoop(l30,l41,-l32,-l31))
-
-          left=PlaneSurface(CurveLoop(l11,-l42,-l41,l40))
-          right=PlaneSurface(CurveLoop(-l21,l20,l31,-l22))
-
-          vol=Volume(SurfaceLoop(bottom,top,front,back,left,right))
-          des.addItems(vol)
-
-       dom=MakeDomain(des)
+      geospec = GEO[d].format( {"o": o, "l_X" : l_X,  "element_size" : min(l_X/max(3,NE_X),1./max(3,NE_Y)) } )
+      FF=open("tester.geo", 'w')
+      FF.write(geospec)
+      FF.close()
+      import subprocess
+      rp = subprocess.run(["gmsh", f"-{o}", "-optimize_netgen", "-o", "tester.msh", FF.name], stdout=subprocess.PIPE)
+      dom = ReadGmsh("tester.msh", d, optimize=True)
    return dom
     
 # test if out put dir exists:
