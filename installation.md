@@ -10,28 +10,31 @@ For complete documentation including user guide and API reference, see the [main
 
 ## Dependencies
 
-### Required Dependencies
+### Essential Dependencies
 
 - C++ compiler (g++, clang++, or similar)
 - Python 3
 - SCons build system
 - CMake
-- python3-numpy
+- python3-numpy 2
 - python3-matplotlib
 - Boost libraries:
   - boost-python
   - boost-random
   - boost-iostreams
-  - boost-numpy (optional, recommended for Jupyter)
+
+
+### Non-Essential Dependencies
+- LAPACKE - Linear algebra library for matrix operations in PASO solver (liblapacke-dev on Debian/Ubuntu)
+- HDF5-serial (for HDF5 file I/O) (libhdf5-serial-dev on Debian/Ubuntu)
+- SILO (recommended for VisIt visualization) (libsilo-dev on Debian/Ubuntu)
+- boost-numpy (recommended for Jupyter) (libboost-numpy-dev on Debian/Ubuntu)
+- UMFPACK - Direct sparse matrix solver (libsuitesparse-dev on Debian/Ubuntu)
+- MUMPS - MUltifrontal Massively Parallel sparse direct Solver, sequential version (libmumps-seq-dev on Debian/Ubuntu) 
 
 ### Optional Dependencies
-
-- **LAPACKE** (liblapacke-dev on Debian/Ubuntu) - Linear algebra library for matrix operations in PASO solver
 - MPI implementation (OpenMPI or MPICH) with python3-mpi4py for distributed parallelization
 - ParMETIS (for MPI builds)
-- HDF5-serial (for HDF5 file I/O)
-- SILO (recommended for VisIt visualization)
-- UMFPACK (libsuitesparse-dev on Debian/Ubuntu) - Direct sparse matrix solver
 - python3-sphinx and python3-markdown (for building API documentation)
 - LaTeX (texlive-latex-base, texlive-latex-extra) for building user guide PDF
 - CppUnit (for running tests)
@@ -143,7 +146,7 @@ Install required packages:
 sudo apt-get install python3-dev python3-numpy python3-scipy python3-matplotlib
 sudo apt-get install g++ gfortran scons cmake
 sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
-sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev liblapacke-dev
+sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev liblapacke-dev libmumps-seq-dev
 ```
 
 For MPI support, additionally install:
@@ -173,7 +176,7 @@ Install required packages:
 sudo apt-get install python3-dev python3-numpy python3-scipy python3-matplotlib
 sudo apt-get install g++ gfortran scons cmake
 sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
-sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev liblapacke-dev
+sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev liblapacke-dev libmumps-seq-dev
 ```
 
 For MPI support, additionally install:
@@ -206,7 +209,7 @@ Install required packages:
 ```bash
 sudo pacman -Sy python python-numpy python-scipy python-matplotlib
 sudo pacman -Sy gcc scons cmake
-sudo pacman -Sy boost boost-libs suitesparse hdf5 netcdf lapack
+sudo pacman -Sy boost boost-libs suitesparse hdf5 netcdf lapack mumps
 ```
 
 For MPI support:
@@ -236,7 +239,7 @@ Install required packages:
 sudo dnf install python3-devel python3-numpy python3-scipy python3-matplotlib
 sudo dnf install gcc-c++ gcc-gfortran scons cmake
 sudo dnf install boost-devel boost-python3-devel boost-python3 boost-numpy3 boost-iostreams boost-random
-sudo dnf install hdf5-devel netcdf-devel suitesparse-devel lapack-devel
+sudo dnf install hdf5-devel netcdf-devel suitesparse-devel lapack-devel MUMPS-devel
 ```
 
 For MPI support:
@@ -266,7 +269,7 @@ Install required packages:
 sudo zypper in python3-devel python3-numpy python3-scipy python3-matplotlib
 sudo zypper in gcc gcc-c++ gcc-fortran scons cmake
 sudo zypper in libboost_python3-devel libboost_numpy3-devel libboost_random-devel libboost_iostreams-devel
-sudo zypper in hdf5-devel netcdf-devel suitesparse-devel lapack-devel
+sudo zypper in hdf5-devel netcdf-devel suitesparse-devel lapack-devel mumps-devel
 ```
 
 For MPI support:
@@ -303,7 +306,7 @@ Install required packages:
 sudo dnf install python3-devel python3-numpy python3-scipy python3-matplotlib
 sudo dnf install gcc gcc-c++ gcc-gfortran scons cmake
 sudo dnf install boost-devel boost-python3 boost-python3-devel
-sudo dnf install hdf5-devel netcdf-devel suitesparse suitesparse-devel lapack-devel
+sudo dnf install hdf5-devel netcdf-devel suitesparse suitesparse-devel lapack-devel MUMPS-devel
 ```
 
 For MPI support:
@@ -335,7 +338,7 @@ Install Homebrew from [https://brew.sh](https://brew.sh), then:
 brew install python3 numpy scipy matplotlib
 brew install scons cmake
 brew install boost boost-python3
-brew install hdf5 netcdf suite-sparse lapack
+brew install hdf5 netcdf suite-sparse lapack mumps
 ```
 
 Some Python packages may need pip:
@@ -375,7 +378,7 @@ sudo port install python311
 sudo port select --set python python311
 sudo port select --set python3 python311
 sudo port install py311-numpy py311-scipy py311-matplotlib
-sudo port install scons cmake boost hdf5 netcdf suitesparse lapack
+sudo port install scons cmake boost hdf5 netcdf suitesparse lapack mumps
 ```
 
 For MPI support:
@@ -403,7 +406,7 @@ scons -j4 options_file=scons/templates/macports_options.py
 
 ```bash
 sudo pkg install python3 py39-numpy py39-scipy py39-matplotlib
-sudo pkg install scons cmake boost-python-libs hdf5 netcdf suitesparse lapack
+sudo pkg install scons cmake boost-python-libs hdf5 netcdf suitesparse lapack mumps
 ```
 
 For building documentation:

@@ -96,7 +96,7 @@ void SystemMatrix<double>::solve(double* out, double* in, Options* options) cons
 
         case PASO_MUMPS:
             if (mpi_info->size > 1) {
-                throw PasoException("solve: MUMPS package does not support MPI.");
+                throw PasoException("solve: MUMPS support for single MPI rank only.");
             }
             options->converged = false;
             options->time = escript::gettime();
@@ -161,7 +161,7 @@ void SystemMatrix<cplx_t>::solve(cplx_t* out, cplx_t* in, Options* options) cons
     switch (package) {
         case PASO_MUMPS:
             if (mpi_info->size > 1) {
-                throw PasoException("solve: MUMPS package does not support MPI.");
+                throw PasoException("solve: MUMPS support for single MPI rank only.");
             }
             options->converged = false;
             options->time = escript::gettime();

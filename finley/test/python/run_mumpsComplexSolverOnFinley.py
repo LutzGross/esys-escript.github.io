@@ -30,13 +30,14 @@ from test_simplesolve import ComplexSolveTestCase, ComplexSolveTestCaseOrder2
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 
-from esys.escript import Data, Solution, Vector, hasFeature
+from esys.escript import Data, Solution, Vector, hasFeature, getMPISizeWorld
 from esys.finley import Rectangle, Brick
 from esys.escript.linearPDEs import SolverOptions
 
 HAVE_MUMPS = hasFeature('mumps')
 skip_amg = True
 skip_muelu_long = False #hasFeature("longindex")
+mpiSize = getMPISizeWorld()
 
 # number of elements in the spatial directions
 NE0=12
@@ -45,9 +46,11 @@ NE2=8
 OPTIMIZE=True
 
 @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+@unittest.skipIf(mpiSize > 1, "MUMPS support for single MPI rank only")
 class ComplexSolveOnMumps(ComplexSolveTestCase):
     pass
 @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+@unittest.skipIf(mpiSize > 1, "MUMPS support for single MPI rank only")
 class ComplexSolveOnMumpsOrder2(ComplexSolveTestCaseOrder2):
     pass
 

@@ -47,7 +47,9 @@ Pattern::Pattern(int ntype, dim_t numOut, dim_t numIn, index_t* inPtr,
     numColors(-1),
     coloring(NULL),
     hb_row(NULL),
-    hb_col(NULL)
+    hb_col(NULL),
+    hb_row_typed(NULL),
+    hb_col_typed(NULL)
 {
     const index_t index_offset = (ntype & MATRIX_FORMAT_OFFSET1 ? 1:0);
     index_t min_index = index_offset, max_index = index_offset-1;

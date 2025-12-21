@@ -121,6 +121,33 @@ struct PASO_DLL_API Pattern : boost::enable_shared_from_this<Pattern>
         }
     }
 
+    // convert csr to harwell-boeing format using MUMPS_INT type
+    // This is more efficient than csrToHB() when using MUMPS
+    template<typename T>
+    inline void csrToHB_typed()
+    {
+        // TODO: add openmp
+        if (! (type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) ) {
+            throw PasoException(
+                "Paso: Harwell-Boeing format requires CSR format with index offset 1 and block size 1.");
+        }
+
+        if ( !(hb_row_typed == NULL && hb_col_typed == NULL) ) {
+            return;  // Already created
+        }
+
+        hb_row_typed = new T[len];
+        hb_col_typed = new T[len];
+        for (dim_t i=0, k=0; i<numOutput; i++)
+        {
+            for (dim_t j=ptr[i]; j<ptr[i+1]; j++, k++)
+            {
+                static_cast<T*>(hb_row_typed)[k] = static_cast<T>(i+1);
+                static_cast<T*>(hb_col_typed)[k] = static_cast<T>(index[j-1]);
+            }
+        }
+    }
+
     int type;
     // Number of rows in the ptr array [CSR] / number of cols for CSC
     dim_t numOutput;
@@ -138,10 +165,14 @@ struct PASO_DLL_API Pattern : boost::enable_shared_from_this<Pattern>
     dim_t numColors;
     // coloring index: inputs with the same color are not connected
     index_t* coloring;
-    // row indices in harwell-boeing format
+    // row indices in harwell-boeing format (index_t type)
     index_t* hb_row;
-    // col indices in harwell-boeing format
+    // col indices in harwell-boeing format (index_t type)
     index_t* hb_col;
+    // row indices in harwell-boeing format (typed version for solvers like MUMPS)
+    void* hb_row_typed;
+    // col indices in harwell-boeing format (typed version for solvers like MUMPS)
+    void* hb_col_typed;
 };
 
 

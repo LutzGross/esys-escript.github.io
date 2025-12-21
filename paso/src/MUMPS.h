@@ -122,6 +122,16 @@ void MUMPS_free(SparseMatrix<T>* A)
 {
     if (A && A->solver_p) {
 #ifdef ESYS_HAVE_MUMPS
+        // Clean up typed HB arrays before terminating
+        if (A->pattern && A->pattern->hb_row_typed) {
+            delete[] static_cast<MUMPS_INT*>(A->pattern->hb_row_typed);
+            A->pattern->hb_row_typed = NULL;
+        }
+        if (A->pattern && A->pattern->hb_col_typed) {
+            delete[] static_cast<MUMPS_INT*>(A->pattern->hb_col_typed);
+            A->pattern->hb_col_typed = NULL;
+        }
+
         // Terminate instance.
         auto pt = static_cast<MUMPS_Handler<T>*>(A->solver_p);
         delete[] pt->rhs;
@@ -138,9 +148,6 @@ void MUMPS_free(SparseMatrix<T>* A)
             }
         }
         /* avoid "unused variable warning" */
-#ifdef ESYS_MPI
-        /* MUMPS_INT ierr = */ MPI_Finalize();
-#endif
         if (pt->verbose) {
             std::cout << "MUMPS: instance terminated." << std::endl;
         }
@@ -160,6 +167,13 @@ void MUMPS_solve(SparseMatrix_ptr<T> A, T* out, T* in, dim_t numRefinements, boo
     }
 
     auto pt = reinterpret_cast<MUMPS_Handler<T>*>(A->solver_p);
+    double time0 = escript::gettime();
+
+    // Setup basic problem dimensions
+    MUMPS_INT n = A->numRows;
+    MUMPS_INT8 nnz = A->pattern->len;
+
+    // Initialize MUMPS on first call
     if (pt == NULL) {
         pt = new MUMPS_Handler<T>;
 #ifdef _WIN32
@@ -178,70 +192,80 @@ void MUMPS_solve(SparseMatrix_ptr<T> A, T* out, T* in, dim_t numRefinements, boo
 #endif
         A->solver_p = (void*) pt;
         A->solver_package = PASO_MUMPS;
-        double time0 = escript::gettime();
-
-        A->pattern->csrToHB(); // generate Harwell-Boeing format needed for MUMPS from CSR
-        MUMPS_INT n = A->numRows;  // matrix order
-        MUMPS_INT8 nnz = A->pattern->len;  // number non-zeros
-        MUMPS_INT* irn = reinterpret_cast<MUMPS_INT*>(A->pattern->hb_row);  // row indices array
-        MUMPS_INT* jcn = reinterpret_cast<MUMPS_INT*>(A->pattern->hb_col);  // col indices array
-        pt->verbose = verbose;
-        if (pt->verbose) {
-            std::cout << "MUMPS in  ===>" << std::endl;
-            std::cout << "n = " << n << std::endl;
-            std::cout << "nnz = " << nnz << std::endl;
-            MUMPS_print_list("val", A->val, nnz);
-            MUMPS_print_list("in", in, n);
-            MUMPS_print_list("ptr", A->pattern->ptr, n+1);
-            MUMPS_print_list("index", A->pattern->index, nnz);
-            MUMPS_print_list("hb_row", A->pattern->hb_row, nnz);
-            MUMPS_print_list("hb_col", A->pattern->hb_col, nnz);
-        }
+        A->pattern->template csrToHB_typed<MUMPS_INT>(); // generate Harwell-Boeing format for MUMPS
         pt->rhs = new T[n];
-        std::memcpy(pt->rhs, in, n*sizeof(T));
         /* avoid "unused variable warning" */
-#ifdef ESYS_MPI
-        /* MUMPS_INT ierr; */
-        /* ierr = */ MPI_Init(NULL, NULL);
-        /* ierr = */ MPI_Comm_rank(MPI_COMM_WORLD, &pt->myid);
-#endif
+//#ifdef ESYS_MPI
+//        /* MUMPS_INT ierr; */
+//        /* ierr = */ MPI_Init(NULL, NULL);
+//        /* ierr = */ MPI_Comm_rank(MPI_COMM_WORLD, &pt->myid);
+//#else
+        pt->myid = 0;  // Sequential mode - always rank 0
+//#endif
 
         // Initialize a MUMPS instance. Use MPI_COMM_WORLD
         pt->id.comm_fortran = MUMPS_USE_COMM_WORLD;
         pt->id.par = 1; pt->id.sym = 0;
         pt->id.job = MUMPS_JOB_INIT;
         pt->mumps_c(&pt->id);
-        // Define the problem on the host
-        if (pt->myid == 0) {
-            pt->id.n = n; pt->id.nnz = nnz;
-            pt->id.irn = irn; pt->id.jcn = jcn;
-            pt->id.a = reinterpret_cast<typename MUMPS_Handler<T>::mumps_t*>(A->val);
-            pt->id.rhs = reinterpret_cast<typename MUMPS_Handler<T>::mumps_t*>(pt->rhs);
-        }
-        if (!pt->verbose) {
+
+        // Configure MUMPS output
+        if (!verbose) {
             // No outputs
             pt->id.ICNTL(1)=-1; pt->id.ICNTL(2)=-1; pt->id.ICNTL(3)=-1; pt->id.ICNTL(4)=0;
         }
 
-        // Call the MUMPS package (analyse, factorization and solve).
-        pt->id.job = 6;
+        // Get typed HB arrays (created above with csrToHB_typed<MUMPS_INT>)
+        MUMPS_INT* irn = static_cast<MUMPS_INT*>(A->pattern->hb_row_typed);
+        MUMPS_INT* jcn = static_cast<MUMPS_INT*>(A->pattern->hb_col_typed);
+
+        // Define the matrix structure for analysis and factorization
+        if (pt->myid == 0) {
+            pt->id.n = n; pt->id.nnz = nnz;
+            pt->id.irn = irn; pt->id.jcn = jcn;
+            pt->id.a = reinterpret_cast<typename MUMPS_Handler<T>::mumps_t*>(A->val);
+        }
+
+        // Perform analysis and factorization (job=4)
+        pt->id.job = 4;
         pt->mumps_c(&pt->id);
         if (pt->id.infog[0] < 0) {
-            pt->ssExceptMsg << "(PROC " << pt->myid << ") MUMPS ERROR: INFOG(1)=" << pt->id.infog[0]
+            std::stringstream ss;
+            ss << "(PROC " << pt->myid << ") MUMPS ERROR: INFOG(1)=" << pt->id.infog[0]
                 << ", INFOG(2)=" << pt->id.infog[1];
-        } else {
-            std::memcpy(out, reinterpret_cast<T*>(pt->rhs), n*sizeof(T));
-            if (pt->id.infog[0] > 0) {
-                std::cout << "(PROC " << pt->myid << ") MUMPS WARNING: INFOG(1)=" << pt->id.infog[0]
-                    << ", INFOG(2)=" << pt->id.infog[1];
-            }
-            if (pt->verbose) {
-                std::cout << "MUMPS out ===>" << std::endl;
-                MUMPS_print_list("out", out, n);
-                std::cout << "MUMPS: factorization and solve completed (time = "
-                    << escript::gettime()-time0 << ")." << std::endl;
-            }
+            throw PasoException(ss.str());
         }
+    }
+
+    // Copy RHS and set pointer
+    std::memcpy(pt->rhs, in, n*sizeof(T));
+    if (pt->myid == 0) {
+        pt->id.rhs = reinterpret_cast<typename MUMPS_Handler<T>::mumps_t*>(pt->rhs);
+    }
+
+    // Set verbose flag for this solve
+    pt->verbose = verbose;
+
+    // Solve using existing factorization (job=3)
+    pt->id.job = 3;
+    pt->mumps_c(&pt->id);
+    if (pt->id.infog[0] < 0) {
+        std::stringstream ss;
+        ss << "(PROC " << pt->myid << ") MUMPS ERROR: INFOG(1)=" << pt->id.infog[0]
+            << ", INFOG(2)=" << pt->id.infog[1];
+        throw PasoException(ss.str());
+    }
+
+    std::memcpy(out, reinterpret_cast<T*>(pt->rhs), n*sizeof(T));
+    if (pt->id.infog[0] > 0) {
+        std::cout << "(PROC " << pt->myid << ") MUMPS WARNING: INFOG(1)=" << pt->id.infog[0]
+            << ", INFOG(2)=" << pt->id.infog[1] << std::endl;
+    }
+    if (pt->verbose) {
+        std::cout << "MUMPS out ===>" << std::endl;
+        MUMPS_print_list("out", out, n);
+        std::cout << "MUMPS: factorization and solve completed (time = "
+            << escript::gettime()-time0 << ")." << std::endl;
     }
 #else // ESYS_HAVE_MUMPS
     throw PasoException("Paso: Not compiled with MUMPS.");
