@@ -10,7 +10,7 @@ RUN yum install -y python3 \
 	python3-devel python3-scipy python3-matplotlib python3-sympy \
 	boost-devel boost-python3 boost-numpy3 boost-iostreams boost-random \
 	netcdf-devel netcdf-cxx netcdf-cxx-devel netcdf-cxx4 netcdf-cxx4-devel \
-	suitesparse-devel gmsh \
+	suitesparse-devel \
 	gcc-c++ scons git
 RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 /app/escript
 RUN cd /app/escript && scons options_file=scons/templates/fedora_py3_options.py -j`nproc` \

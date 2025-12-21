@@ -37,7 +37,6 @@
 # sudo port install py310-scipy
 # sudo port select --set pip pip310
 # sudo port select --set pip2 pip310
-# sudo port install gmsh
 # sudo port select --set mpi mpich-mp-fortran
 
 # sudo port clang-14

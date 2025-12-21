@@ -123,7 +123,7 @@ class Test_InputOutputOnFinley(unittest.TestCase):
         mydomain1 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=False,useElementsOnFace=0)
         d1=Data(mydomain1.getMPIRank(), Function(mydomain1))
         d1.expand()
-        dumpfile=os.path.join(FINLEY_WORKDIR, "tempfile.dump.nc")
+        dumpfile=os.path.join(FINLEY_WORKDIR, "tempfile.dump.h5")
         d1.dump(dumpfile)
         d2=load(dumpfile, mydomain1)
         self.assertTrue(Lsup(abs(d1-d2)) <= REL_TOL, "data objects differ")

@@ -13,7 +13,6 @@ esys/escript/__init__.py
 esys/escriptcore/benchmark.py
 esys/escriptcore/datamanager.py
 esys/escriptcore/domainCouplers.py
-esys/escriptcore/gmshrunner.py
 esys/escriptcore/heat.py
 esys/escriptcore/linearPDEs.py
 esys/escriptcore/nonlinearPDE.py

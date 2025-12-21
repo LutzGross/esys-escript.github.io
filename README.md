@@ -74,6 +74,7 @@ Pages 23-34](doi:10.1016/j.pepi.2007.04.004)
 ### Contributors
 
 - Lutz Gross
+- Claude
 - Adam Ellery
 - Andrea Codd
 - Joel Fenwick

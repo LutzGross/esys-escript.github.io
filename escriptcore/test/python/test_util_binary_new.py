@@ -130,7 +130,7 @@ class Test_util_binary_new(Test_util_values):
        noshapemismatch=True
        permitscalarmismatch=True
        permit_array_op_data=False
-       self.generate_binary_operation_test_batch(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, permit_array_op_data=permit_array_op_data)          
+       self.generate_binary_operation_test_batch(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, permit_array_op_data=permit_array_op_data)
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_pow_combined(self):
        opstring='a**b'

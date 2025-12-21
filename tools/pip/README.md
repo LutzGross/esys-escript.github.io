@@ -37,7 +37,6 @@ File Type: DLL
 
   Image has the following dependencies:
 
-    netcdf.dll
     python38.dll
     boost_numpy38.dll
     boost_python38.dll

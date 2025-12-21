@@ -274,6 +274,7 @@ class SimpleSolveTestCase(SolveTestCaseOrder1):
         pde, u_ex, g_ex = self.getPDE(False)
         g=grad(u_ex)
         self.assertLess(Lsup(g_ex-g), self.REL_TOL*Lsup(g_ex))
+
         u = pde.getSolution()
         self.assertFalse(u.isComplex())
         self.assertEqual(u.getShape(), ( ))

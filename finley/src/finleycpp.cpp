@@ -44,7 +44,7 @@ BOOST_PYTHON_MODULE(finleycpp)
     register_exception_translator<finley::FinleyException>(&escript::RuntimeErrorTranslator);
 
   def("LoadMesh", finley::FinleyDomain::load,
-      (arg("fileName") = "file.nc"), ":rtype: `FinleyDomain`");
+      (arg("fileName") = "file.h5"), ":rtype: `FinleyDomain`");
 
 
   def("__ReadMesh_driver", finley::readMesh_driver,

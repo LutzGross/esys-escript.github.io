@@ -37,7 +37,6 @@ requirements:
         - scipy 
         - suitesparse  # [linux]
         - sympy
-        - gmsh  # [win]
         - mumps
         - libblas <=3.8.0   # [linux and py==38]
         - libblas <=3.8.0   # [linux and py==37]
@@ -53,7 +52,6 @@ requirements:
         - scipy 
         - suitesparse  # [linux]
         - sympy
-        - gmsh  # [win]
         - mumps
         - libblas <=3.8.0   # [linux and py==38]
         - libblas <=3.8.0   # [linux and py==37]

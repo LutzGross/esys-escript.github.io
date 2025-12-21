@@ -34,7 +34,6 @@ requirements:
         - scipy 
         - suitesparse  # [linux]
         - sympy ==1.1.1  # [win]
-        - gmsh  # [win]
         - mumps  # [win]
     run:
         - boost-cpp
@@ -48,7 +47,6 @@ requirements:
         - pyproj
         - scipy
         - sympy ==1.1.1  # [win]
-        - gmsh  # [win]
         - mumps  # [win]
 test:
     commands:

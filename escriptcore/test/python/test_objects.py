@@ -633,7 +633,7 @@ class Test_Dump(unittest.TestCase):
 
             for rank in range(5):
                 filename=os.path.join(self.filename_base,
-                        "expanded_{0}_rank{1}.nc".format(spacename, rank))
+                        "expanded_{0}_rank{1}.h5".format(spacename, rank))
                 d=Data(length(functionspace(self.domain).getX()) * self.args[0],
                         functionspace(self.domain))
                 self._diffDataObjects(d,filename)
@@ -659,7 +659,7 @@ class Test_Dump(unittest.TestCase):
 
             for rank in range(5):
                 filename=os.path.join(self.filename_base,
-                        "tagged_{0}_rank{1}.nc".format(spacename, rank))
+                        "tagged_{0}_rank{1}.h5".format(spacename, rank))
                 d=Data(self.args[rank],ContinuousFunction(self.domain))
                 d.setTaggedValue(1,self.args[rank]*2)
                 d.setTaggedValue(10,self.args[rank]*3)

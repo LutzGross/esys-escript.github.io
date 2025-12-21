@@ -469,12 +469,6 @@ def checkOptionalModules(env):
     else:
         env['sympy']=False
         env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
-
-
-
-    ######## gmshpy
-    env['gmshpy'] = detectModule(env, 'gmshpy')
-
     return env
 
 def checkForTrilinos(env):
