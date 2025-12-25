@@ -53,6 +53,9 @@ if 'finley' in env['domains']:
 if local_env['silo']:
     weipalibs += env['silo_libs']
 
+if local_env['netcdf']:
+    weipalibs += env['netcdf_libs']
+
 pluginlibs = [] + weipalibs
 pluginsources = [] + sources
 # clone here to use same CPPDEFINES

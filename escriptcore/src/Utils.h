@@ -27,7 +27,17 @@
 
 #include <string>
 
+#ifdef ESYS_HAVE_NETCDF4
+// Forward declaration
+namespace netCDF {
+    class NcFile;
+}
+#endif
+
 namespace escript {
+
+// Forward declaration
+class FunctionSpace;
 
 /**
     \brief
@@ -147,6 +157,17 @@ escript::Data numpyToData(boost::python::numpy::ndarray& array, bool isComplex, 
     \param obj A python list or tuple of Data objects to be resolved together.
 */
 ESCRIPT_DLL_API void resolveGroup(boost::python::object obj);
+
+#ifdef ESYS_HAVE_NETCDF4
+/**
+    \brief
+    Opens a NetCDF file for reading
+    \param file NcFile object to be initialized
+    \param filename Path to the NetCDF file
+    \return true if successful, false otherwise
+*/
+ESCRIPT_DLL_API bool openNcFile(netCDF::NcFile& file, const std::string& filename);
+#endif
 
 } // end of namespace
 

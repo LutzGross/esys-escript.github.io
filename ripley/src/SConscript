@@ -71,6 +71,8 @@ if env['trilinos']:
     ripleylibs += env['trilinoswrap_libs']
 if env['silo']:
     ripleylibs += env['silo_libs']
+if env['netcdf']:
+    ripleylibs += env['netcdf_libs']
 if env['compressed_files']:
     ripleylibs += env['compression_libs']
 

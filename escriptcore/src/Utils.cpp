@@ -36,6 +36,10 @@
 #include "DataTypes.h"
 #endif
 
+#ifdef ESYS_HAVE_NETCDF4
+#include <ncFile.h>
+#endif
+
 // #define RELEASE "5.7"
 
 namespace bp = boost::python;
@@ -1080,5 +1084,16 @@ void resolveGroup(bp::object obj)
         dp[i]->resolve();
 }
 
+#ifdef ESYS_HAVE_NETCDF4
+bool openNcFile(netCDF::NcFile& file, const std::string& filename)
+{
+    try {
+        file.open(filename, netCDF::NcFile::read);
+        return !file.isNull();
+    } catch (...) {
+        return false;
+    }
+}
+#endif
 
 } // end of namespace

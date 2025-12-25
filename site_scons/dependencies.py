@@ -761,6 +761,18 @@ def checkOptionalLibraries(env):
         env['buildvars']['silo_lib_path']=silo_lib_path
     env['buildvars']['silo']=int(env['silo'])
 
+    ######## NetCDF
+    netcdf_inc_path=''
+    netcdf_lib_path=''
+    if env['netcdf']:
+        netcdf_inc_path,netcdf_lib_path=findLibWithHeader(env, env['netcdf_libs'], 'ncFile.h', env['netcdf_prefix'], lang='c++')
+        env.AppendUnique(CPPPATH = [netcdf_inc_path])
+        env.AppendUnique(LIBPATH = [netcdf_lib_path])
+        env.Append(CPPDEFINES = ['ESYS_HAVE_NETCDF4'])
+        env['buildvars']['netcdf_inc_path']=netcdf_inc_path
+        env['buildvars']['netcdf_lib_path']=netcdf_lib_path
+    env['buildvars']['netcdf']=int(bool(env['netcdf']))
+
     ######## VisIt
     visit_inc_path=''
     visit_lib_path=''

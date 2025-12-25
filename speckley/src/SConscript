@@ -71,6 +71,8 @@ if env['compressed_files']:
     speckleylibs += env['compression_libs']
 if env['silo']:
     speckleylibs += env['silo_libs']
+if env['netcdf']:
+    speckleylibs += env['netcdf_libs']
 
 local_env.PrependUnique(LIBS = speckleylibs)
 

@@ -31,12 +31,10 @@
 
 class DBfile;
 
-#ifdef NETCDF4
+#ifdef ESYS_HAVE_NETCDF4
 #include <ncFile.h>
-#define NCFTYPE netCDF::NcFile&
-#else
-class NcFile;  
-#define NCFTYPE NcFile*
+#include <ncVar.h>
+#include <ncDim.h>
 #endif
 
 namespace dudley {
@@ -93,7 +91,7 @@ public:
     bool initFromFinley(const finley::ElementFile* finleyFile);
 
     /// \brief Reads element data from escript/finley NetCDF file.
-    bool readFromNc(NCFTYPE ncfile);
+    bool readFromNc(netCDF::NcFile& ncfile);
 
     /// \brief Moves "ghost" elements (whose owner does not match ownIndex)
     ///        and the corresponding data to the end of the arrays.
@@ -194,6 +192,5 @@ private:
 
 } // namespace weipa
 
-#undef NCFTYPE
 #endif // __WEIPA_FINLEYELEMENTS_H__
 

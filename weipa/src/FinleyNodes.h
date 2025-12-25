@@ -22,13 +22,10 @@
 
 class DBfile;
 
-#ifdef NETCDF4
+#ifdef ESYS_HAVE_NETCDF4
 #include <ncFile.h>
-#define NCFTYPE netCDF::NcFile&
-
-#else
-class NcFile;  
-#define NCFTYPE NcFile*
+#include <ncVar.h>
+#include <ncDim.h>
 #endif
 
 namespace finley {
@@ -70,7 +67,7 @@ public:
     bool initFromFinley(const finley::NodeFile* finleyFile);
 
     /// \brief Reads node data from a NetCDF file.
-    bool readFromNc(NCFTYPE ncFile);
+    bool readFromNc(netCDF::NcFile& ncFile);
 
     /// \brief Writes node data to a Silo file.
     bool writeToSilo(DBfile* dbfile);
@@ -139,6 +136,5 @@ inline std::string FinleyNodes::getFullSiloName() const
 
 } // namespace weipa
 
-#undef NCFTYPE
 #endif // __WEIPA_FINLEYNODES_H__
 

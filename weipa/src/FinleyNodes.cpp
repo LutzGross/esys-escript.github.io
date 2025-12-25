@@ -32,6 +32,9 @@ using escript::DataTypes::index_t;
 #endif
 
 using namespace std;
+#ifdef ESYS_HAVE_NETCDF4
+using namespace netCDF;
+#endif
 
 namespace weipa {
 
@@ -222,11 +225,9 @@ bool FinleyNodes::initFromFinley(const finley::NodeFile* finleyFile)
 //
 //
 
-#ifdef NETCDF4
-
 bool FinleyNodes::readFromNc(netCDF::NcFile& ncFile)
 {
-#if ESYS_HAVE_NETCDF
+#ifdef ESYS_HAVE_NETCDF4
     NcGroupAtt att;
     NcVar var;
  
@@ -297,86 +298,11 @@ bool FinleyNodes::readFromNc(netCDF::NcFile& ncFile)
     }
 
     return true;
-#else // !ESYS_HAVE_NETCDF
-    return false;
-#endif
-}
-#else
-
-bool FinleyNodes::readFromNc(NcFile* ncFile)
-{
-#if ESYS_HAVE_NETCDF
-    NcAtt* att;
-    NcVar* var;
- 
-    att = ncFile->get_att("numDim");
-    numDims = att->as_int(0);
-
-    att = ncFile->get_att("numNodes");
-    numNodes = att->as_int(0);
-
-    att = ncFile->get_att("mpi_size");
-    int mpisize = att->as_int(0);
-
-    nodeDist.clear();
-    nodeDist.insert(nodeDist.end(), mpisize+1, 0);
-    var = ncFile->get_var("Nodes_NodeDistribution");
-    var->get(&nodeDist[0], mpisize+1);
-
-    CoordArray::iterator it;
-    for (it = coords.begin(); it != coords.end(); it++)
-        delete[] *it;
-    coords.clear();
-    nodeID.clear();
-    nodeTag.clear();
-    nodeGDOF.clear();
-    nodeGNI.clear();
-    nodeGRDFI.clear();
-    nodeGRNI.clear();
-
-    // Only attempt to read further if there are any nodes.
-    // Having no nodes is not an error.
-    if (numNodes > 0) {
-        var = ncFile->get_var("Nodes_Coordinates");
-        for (int i=0; i<numDims; i++) {
-            float* c = new float[numNodes];
-            var->set_cur(0, i);
-            var->get(c, numNodes, 1);
-            coords.push_back(c);
-        }
-
-        nodeID.insert(nodeID.end(), numNodes, 0);
-        var = ncFile->get_var("Nodes_Id");
-        var->get(&nodeID[0], numNodes);
-
-        nodeTag.insert(nodeTag.end(), numNodes, 0);
-        var = ncFile->get_var("Nodes_Tag");
-        var->get(&nodeTag[0], numNodes);
-
-        nodeGDOF.insert(nodeGDOF.end(), numNodes, 0);
-        var = ncFile->get_var("Nodes_gDOF");
-        var->get(&nodeGDOF[0], numNodes);
-
-        nodeGNI.insert(nodeGNI.end(), numNodes, 0);
-        var = ncFile->get_var("Nodes_gNI");
-        var->get(&nodeGNI[0], numNodes);
-
-        nodeGRDFI.insert(nodeGRDFI.end(), numNodes, 0);
-        var = ncFile->get_var("Nodes_grDfI");
-        var->get(&nodeGRDFI[0], numNodes);
-
-        nodeGRNI.insert(nodeGRNI.end(), numNodes, 0);
-        var = ncFile->get_var("Nodes_grNI");
-        var->get(&nodeGRNI[0], numNodes);
-    }
-
-    return true;
-#else // !ESYS_HAVE_NETCDF
+#else // !ESYS_HAVE_NETCDF4
     return false;
 #endif
 }
 
-#endif
 //
 //
 //

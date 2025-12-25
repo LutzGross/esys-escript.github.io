@@ -30,13 +30,14 @@
 
 #include <iostream>
 
+#include <escript/Utils.h>
 
 #ifdef ESYS_HAVE_SILO
 #include <silo.h>
 #endif
 
 using namespace std;
-#ifdef NETCDF4
+#ifdef ESYS_HAVE_NETCDF4
 using namespace netCDF;
 #endif
 
@@ -137,13 +138,11 @@ bool FinleyDomain::initFromEscript(const escript::AbstractDomain* escriptDomain)
 //
 // Reads mesh and element data from NetCDF file with given name
 //
-#ifdef NETCDF4
-
 bool FinleyDomain::initFromFile(const string& filename)
 {
     cleanup();
 
-#if ESYS_HAVE_NETCDF
+#ifdef ESYS_HAVE_NETCDF4
     NcFile input;
     if (!escript::openNcFile(input, filename))
     {
@@ -168,43 +167,6 @@ bool FinleyDomain::initFromFile(const string& filename)
 
     return initialized;
 }
-
-#else
-
-bool FinleyDomain::initFromFile(const string& filename)
-{
-    cleanup();
-
-#if ESYS_HAVE_NETCDF
-    NcError ncerr(NcError::silent_nonfatal);
-    NcFile* input;
-
-    input = new NcFile(filename.c_str());
-    if (!input->is_valid()) {
-        cerr << "Could not open input file " << filename << "." << endl;
-        delete input;
-        return false;
-    }
-
-    nodes = FinleyNodes_ptr(new FinleyNodes("Elements"));
-    if (!nodes->readFromNc(input))
-        return false;
-
-    // Read all element types
-    cells = FinleyElements_ptr(new FinleyElements("Elements", nodes));
-    cells->readFromNc(input);
-    faces = FinleyElements_ptr(new FinleyElements("FaceElements", nodes));
-    faces->readFromNc(input);
-    contacts = FinleyElements_ptr(new FinleyElements("ContactElements", nodes));
-    contacts->readFromNc(input);
-
-    delete input;
-    initialized = true;
-#endif
-
-    return initialized;
-}
-#endif
 
 Centering FinleyDomain::getCenteringForFunctionSpace(int fsCode) const
 {

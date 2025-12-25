@@ -132,6 +132,9 @@ vars.AddVariables(
   BoolVariable('silo', 'Enable the Silo file format in weipa', False),
   ('silo_prefix', 'Prefix/Paths to Silo installation', default_prefix),
   ('silo_libs', 'Silo libraries to link with', ['siloh5', 'hdf5']),
+  ('netcdf', 'Enable NetCDF (4 for NetCDF4, False to disable)', False),
+  ('netcdf_prefix', 'Prefix/Paths to NetCDF installation', default_prefix),
+  ('netcdf_libs', 'NetCDF libraries to link with', ['netcdf_c++4', 'netcdf']),
   BoolVariable('trilinos', 'Enable the Trilinos solvers (overwritten when trilinos is built)', False),
   EnumVariable('build_trilinos', 'Instructs scons to build the trilinos library.', "make", allowed_values = build_trilinos_flavours),
   ('trilinos_prefix', 'Prefix/Paths to Trilinos installation (need to be set  if build_trilinos = False).', default_prefix),
@@ -1036,7 +1039,7 @@ def print_summary():
     print("         domains:  %s"%(", ".join(env['domains'])))
     e_list=[]
     for i in ('hdf5', 'weipa','debug','openmp','cppunit','mkl','mpi4py', 'zlib',
-             'mumps', 'scipy','silo','sympy','umfpack','visit'):
+             'mumps', 'netcdf', 'scipy','silo','sympy','umfpack','visit'):
         if env[i]: e_list.append(i)
         else: d_list.append(i)
 

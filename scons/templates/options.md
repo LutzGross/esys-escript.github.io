@@ -235,6 +235,18 @@ Each option is followed by a brief explanation.
 - `silo_libs = ['siloh5', 'hdf5']`:
   SILO library/libraries to link against
 
+- `netcdf = 4`:
+  Whether to use NetCDF library for reading/writing NetCDF grid files.
+  Value of 4 indicates NetCDF version 4.
+  DEFAULT: False
+
+- `netcdf_prefix = '/usr/local'`:
+  Prefix or paths to NetCDF headers and libraries. See note above.
+
+- `netcdf_libs = ['netcdf_c++4', 'netcdf']`:
+  NetCDF library/libraries to link against.
+  On Debian/Ubuntu, install with: `sudo apt-get install libnetcdf-dev libnetcdf-c++4-dev`
+
 - `trilinos = True`:
   Whether to enable support for the Trilinos solver stack. [new in 203]
   DEFAULT: False

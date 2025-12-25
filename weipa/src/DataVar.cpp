@@ -19,6 +19,9 @@
 #include <weipa/DomainChunk.h>
 #include <weipa/ElementData.h>
 #include <weipa/NodeData.h>
+
+#include <escript/Utils.h>
+
 #ifndef VISIT_PLUGIN
 #include <escript/Data.h>
 #endif
@@ -28,14 +31,20 @@
 #include <silo.h>
 #endif
 
+#ifdef ESYS_HAVE_NETCDF4
+#include <ncFile.h>
+#include <ncVar.h>
+#include <ncDim.h>
+#include <ncGroupAtt.h>
+#endif
+
 #include <numeric> // for accumulate
 #include <iostream> // for cerr
 #include <sstream>
 #include <stdio.h>
 
 using namespace std;
-
-#ifdef NETCDF4
+#ifdef ESYS_HAVE_NETCDF4
 using namespace netCDF;
 #endif
 
@@ -220,12 +229,11 @@ bool DataVar::initFromMeshData(const_DomainChunk_ptr dom, const IntVec& data,
 //
 // Reads variable data from dump file
 //
-#ifdef NETCDF4
 bool DataVar::initFromFile(const string& filename, const_DomainChunk_ptr dom)
 {
     cleanup();
-    
-#if ESYS_HAVE_NETCDF
+
+#ifdef ESYS_HAVE_NETCDF4
 
     NcFile input;
     if (!escript::openNcFile(input, filename))
@@ -317,117 +325,10 @@ bool DataVar::initFromFile(const string& filename, const_DomainChunk_ptr dom)
 
         initialized = reorderSamples();
     }
-#endif // ESYS_HAVE_NETCDF
+#endif // ESYS_HAVE_NETCDF4
 
     return initialized;
 }
-
-#else
-
-bool DataVar::initFromFile(const string& filename, const_DomainChunk_ptr dom)
-{
-    cleanup();
-    
-#if ESYS_HAVE_NETCDF
-    NcError ncerr(NcError::silent_nonfatal);    
-    NcFile* input = new NcFile(filename.c_str());
-    if (!input->is_valid()) {
-        cerr << "Could not open input file " << filename << "." << endl;
-        delete input;
-        return false;
-    }
-
-    NcDim* dim;
-    NcAtt* att;
-
-    att = input->get_att("type_id");
-    int typeID = att->as_int(0);
-    if (typeID != 2) {
-        cerr << "WARNING: Only expanded data supported!" << endl;
-        delete input;
-        return false;
-    }
-
-    att = input->get_att("rank");
-    rank = att->as_int(0);
-
-    dim = input->get_dim("num_data_points_per_sample");
-    ptsPerSample = dim->size();
-
-    att = input->get_att("function_space_type");
-    funcSpace = att->as_int(0);
-
-    centering = dom->getCenteringForFunctionSpace(funcSpace);
-
-    dim = input->get_dim("num_samples");
-    numSamples = dim->size();
-
-#ifdef _DEBUG
-    cout << varName << ":\t" << numSamples << " samples,  "
-        << ptsPerSample << " pts/s,  rank: " << rank << endl;
-#endif
-
-    domain = dom;
-    NodeData_ptr nodes = domain->getMeshForFunctionSpace(funcSpace);
-    if (nodes == NULL) {
-        delete input;
-        return false;
-    }
-
-    meshName = nodes->getName();
-    siloMeshName = nodes->getFullSiloName();
-    initialized = true;
-
-    size_t dimSize = 1;
-    vector<long> counts;
-
-    if (rank > 0) {
-        dim = input->get_dim("d0");
-        int d = dim->size();
-        shape.push_back(d);
-        counts.push_back(d);
-        dimSize *= d;
-    }
-    if (rank > 1) {
-        dim = input->get_dim("d1");
-        int d = dim->size();
-        shape.push_back(d);
-        counts.push_back(d);
-        dimSize *= d;
-    }
-    if (rank > 2) {
-        cerr << "WARNING: Rank " << rank << " data is not supported!\n";
-        initialized = false;
-    }
- 
-    if (initialized && numSamples > 0) {
-        sampleID.insert(sampleID.end(), numSamples, 0);
-        NcVar* var = input->get_var("id");
-        var->get(&sampleID[0], numSamples);
-
-        size_t dataSize = dimSize*numSamples*ptsPerSample;
-        counts.push_back(ptsPerSample);
-        counts.push_back(numSamples);
-        float* tempData = new float[dataSize];
-        var = input->get_var("data");
-        var->get(tempData, &counts[0]);
-
-        const float* srcPtr = tempData;
-        for (size_t i=0; i < dimSize; i++, srcPtr++) {
-            float* c = averageData(srcPtr, dimSize);
-            dataArray.push_back(c);
-        }
-        delete[] tempData;
-
-        initialized = reorderSamples();
-    }
-
-    delete input;
-#endif // ESYS_HAVE_NETCDF
-
-    return initialized;
-}
-#endif
 
 //
 // Returns true if the data values are nodal, false if they are zonal.
