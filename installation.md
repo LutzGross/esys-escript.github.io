@@ -28,6 +28,7 @@ For complete documentation including user guide and API reference, see the [main
 - LAPACKE - Linear algebra library for matrix operations in PASO solver (liblapacke-dev on Debian/Ubuntu)
 - HDF5-serial (for HDF5 file I/O) (libhdf5-serial-dev on Debian/Ubuntu)
 - SILO (recommended for VisIt visualization) (libsilo-dev on Debian/Ubuntu)
+- netCDF4 (for reading gridded data) (libnetcdf-c++4-dev on Debian/Ubuntu)
 - boost-numpy (recommended for Jupyter) (libboost-numpy-dev on Debian/Ubuntu)
 - UMFPACK - Direct sparse matrix solver (libsuitesparse-dev on Debian/Ubuntu)
 - MUMPS - MUltifrontal Massively Parallel sparse direct Solver, sequential version (libmumps-seq-dev on Debian/Ubuntu) 
