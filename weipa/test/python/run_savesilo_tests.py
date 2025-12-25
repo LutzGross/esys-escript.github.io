@@ -1331,7 +1331,7 @@ class Test_Finley_SaveSilo(SiloSaver):
 
 @unittest.skipIf(getMPISizeWorld()>1, "MPI size > 1")
 @unittest.skipIf(not HAVE_SILO, "Silo module not available")
-class Test_Dudley_SaveSilo(SiloSaver):
+class Test_Ripley_SaveSilo(SiloSaver):
 
   # === Ripley 2D =============================================================
 

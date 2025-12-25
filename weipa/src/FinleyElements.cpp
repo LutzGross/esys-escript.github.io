@@ -146,40 +146,6 @@ FinleyElements::FinleyElements(const FinleyElements& e)
         reducedElements = FinleyElements_ptr(
                 new FinleyElements(*e.reducedElements));
 }
-
-//
-//
-//
-bool FinleyElements::initFromDudley(const dudley::ElementFile* dudleyFile)
-{
-#if !defined VISIT_PLUGIN && defined USE_DUDLEY
-    numElements = dudleyFile->numElements;
-
-    if (numElements > 0) {
-        nodesPerElement = dudleyFile->numNodes;
-
-        nodes.assign(dudleyFile->Nodes,
-                     dudleyFile->Nodes+numElements*nodesPerElement);
-        color.assign(dudleyFile->Color, dudleyFile->Color+numElements);
-        ID.assign(dudleyFile->Id, dudleyFile->Id+numElements);
-        owner.assign(dudleyFile->Owner, dudleyFile->Owner+numElements);
-        tag.assign(dudleyFile->Tag, dudleyFile->Tag+numElements);
-
-        FinleyElementInfo f = getDudleyTypeInfo(dudleyFile->etype);
-        type = f.elementType;
-        elementFactor = f.elementFactor;
-        if (elementFactor > 1 || f.reducedElementSize != nodesPerElement)
-            buildReducedElements(f);
-
-        buildMeshes();
-    }
-    return true;
-
-#else // VISIT_PLUGIN,USE_DUDLEY
-    return false;
-#endif
-}
-
 //
 //
 //
@@ -753,57 +719,6 @@ bool FinleyElements::writeToSilo(DBfile* dbfile, const string& siloPath,
     return false;
 #endif
 }
-
-//
-//
-//
-#ifdef USE_DUDLEY
-FinleyElementInfo FinleyElements::getDudleyTypeInfo(dudley::ElementTypeId typeId)
-{
-    FinleyElementInfo ret;
-    ret.multiCellIndices = NULL;
-    ret.elementFactor = 1;
-    ret.useQuadNodes = false;
-    ret.quadDim = 0;
-
-    switch (typeId) {
-        case dudley::Dudley_Line2Face://untested
-            /* Falls through. */ 
-        case dudley::Dudley_Point1://untested
-            cerr << "WARNING: Dudley type " <<typeId<< " is untested!" << endl;
-            ret.elementSize = 1;
-            ret.elementType = ZONETYPE_POLYGON;
-            break;
-
-        case dudley::Dudley_Tri3Face: /* Falls through. */ //untested
-            cerr << "WARNING: Dudley type " <<typeId<< " is untested!" << endl;
-            /* Falls through. */ 
-        case dudley::Dudley_Line2:
-            ret.elementSize = ret.reducedElementSize = 2;
-            ret.elementType = ret.reducedElementType = ZONETYPE_BEAM;
-            break;
-
-        case dudley::Dudley_Tet4Face: /* Falls through. */ //untested
-            cerr << "WARNING: Dudley type " <<typeId<< " is untested!" << endl;
-            /* Falls through. */ 
-        case dudley::Dudley_Tri3:
-            ret.elementSize = ret.reducedElementSize = 3;
-            ret.elementType = ret.reducedElementType = ZONETYPE_TRIANGLE;
-            break;
-
-        case dudley::Dudley_Tet4:
-            ret.elementSize = ret.reducedElementSize = 4;
-            ret.elementType = ret.reducedElementType = ZONETYPE_TET;
-            break;
-
-        default:
-            cerr << "WARNING: Unknown Dudley Type " << typeId << endl;
-            break;
-    }
-    return ret;
-}
-#endif // USE_DUDLEY
-
 //
 //
 //

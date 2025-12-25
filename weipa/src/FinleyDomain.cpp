@@ -20,9 +20,6 @@
 #include <weipa/DataVar.h>
 
 #ifndef VISIT_PLUGIN
-#ifdef USE_DUDLEY
-#include <dudley/DudleyDomain.h>
-#endif
 #ifdef USE_FINLEY
 #include <finley/FinleyDomain.h>
 #endif
@@ -112,23 +109,6 @@ bool FinleyDomain::initFromEscript(const escript::AbstractDomain* escriptDomain)
         }
     }
 #endif
-#ifdef USE_DUDLEY
-    else if (dynamic_cast<const dudley::DudleyDomain*>(escriptDomain)) {
-        const dudley::DudleyDomain* dudleyMesh =
-            dynamic_cast<const dudley::DudleyDomain*>(escriptDomain);
-
-        nodes = FinleyNodes_ptr(new FinleyNodes("Elements"));
-        cells = FinleyElements_ptr(new FinleyElements("Elements", nodes));
-        faces = FinleyElements_ptr(new FinleyElements("FaceElements", nodes));
-        contacts = FinleyElements_ptr(new FinleyElements("ContactElements", nodes));
-
-        if (nodes->initFromDudley(dudleyMesh->getNodes()) &&
-                cells->initFromDudley(dudleyMesh->getElements()) &&
-                faces->initFromDudley(dudleyMesh->getFaceElements())) {
-            initialized = true;
-        }
-    }
-#endif
     return initialized;
 #else // VISIT_PLUGIN
     return false;
@@ -173,10 +153,6 @@ Centering FinleyDomain::getCenteringForFunctionSpace(int fsCode) const
     Centering ret = ZONE_CENTERED;
 #ifdef USE_FINLEY
     if (fsCode==FINLEY_REDUCED_NODES || fsCode==FINLEY_NODES)
-        ret = NODE_CENTERED;
-#endif
-#ifdef USE_DUDLEY
-    if (fsCode==DUDLEY_NODES)
         ret = NODE_CENTERED;
 #endif
     return ret;
@@ -251,32 +227,6 @@ ElementData_ptr FinleyDomain::getElementsForFunctionSpace(int fsCode) const
         }
     }
 #endif // USE_FINLEY
-
-#ifdef USE_DUDLEY
-    // if this was finley we're done.
-    if (result.get())
-        return result;
-
-    if (fsCode == DUDLEY_NODES) {
-        result = cells;
-    } else {
-        switch (fsCode) {
-            case DUDLEY_REDUCED_ELEMENTS:
-            case DUDLEY_ELEMENTS:
-                result = cells;
-                break;
-
-            case DUDLEY_REDUCED_FACE_ELEMENTS:
-            case DUDLEY_FACE_ELEMENTS:
-                result = faces;
-                break;
-        }
-        if (result.get() && result->getReducedElements()) {
-            result = result->getReducedElements();
-        }
-    }
-#endif // USE_DUDLEY
-
     return result;
 }
 
@@ -344,8 +294,6 @@ DataVar_ptr FinleyDomain::getDataVarByName(const string& name) const
         const int fsCode =
 #ifdef USE_FINLEY
             FINLEY_FACE_ELEMENTS;
-#else
-            DUDLEY_FACE_ELEMENTS;
 #endif
         var->initFromMeshData(shared_from_this(), data, fsCode, ZONE_CENTERED,
                 elements->getNodes(), elements->getIDs());
@@ -356,8 +304,6 @@ DataVar_ptr FinleyDomain::getDataVarByName(const string& name) const
         const int fsCode =
 #ifdef USE_FINLEY
             FINLEY_ELEMENTS;
-#else
-            DUDLEY_ELEMENTS;
 #endif
         var->initFromMeshData(shared_from_this(), data, fsCode,
                 ZONE_CENTERED, elements->getNodes(), elements->getIDs());
@@ -366,8 +312,6 @@ DataVar_ptr FinleyDomain::getDataVarByName(const string& name) const
         const int fsCode =
 #ifdef USE_FINLEY
             FINLEY_NODES;
-#else
-            DUDLEY_NODES;
 #endif
         var->initFromMeshData(shared_from_this(), data, fsCode,
                 NODE_CENTERED, getNodes(), getNodes()->getNodeIDs());

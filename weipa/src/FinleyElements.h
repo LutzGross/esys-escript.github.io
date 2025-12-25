@@ -21,10 +21,6 @@
 #include <weipa/ElementData.h>
 #include <weipa/FinleyNodes.h>
 
-#ifdef USE_DUDLEY
-#include <dudley/Dudley.h> // for DUDLEY_...
-#include <dudley/ElementType.h> // for dudley::ElementTypeId
-#endif
 #ifdef USE_FINLEY
 #include <finley/ReferenceElements.h> // for finley::ElementTypeId
 #endif
@@ -37,9 +33,6 @@ class DBfile;
 #include <ncDim.h>
 #endif
 
-namespace dudley {
-    class ElementFile;
-}
 
 namespace finley {
     class ElementFile;
@@ -83,9 +76,6 @@ public:
 
     /// \brief Destructor
     virtual ~FinleyElements() {}
-
-    /// \brief Initialises with data from a Dudley ElementFile instance.
-    bool initFromDudley(const dudley::ElementFile* dudleyFile);
 
     /// \brief Initialises with data from a Finley ElementFile instance.
     bool initFromFinley(const finley::ElementFile* finleyFile);
@@ -162,9 +152,7 @@ public:
 
 private:
     FinleyElements() {}
-#ifdef USE_DUDLEY
-    FinleyElementInfo getDudleyTypeInfo(dudley::ElementTypeId typeId);
-#endif
+
 #ifdef USE_FINLEY
     FinleyElementInfo getFinleyTypeInfo(finley::ElementTypeId typeId);
     finley::ElementTypeId finleyTypeId;

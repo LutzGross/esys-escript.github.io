@@ -60,8 +60,6 @@ using namespace boost::python;
  *
  * - \ref finley
  *
- * - \ref dudley
- *
  * - \ref ripley
  *
  * - \ref speckley

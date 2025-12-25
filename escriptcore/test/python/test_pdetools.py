@@ -36,7 +36,7 @@ The tests must be linked with a Domain class object in the setUp method:
        def tearDown(self):
            del self.domain
    suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_LinearPDEOnDudley))
+   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinley))
    unittest.TextTestRunner(verbosity=2).run(suite)
 
 :var __author__: name of author

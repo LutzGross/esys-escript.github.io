@@ -31,10 +31,6 @@ class DBfile;
 namespace finley {
     class NodeFile;
 }
-namespace dudley {
-    class NodeFile;
-}
-
 namespace weipa {
 
 class FinleyNodes;
@@ -59,9 +55,6 @@ public:
 
     /// \brief Virtual destructor
     virtual ~FinleyNodes();
-
-    /// \brief Initialises with dudley node file.
-    bool initFromDudley(const dudley::NodeFile* dudleyFile);
 
     /// \brief Initialises with finley node file.
     bool initFromFinley(const finley::NodeFile* finleyFile);

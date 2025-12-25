@@ -26,7 +26,7 @@ Applied-Upstream: yes
 +   env.Depends('dummy', ['build_pythonMPI', 'install_pythonMPI'])
 +   env.Depends('dummy', env['prefix']+"/lib/pythonMPI")   
 +
-+if 'install_dudley' in install_all_list and \
++if \
 +   'install_finley' in install_all_list and \
 +   'install_ripley' in install_all_list and \
 +   'install_speckley' in install_all_list:

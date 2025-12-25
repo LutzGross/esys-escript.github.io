@@ -70,7 +70,6 @@ def searchLibs(lib):
             searchLibs(l)
 
 esys_linux_libs = [
-    'libdudley.so',
     'libescript.so',
     'libescriptreader.so',
     'libfinley.so',
@@ -80,7 +79,6 @@ esys_linux_libs = [
     'libweipa.so'
 ]
 esys_win_libs = [
-    'dudley.dll',
     'escript.dll',
     'escriptreader.dll',
     'finley.dll',

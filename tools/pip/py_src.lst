@@ -1,6 +1,3 @@
-esys/dudley/factorywrappers.py
-esys/dudley/readers.py
-esys/dudley/__init__.py
 esys/escript/datamanager.py
 esys/escript/linearPDEs.py
 esys/escript/pdetools.py

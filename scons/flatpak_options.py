@@ -58,9 +58,6 @@ visit=0
 werror=0
 
 
-
-dudley_assemble_flags = '-funroll-loops'
-
 # boost-python library/libraries to link against
 
 

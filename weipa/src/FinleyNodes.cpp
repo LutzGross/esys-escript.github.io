@@ -18,9 +18,6 @@
 #include <weipa/FinleyNodes.h>
 
 #ifndef VISIT_PLUGIN
-#ifdef USE_DUDLEY
-#include <dudley/NodeFile.h>
-#endif
 #ifdef USE_FINLEY
 #include <finley/NodeFile.h>
 #endif
@@ -124,54 +121,6 @@ FinleyNodes::~FinleyNodes()
     for (it = coords.begin(); it != coords.end(); it++)
         delete[] *it;
 }
-
-//
-//
-//
-bool FinleyNodes::initFromDudley(const dudley::NodeFile* dudleyFile)
-{
-#if !defined VISIT_PLUGIN && defined USE_DUDLEY
-    numDims = dudleyFile->numDim;
-    numNodes = dudleyFile->getNumNodes();
-    nodeDist.assign(dudleyFile->nodesDistribution->first_component.begin(),
-                    dudleyFile->nodesDistribution->first_component.end());
-
-    CoordArray::iterator it;
-    for (it = coords.begin(); it != coords.end(); it++)
-        delete[] *it;
-    coords.clear();
-    nodeID.clear();
-    nodeTag.clear();
-    nodeGDOF.clear();
-    nodeGNI.clear();
-    nodeGRDFI.clear();
-    nodeGRNI.clear();
-
-    if (numNodes > 0) {
-        for (int i=0; i<numDims; i++) {
-            double* srcPtr = dudleyFile->Coordinates + i;
-            float* c = new float[numNodes];
-            coords.push_back(c);
-            for (int j=0; j<numNodes; j++, srcPtr+=numDims) {
-                *c++ = (float) *srcPtr;
-            }
-        }
-
-        nodeID.assign(dudleyFile->Id, dudleyFile->Id+numNodes);
-        nodeTag.assign(dudleyFile->Tag, dudleyFile->Tag+numNodes);
-        nodeGDOF.assign(dudleyFile->globalDegreesOfFreedom,
-                        dudleyFile->globalDegreesOfFreedom+numNodes);
-        nodeGRDFI.assign(numNodes, 0);
-        nodeGNI.assign(dudleyFile->globalNodesIndex,
-                       dudleyFile->globalNodesIndex+numNodes);
-        nodeGRNI.assign(numNodes, 0);
-    }
-    return true;
-#else // VISIT_PLUGIN,USE_DUDLEY
-    return false;
-#endif
-}
-
 //
 //
 //

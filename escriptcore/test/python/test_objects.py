@@ -39,7 +39,7 @@ method to run:
           self.filename_base="."
 
    suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_DumpOnDudley))
+   suite.addTest(unittest.makeSuite(Test_DumpOnFinley))
    unittest.TextTestRunner(verbosity=2).run(suite)
 
 :var __author__: name of author

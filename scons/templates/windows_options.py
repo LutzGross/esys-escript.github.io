@@ -225,7 +225,7 @@ escript_opts_version = 202
 #build_shared = True
 
 # List of domain families to build [new in 202]
-# DEFAULT: 'all' (i.e. dudley, finley, ripley, speckley)
+# DEFAULT: 'all' (i.e. finley, ripley, speckley)
 #domains = 'finley,ripley'
 
 

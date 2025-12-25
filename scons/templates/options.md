@@ -169,7 +169,7 @@ Each option is followed by a brief explanation.
   HDF5 library/libraries to link against
 
 - `parmetis = True`:
-  Whether to use the parMETIS library (only relevant if building dudley and/or
+  Whether to use the parMETIS library (only relevant if building
   finley with MPI). DEFAULT: False
 
 - `parmetis_prefix = '/usr/local'`:
