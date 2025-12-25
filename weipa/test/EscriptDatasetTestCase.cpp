@@ -23,9 +23,6 @@
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
 
-#if USE_DUDLEY
-#include <dudley/DomainFactory.h>
-#endif
 #if USE_FINLEY
 #include <finley/DomainFactory.h>
 #endif
@@ -48,10 +45,6 @@ TestSuite* EscriptDatasetTestCase::suite()
     TestSuite *testSuite = new TestSuite("EscriptDatasetTestCase");
     testSuite->addTest(new TestCaller<EscriptDatasetTestCase>(
                 "testBase",&EscriptDatasetTestCase::testBase));
-#if USE_DUDLEY
-    testSuite->addTest(new TestCaller<EscriptDatasetTestCase>(
-                "testDudley",&EscriptDatasetTestCase::testDudley));
-#endif
 #if USE_FINLEY
     testSuite->addTest(new TestCaller<EscriptDatasetTestCase>(
                 "testFinley",&EscriptDatasetTestCase::testFinley));
@@ -90,16 +83,6 @@ void EscriptDatasetTestCase::testBase()
     cout << "\tTest getMeshVariables without data." << endl;
     CPPUNIT_ASSERT(dataset->getMeshVariables().size() == 0);
 }
-
-#if USE_DUDLEY
-void EscriptDatasetTestCase::testDudley()
-{
-    JMPI info=makeInfo(MPI_COMM_WORLD);
-    Domain_ptr dom(dudley::brick(info));
-    cout << "Running Dudley tests..." << endl;
-    runDomainTests(dom);
-}
-#endif
 
 #if USE_FINLEY
 void EscriptDatasetTestCase::testFinley()
@@ -151,10 +134,10 @@ void EscriptDatasetTestCase::runDomainTests(Domain_ptr dom)
     CPPUNIT_ASSERT(chunks.size() > 0);
 
     StringVec varfiles, varnames;
-    varfiles.push_back("testvar%04d.nc");
+    varfiles.push_back("testvar%04d.h5");
     varnames.push_back("testvar");
     cout << "\tTest bogus loadNetCDF call 1." << endl;
-    CPPUNIT_ASSERT(dataset->loadNetCDF("mesh%04d.nc", varfiles, varnames, 1) == false);
+    CPPUNIT_ASSERT(dataset->loadNetCDF("mesh%04d.h5", varfiles, varnames, 1) == false);
 
     cout << "\tTest bogus loadNetCDF call 2." << endl;
     CPPUNIT_ASSERT(dataset->loadNetCDF(chunks, varfiles, varnames) == false);

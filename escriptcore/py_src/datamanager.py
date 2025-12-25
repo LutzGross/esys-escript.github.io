@@ -290,7 +290,7 @@ class DataManager(object):
         return os.path.join(self._workdir, dir_name, "stamp.%d"%self._myrank)
 
     def __getDumpFilename(self, data_name, dir_name):
-        return os.path.join(self._workdir, dir_name, "%s.nc"%data_name)
+        return os.path.join(self._workdir, dir_name, "%s.h5"%data_name)
 
     def __initVisit(self, simFile, comment=""):
         """

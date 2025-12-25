@@ -1330,7 +1330,6 @@ class Test_Finley_SaveSilo(SiloSaver):
                                                data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
 
 @unittest.skipIf(getMPISizeWorld()>1, "MPI size > 1")
-@unittest.skipIf(not HAVE_DUDLEY, "dudley module not available")
 @unittest.skipIf(not HAVE_SILO, "Silo module not available")
 class Test_Dudley_SaveSilo(SiloSaver):
 

@@ -20,8 +20,3 @@ from templates.ubuntu_options import *
 escript_opts_version = 203
 
 mpi = "none"
-
-# LAPACK configuration - uses LAPACKE (modern C interface)
-lapack = 'auto'  # Auto-detect LAPACKE
-lapack_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
-lapack_libs = ['lapacke']

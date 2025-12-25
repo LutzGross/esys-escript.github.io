@@ -10,7 +10,7 @@ RUN apt-get install -y python3-dev python3-numpy \
      python3-sympy python3-matplotlib python3-scipy \
      libboost-python-dev libboost-random-dev libboost-numpy-dev \
      libnetcdf-dev libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev \
-     libsuitesparse-dev lsb-release gmsh \
+     libsuitesparse-dev lsb-release \
      libmetis-dev liblapack-dev \
      cmake gcc git gfortran make scons wget 
 # Trilinos

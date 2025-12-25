@@ -28,9 +28,6 @@ class EscriptDatasetTestCase : public CppUnit::TestFixture
 {
 public:
     void testBase();
-#if USE_DUDLEY
-    void testDudley();
-#endif
 #if USE_FINLEY
     void testFinley();
 #endif

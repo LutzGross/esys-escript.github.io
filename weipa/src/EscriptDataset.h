@@ -91,7 +91,7 @@ public:
     /// \brief Loads domain and variables from escript NetCDF files.
     ///
     /// \param domainFilePattern a printf-style pattern for the domain file
-    ///                          names (e.g. "dom.%02d.nc")
+    ///                          names (e.g. "dom.%02d.h5")
     /// \param varFiles a vector of file name patterns for variables
     /// \param varNames a vector of variable names
     /// \param nChunks number of chunks to load

@@ -12,7 +12,7 @@ L0 = 200.;
 L1 = 100.;
 X0_c = 80;
 X1_c = 60;
-R_c = 20.;
+R_c = 20.;ignosre
 
 // Mesh sizes:
 SizeInter = 2.;

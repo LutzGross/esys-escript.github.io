@@ -59,3 +59,9 @@ hdf5_prefix=[ '/usr/include/hdf5/serial' , '/usr/lib/x86_64-linux-gnu/hdf5/seria
 lapack = 'auto'  # Auto-detect LAPACKE
 lapack_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
 lapack_libs = ['lapacke']
+
+# MUMPS configuration - sequential version (no MPI)
+# Install with: sudo apt-get install libmumps-seq-dev
+mumps = True
+mumps_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
+mumps_libs = ['dmumps_seq', 'zmumps_seq', 'mumps_common_seq', 'mpiseq_seq', 'pord_seq']

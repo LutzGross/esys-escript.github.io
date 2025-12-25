@@ -57,7 +57,6 @@ from .escriptcpp import getVersion, getMPIRankWorld, getMPIWorldMax, hasFeature
 #from .escriptcpp import printParallelThreadCounts
 from .escriptcpp import listEscriptParams
 from .start import HAVE_SYMBOLS
-#from .gmshrunner import gmshGeo2Msh
 
 if HAVE_SYMBOLS:
     from . import symboliccore as sym
