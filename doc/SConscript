@@ -67,36 +67,6 @@ sortOutExample('usersguide/inclusion.py')
 sortOutExample('usersguide/MT.py', allowsMPI=False)
 
 
-example_deps.append('cookbook/cblib.py')
-sortOutExample('cookbook/example01a.py')
-sortOutExample('cookbook/example01b.py', needsMPL=True)
-sortOutExample('cookbook/example01c.py', needsMPL=True, allowsMPI=False)
-sortOutExample('cookbook/example02.py', needsMPL=True, allowsMPI=False)
-sortOutExample('cookbook/example03a.py', allowsMPI=False)
-sortOutExample('cookbook/example03b.py')
-sortOutExample('cookbook/example04a.py')
-sortOutExample('cookbook/example04b.py')
-sortOutExample('cookbook/example05a.py')
-sortOutExample('cookbook/example05b.py')
-sortOutExample('cookbook/example05c.py', needsMagicMPL=True)
-sortOutExample('cookbook/example06.py', needsMagicMPL=True)
-sortOutExample('cookbook/example07a.py', needsMagicMPL=True, allowsMPI=False)
-sortOutExample('cookbook/example07b.py', needsMagicMPL=True, allowsMPI=False)
-sortOutExample('cookbook/example08a.py', needsMagicMPL=True, allowsMPI=False)
-sortOutExample('cookbook/example08b.py', needsMagicMPL=True, allowsMPI=False)
-sortOutExample('cookbook/example08c.py', needsMagicMPL=True, allowsMPI=False)
-sortOutExample('cookbook/example09m.py', needsMagicMPL=True, allowsMPI=False)
-sortOutExample('cookbook/example09a.py', needsMagicMPL=True, allowsMPI=False)
-#sortOutExample('cookbook/example09b.py', needsMagicMPL=True, needsGMSH=True, allowsMPI=False)
-sortOutExample('cookbook/example10a.py', needsMagicMPL=True, allowsMPI=False)
-sortOutExample('cookbook/example10b.py', needsMagicMPL=True, allowsMPI=False)
-sortOutExample('cookbook/example10m.py', needsMagicMPL=True, allowsMPI=False)
-#sortOutExample('cookbook/example10c_0.py', needsMagicMPL=True, allowsMPI=False)
-#sortOutExample('cookbook/example10c_1.py', needsMagicMPL=True, allowsMPI=False)
-sortOutExample('cookbook/example11a.py', needsMagicMPL=True, allowsMPI=False)
-sortOutExample('cookbook/example11b.py', needsMagicMPL=True, allowsMPI=False)
-
-
 
 example_files = example_files_allow_mpi + example_files_no_mpi + example_deps
 
