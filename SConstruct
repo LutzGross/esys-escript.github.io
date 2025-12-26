@@ -182,7 +182,7 @@ vars.AddVariables(
   BoolVariable('insane', 'Instructs scons to not run a sanity check after compilation.', False),
   EnumVariable('version_information', 'Instructs scons to create symlinks to the library files','0.0',allowed_values=version_info),
   BoolVariable('mpi4py', 'Compile with mpi4py.', False),
-  BoolVariable('use_p4est', 'Compile with p4est.', True),
+  BoolVariable('p4est', 'Compile with p4est.', True),
   ('trilinos_LO', 'Manually specify the LO used by Trilinos.', ''),
   ('trilinos_GO', 'Manually specify the GO used by Trilinos.', '')
 )
@@ -846,7 +846,7 @@ build_all_list = ['build_escript']
 install_all_list = ['target_init', 'install_escript']
 
 #p4est
-if env['use_p4est'] and "oxley" in env['domains']  :
+if env['p4est'] and "oxley" in env['domains']  :
     build_all_list += ['build_p4est']
     install_all_list += ['install_p4est']
     env['p4est']=True
@@ -894,7 +894,7 @@ env.SConscript('paso/SConscript', variant_dir=variant+'paso', duplicate=0)
 env.SConscript('trilinoswrap/SConscript', variant_dir=variant+'trilinoswrap', duplicate=0)
 env.SConscript('cusplibrary/SConscript')
 env.SConscript('finley/SConscript', variant_dir=variant+'finley', duplicate=0)
-if env['use_p4est']:
+if env['p4est']:
     env.SConscript('p4est/SConscript', variant_dir=variant+'p4est', duplicate=0)
 env.SConscript('oxley/SConscript', variant_dir=variant+'oxley', duplicate=0)
 env.SConscript('ripley/SConscript', variant_dir=variant+'ripley', duplicate=0)
