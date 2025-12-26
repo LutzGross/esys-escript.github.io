@@ -26,7 +26,10 @@ __author__="Cihan Altinay, Lutz Gross"
 __all__ = ['Evaluator']
 
 import esys.escriptcore.util as escript
+import esys
 from .printer import EsysEscriptPrinter
+from .utils import combineData
+import math
 
 """
 Symbolic expression evaluator for escript
@@ -94,15 +97,17 @@ class Evaluator(object):
             sym=tuple(set(expression.atoms(sympy.Symbol)))
             self.symbols.append(sym)
         print(expression, sym)
+        # Create modules dictionary for lambdify (required for SymPy 1.2+)
+        modules = [{'combineData': combineData, 'esys': esys}, translator, math, "numpy"]
         if isinstance(expression, escript.Symbol):
             subs=expression.getDataSubstitutions()
             subs_dict={}
             for s in subs.keys():
                 subs_dict[s.name] = subs[s]
             self.subs(**subs_dict)
-            self.lambdas.append(sympy.lambdify(sym, expression.lambdarepr(), printer=EsysEscriptPrinter, dummify=False)) # modules=[translator, "numpy"],
+            self.lambdas.append(sympy.lambdify(sym, expression.lambdarepr(), modules=modules, printer=EsysEscriptPrinter, dummify=False))
         else:
-            self.lambdas.append(sympy.lambdify(sym, expression, printer=EsysEscriptPrinter, dummify=False))
+            self.lambdas.append(sympy.lambdify(sym, expression, modules=modules, printer=EsysEscriptPrinter, dummify=False))
         return self
 
     def subs(self, **args):

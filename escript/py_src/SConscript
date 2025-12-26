@@ -34,7 +34,7 @@ else:
 # install
 py_inst = env.Install(Dir('escript', env['pyinstall']), pyc)
 if env['use_sympy'] is True:
-    sym_py_inst = local_env.Install(os.path.join(local_env['pyinstall'],'escriptcore','symbolic'), sym_pyc)
+    sym_py_inst = local_env.Install(os.path.join(local_env['pyinstall'],'escript','symbolic'), sym_pyc)
     env.Alias('install_escript', [ py_inst, sym_py_inst])
 else:
     env.Alias('install_escript', [ py_inst ])

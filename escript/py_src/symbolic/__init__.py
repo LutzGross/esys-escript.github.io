@@ -27,4 +27,4 @@ __url__="https://launchpad.net/escript-finley"
 from .evaluator import *
 from .utils import *
 from .printer import *
-from esys.escriptcore.symbolic import *
+from esys.escriptcore.symboliccore import *

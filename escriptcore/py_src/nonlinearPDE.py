@@ -42,7 +42,7 @@ from .start import HAVE_SYMBOLS
 
 if HAVE_SYMBOLS:
     import sympy
-    import esys.escriptcore.symbolic as symb
+    import esys.escriptcore.symboliccore as symb
 
 __author__="Cihan Altinay, Lutz Gross"
 

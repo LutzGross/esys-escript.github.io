@@ -76,7 +76,7 @@ from esys.escriptcore.util import *
 from esys.escriptcore.nonlinearPDE import NonlinearPDE
 from esys.escriptcore.datamanager import DataManager
 if HAVE_SYMBOLS:
-    from esys.escriptcore.symbolic import *
+    from esys.escriptcore.symboliccore import *
 from esys.escriptcore.splitworld import *
 from . import minimizer
 import logging
