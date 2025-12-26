@@ -135,6 +135,8 @@ if env['hdf5']:
     escriptlibs += env['hdf5_libs']
 if env['trilinos']:
     escriptlibs += env['trilinos_libs']
+if env['netcdf']:
+    escriptlibs += env['netcdf_libs']
 local_env.PrependUnique(LIBS = escriptlibs)
 
 
