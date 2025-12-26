@@ -55,4 +55,4 @@ weipa = True
 mpi = 'none'
 
 # No sympy or other optional features
-use_sympy = False
+sympy = False

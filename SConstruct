@@ -106,7 +106,7 @@ vars.AddVariables(
   ('mpi_prefix', 'Prefix/Paths of MPI installation', default_prefix),
   ('mpi_libs', 'MPI shared libraries to link with', ['mpi']),
 
-  BoolVariable('use_sympy', 'Enable sympy, if available. Currently the sympy-escript connection is not working due to a problem with code printing. By default symbols are not installed.', False),
+  BoolVariable('sympy', 'Enable sympy symbolic module support', False),
   BoolVariable('hdf5', 'Enable hdf5, if available', True),
   ('hdf5_prefix', 'Prefix/Paths of hdf5 installation', default_prefix),
   ('hdf5_libs', 'HDF5 libraries to link with', 'DEFAULT'),

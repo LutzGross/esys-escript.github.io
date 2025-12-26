@@ -20,12 +20,12 @@ local_env = env.Clone()
 
 # get the source file names
 sources = Glob('*.py')
-if env['use_sympy'] is True:
+if env['sympy'] is True:
 	sym_sources = Glob(os.path.join('symboliccore','*.py'))
 
 # compile
 pyc = local_env.PyCompile(sources)
-if env['use_sympy'] is True:
+if env['sympy'] is True:
 	sym_pyc = local_env.PyCompile(sym_sources)
 	env.Alias('build_escript', [pyc, sym_pyc])
 else:
@@ -33,7 +33,7 @@ else:
 
 # install
 py_inst = local_env.Install(Dir('escriptcore', local_env['pyinstall']), pyc)
-if env['use_sympy'] is True:
+if env['sympy'] is True:
 	sym_py_inst = local_env.Install(os.path.join(local_env['pyinstall'],'escriptcore','symboliccore'), sym_pyc)
 	env.Alias('install_escript', [ py_inst, sym_py_inst])
 else:

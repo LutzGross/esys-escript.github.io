@@ -210,8 +210,8 @@ Each option is followed by a brief explanation.
 - `use_p4est = False`:
   Whether to build escript with the p4est library. This library is required by oxley.
 
-- `use_sympy = False`:
-  Whether to build escript with sympy, if it is available
+- `sympy = False`:
+  Whether to build escript with sympy symbolic module support, if it is available
   DEFAULT: False
 
 - `lapack = auto`:

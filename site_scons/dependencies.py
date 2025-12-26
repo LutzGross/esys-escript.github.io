@@ -82,7 +82,7 @@ def checkCompiler(env):
     return conf.Finish()
 
 def get_external_python_sympy(env,bin):
-    if env['use_sympy'] is True:
+    if env['sympy'] is True:
         import subprocess
         cmd=''
         cmd+='import sympy\n'
@@ -458,7 +458,7 @@ def checkOptionalModules(env):
         env['warnings'].append("Cannot import scipy.")
 
     ######## sympy
-    if env['use_sympy'] is True:
+    if env['sympy'] is True:
         if detectModule(env, 'sympy'):
             env['sympy'] = True
             env['warnings'].append("Found sympy.")
