@@ -37,7 +37,7 @@ For complete documentation including user guide and API reference, see the [main
 ### Optional Dependencies
 - MPI implementation (OpenMPI or MPICH) with python3-mpi4py for distributed parallelization
 - ParMETIS (for MPI builds)
-- SymPy (python3-sympy) for symbolic mathematics module - **runtime dependency only** (requires version 1.2 or later)
+- SymPy (python3-sympy) for symbolic mathematics module - **must be present at build time** (requires version 1.2 or later)
 - python3-sphinx and python3-markdown (for building API documentation)
 - LaTeX (texlive-latex-base, texlive-latex-extra) for building user guide PDF
 - CppUnit (for running tests)
@@ -504,9 +504,9 @@ mpi = 'none'
 
 ### SymPy Symbolic Module
 
-**Note:** SymPy is a **runtime-only dependency** - it is not needed for building esys-escript. The build system checks for SymPy availability to decide whether to install the symbolic modules. If SymPy is not found at build time, the symbolic modules simply won't be installed, but the build will complete successfully.
+**Note:** SymPy is a **runtime-only dependency** - it is not needed for compiling C++ code. However, **SymPy must be installed at build time** when `sympy = True` to enable the symbolic module. The build system checks for SymPy availability and sets a feature flag. If SymPy is not found at build time, the symbolic support will be disabled even if SymPy is installed later.
 
-To enable symbolic mathematics support (requires SymPy 1.2 or later at runtime):
+To enable symbolic mathematics support (requires SymPy 1.2 or later):
 
 ```python
 sympy = True
@@ -520,7 +520,7 @@ sympy = False  # Default
 
 The symbolic module provides support for symbolic expressions, automatic differentiation, and symbolic PDE formulation. See the user guide for details on using the symbolic toolbox.
 
-You can install SymPy after building esys-escript, but you'll need to rebuild with `sympy = True` to install the symbolic modules.
+**Important:** If you build without SymPy and later install it, you must rebuild with `sympy = True` to enable symbolic support.
 
 ### Trilinos Support
 
