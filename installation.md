@@ -29,6 +29,7 @@ For complete documentation including user guide and API reference, see the [main
 - HDF5-serial (for HDF5 file I/O) (libhdf5-serial-dev on Debian/Ubuntu)
 - SILO (recommended for VisIt visualization) (libsilo-dev on Debian/Ubuntu)
 - netCDF4 (for reading gridded data) (libnetcdf-c++4-dev on Debian/Ubuntu)
+- 
 - boost-numpy (recommended for Jupyter) (libboost-numpy-dev on Debian/Ubuntu)
 - UMFPACK - Direct sparse matrix solver (libsuitesparse-dev on Debian/Ubuntu)
 - MUMPS - MUltifrontal Massively Parallel sparse direct Solver, sequential version (libmumps-seq-dev on Debian/Ubuntu) 
@@ -36,6 +37,7 @@ For complete documentation including user guide and API reference, see the [main
 ### Optional Dependencies
 - MPI implementation (OpenMPI or MPICH) with python3-mpi4py for distributed parallelization
 - ParMETIS (for MPI builds)
+- SymPy (python3-sympy) for symbolic mathematics module (requires version 1.2 or later)
 - python3-sphinx and python3-markdown (for building API documentation)
 - LaTeX (texlive-latex-base, texlive-latex-extra) for building user guide PDF
 - CppUnit (for running tests)
@@ -163,6 +165,12 @@ sudo apt-get install python3-sphinx python3-markdown
 sudo apt-get install texlive-latex-base texlive-latex-extra texlive-fonts-recommended
 ```
 
+For symbolic mathematics support, additionally install:
+
+```bash
+sudo apt-get install python3-sympy
+```
+
 Build esys-escript:
 
 ```bash
@@ -191,6 +199,12 @@ For building documentation, additionally install:
 ```bash
 sudo apt-get install python3-sphinx python3-markdown
 sudo apt-get install texlive-latex-base texlive-latex-extra texlive-fonts-recommended
+```
+
+For symbolic mathematics support, additionally install:
+
+```bash
+sudo apt-get install python3-sympy
 ```
 
 Build esys-escript:
@@ -226,6 +240,12 @@ sudo pacman -Sy python-sphinx python-markdown
 sudo pacman -Sy texlive-core texlive-latexextra
 ```
 
+For symbolic mathematics support:
+
+```bash
+sudo pacman -Sy python-sympy
+```
+
 Build esys-escript:
 
 ```bash
@@ -256,6 +276,12 @@ sudo dnf install python3-sphinx python3-markdown
 sudo dnf install texlive-scheme-basic texlive-latex texlive-latex-extra
 ```
 
+For symbolic mathematics support:
+
+```bash
+sudo dnf install python3-sympy
+```
+
 Build esys-escript:
 
 ```bash
@@ -284,6 +310,12 @@ For building documentation:
 ```bash
 sudo zypper in python3-Sphinx python3-Markdown
 sudo zypper in texlive-latex texlive-latex-extra
+```
+
+For symbolic mathematics support:
+
+```bash
+sudo zypper in python3-sympy
 ```
 
 Build esys-escript:
@@ -321,6 +353,12 @@ For building documentation:
 ```bash
 sudo dnf install python3-sphinx python3-markdown
 sudo dnf install texlive-scheme-basic texlive-latex
+```
+
+For symbolic mathematics support:
+
+```bash
+sudo dnf install python3-sympy
 ```
 
 Build esys-escript:
@@ -362,6 +400,12 @@ pip3 install sphinx markdown
 brew install --cask mactex  # For LaTeX/PDF documentation
 ```
 
+For symbolic mathematics support:
+
+```bash
+pip3 install sympy
+```
+
 Build esys-escript:
 
 ```bash
@@ -395,6 +439,12 @@ sudo port install py311-sphinx py311-markdown
 sudo port install texlive  # For LaTeX/PDF documentation
 ```
 
+For symbolic mathematics support:
+
+```bash
+sudo port install py311-sympy
+```
+
 Build esys-escript:
 
 ```bash
@@ -417,6 +467,12 @@ sudo pkg install py39-sphinx py39-markdown
 sudo pkg install texlive-full  # For LaTeX/PDF documentation
 ```
 
+For symbolic mathematics support:
+
+```bash
+sudo pkg install py39-sympy
+```
+
 ## Advanced Configuration
 
 ### Customizing Build Options
@@ -425,6 +481,7 @@ Edit your options file (`scons/<hostname>_options.py`) to customize:
 
 - **OpenMP**: Enable/disable with `openmp = True` or `openmp = False`
 - **MPI**: Set `mpi = 'OPENMPI'` or `mpi = 'none'`
+- **SymPy**: Enable/disable symbolic module with `sympy = True` or `sympy = False`
 - **Compiler**: Change `cxx`, `cc` variables
 - **Optimization**: Modify `cxx_extra` flags
 - **Libraries**: Adjust library paths and names
@@ -444,6 +501,22 @@ To disable MPI:
 ```python
 mpi = 'none'
 ```
+
+### SymPy Symbolic Module
+
+To enable symbolic mathematics support (requires SymPy 1.2 or later):
+
+```python
+sympy = True
+```
+
+To disable symbolic support:
+
+```python
+sympy = False  # Default
+```
+
+The symbolic module provides support for symbolic expressions, automatic differentiation, and symbolic PDE formulation. See the user guide for details on using the symbolic toolbox.
 
 ### Trilinos Support
 
