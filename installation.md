@@ -37,7 +37,7 @@ For complete documentation including user guide and API reference, see the [main
 ### Optional Dependencies
 - MPI implementation (OpenMPI or MPICH) with python3-mpi4py for distributed parallelization
 - ParMETIS (for MPI builds)
-- SymPy (python3-sympy) for symbolic mathematics module (requires version 1.2 or later)
+- SymPy (python3-sympy) for symbolic mathematics module - **runtime dependency only** (requires version 1.2 or later)
 - python3-sphinx and python3-markdown (for building API documentation)
 - LaTeX (texlive-latex-base, texlive-latex-extra) for building user guide PDF
 - CppUnit (for running tests)
@@ -504,7 +504,9 @@ mpi = 'none'
 
 ### SymPy Symbolic Module
 
-To enable symbolic mathematics support (requires SymPy 1.2 or later):
+**Note:** SymPy is a **runtime-only dependency** - it is not needed for building esys-escript. The build system checks for SymPy availability to decide whether to install the symbolic modules. If SymPy is not found at build time, the symbolic modules simply won't be installed, but the build will complete successfully.
+
+To enable symbolic mathematics support (requires SymPy 1.2 or later at runtime):
 
 ```python
 sympy = True
@@ -517,6 +519,8 @@ sympy = False  # Default
 ```
 
 The symbolic module provides support for symbolic expressions, automatic differentiation, and symbolic PDE formulation. See the user guide for details on using the symbolic toolbox.
+
+You can install SymPy after building esys-escript, but you'll need to rebuild with `sympy = True` to install the symbolic modules.
 
 ### Trilinos Support
 
