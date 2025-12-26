@@ -176,7 +176,7 @@ class NonlinearPDE(object):
         :type u: `Symbol`
         :param debug: level of debug information to be printed
         """
-        if HAVE_SYMBOLS:
+        if not HAVE_SYMBOLS:
             raise RuntimeError("Trying to instantiate a NonlinearPDE but sympy not available")
 
         self.__COEFFICIENTS = [ "X", "X_reduced", "Y", "Y_reduced", "y", "y_reduced", "y_contact", "y_contact_reduced", "y_dirac"]
