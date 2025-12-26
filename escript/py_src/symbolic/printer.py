@@ -10,19 +10,29 @@ from sympy.printing.codeprinter import CodePrinter
 _not_in_eescript = 'erf erfc factorial gamma loggamma'.split()
 _in_eescript = [(k, v) for k, v in _known_functions_math.items() if k not in _not_in_eescript]
 _known_functions_eescript = dict(_in_eescript, **{
-    'acos': 'arccos',
-    'acosh': 'arccosh',
-    'asin': 'arcsin',
-    'asinh': 'arcsinh',
-    'atan': 'arctan',
-    'atan2': 'arctan2',
-    'atanh': 'arctanh',
+    'acos': 'acos',
+    'acosh': 'acosh',
+    'asin': 'asin',
+    'asinh': 'asinh',
+    'atan': 'atan',
+    'atan2': 'atan2',
+    'atanh': 'atanh',
     'exp2': 'exp2',
     'sign': 'sign',
     'logaddexp': 'logaddexp',
     'logaddexp2': 'logaddexp2',
-    'grad_n' : 'grad_n'
-     #'whereZero' : 'whereZero'
+    'grad_n': 'grad_n',
+    'wherePositive': 'wherePositive',
+    'whereNonPositive': 'whereNonPositive',
+    'whereNegative': 'whereNegative',
+    'whereNonNegative': 'whereNonNegative',
+    'whereZero': 'whereZero',
+    'whereNonZero': 'whereNonZero',
+    'clip': 'clip',
+    'maximum': 'maximum',
+    'minimum': 'minimum',
+    'maxval': 'maxval',
+    'minval': 'minval'
 })
 _known_constants_eescript = {
     'Exp1': 'e',
@@ -56,9 +66,29 @@ class EsysEscriptPrinter(ArrayPrinter, PythonCodePrinter):
         self.printmethod = "_{}code".format(self._module)
 
         self._kf = {**PythonCodePrinter._kf, **self._kf}
-        print("EsysEscriptPrinter", self._kf)
         super().__init__(settings=settings)
 
+    def _print(self, expr, **kwargs):
+        """Override _print to handle escript Symbol objects"""
+        # Check if this is an escript Symbol (not a sympy Symbol)
+        if hasattr(expr, 'lambdarepr') and hasattr(expr, 'getShape'):
+            # This is an escript Symbol, use its lambdarepr method
+            return expr.lambdarepr()
+        return super()._print(expr, **kwargs)
+
+    def _print_Symbol(self, expr):
+        """Convert symbol names from [x]_0 format to x[0] format"""
+        import re
+        name = expr.name
+        # Check if the symbol name matches the pattern [name]_i_j_...
+        match = re.match(r'\[(\w+)\](_\d+)+$', name)
+        if match:
+            base_name = match.group(1)
+            # Extract all the index numbers
+            indices = re.findall(r'_(\d+)', name)
+            # Convert to Python array notation: x[0,1] or x[0]
+            return f"{base_name}[{','.join(indices)}]"
+        return super()._print_Symbol(expr)
 
     def _print_seq(self, seq):
         "General sequence printer: converts to tuple"
@@ -264,11 +294,9 @@ class EsysEscriptPrinter(ArrayPrinter, PythonCodePrinter):
         return CodePrinter._print_not_supported(self, expr)
 
     def _print_grad_n(self, expr):
-        print("ARGS:", expr.args)
         return "%s(%s)" % (self._module_format(self._module + '.grad_n'), self._print(expr.args[0]))
 
     def _print_whereZero(self, expr):
-        print("ARGS:", expr.args)
         return "%s(%s)" % (self._module_format(self._module + '.whereZero'), self._print(expr.args[0]))
 
     _add = "add"

@@ -96,7 +96,6 @@ class Evaluator(object):
         else:
             sym=tuple(set(expression.atoms(sympy.Symbol)))
             self.symbols.append(sym)
-        print(expression, sym)
         # Create modules dictionary for lambdify (required for SymPy 1.2+)
         modules = [{'combineData': combineData, 'esys': esys}, translator, math, "numpy"]
         if isinstance(expression, escript.Symbol):

@@ -318,7 +318,8 @@ class Symbol(object):
     def lambdarepr(self):
         """
         """
-        from sympy.printing.lambdarepr import lambdarepr
+        from esys.escript.symbolic.printer import EsysEscriptPrinter
+        printer = EsysEscriptPrinter()
         temp_arr=numpy.empty(self.getShape(), dtype=object)
         for idx,el in numpy.ndenumerate(self._arr):
             atoms=el.atoms(sympy.Symbol) if isinstance(el,sympy.Basic) else []
@@ -332,7 +333,7 @@ class Symbol(object):
                 else:
                     symstr=n
                 symdict[a.name]=symstr
-            s=lambdarepr(el)
+            s=printer.doprint(el)
             for key in symdict:
                 s=s.replace(key, symdict[key])
             temp_arr[idx]=s
@@ -501,7 +502,7 @@ class Symbol(object):
         s=self.getShape()
         if not s[0] == s[1]:
             raise ValueError("inverse: Only square shapes supported")
-        out=numpy.zeros(s, numpy.object)
+        out=numpy.zeros(s, object)
         arr=self._arr
         if s[0]==1:
             if arr[0,0].is_zero:
@@ -599,7 +600,7 @@ class Symbol(object):
         for i in sh1[:axis_offset]: d01*=i
         arg0_c.resize((d01,d0))
         arg1_c.resize((d01,d1))
-        out=numpy.zeros((d0,d1),numpy.object)
+        out=numpy.zeros((d0,d1),object)
         for i0 in range(d0):
             for i1 in range(d1):
                 out[i0,i1]=numpy.sum(arg0_c[:,i0]*arg1_c[:,i1])
@@ -629,7 +630,7 @@ class Symbol(object):
         for i in sh1[r1-axis_offset:]: d01*=i
         arg0_c.resize((d0,d01))
         arg1_c.resize((d1,d01))
-        out=numpy.zeros((d0,d1),numpy.object)
+        out=numpy.zeros((d0,d1),object)
         for i0 in range(d0):
             for i1 in range(d1):
                 out[i0,i1]=numpy.sum(arg0_c[i0,:]*arg1_c[i1,:])
