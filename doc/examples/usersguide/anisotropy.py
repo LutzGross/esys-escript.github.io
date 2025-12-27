@@ -1,6 +1,16 @@
+import matplotlib
+matplotlib.use('agg')
+
 from esys.escript import *
 import esys.escript.symbolic as esym
 from esys.finley import Rectangle
+import numpy
+import os
+try:
+    import scipy.interpolate
+    HAVE_SCIPY=True
+except:
+    HAVE_SCIPY=False
 #set up domain and symbols
 mydomain = Rectangle(l0=1.,l1=1.,n0=10, n1=10)
 u = Symbol('u',(2,), dim=2)
@@ -43,5 +53,40 @@ yconstraint = FunctionOnBoundary(mydomain).getX()[1]
 p = NonlinearPDE(mydomain, u, debug=NonlinearPDE.DEBUG0)
 p.setValue(X=sigma0,q=gammaD,y=[-50,0]*whereZero(yconstraint-1),r=[1,1])
 v = p.getSolution(u=[0,0])
+
+# Create vector plot of displacement field v
+if HAVE_SCIPY:
+    import matplotlib.pyplot as plt
+
+    # Get coordinates and velocity components
+    x_data = mydomain.getX()[0].toListOfTuples()
+    y_data = mydomain.getX()[1].toListOfTuples()
+    v0_data = interpolate(v[0], mydomain.getX().getFunctionSpace()).toListOfTuples()
+    v1_data = interpolate(v[1], mydomain.getX().getFunctionSpace()).toListOfTuples()
+
+    # Create regular grid for interpolation
+    x_grid = numpy.linspace(0., 1., 20)
+    y_grid = numpy.linspace(0., 1., 20)
+    X_grid, Y_grid = numpy.meshgrid(x_grid, y_grid)
+
+    # Interpolate vector components to grid
+    v0_grid = scipy.interpolate.griddata((x_data, y_data), v0_data, (X_grid, Y_grid), method='linear')
+    v1_grid = scipy.interpolate.griddata((x_data, y_data), v1_data, (X_grid, Y_grid), method='linear')
+
+    # Create quiver plot
+    plt.figure(figsize=(8, 8))
+    plt.quiver(X_grid, Y_grid, v0_grid, v1_grid, scale=500.0, scale_units='xy')
+    plt.xlabel('x[0]')
+    plt.ylabel('x[1]')
+    plt.title('Displacement field v')
+    plt.axis('equal')
+
+    # Save in the same directory as this script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    output_path = os.path.join(script_dir, 'anisotropy_vector.png')
+    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    print(f"Vector plot saved to {output_path}")
+else:
+    print("scipy not available, skipping vector plot")
 
 

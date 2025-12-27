@@ -118,9 +118,8 @@ Where $\epsilon = symmetric(grad(u)) \text{ or } %
 {\frac{\partial u_j}{\partial x_i}}\right)$, $u$ is the unknown function and
 $c_{ij}$ is the stiffness matrix. To fit this to the nonlinear PDE class'
 standard form, X is set to $C \times symmetric(grad(u))$.
-The following \PYTHON extract shows how an example 2D plane strain problem can
-be set up. 
-
+The following \PYTHON extract (see \file{ansiotropic.py) shows how an example 2D plane strain problem can
+be set up:
 \begin{python}
 from esys.escript import *
 from esys.finley import Rectangle

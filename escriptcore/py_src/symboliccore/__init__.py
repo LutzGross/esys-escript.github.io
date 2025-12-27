@@ -28,6 +28,7 @@ from . import functions as symfn
 from . import symconstants as Symconsts
 from .pretty import pretty_print, pprint
 from .utils import *
+from .evaluator import *
 
 #from .evaluator import *
 
