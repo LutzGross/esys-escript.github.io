@@ -118,7 +118,7 @@ Where $\epsilon = symmetric(grad(u)) \text{ or } %
 {\frac{\partial u_j}{\partial x_i}}\right)$, $u$ is the unknown function and
 $c_{ij}$ is the stiffness matrix. To fit this to the nonlinear PDE class'
 standard form, X is set to $C \times symmetric(grad(u))$.
-The following \PYTHON extract (see \file{anisotropy.py}) shows how an example 2D plane strain problem can
+The following \PYTHON extract (see \file{lame\_matplotlib.py}) shows how an example 2D plane strain problem can
 be set up:
 \begin{python}
 from esys.escript import *
@@ -171,7 +171,7 @@ v = p.getSolution(u=[0,0])
 %\pagebreak
 The way in which the rotation matrix q is set up demonstrates the seamless integration of escript symbols and \Data objects. A \SYMBOL is used to set up the matrix, the values for theta are then later substituted in. The example also demonstrates how the symbolic toolbox can be used as an aid to easily move from a mathematical equation to an escript data object which can be used to do numerical calculations.
 
-Running the script calculates the unknown function $u$ and assigns it to \texttt{v}. The complete example file \file{anisotropy.py} also includes code to visualize the displacement field as a vector plot using matplotlib.  
+Running the script calculates the unknown function $u$ and assigns it to \texttt{v}. The complete example file \file{lame\_matplotlib.py} also includes code to visualize the displacement field as a vector plot using matplotlib. A variant \file{lame\_silo.py} uses SILO output instead of matplotlib for visualization.  
 \begin{table}[!h]
 \centering
 \begin{tabular}{|c|c|c|}

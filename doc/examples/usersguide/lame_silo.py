@@ -16,6 +16,7 @@
 
 #set up domain and symbols
 from esys.escript import *
+import esys.escript.symbolic as esym
 from esys.finley import Rectangle
 from esys.weipa import saveSilo
 mydomain = Rectangle(l0=1.,l1=1.,n0=10, n1=10)
@@ -33,7 +34,7 @@ q[1,1]=cos(theta)
 # vertical direction. Using this masking means that when q is used it will apply
 # only to the specified area of the domain. 
 x = Function(mydomain).getX()
-q=q.subs(theta,(symconstants.pi/4)*whereNonNegative(x[1]-.30)*whereNegative(x[1]-.70))
+q=q.subs(theta,(esym.Symconsts.pi/4)*whereNonNegative(x[1]-.30)*whereNegative(x[1]-.70))
 # epsilon is defined in terms of u and has the rotation applied. 
 epsilon0 = symmetric(grad(u))
 epsilon = matrixmult(matrixmult(q,epsilon0),q.transpose(1))
