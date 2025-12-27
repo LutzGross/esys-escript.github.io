@@ -207,7 +207,7 @@ local_env.Append( CPPDEFINES = ['SC_WITH_BLAS', 'SC_WITH_LAPACK'])
 p4estlibs = []
 if env['lapack']:
     p4estlibs = ['lapack']
-if not env['mpi'] in ['no', 'none', 0, False]:
+if env['mpi'] != 'none':
     p4estlibs += env['mpi_libs']
 local_env.PrependUnique(LIBS = p4estlibs)
 

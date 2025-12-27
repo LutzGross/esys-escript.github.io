@@ -82,7 +82,7 @@ def checkCompiler(env):
     return conf.Finish()
 
 def get_external_python_sympy(env,bin):
-    if env['sympy'] is True:
+    if env['sympy']:
         import subprocess
         cmd=''
         cmd+='import sympy\n'
@@ -458,7 +458,7 @@ def checkOptionalModules(env):
         env['warnings'].append("Cannot import scipy.")
 
     ######## sympy
-    if env['sympy'] is True:
+    if env['sympy']:
         if detectModule(env, 'sympy'):
             env['sympy'] = True
             env['warnings'].append("Found sympy.")
@@ -472,7 +472,7 @@ def checkOptionalModules(env):
     return env
 
 def checkForTrilinos(env):
-    if env['trilinos'] == False:
+    if not env['trilinos']:
         env['trilinos_version']='none'
         return env
     havelibs = (len(env['trilinos_libs']) > 0)
@@ -637,8 +637,6 @@ def checkForTrilinos(env):
     return env
 
 def checkOptionalLibraries(env):
-    if env['mpi']=='no':
-        env['mpi']='none'
     env['usempi'] = env['mpi']!='none'
     ######## hdf5
     hdf5_inc_path = ''
@@ -878,6 +876,7 @@ def checkOptionalLibraries(env):
         except RuntimeError as e:
             env['zlib'] = False
     env['buildvars']['zlib']=int(env['zlib'])
+    env['buildvars']['sympy']=int(env['sympy'])
     ######## boost::iostreams
     if env['compressed_files']:
         try:

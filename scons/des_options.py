@@ -20,7 +20,7 @@
 
 build_trilinos='make'
 escript_opts_version=203
-mpi='no'
+mpi='none'
 mpi_prefix = ['/usr/include/x86_64-linux-gnu/openmpi', '/usr/lib/x86_64-linux-gnu/openmpi' ]
 openmp = 1
 paso=1

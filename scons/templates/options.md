@@ -118,9 +118,10 @@ Each option is followed by a brief explanation.
 - `boost_libs = ['boost_python3', 'boost_numpy3']`:
   boost-python library/libraries to link against (Python 3)
 
-- `build_trilinos = False`:
+- `build_trilinos = 'never'`:
   Whether to build the trilinos library
-  DEFAULT: False
+  Recognized values: 'make', 'always', 'check', 'never'
+  DEFAULT: 'make'
 
 - `cppunit_prefix = '/usr/local'`:
   Prefix or paths to CppUnit headers and libraries. See note above.
@@ -207,7 +208,7 @@ Each option is followed by a brief explanation.
   MUMPS library/libraries to link against
 
 
-- `use_p4est = False`:
+- `p4est = False`:
   Whether to build escript with the p4est library. This library is required by oxley.
 
 - `sympy = False`:

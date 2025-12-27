@@ -57,13 +57,13 @@ if not os.path.isfile(options_file):
 ############################### Build options ################################
 
 default_prefix='/usr'
-mpi_flavours=('no', 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
+mpi_flavours=('none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
 all_domains = ('finley','oxley','ripley','speckley')
 version_info=['0.0','5','6']
 build_trilinos_flavours = ( "check",      # check for unsuccessful make before setting up make
-                            "True", "make", # set-up standard make install
-                            "always",    # always build
-                            "never", "False"  # never build
+                            "make",       # set-up standard make install
+                            "always",     # always build
+                            "never"       # never build
                             )
 
 #Note that scons construction vars the following purposes:
@@ -215,6 +215,40 @@ if options_file:
         print("is outdated! Please update the file after reading scons/templates/options.md")
         print("and setting escript_opts_version to %d.\n"%REQUIRED_OPTS_VERSION)
         Exit(1)
+
+############### Migrate deprecated option values ####################
+# Migrate mpi='no' to 'none'
+if env['mpi'] == 'no':
+    print("WARNING: mpi='no' is deprecated, using 'none' instead. Please update your options file.")
+    env['mpi'] = 'none'
+
+# Migrate build_trilinos string-boolean values
+if env['build_trilinos'] == "True":
+    print("WARNING: build_trilinos='True' is deprecated, using 'make' instead. Please update your options file.")
+    env['build_trilinos'] = 'make'
+elif env['build_trilinos'] == "False":
+    print("WARNING: build_trilinos='False' is deprecated, using 'never' instead. Please update your options file.")
+    env['build_trilinos'] = 'never'
+elif env['build_trilinos'] is True:
+    print("WARNING: build_trilinos=True (boolean) is deprecated, using 'make' instead. Please update your options file.")
+    env['build_trilinos'] = 'make'
+elif env['build_trilinos'] is False:
+    print("WARNING: build_trilinos=False (boolean) is deprecated, using 'never' instead. Please update your options file.")
+    env['build_trilinos'] = 'never'
+
+# Migrate integer boolean values (0/1) to True/False for consistency
+# SCons accepts these but True/False is clearer
+bool_options = ['openmp', 'paso', 'weipa', 'sympy', 'hdf5', 'debug', 'verbose',
+                'werror', 'trilinos', 'umfpack', 'mkl', 'mumps', 'silo', 'visit',
+                'parmetis', 'zlib', 'p4est', 'mpi4py', 'longindices',
+                'compressed_files', 'disable_boost_numpy', 'osx_dependency_fix',
+                'stdlocationisprefix', 'mpi_no_host', 'insane', 'iknowwhatimdoing']
+for opt in bool_options:
+    if opt in env and env[opt] == 1:
+        env[opt] = True
+    elif opt in env and env[opt] == 0:
+        env[opt] = False
+
 env['IS_WINDOWS']=IS_WINDOWS
 env['IS_OSX']=IS_OSX
 ################# Fill in compiler options if not set above ##################
@@ -229,7 +263,7 @@ if env['mpi'] == 'OPENMPI':
     env['CXX'] = 'mpic++'
     env['CC'] = 'mpicc'
 
-if env['mpi4py'] and env['mpi'] in mpi_flavours[:2]:
+if env['mpi4py'] and env['mpi'] == 'none':
     print("mpi4py is switched on but no mpi flavour given (most likely `MPICH`).")
     Exit(1)
 # set the vars for clang
@@ -498,8 +532,8 @@ if env['IS_OSX']:
 else:
     env.AppendUnique(SHLIBSONAMEFLAGS =   ["-Wl,-soname=$_SHLIBSONAME" ] )
 
-if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' or env['build_trilinos'] is False ):
-    if os.path.isdir(env['trilinos_build']) is False: # create a build folder if the user deleted it
+if env['build_trilinos'] != 'never':
+    if not os.path.isdir(env['trilinos_build']): # create a build folder if the user deleted it
         os.mkdir(env['trilinos_build'])
     #os.chdir(env['trilinos_build'])
     if env['openmp']:
@@ -514,7 +548,7 @@ if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' or
 
     print("Initialization of Trilinos build using", SHARGS )
     if env['trilinos_make_sh'] == 'default':
-        if env['mpi'] not in [ 'none', 'no', False]:
+        if env['mpi'] != 'none':
             #source=startdir + "/scripts/trilinos_mpi.sh"
             shutil.copy("scripts/trilinos_mpi.sh", env['trilinos_build'] + "/trilinos_mpi.sh")
             print("Building (MPI) trilinos..............................")
@@ -744,7 +778,7 @@ if env['prelaunch'] == 'default':
         env['prelaunch'] = ""
 
 # Used by p4est
-if env['mpi'] != 'no' and env['mpi'] != 'none':
+if env['mpi'] != 'none':
     env.Append(CPPDEFINES = ['P4EST_ENABLE_MPI'])
     env.Append(CPPDEFINES = ['P4EST_ENABLE_MPICOMMSHARED'])
     env.Append(CPPDEFINES = ['P4EST_ENABLE_MPIIO'])
@@ -922,7 +956,7 @@ if env['usempi']:
    env.Depends('dummy', ['install_pythonMPI'])
 
 # if all domains are built:
-if env['domains'] == all_domains and env['insane'] == False:
+if env['domains'] == all_domains and not env['insane']:
     env.AlwaysBuild('sanity')
     env.Default('sanity')
 else:
@@ -974,7 +1008,7 @@ def print_summary():
     print("  Install prefix:  %s"%env['prefix'])
     print("          Python:  %s (Version %s)"%(env['pythoncmd'],env['python_version']))
     print("           boost:  %s (Version %s)"%(env['boost_prefix'],env['boost_version']))
-    if env['have_boost_numpy'] is True:
+    if env['have_boost_numpy']:
         print("     boost numpy:  YES")
     else:
         print("     boost numpy:  NO")

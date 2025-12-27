@@ -63,7 +63,7 @@ except FileNotFoundError:
 #                             #f"python3.{subversion}", f"config-3.{subversion}-darwin")
 #pythonincpath = os.path.join(pythonpath, "include", f"python3.{subversion}" )
 
-mpi = 'no'
+mpi = 'none'
 
 cxx = '/opt/homebrew/opt/llvm/bin/clang++'
 cxx_extra = ["-Wno-error=uninitialized",
@@ -115,7 +115,7 @@ lapack_prefix = os.path.join(HOMEBREW_PREFIX, 'Cellar', 'lapack', '3.12.0' )
 umfpack = True
 umfpack_prefix = [ HOMEBREW_PREFIX+"/include/suitesparse", HOMEBREW_PREFIX+"/lib/" ]
 
-build_trilinos = True
+build_trilinos = 'make'
 
 ld_extra = ["-L/opt/homebrew/opt/llvm/lib", "-lz", "-Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++" ]
 

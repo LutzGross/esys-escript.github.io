@@ -36,6 +36,7 @@ except:
     pass
 
 if hasFeature('sympy'):
+
     try:
         import sympy as sp
         HAVE_SYMBOLS=True

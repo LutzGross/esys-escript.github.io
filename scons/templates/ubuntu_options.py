@@ -23,7 +23,8 @@ escript_opts_version=203
 mpi='OPENMPI'
 mpi_prefix = ['/usr/include/x86_64-linux-gnu/openmpi', '/usr/lib/x86_64-linux-gnu/openmpi' ]
 openmp = 1
-paso=1
+paso = 1
+sympy = True
 #cxx_extra = ['-freference fixed. diagnostics-color=always', '-Wno-format-truncation']
 cxx_extra= ['-O3', '-fdiagnostics-color=always', '-fstack-protector-strong',  '-Wformat', '-Werror=format-security' ]
 pythoncmd = 'python3'
@@ -65,7 +66,6 @@ lapack_libs = ['lapacke']
 mumps = True
 mumps_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
 mumps_libs = ['dmumps_seq', 'zmumps_seq', 'mumps_common_seq', 'mpiseq_seq', 'pord_seq']
-
 # NetCDF configuration - version 4
 # Install with: sudo apt-get install libnetcdf-dev libnetcdf-c++4-dev
 netcdf = True
