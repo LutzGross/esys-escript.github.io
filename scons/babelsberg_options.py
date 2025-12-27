@@ -17,6 +17,6 @@
 from templates.ubuntu_options import *
 
 # MANDATORY: Explicitly set version to ensure SCons recognizes it
-escript_opts_version = 203
+escript_opts_version = 2032
 
 mpi = "none"

@@ -15,7 +15,9 @@
 
 \chapter{Using Trilinos}
 \label{TRILINOS}
-Trilinos has a number of packages and provides a large collection of both direct and indirect solvers.  We refer the reader to \cite{TrilinosWeb} for details.  Escript needs to be installed with Trilinos to be able to use the Trilinos solvers.  See the install guide for details.  We show a few examples for the Trilinos options with a simple example.
+Trilinos has a number of packages and provides a large collection of both direct and indirect solvers.
+We refer the reader to \cite{TrilinosWeb} for details.  Escript needs to be installed with Trilinos to be able to use the Trilinos solvers.
+See the install guide for details.  We show a few examples for the Trilinos options with a simple example.
 
 Consider Laplacian in domain ($\Omega\in \mathbb{R}^3$) with a simple right hand side,
 \begin{align}
@@ -30,9 +32,9 @@ with $\mathbf{n}$ the outward normal, with $\Gamma_D$ the left boundary and $\Ga
 for all admissible potential functions $v$. 
 
 
-For this example, we just consider a simple, unstructured, 3D domain.  The mesh is created with GMSH using simplemesh.geo (file \ref{simplemesh}) see /escript/doc/examples/usersguide/simplemesh.geo.  To test AMG, a finer mesh is created using    /escript/doc/examples/usersguide/simplemeshfine.geo.
-
+For this example, we just consider a simple, unstructured, 3D domain.  The mesh is created with GMSH using \file{simplemesh.geo} geometry file \ref{simplemesh}.
 \begin{python}[caption=simplemesh.geo,label=simplemesh]
+    Mesh.MshFileVersion = 2.2; // Version of the MSH file format to use
 // dimensions and mesh size
 xdim = 100.;
 ydim = 200.;
@@ -80,8 +82,14 @@ Plane Surface(6) = {6};
 Surface Loop(1) = {1:6};
 Volume(1) = {1};
 \end{python}
+Run
+\begin{verbose}
+gmsh -3 -optimize_netgen -o simplemesh.msh simplemesh.geo
+\end{verbose}
+to generate the mesh file \file{simplemesh.msh}.
 
-The most basic escript script to solve this pde using escript defaults is in program \ref{basic}.  The computed solution is saved in a silo file "asimple.silo" and can be visualized using \VisIt.
+The most basic escript script to solve this pde using escript defaults is in program \ref{basic}.  T
+he computed solution is saved in a silo file "asimple.silo" and can be visualized using \VisIt.
 \begin{python}[caption=basic solve using defaults only, label=basic ]
 from esys.escript import *
 from esys.weipa import saveVTK, saveSilo
@@ -129,7 +137,8 @@ options.setPackage(SolverOptions.TRILINOS)
 options.setSolverMethod(SolverOptions.DIRECT_SUPERLU)
 options.setVerbosityOn()        
 \end{python}
-Trilinos is the default solver package so the setPackage line is not really necessary.
+Trilinos is the default solver package so the setPackage line is not really necessary. If Trilions is not installed with SuperLU a direct fall back solver will be
+chosen.
 
 \section{Preconditioned Conjugate Gradient}
 If we want to use preconditioned conjugate gradient, then we remover the DIRECT solver line and add the line

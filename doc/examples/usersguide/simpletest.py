@@ -28,4 +28,4 @@ print("solve pde")
 u=pde.getSolution() 
 
 saveSilo("asimple",u=u) 
-print("finished")
+print("simpletest.py finished.")

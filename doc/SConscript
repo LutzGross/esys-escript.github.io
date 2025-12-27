@@ -75,6 +75,8 @@ example_deps.append('usersguide/simplemesh.geo')       # Gmsh input
 example_deps.append('usersguide/simplemeshfine.geo')   # Gmsh input
 example_deps.append('usersguide/inclusion.msh')        # for inclusion.py
 example_deps.append('usersguide/inclusion.geo')        # Gmsh input
+example_deps.append('usersguide/simplebob.xml')        # XML input
+example_deps.append('usersguide/complicatedbob.xml')   # XML input
 
 
 

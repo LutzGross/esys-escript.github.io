@@ -1,3 +1,4 @@
+Mesh.MshFileVersion = 2.2; // Version of the MSH file format to use
 // dimensions and mesh size
 xdim = 100.;
 ydim = 200.;
