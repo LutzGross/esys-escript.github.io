@@ -69,8 +69,12 @@ sortOutExample('usersguide/rosenbrock.py', allowsMPI=False)
 sortOutExample('usersguide/inclusion.py')
 sortOutExample('usersguide/MT.py', allowsMPI=False)
 
-# Mesh file required by simpletest.py
-example_deps.append('usersguide/simplemesh.msh')
+# Supporting files for examples
+example_deps.append('usersguide/simplemesh.msh')      # for simpletest.py
+example_deps.append('usersguide/simplemesh.geo')       # Gmsh input
+example_deps.append('usersguide/simplemeshfine.geo')   # Gmsh input
+example_deps.append('usersguide/inclusion.msh')        # for inclusion.py
+example_deps.append('usersguide/inclusion.geo')        # Gmsh input
 
 
 
