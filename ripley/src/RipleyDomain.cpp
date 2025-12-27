@@ -83,6 +83,14 @@ RipleyDomain::RipleyDomain(dim_t dim) :
     assembler_type = DEFAULT_ASSEMBLER;
 }
 
+RipleyDomain::RipleyDomain(dim_t dim, escript::JMPI jmpi) :
+    m_numDim(dim),
+    m_status(0)
+{
+    m_mpiInfo = jmpi;
+    assembler_type = DEFAULT_ASSEMBLER;
+}
+
 RipleyDomain::~RipleyDomain()
 {
     // cleanup of MPI is dealt with by shared_ptr

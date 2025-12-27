@@ -35,6 +35,27 @@ JMPI makeInfo(MPI_Comm comm, bool owncom)
     return JMPI(p);
 }
 
+JMPI makeInfoFromPyComm(boost::python::object py_comm)
+{
+    if (!py_comm.is_none()) {
+        #ifdef ESYS_HAVE_MPI4PY
+        if (import_mpi4py() < 0) {
+            throw EsysException("Failed to import mpi4py");
+        }
+        MPI_Comm *comm_p = extractMPICommunicator(py_comm);
+        if (comm_p == NULL) {
+            throw EsysException("Failed to extract MPI communicator from mpi4py object");
+        }
+        return makeInfo(*comm_p);
+        #else
+        throw EsysException("mpi4py support not enabled - rebuild with ESYS_HAVE_MPI4PY");
+        #endif
+    } else {
+        // Use default MPI_COMM_WORLD
+        return makeInfo(MPI_COMM_WORLD);
+    }
+}
+
 JMPI_::JMPI_(MPI_Comm mpicomm, bool owncom)
         : comm(mpicomm), ownscomm(owncom), msg_tag_counter(0)
 {

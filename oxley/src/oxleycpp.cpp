@@ -32,7 +32,7 @@ namespace oxley {
 escript::Domain_ptr _rectangle(double _n0, double _n1,
                         const object& l0, const object& l1, int d0, int d1,
                         const object& objpoints, const object& objtags,
-                        int periodic0, int periodic1)
+                        int periodic0, int periodic1, const object& py_comm)
 {
 	// // Integration Order
  //    if (order < 2 || order > 10)
@@ -115,7 +115,10 @@ escript::Domain_ptr _rectangle(double _n0, double _n1,
     if (numtags != numpts)
         throw OxleyException("Number of tags does not match number of points.");
 
-    return escript::Domain_ptr(new Rectangle(order, n0,n1, x0,y0, x1,y1, 
+    // Handle optional MPI communicator
+    escript::JMPI jmpi = escript::makeInfoFromPyComm(py_comm);
+
+    return escript::Domain_ptr(new Rectangle(jmpi, order, n0,n1, x0,y0, x1,y1,
                                 d0,d1, points, tags, tagstonames, periodic0, periodic1));
 }
 
@@ -124,7 +127,7 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2,
                         const object& l0, const object& l1, const object& l2,
                         int d0, int d1, int d2,
                         const object& objpoints, const object& objtags,
-                        int periodic0, int periodic1, int periodic2)
+                        int periodic0, int periodic1, int periodic2, const object& py_comm)
 {
     // Integration Order
     int order=2;
@@ -218,7 +221,11 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2,
     if (numtags != numpts)
         throw OxleyException("Number of tags does not match number of points.");
 
-    return escript::Domain_ptr(new Brick(order, n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2,  points, tags, tagstonames, periodic0,periodic1,periodic2));
+    // Handle optional MPI communicator
+    escript::JMPI jmpi = escript::makeInfoFromPyComm(py_comm);
+
+    return escript::Domain_ptr(new Brick(jmpi, order, n0,n1,n2, x0,y0,z0, x1,y1,z1,
+                                d0,d1,d2, points, tags, tagstonames, periodic0,periodic1,periodic2));
 }
 
 // //tmp
@@ -247,22 +254,24 @@ BOOST_PYTHON_MODULE(oxleycpp)
     arg("l0")=1.0,arg("l1")=1.0,
     arg("d0")=-1,arg("d1")=-1,
     arg("diracPoints")=list(), arg("diracTags")=list(),
-
-    arg("periodic0")=0,arg("periodic1")=0),
+    arg("periodic0")=0,arg("periodic1")=0,
+    arg("comm")=object()),
     "Creates a rectangular p4est mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].\n\n"
     ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
     ":param n1: number of elements in direction 1\n:type n1: ``int``\n"
     ":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
     ":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
     ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
-    ":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
+    ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
+    ":param comm: MPI communicator (optional, from mpi4py)\n:type comm: ``mpi4py.MPI.Comm``");
 
     def("Brick", oxley::_brick, (
     arg("n0"),arg("n1"),arg("n2"),
     arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,
     arg("d0")=-1,arg("d1")=-1,arg("d2")=-1,
     arg("diracPoints")=list(), arg("diracTags")=list(),
-    arg("periodic0")=0,arg("periodic1")=0,arg("periodic2")=0),
+    arg("periodic0")=0,arg("periodic1")=0,arg("periodic2")=0,
+    arg("comm")=object()),
     "Creates a brick p4est mesh with n0 x n1 x n2 elements over the rectangle [0,l0] x [0,l1] x [0,l2].\n\n"
     ":param order: order of the elements: ``int``\n"
     ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
@@ -273,7 +282,8 @@ BOOST_PYTHON_MODULE(oxleycpp)
     ":param l2: length of side 2 or coordinate range of side 1\n:type l2: ``float`` or ``tuple``\n"
     ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
     ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
-    ":param d2: number of subdivisions in direction 2\n:type d2: ``int``");
+    ":param d2: number of subdivisions in direction 2\n:type d2: ``int``\n"
+    ":param comm: MPI communicator (optional, from mpi4py)\n:type comm: ``mpi4py.MPI.Comm``");
 
     // def("RefinementZone", oxley::_refinementZone, 
     //     "Creates a refinement zone parent class.\n\n"

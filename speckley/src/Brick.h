@@ -50,6 +50,16 @@ public:
           const TagMap& tagnamestonums = TagMap());
 
     /**
+       \brief creates a brick mesh with custom MPI communicator
+       \param jmpi MPI communicator info
+    */
+    Brick(escript::JMPI jmpi, int order, dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0, double x1,
+          double y1, double z1, int d0=-1, int d1=-1, int d2=-1,
+          const std::vector<double>& points = std::vector<double>(),
+          const std::vector<int>& tags = std::vector<int>(),
+          const TagMap& tagnamestonums = TagMap());
+
+    /**
        \brief
        Destructor.
     */

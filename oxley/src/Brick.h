@@ -76,6 +76,18 @@ public:
       const std::vector<double>& points, const std::vector<int>& tags,
       const TagMap& tagnamestonums,
       int periodic0, int periodic1, int periodic2);
+
+    /**
+       \brief creates a brick mesh with custom MPI communicator
+       \param jmpi MPI communicator info (optional, defaults to MPI_COMM_WORLD)
+    */
+    Brick(escript::JMPI jmpi, int order, dim_t n0, dim_t n1, dim_t n2,
+      double x0, double y0, double z0, double x1, double y1, double z1,
+      int d0, int d1, int d2,
+      const std::vector<double>& points, const std::vector<int>& tags,
+      const TagMap& tagnamestonums,
+      int periodic0, int periodic1, int periodic2);
+
     // DANGEROUS: If update is false then the mesh is not properly initialised
     Brick(oxley::Brick& B, int order, bool update);
 

@@ -178,6 +178,127 @@ Rectangle::Rectangle(int order, dim_t n0, dim_t n1, double x0, double y0, double
 #endif
 }
 
+Rectangle::Rectangle(escript::JMPI jmpi, int order, dim_t n0, dim_t n1, double x0, double y0, double x1,
+                     double y1, int d0, int d1,
+                     const std::vector<double>& points,
+                     const std::vector<int>& tags,
+                     const TagMap& tagnamestonums) :
+    SpeckleyDomain(2, order, jmpi)
+{
+    if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1)
+            > std::numeric_limits<dim_t>::max())
+        throw SpeckleyException("The number of elements has overflowed, this "
+                "limit may be raised in future releases.");
+
+    if (n0 <= 0 || n1 <= 0)
+        throw SpeckleyException("Number of elements in each spatial dimension "
+                "must be positive");
+
+    // ignore subdivision parameters for serial run
+    if (m_mpiInfo->size == 1) {
+        d0=1;
+        d1=1;
+    }
+
+    bool warn=false;
+    std::vector<int> factors;
+    int ranks = m_mpiInfo->size;
+    dim_t epr[2] = {n0,n1};
+    int d[2] = {d0,d1};
+    if (d0<=0 || d1<=0) {
+        for (int i = 0; i < 2; i++) {
+            if (d[i] < 1) {
+                d[i] = 1;
+                continue;
+            }
+            epr[i] = -1; // can no longer be max
+            //remove
+            if (ranks % d[i] != 0) {
+                throw SpeckleyException("Invalid number of spatial subdivisions");
+            }
+            ranks /= d[i];
+        }
+        factorise(factors, ranks);
+        if (factors.size() != 0) {
+            warn = true;
+        }
+    }
+
+    while (factors.size() > 0) {
+        int i = epr[0] > epr[1] ? 0 : 1;
+        int f = factors.back();
+        factors.pop_back();
+        d[i] *= f;
+        epr[i] /= f;
+    }
+    d0 = d[0]; d1 = d[1];
+
+    // ensure number of subdivisions is valid and nodes can be distributed
+    // among number of ranks
+    if (d0*d1 != m_mpiInfo->size)
+        throw SpeckleyException("Invalid number of spatial subdivisions");
+
+    if (warn) {
+        std::cout << "Warning: Automatic domain subdivision (d0=" << d0 << ", d1="
+            << d1 << "). This may not be optimal!" << std::endl;
+    }
+
+    double l0 = x1-x0;
+    double l1 = y1-y0;
+    m_dx[0] = l0/n0;
+    m_dx[1] = l1/n1;
+
+    if (n0 % d0 > 0) {
+        n0 += d0 - (n0 % d0);
+        l0 = m_dx[0]*n0;
+        std::cout << "Warning: Adjusted number of elements and length. N0="
+            << n0 << ", l0=" << l0 << std::endl;
+    }
+    if (n1 % d1 > 0) {
+        n1 += d1 - (n1 % d1);
+        l1 = m_dx[1]*n1;
+        std::cout << "Warning: Adjusted number of elements and length. N1="
+            << n1 << ", l1=" << l1 << std::endl;
+    }
+
+    if (n0/d0 < 2 || n1/d1 < 2)
+        throw SpeckleyException("Too few elements for the number of ranks");
+
+    m_gNE[0] = n0;
+    m_gNE[1] = n1;
+    m_origin[0] = x0;
+    m_origin[1] = y0;
+    m_length[0] = l0;
+    m_length[1] = l1;
+    m_NX[0] = d0;
+    m_NX[1] = d1;
+
+    // local number of elements
+    m_NE[0] = m_gNE[0] / d0;
+    m_NE[1] = m_gNE[1] / d1;
+
+    // local number of nodes
+    m_NN[0] = m_NE[0]*m_order+1;
+    m_NN[1] = m_NE[1]*m_order+1;
+
+    // bottom-left node is at (offset0,offset1) in global mesh
+    m_offset[0] = n0/d0*(m_mpiInfo->rank%d0);
+    m_offset[1] = n1/d1*(m_mpiInfo->rank/d0);
+
+    populateSampleIds();
+
+    for (TagMap::const_iterator i = tagnamestonums.begin();
+            i != tagnamestonums.end(); i++) {
+        setTagMap(i->first, i->second);
+    }
+    addPoints(points, tags);
+
+
+#ifdef USE_RIPLEY
+    coupler = NULL;
+#endif
+}
+
 Rectangle::~Rectangle()
 {
 #ifdef USE_RIPLEY

@@ -320,7 +320,14 @@ Domain_ptr readMesh_driver(const bp::list& args)
     int numpts = bp::extract<int>(pypoints.attr("__len__")());
     int numtags = bp::extract<int>(pytags.attr("__len__")());
 
-    JMPI info = makeInfo(MPI_COMM_WORLD);
+    // Handle optional MPI communicator (args[7] if provided)
+    JMPI info;
+    if (l >= 8) {
+        bp::object py_comm = args[7];
+        info = makeInfoFromPyComm(py_comm);
+    } else {
+        info = makeInfo(MPI_COMM_WORLD);
+    }
     Domain_ptr dom(FinleyDomain::read(info, fileName, integrationOrder,
                                       reducedIntegrationOrder, optimize));
 
@@ -392,7 +399,15 @@ Domain_ptr readGmsh_driver(const bp::list& args)
     bp::list pytags = bp::extract<bp::list>(args[7]);
     int numpts = bp::extract<int>(pypoints.attr("__len__")());
     int numtags = bp::extract<int>(pytags.attr("__len__")());
-    JMPI info = makeInfo(MPI_COMM_WORLD);
+
+    // Handle optional MPI communicator (args[9] if provided)
+    JMPI info;
+    if (l >= 10) {
+        bp::object py_comm = args[9];
+        info = makeInfoFromPyComm(py_comm);
+    } else {
+        info = makeInfo(MPI_COMM_WORLD);
+    }
     Domain_ptr dom(FinleyDomain::readGmsh(info, fileName, numDim,
                                      integrationOrder, reducedIntegrationOrder,
                                      optimize, useMacroElements));
@@ -590,15 +605,9 @@ Domain_ptr brick_driver_MPI(const bp::list& args)
             throw FinleyException("Unable to extract tag value.");
         }
     }
-    bp::object pworld = args[16];
-    // PyObject* py_obj = py_comm.ptr();
-    //bp::extract<bp::object > py_comm(args[17]);
-    //if ( py_comm.check() ) {
-        MPI_Comm *comm_p  = extractMPICommunicator(args[17]);
-        JMPI info = makeInfo(*comm_p);
-    //} else {
-    //     throw FinleyException("Unable to obtain MPI communicator.");
-    //}
+    // Handle optional MPI communicator
+    bp::object py_comm = args[17];
+    JMPI info = makeInfoFromPyComm(py_comm);
 
     return brick(info, static_cast<dim_t>(bp::extract<float>(args[0])),
                  static_cast<dim_t>(bp::extract<float>(args[1])),
@@ -767,29 +776,9 @@ Domain_ptr rectangle_driver_MPI(const bp::list& args)
         }
     }
 
-    //bp::extract<bp::object > py_comm(bp::extract<bp::object>(args[14]));
-    //if ( py_comm.check() ) {
-    std::cout << "TEST A1 \n";
-    std::cout << bp::extract<int>(args[14].attr("size")) << "\n";
-
-bp::extract<bp::object> py_comm(args[14]);
-if (import_mpi4py() < 0) {
-return NULL;
-}
-         PyObject* py_obj = py_comm().ptr();
-        std::cout << "TEST A" << py_obj <<  "\n";
-
- MPI_Comm *comm_p  = PyMPIComm_Get(py_obj);
-
-  //      MPI_Comm *comm_p  = extractMPICommunicator(py_comm());
-
-
-    std::cout << "TEST A2 \n";
-        JMPI info = makeInfo(*comm_p);
-    std::cout << "TEST A3 \n";
-    //} else {
-    //     throw FinleyException("Unable to obtain MPI communicator.");
-    //}
+    // Handle optional MPI communicator
+    bp::object py_comm = args[14];
+    JMPI info = makeInfoFromPyComm(py_comm);
 
     return rectangle(info, static_cast<dim_t>(bp::extract<float>(args[0])),
                      static_cast<dim_t>(bp::extract<float>(args[1])),

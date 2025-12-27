@@ -41,7 +41,18 @@ public:
        \param x0,y0,x1,y1 coordinates of bottom-left and top-right corners
        \param d0,d1 number of subdivisions in each dimension
     */
-    Rectangle(int order, dim_t n0, dim_t n1, double x0, double y0, 
+    Rectangle(int order, dim_t n0, dim_t n1, double x0, double y0,
+              double x1, double y1, int d0=-1, int d1=-1,
+              const std::vector<double>& points = std::vector<double>(),
+              const std::vector<int>& tags = std::vector<int>(),
+              const TagMap& tagnamestonums = TagMap()
+ 	    );
+
+    /**
+       \brief creates a rectangular mesh with custom MPI communicator
+       \param jmpi MPI communicator info
+    */
+    Rectangle(escript::JMPI jmpi, int order, dim_t n0, dim_t n1, double x0, double y0,
               double x1, double y1, int d0=-1, int d1=-1,
               const std::vector<double>& points = std::vector<double>(),
               const std::vector<int>& tags = std::vector<int>(),

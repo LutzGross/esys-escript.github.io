@@ -101,6 +101,56 @@ MultiBrick::MultiBrick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, doubl
     }
 }
 
+MultiBrick::MultiBrick(escript::JMPI jmpi, dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
+             double x1, double y1, double z1, int d0, int d1, int d2,
+             const vector<double>& points, const vector<int>& tags,
+             const TagMap& tagnamestonums,
+             unsigned int subdivisions
+         ) :
+    Brick(jmpi, n0, n1, n2, x0, y0, z0, x1, y1, z1, d0, d1, d2, points, tags, tagnamestonums),
+    m_subdivisions(subdivisions)
+{
+    if (m_mpiInfo->size != 1)
+        throw RipleyException("Multiresolution Brick domains don't currently support multiple processes");
+
+    if (subdivisions == 0 || (subdivisions & (subdivisions - 1)) != 0)
+        throw RipleyException("Element subdivisions must be a power of two");
+
+    if (d0 == 0 || d1 == 0)
+        throw RipleyException("Domain subdivisions must be positive");
+
+    dim_t oldNN[3] = {0};
+
+    for (int i = 0; i < 3; i++) {
+        m_NE[i] *= subdivisions;
+        oldNN[i] = m_NN[i];
+        m_NN[i] = m_NE[i] + 1;
+        m_gNE[i] *= subdivisions;
+        m_ownNE[i] *= subdivisions;
+        m_dx[i] /= subdivisions;
+        m_faceCount[i] *= subdivisions;
+        m_faceCount[2+i] *= subdivisions;
+    }
+
+    // bottom-left node is at (offset0,offset1) in global mesh
+    m_offset[0] = m_gNE[0]*subdivisions/d0*(m_mpiInfo->rank%d0);
+    m_offset[1] = m_gNE[1]*subdivisions/d1*(m_mpiInfo->rank/d0);
+    m_offset[2] = m_gNE[2]*subdivisions/d2*(m_mpiInfo->rank/(d0*d1));
+    populateSampleIds();
+
+    const dim_t nDirac = m_diracPoints.size();
+#pragma omp parallel for
+    for (int i = 0; i < nDirac; i++) {
+        const dim_t node = m_diracPoints[i].node;
+        const dim_t x = node % oldNN[0];
+        const dim_t y = (node % (oldNN[0]*oldNN[1])) / oldNN[0];
+        const dim_t z = node / (oldNN[0]*oldNN[1]);
+        m_diracPoints[i].node = INDEX3(x*subdivisions, y*subdivisions, z*subdivisions,
+                m_NN[0], m_NN[1]);
+        m_diracPointNodeIDs[i] = m_diracPoints[i].node;
+    }
+}
+
 MultiBrick::~MultiBrick()
 {
 }

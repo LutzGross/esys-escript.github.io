@@ -109,6 +109,12 @@ public:
 
     /**
        \brief
+       Constructor with number of dimensions and custom MPI communicator.
+    */
+    RipleyDomain(dim_t dim, escript::JMPI jmpi);
+
+    /**
+       \brief
        Destructor
     */
     ~RipleyDomain();

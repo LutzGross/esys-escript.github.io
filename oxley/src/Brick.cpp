@@ -277,7 +277,207 @@ Brick::Brick(int order,
     oxleytimer.toc("Brick initialised");
 }
 
-Brick::Brick(oxley::Brick& B, int order, bool update): 
+/**
+   \brief
+   Constructor with custom MPI communicator
+*/
+Brick::Brick(escript::JMPI jmpi, int order,
+    dim_t n0, dim_t n1, dim_t n2,
+    double x0, double y0, double z0,
+    double x1, double y1, double z1,
+    int d0, int d1, int d2,
+    const std::vector<double>& points,
+    const std::vector<int>& tags,
+    const TagMap& tagnamestonums,
+    int periodic0, int periodic1, int periodic2):
+    OxleyDomain(3, order)
+{
+
+    oxleytimer.toc("Creating an oxley::Brick...");
+
+    // For safety
+#ifdef ESYS_MPI
+    int mpi_init = 0;
+    MPI_Initialized(&mpi_init);
+    if(!mpi_init)
+        MPI_Init(NULL,NULL);
+#endif
+    // Use provided MPI communicator instead of MPI_COMM_WORLD
+    m_mpiInfo = jmpi;
+
+    // Possible error: User passes invalid values for the dimensions
+    if(n0 <= 0 || n1 <= 0 || n2 <= 0)
+        throw OxleyException("Number of elements in each spatial dimension must be positive");
+
+    // Ignore d0 and d1 if we are running in serial
+    if(m_mpiInfo->size == 1) {
+        d0=1;
+        d1=1;
+        d2=1;
+    }
+
+    // If the user did not set the number of divisions manually
+    if(d0 == -1 && d1 == -1 && d2 == -1)
+    {
+        d0 = m_mpiInfo->size < 3 ? 1 : m_mpiInfo->size / 3;
+        d1 = m_mpiInfo->size < 3 ? 1 : m_mpiInfo->size / 3;
+        d2 = m_mpiInfo->size / (d0*d1);
+
+        if(d0*d1*d2 != m_mpiInfo->size)
+            d2=m_mpiInfo->size-d0-d1;
+    }
+
+    oxleytimer.toc("\t creating connectivity");
+    connectivity = new_brick_connectivity(n0, n1, n2, false, false, false, x0, x1, y0, y1, z0, z1);
+
+#ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS
+    std::cout << "In Brick() constructor..." << std::endl;
+    std::cout << "Checking connectivity ... " << std::endl;
+    if(!p8est_connectivity_is_valid(connectivity))
+    // if(!p8est_connectivity_is_valid_fast(connectivity))
+        std::cout << "\t\tbroken" << std::endl;
+    else
+        std::cout << "\t\tOK" << std::endl;
+#endif
+
+    // create the forestdata
+    forestData = new p8estData;
+
+    // Create the p8est - use the custom communicator
+    p8est_locidx_t min_quadrants = n0*n1*n2;
+    int min_level = 0;
+    int fill_uniform = 1;
+    oxleytimer.toc("\t creating p8est...");
+    p8est = p8est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
+            min_level, fill_uniform, sizeof(octantData), &init_brick_data, (void *) &forestData);
+
+#ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
+    std::cout << "Checking p8est ... ";
+    if(!p8est_is_valid(p8est))
+        std::cout << "broken" << std::endl;
+    else
+        std::cout << "OK" << std::endl;
+#endif
+
+    // Nodes numbering
+    oxleytimer.toc("\t creating ghost...");
+    ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
+    nodes = p8est_lnodes_new(p8est, ghost, 1);
+
+    oxleytimer.toc("\t saving forestData information...");
+    // This information is needed by the assembler
+    m_NE[0] = n0;
+    m_NE[1] = n1;
+    m_NE[2] = n2;
+    m_NX[0] = (x1-x0)/n0;
+    m_NX[1] = (y1-y0)/n1;
+    m_NX[2] = (z1-z0)/n2;
+
+    // Record the physical dimensions of the domain and the location of the origin
+    forestData->m_origin[0] = x0;
+    forestData->m_origin[1] = y0;
+    forestData->m_origin[2] = z0;
+    forestData->m_lxyz[0] = x1;
+    forestData->m_lxyz[1] = y1;
+    forestData->m_lxyz[2] = z1;
+    forestData->m_length[0] = x1-x0;
+    forestData->m_length[1] = y1-y0;
+    forestData->m_length[2] = z1-z0;
+
+    // Whether or not we have periodic boundaries
+    forestData->periodic[0] = periodic0;
+    forestData->periodic[1] = periodic1;
+    forestData->periodic[2] = periodic2;
+
+    double multiplier =  sqrt(x0*x0+y0*y0+z0*z0);
+    if(multiplier == 0.0)
+        multiplier = 1.0;
+
+    tuple_tolerance = TOLERANCE * multiplier;
+
+    // Find the grid spacing for each level of refinement in the mesh
+#pragma omp parallel for
+    for(int i = 0; i <= P8EST_MAXLEVEL; i++){
+        double numberOfSubDivisions = (p8est_qcoord_t) (1 << (P8EST_MAXLEVEL - i));
+        forestData->m_dx[0][i] = forestData->m_length[0] / numberOfSubDivisions;
+        forestData->m_dx[1][i] = forestData->m_length[1] / numberOfSubDivisions;
+        forestData->m_dx[2][i] = forestData->m_length[2] / numberOfSubDivisions;
+    }
+
+    // max levels of refinement
+    forestData->max_levels_refinement = MAXREFINEMENTLEVELS;
+
+    // element order
+    m_order = order;
+
+    // Number of dimensions
+    m_numDim=3;
+
+    //  // Distribute the p8est across the processors
+    oxleytimer.toc("\t partitioning...");
+    int allow_coarsening = 0;
+    p8est_partition(p8est, allow_coarsening, NULL);
+
+    // Indices
+    indices = new std::vector<IndexVector>;
+
+    nodeIncrements = new long[MAXTREES];
+
+    // Number the nodes
+    updateMesh();
+
+    // Tags
+    oxleytimer.toc("\t populating sample ids...");
+    // TODO
+    // populateSampleIds(); // very slow
+
+    oxleytimer.toc("\t populating tags ("+std::to_string(tagnamestonums.size())+")...");
+    for (TagMap::const_iterator i = tagnamestonums.begin(); i != tagnamestonums.end(); i++) {
+        setTagMap(i->first, i->second);
+    }
+
+    // Dirac points and tags
+    oxleytimer.toc("\t adding Dirac points...");
+    addPoints(points, tags);
+    oxleytimer.toc("\t\tdone");
+
+    // To prevent segmentation faults when using numpy ndarray
+#ifdef ESYS_HAVE_BOOST_NUMPY
+    oxleytimer.toc("\tpy_initialise");
+    Py_Initialize();
+    oxleytimer.toc("\tboost numpy initialise");
+    boost::python::numpy::initialize(); // Not MPI safe?
+#endif
+
+#ifdef ESYS_HAVE_PASO
+
+    /// local array length shared
+    // dim_t local_length = p8est->local_num_quadrants;
+    dim_t local_length = 0;
+
+    /// list of the processors sharing values with this processor
+    std::vector<int> neighbour = {};
+
+    /// offsetInShared[i] points to the first input value in array shared
+    /// for processor i. Has length numNeighbors+1
+    std::vector<index_t> offsetInShared = {0};
+
+    /// list of the (local) components which are shared with other processors.
+    /// Has length numSharedComponents
+    index_t* shared = {};
+
+    /// = offsetInShared[numNeighbours]
+    dim_t numSharedComponents = 0;
+
+    IndexVector sendShared, recvShared;
+
+    createPasoConnector(neighbour, offsetInShared, offsetInShared, sendShared, recvShared);
+#endif
+
+    oxleytimer.toc("Brick initialised");
+}
+
+Brick::Brick(oxley::Brick& B, int order, bool update):
     OxleyDomain(3, order)
 {
     oxleytimer.toc("In Brick copy constructor");

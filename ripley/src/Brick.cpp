@@ -266,6 +266,193 @@ Brick::Brick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
     addPoints(points, tags);
 }
 
+Brick::Brick(escript::JMPI jmpi, dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
+             double x1, double y1, double z1, int d0, int d1, int d2,
+             const vector<double>& points, const vector<int>& tags,
+             const TagMap& tagnamestonums) :
+    RipleyDomain(3, jmpi)
+{
+    if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1)
+            * static_cast<long>(n2 + 1) > std::numeric_limits<dim_t>::max())
+        throw RipleyException("The number of elements has overflowed, this "
+                "limit may be raised in future releases.");
+
+    if (n0 <= 0 || n1 <= 0 || n2 <= 0)
+        throw ValueError("Number of elements in each spatial dimension "
+                "must be positive");
+
+    // ignore subdivision parameters for serial run
+    if (m_mpiInfo->size == 1) {
+        d0=1;
+        d1=1;
+        d2=1;
+    }
+    bool warn=false;
+
+    vector<int> factors;
+    int ranks = m_mpiInfo->size;
+    dim_t epr[3] = {n0,n1,n2};
+    int d[3] = {d0,d1,d2};
+    if (d0<=0 || d1<=0 || d2<=0) {
+        for (int i = 0; i < 3; i++) {
+            if (d[i] < 1) {
+                d[i] = 1;
+                continue;
+            }
+            epr[i] = -1; // can no longer be max
+            if (ranks % d[i] != 0) {
+                throw ValueError("Invalid number of spatial subdivisions");
+            }
+            //remove
+            ranks /= d[i];
+        }
+        factorise(factors, ranks);
+        if (factors.size() != 0) {
+            warn = true;
+        }
+    }
+    while (factors.size() > 0) {
+        int i = indexOfMax(epr[0],epr[1],epr[2]);
+        int f = factors.back();
+        factors.pop_back();
+        d[i] *= f;
+        epr[i] /= f;
+    }
+    d0 = d[0]; d1 = d[1]; d2 = d[2];
+
+    // ensure number of subdivisions is valid and nodes can be distributed
+    // among number of ranks
+    if (d0*d1*d2 != m_mpiInfo->size){
+        throw ValueError("Invalid number of spatial subdivisions");
+    }
+    if (warn) {
+        std::cout << "Warning: Automatic domain subdivision (d0=" << d0 << ", d1="
+            << d1 << ", d2=" << d2 << "). This may not be optimal!" << std::endl;
+    }
+
+    double l0 = x1-x0;
+    double l1 = y1-y0;
+    double l2 = z1-z0;
+    m_dx[0] = l0/n0;
+    m_dx[1] = l1/n1;
+    m_dx[2] = l2/n2;
+
+    warn = false;
+    if ((n0+1)%d0 > 0) {
+        switch (getDecompositionPolicy()) {
+            case DECOMP_EXPAND:
+                l0 = m_dx[0]*n0; // fall through
+            case DECOMP_ADD_ELEMENTS:
+                n0 = (dim_t)round((float)(n0+1)/d0+0.5)*d0-1; // fall through
+            case DECOMP_STRICT:
+                warn = true;
+                break;
+        }
+        // reset spacing
+        m_dx[0] = l0/n0;
+    }
+    if ((n1+1)%d1 > 0) {
+        switch (getDecompositionPolicy()) {
+            case DECOMP_EXPAND:
+                l1 = m_dx[1]*n1; // fall through
+            case DECOMP_ADD_ELEMENTS:
+                n1 = (dim_t)round((float)(n1+1)/d1+0.5)*d1-1; // fall through
+            case DECOMP_STRICT:
+                warn = true;
+                break;
+        }
+        // reset spacing
+        m_dx[1] = l1/n1;
+    }
+    if ((n2+1)%d2 > 0) {
+        switch (getDecompositionPolicy()) {
+            case DECOMP_EXPAND:
+                l2 = m_dx[2]*n2; // fall through
+            case DECOMP_ADD_ELEMENTS:
+                n2 = (dim_t)round((float)(n2+1)/d2+0.5)*d2-1; // fall through
+            case DECOMP_STRICT:
+                warn = true;
+                break;
+        }
+        // reset spacing
+        m_dx[2] = l2/n2;
+    }
+
+    if ((d0 > 1 && (n0+1)/d0<2) || (d1 > 1 && (n1+1)/d1<2) || (d2 > 1 && (n2+1)/d2<2))
+        throw ValueError("Too few elements for the number of ranks");
+
+    if (warn) {
+        if (getDecompositionPolicy() == DECOMP_STRICT) {
+            throw ValueError("Unable to decompose domain to the number of "
+                    "MPI ranks without adding elements and the policy "
+                    "is set to STRICT. Use setDecompositionPolicy() "
+                    "to allow adding elements.");
+        } else {
+            std::cout << "Warning: Domain setup has been adjusted as follows "
+                    "to allow decomposition into " << m_mpiInfo->size
+                    << " MPI ranks:" << std::endl
+                    << "    N0=" << n0 << ", l0=" << l0 << std::endl
+                    << "    N1=" << n1 << ", l1=" << l1 << std::endl
+                    << "    N2=" << n2 << ", l2=" << l1 << std::endl;
+        }
+    }
+    m_gNE[0] = n0;
+    m_gNE[1] = n1;
+    m_gNE[2] = n2;
+    m_origin[0] = x0;
+    m_origin[1] = y0;
+    m_origin[2] = z0;
+    m_length[0] = l0;
+    m_length[1] = l1;
+    m_length[2] = l2;
+    m_NX[0] = d0;
+    m_NX[1] = d1;
+    m_NX[2] = d2;
+
+    // local number of elements (including overlap)
+    m_NE[0] = m_ownNE[0] = (d0>1 ? (n0+1)/d0 : n0);
+    if (m_mpiInfo->rank%d0>0 && m_mpiInfo->rank%d0<d0-1)
+        m_NE[0]++;
+    else if (d0>1 && m_mpiInfo->rank%d0==d0-1)
+        m_ownNE[0]--;
+
+    m_NE[1] = m_ownNE[1] = (d1>1 ? (n1+1)/d1 : n1);
+    if (m_mpiInfo->rank%(d0*d1)/d0>0 && m_mpiInfo->rank%(d0*d1)/d0<d1-1)
+        m_NE[1]++;
+    else if (d1>1 && m_mpiInfo->rank%(d0*d1)/d0==d1-1)
+        m_ownNE[1]--;
+
+    m_NE[2] = m_ownNE[2] = (d2>1 ? (n2+1)/d2 : n2);
+    if (m_mpiInfo->rank/(d0*d1)>0 && m_mpiInfo->rank/(d0*d1)<d2-1)
+        m_NE[2]++;
+    else if (d2>1 && m_mpiInfo->rank/(d0*d1)==d2-1)
+        m_ownNE[2]--;
+
+    // local number of nodes
+    m_NN[0] = m_NE[0]+1;
+    m_NN[1] = m_NE[1]+1;
+    m_NN[2] = m_NE[2]+1;
+
+    // bottom-left-front node is at (offset0,offset1,offset2) in global mesh
+    m_offset[0] = (n0+1)/d0*(m_mpiInfo->rank%d0);
+    if (m_offset[0] > 0)
+        m_offset[0]--;
+    m_offset[1] = (n1+1)/d1*(m_mpiInfo->rank%(d0*d1)/d0);
+    if (m_offset[1] > 0)
+        m_offset[1]--;
+    m_offset[2] = (n2+1)/d2*(m_mpiInfo->rank/(d0*d1));
+    if (m_offset[2] > 0)
+        m_offset[2]--;
+
+    populateSampleIds();
+
+    for (TagMap::const_iterator i = tagnamestonums.begin();
+            i != tagnamestonums.end(); i++) {
+        setTagMap(i->first, i->second);
+    }
+    addPoints(points, tags);
+}
+
 Brick::~Brick()
 {
 }

@@ -57,6 +57,15 @@ SpeckleyDomain::SpeckleyDomain(dim_t dim, int order) :
     assembler_type = DEFAULT_ASSEMBLER;
 }
 
+SpeckleyDomain::SpeckleyDomain(dim_t dim, int order, escript::JMPI jmpi) :
+    m_numDim(dim),
+    m_status(0),
+    m_order(order)
+{
+    m_mpiInfo = jmpi;
+    assembler_type = DEFAULT_ASSEMBLER;
+}
+
 SpeckleyDomain::~SpeckleyDomain()
 {
     // cleanup of MPI is dealt with by shared_ptr

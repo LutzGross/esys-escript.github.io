@@ -77,6 +77,47 @@ MultiRectangle::MultiRectangle(dim_t n0, dim_t n1, double x0, double y0,
     }
 }
 
+MultiRectangle::MultiRectangle(escript::JMPI jmpi, dim_t n0, dim_t n1, double x0, double y0,
+                     double x1, double y1, int d0, int d1,
+                     const vector<double>& points,
+                     const vector<int>& tags,
+                     const TagMap& tagnamestonums,
+                     unsigned int subdivisions)
+     : Rectangle(jmpi, n0,n1, x0,y0, x1,y1, d0,d1, points, tags, tagnamestonums),
+       m_subdivisions(subdivisions)
+{
+    if (subdivisions == 0 || (subdivisions & (subdivisions - 1)) != 0)
+        throw RipleyException("Element subdivisions must be a power of two");
+
+    dim_t oldNN[2] = {0};
+
+    if (d0 == 0 || d1 == 0)
+        throw RipleyException("Domain subdivisions must be positive");
+
+    for (int i = 0; i < 2; i++) {
+        m_NE[i] *= subdivisions;
+        oldNN[i] = m_NN[i];
+        m_NN[i] = m_NE[i] + 1;
+        m_gNE[i] *= subdivisions;
+        m_ownNE[i] *= subdivisions;
+        m_dx[i] /= subdivisions;
+        m_faceCount[i] *= subdivisions;
+        m_faceCount[2+i] *= subdivisions;
+        m_offset[i] *= subdivisions;
+    }
+    populateSampleIds();
+
+    const dim_t nDirac = m_diracPoints.size();
+#pragma omp parallel for
+    for (int i = 0; i < nDirac; i++) {
+        const dim_t node = m_diracPoints[i].node;
+        const dim_t x = node % oldNN[0];
+        const dim_t y = node / oldNN[0];
+        m_diracPoints[i].node = INDEX2(x*subdivisions, y*subdivisions, m_NN[0]);
+        m_diracPointNodeIDs[i] = m_diracPoints[i].node;
+    }
+}
+
 MultiRectangle::~MultiRectangle()
 {
 }

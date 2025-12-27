@@ -63,6 +63,17 @@ public:
  	    );
 
     /**
+       \brief creates a rectangular mesh with custom MPI communicator
+       \param jmpi MPI communicator info
+    */
+    Rectangle(escript::JMPI jmpi, dim_t n0, dim_t n1, double x0, double y0, double x1, double y1,
+              int d0=-1, int d1=-1,
+              const std::vector<double>& points = std::vector<double>(),
+              const std::vector<int>& tags = std::vector<int>(),
+              const TagMap& tagnamestonums = TagMap()
+	    );
+
+    /**
        \brief
        Destructor.
     */

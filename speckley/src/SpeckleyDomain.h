@@ -92,6 +92,12 @@ public:
 
     /**
        \brief
+       Constructor with number of dimensions and custom MPI communicator.
+    */
+    SpeckleyDomain(dim_t dim, int order, escript::JMPI jmpi);
+
+    /**
+       \brief
        Destructor
     */
     ~SpeckleyDomain();

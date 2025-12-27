@@ -149,7 +149,8 @@ void setDecompositionPolicy(int policy)
 // truediv
 escript::Domain_ptr _brick(double _n0, double _n1, double _n2, const object& l0,
                  const object& l1, const object& l2, int d0, int d1, int d2,
-                 const object& objpoints, const object& objtags)
+                 const object& objpoints, const object& objtags,
+                 const object& py_comm)
 {
     dim_t n0=static_cast<dim_t>(_n0), n1=static_cast<dim_t>(_n1), n2=static_cast<dim_t>(_n2);
     double x0=0., x1=1., y0=0., y1=1., z0=0., z1=1.;
@@ -232,14 +233,19 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2, const object& l0,
     }
     if (numtags != numpts)
         throw RipleyException("Number of tags does not match number of points.");
-    return escript::Domain_ptr(new Brick(n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2,
+
+    // Handle optional MPI communicator
+    escript::JMPI jmpi = escript::makeInfoFromPyComm(py_comm);
+
+    return escript::Domain_ptr(new Brick(jmpi, n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2,
                                             points, tags, tagstonames));
 }
 
 escript::Domain_ptr _multibrick(double _n0, double _n1, double _n2, const object& l0,
                  const object& l1, const object& l2, int d0, int d1, int d2,
                  const object& objpoints, const object& objtags,
-                 unsigned int multiplier)
+                 unsigned int multiplier,
+                 const object& py_comm)
 {
     dim_t n0=static_cast<dim_t>(_n0), n1=static_cast<dim_t>(_n1), n2=static_cast<dim_t>(_n2);
     double x0=0., x1=1., y0=0., y1=1., z0=0., z1=1.;
@@ -322,15 +328,20 @@ escript::Domain_ptr _multibrick(double _n0, double _n1, double _n2, const object
     }
     if (numtags != numpts)
         throw RipleyException("Number of tags does not match number of points.");
-    return escript::Domain_ptr(new MultiBrick(n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2,
-                                            points, tags, tagstonames, 
+
+    // Handle optional MPI communicator
+    escript::JMPI jmpi = escript::makeInfoFromPyComm(py_comm);
+
+    return escript::Domain_ptr(new MultiBrick(jmpi, n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2,
+                                            points, tags, tagstonames,
                                             multiplier));
 }
 
 escript::Domain_ptr _multirectangle(double _n0, double _n1, const object& l0,
-                               const object& l1, int d0, int d1, 
+                               const object& l1, int d0, int d1,
                                const object& objpoints, const object& objtags,
-                               unsigned int multiplier)
+                               unsigned int multiplier,
+                               const object& py_comm)
 {
     dim_t n0=static_cast<dim_t>(_n0), n1=static_cast<dim_t>(_n1);
     double x0=0., x1=1., y0=0., y1=1.;
@@ -401,13 +412,18 @@ escript::Domain_ptr _multirectangle(double _n0, double _n1, const object& l0,
     }
     if (numtags != numpts)
         throw RipleyException("Number of tags does not match number of points.");
-    return escript::Domain_ptr(new MultiRectangle(n0,n1, x0,y0, x1,y1, d0,d1,
+
+    // Handle optional MPI communicator
+    escript::JMPI jmpi = escript::makeInfoFromPyComm(py_comm);
+
+    return escript::Domain_ptr(new MultiRectangle(jmpi, n0,n1, x0,y0, x1,y1, d0,d1,
                                  points, tags, tagstonames, multiplier));
 }
 
 escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
-                               const object& l1, int d0, int d1, 
-                               const object& objpoints, const object& objtags
+                               const object& l1, int d0, int d1,
+                               const object& objpoints, const object& objtags,
+                               const object& py_comm
 			      )
 {
     dim_t n0=static_cast<dim_t>(_n0), n1=static_cast<dim_t>(_n1);
@@ -479,7 +495,11 @@ escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
     }
     if (numtags != numpts)
         throw RipleyException("Number of tags does not match number of points.");
-    return escript::Domain_ptr(new Rectangle(n0,n1, x0,y0, x1,y1, d0,d1,
+
+    // Handle optional MPI communicator
+    escript::JMPI jmpi = escript::makeInfoFromPyComm(py_comm);
+
+    return escript::Domain_ptr(new Rectangle(jmpi, n0,n1, x0,y0, x1,y1, d0,d1,
                                              points, tags, tagstonames));
 }
 
@@ -517,7 +537,7 @@ BOOST_PYTHON_MODULE(ripleycpp)
 
     def("Brick", ripley::_brick, (arg("n0"),arg("n1"),arg("n2"),arg("l0")=1.0,
         arg("l1")=1.0,arg("l2")=1.0,arg("d0")=-1,arg("d1")=-1,arg("d2")=-1,
-        arg("diracPoints")=list(),arg("diracTags")=list()),
+        arg("diracPoints")=list(),arg("diracTags")=list(),arg("comm")=object()),
         "Creates a hexagonal mesh with n0 x n1 x n2 elements over the brick [0,l0] x [0,l1] x [0,l2].\n\n"
         ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
         ":param n1: number of elements in direction 1\n:type n1: ``int``\n"
@@ -527,23 +547,26 @@ BOOST_PYTHON_MODULE(ripleycpp)
         ":param l2: length of side 2 or coordinate range of side 2\n:type l2: ``float`` or ``tuple``\n"
         ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
         ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
-        ":param d2: number of subdivisions in direction 2\n:type d2: ``int``");
+        ":param d2: number of subdivisions in direction 2\n:type d2: ``int``\n"
+        ":param comm: MPI communicator (optional, from mpi4py)\n:type comm: ``mpi4py.MPI.Comm``");
 
     def("Rectangle", ripley::_rectangle, (arg("n0"),arg("n1"),arg("l0")=1.0,
         arg("l1")=1.0,arg("d0")=-1,arg("d1")=-1,
-        arg("diracPoints")=list(), arg("diracTags")=list()),
+        arg("diracPoints")=list(), arg("diracTags")=list(),
+        arg("comm")=object()),
         "Creates a rectangular mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].\n\n"
         ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
         ":param n1: number of elements in direction 1\n:type n1: ``int``\n"
         ":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
         ":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
         ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
-        ":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
+        ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
+        ":param comm: MPI communicator (optional, from mpi4py)\n:type comm: ``mpi4py.MPI.Comm``");
 
     def("MultiRectangle", ripley::_multirectangle, (arg("n0"),arg("n1"),
         arg("l0")=1.0,arg("l1")=1.0,arg("d0")=-1,arg("d1")=-1,
         arg("diracPoints")=list(),arg("diracTags")=list(),
-        arg("multiplier")=1),
+        arg("multiplier")=1,arg("comm")=object()),
         "Creates a rectangular mesh with n0 x n1 parent elements over the "
         "rectangle [0,l0] x [0,l1], each parent element is divided ``multiplier`` times.\n\n"
         ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
@@ -552,12 +575,13 @@ BOOST_PYTHON_MODULE(ripleycpp)
         ":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
         ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
         ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
-        ":param multiplier: size of overlap\n:type multiplier: ``unsigned int``");
+        ":param multiplier: size of overlap\n:type multiplier: ``unsigned int``\n"
+        ":param comm: MPI communicator (optional, from mpi4py)\n:type comm: ``mpi4py.MPI.Comm``");
 
     def("MultiBrick", ripley::_multibrick, (arg("n0"),arg("n1"),arg("n2"),
         arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,arg("d0")=-1,arg("d1")=-1,
         arg("d2")=-1,arg("diracPoints")=list(),arg("diracTags")=list(),
-        arg("multiplier")=1),
+        arg("multiplier")=1,arg("comm")=object()),
         "Creates a hexagonal mesh with n0 x n1 x n2 parent elements over the "
         "brick [0,l0] x [0,l1] x [0,l2], each parent element is divided ``multiplier`` times.\n\n"
         ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
@@ -568,8 +592,9 @@ BOOST_PYTHON_MODULE(ripleycpp)
         ":param l2: length of side 2 or coordinate range of side 2\n:type l2: ``float`` or ``tuple``\n"
         ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
         ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
-        ":param d2: number of subdivisions in direction 2\n:type d2: ``int``"
-        ":param multiplier: size of overlap\n:type multiplier: ``unsigned int``");
+        ":param d2: number of subdivisions in direction 2\n:type d2: ``int``\n"
+        ":param multiplier: size of overlap\n:type multiplier: ``unsigned int``\n"
+        ":param comm: MPI communicator (optional, from mpi4py)\n:type comm: ``mpi4py.MPI.Comm``");
 
     def("readBinaryGrid", &ripley::readBinaryGrid, (arg("filename"),
                 arg("functionspace"), arg("shape"), arg("fill")=0.,

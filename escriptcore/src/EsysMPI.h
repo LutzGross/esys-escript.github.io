@@ -87,24 +87,14 @@ inline static MPI_Comm * extractMPICommunicator(boost::python::object py_comm)
         *comm_p = MPI_COMM_WORLD;
     } else {
         #ifdef ESYS_HAVE_MPI4PY
-
-    std::cout << "TEST B1 \n";
-
         PyObject* py_obj = py_comm.ptr();
-        std::cout << "TEST C" << py_obj <<  "\n";
-        std::cout << "TEST B2 \n";
-std::cout << "TEST B22 " <<  py_obj << "\n";
-
         comm_p = PyMPIComm_Get(py_obj);
-            std::cout << "TEST B3 \n";
         if (comm_p == NULL)
             throw EsysException("Null communicator.");
         #else
         *comm_p = MPI_COMM_WORLD;
         #endif
-
     }
-        std::cout << "TEST B4 \n";
     return comm_p;
 }
 
@@ -116,6 +106,12 @@ typedef boost::shared_ptr<JMPI_> JMPI;
 /// if owncom is true, the communicator is freed when mpi info is destroyed.
 ESCRIPT_DLL_API
 JMPI makeInfo(MPI_Comm comm, bool owncom=false);
+
+/// creates a JMPI shared pointer from optional Python mpi4py communicator
+/// if py_comm is None or not provided, uses MPI_COMM_WORLD
+/// requires ESYS_HAVE_MPI4PY to be enabled for custom communicators
+ESCRIPT_DLL_API
+JMPI makeInfoFromPyComm(boost::python::object py_comm);
 
 class ESCRIPT_DLL_API JMPI_
 {
