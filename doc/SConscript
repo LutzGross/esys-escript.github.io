@@ -64,9 +64,13 @@ sortOutExample('usersguide/wave.py', needsMPL=True)
 sortOutExample('usersguide/poisson_matplotlib.py', allowsMPI=False)
 sortOutExample('usersguide/lame_matplotlib.py', needsMPL=True, allowsMPI=False)
 sortOutExample('usersguide/lame_silo.py')
+sortOutExample('usersguide/simpletest.py')
 sortOutExample('usersguide/rosenbrock.py', allowsMPI=False)
 sortOutExample('usersguide/inclusion.py')
 sortOutExample('usersguide/MT.py', allowsMPI=False)
+
+# Mesh file required by simpletest.py
+example_deps.append('usersguide/simplemesh.msh')
 
 
 
