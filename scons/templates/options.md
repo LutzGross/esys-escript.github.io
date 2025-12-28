@@ -11,12 +11,13 @@ To build escript on a specific machine create a file named
 
 where `<sourcedir>` is the escript source directory and `<hostname>` is the
 machine's short hostname.
-If you find a template file whose name matches what you are 
+If you find a template file whose name matches what you are
 running, you can import that file from your new options file
-then customize to your needs. For example, if you are running Ubuntu Vivid and would like to build with MPI
+then customize to your needs. For example, if you are running Ubuntu and would like to build with MPI
 support, you can insert the following in your options file:
 
-    from templates.vivid_mpi_options import *
+    from templates.ubuntu_options import *
+    mpi = 'OPENMPI'
 
 If you can't find a matching template file you can either 
 import one that comes close or start from scratch and set 
