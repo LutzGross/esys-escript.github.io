@@ -122,9 +122,9 @@ vars.AddVariables(
   BoolVariable('umfpack', 'Enable UMFPACK', False),
   ('umfpack_prefix', 'Prefix/Paths to UMFPACK installation', default_prefix),
   ('umfpack_libs', 'UMFPACK libraries to link with', ['umfpack']),
-  BoolVariable('mumps', 'Enable MUMPS', False),
-  ('mumps_prefix', 'Prefix/Paths to MUMPS installation', default_prefix),
-  ('mumps_libs', 'MUMPS libraries to link with', ['mumps_common','pord','dmumps','zmumps',
+  BoolVariable('mumps_seq', 'Enable sequential MUMPS (works with MPI builds)', False),
+  ('mumps_seq_prefix', 'Prefix/Paths to sequential MUMPS installation', default_prefix),
+  ('mumps_seq_libs', 'Sequential MUMPS libraries to link with', ['mumps_common','pord','dmumps','zmumps',
     'mpiseq','lapack','metis','scotch','esmumps','gfortran']),
   TristateVariable('lapack', 'Enable LAPACK', 'auto'),
   ('lapack_prefix', 'Prefix/Paths to LAPACK installation', default_prefix),
@@ -239,7 +239,7 @@ elif env['build_trilinos'] is False:
 # Migrate integer boolean values (0/1) to True/False for consistency
 # SCons accepts these but True/False is clearer
 bool_options = ['openmp', 'paso', 'weipa', 'sympy', 'hdf5', 'debug', 'verbose',
-                'werror', 'trilinos', 'umfpack', 'mkl', 'mumps', 'silo', 'visit',
+                'werror', 'trilinos', 'umfpack', 'mkl', 'mumps_seq', 'silo', 'visit',
                 'parmetis', 'zlib', 'p4est', 'mpi4py', 'longindices',
                 'compressed_files', 'disable_boost_numpy', 'osx_dependency_fix',
                 'stdlocationisprefix', 'mpi_no_host', 'insane', 'iknowwhatimdoing']
@@ -482,7 +482,7 @@ elif cxx_name == 'mpic++':
     cc_flags += ["-Wno-unknown-pragmas", "-Wno-sign-compare", "-Wno-system-headers", "-Wno-long-long", "-Wno-strict-aliasing" ]
     cc_flags += ["-Wno-unused-function ", "-Wno-narrowing" ]
     cc_flags += ["-Wno-stringop-truncation", "-Wno-deprecated-declarations", "--param=max-vartrack-size=100000000" ]
-    cc_optim     = ["-O2 -march=native" ]
+    cc_optim     = ["-O3", "-march=native"]
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
     cc_debug     = ["-g3", "-O0", "-DDOASSERT", "-DDOPROF", "-DBOUNDS_CHECK", "-DSLOWSHARECHECK", "--param=max-vartrack-size=100000000", '-D_GLIBCXX_DEBUG' ]
     ld_flags += ["-fPIC", "-lmpi" ]
@@ -1055,7 +1055,7 @@ def print_summary():
             direct.append('mkl')
         if env['umfpack']:
             direct.append('umfpack')
-        if env['mumps']:
+        if env['mumps_seq']:
             direct.append('mumps')
     else:
         d_list.append('paso')
@@ -1073,7 +1073,7 @@ def print_summary():
     print("         domains:  %s"%(", ".join(env['domains'])))
     e_list=[]
     for i in ('hdf5', 'weipa','debug','openmp','cppunit','mkl','mpi4py', 'zlib',
-             'mumps', 'netcdf', 'scipy','silo','sympy','umfpack','visit'):
+             'mumps_seq', 'netcdf', 'scipy','silo','sympy','umfpack','visit'):
         if env[i]: e_list.append(i)
         else: d_list.append(i)
 

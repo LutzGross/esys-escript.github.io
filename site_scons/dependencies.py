@@ -679,21 +679,19 @@ def checkOptionalLibraries(env):
         env['buildvars']['umfpack_lib_path']=umfpack_lib_path
     env['buildvars']['umfpack']=int(env['umfpack'])
 
-    ######## MUMPS
-    mumps_inc_path=''
-    mumps_lib_path=''
-    if env['mumps']:
-        if env['usempi']:
-            mumps_inc_path,mumps_lib_path=findLibWithHeader(env, env['mumps_libs'], 'mumps_mpi.h', env['mumps_prefix'], lang='c++')
-        else:
-            mumps_inc_path, mumps_lib_path = findLibWithHeader(env, env['mumps_libs'], 'mumps_seq/mpi.h', env['mumps_prefix'], lang='c++')
-        env.AppendUnique(CPPPATH = [mumps_inc_path])
-        env.AppendUnique(LIBPATH = [mumps_lib_path])
-        env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], mumps_lib_path)
+    ######## Sequential MUMPS (works with MPI builds)
+    mumps_seq_inc_path=''
+    mumps_seq_lib_path=''
+    if env['mumps_seq']:
+        # Sequential MUMPS uses mumps_seq/mpi.h
+        mumps_seq_inc_path, mumps_seq_lib_path = findLibWithHeader(env, env['mumps_seq_libs'], 'mumps_seq/mpi.h', env['mumps_seq_prefix'], lang='c++')
+        env.AppendUnique(CPPPATH = [mumps_seq_inc_path])
+        env.AppendUnique(LIBPATH = [mumps_seq_lib_path])
+        env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], mumps_seq_lib_path)
         env.Append(CPPDEFINES = ['ESYS_HAVE_MUMPS'])
-        env['buildvars']['mumps_inc_path']=mumps_inc_path
-        env['buildvars']['mumps_lib_path']=mumps_lib_path
-    env['buildvars']['mumps']=int(env['mumps'])
+        env['buildvars']['mumps_seq_inc_path']=mumps_seq_inc_path
+        env['buildvars']['mumps_seq_lib_path']=mumps_seq_lib_path
+    env['buildvars']['mumps_seq']=int(env['mumps_seq'])
 
     ######## LAPACK
     lapack_inc_path=''

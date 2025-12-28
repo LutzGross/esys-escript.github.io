@@ -61,11 +61,11 @@ lapack = 'auto'  # Auto-detect LAPACKE
 lapack_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
 lapack_libs = ['lapacke']
 
-# MUMPS configuration - sequential version (no MPI)
+# MUMPS configuration - sequential version (works with MPI builds)
 # Install with: sudo apt-get install libmumps-seq-dev
-mumps = True
-mumps_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
-mumps_libs = ['dmumps_seq', 'zmumps_seq', 'mumps_common_seq', 'mpiseq_seq', 'pord_seq']
+mumps_seq = True
+mumps_seq_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
+mumps_seq_libs = ['dmumps_seq', 'zmumps_seq', 'mumps_common_seq', 'mpiseq_seq', 'pord_seq']
 # NetCDF configuration - version 4
 # Install with: sudo apt-get install libnetcdf-dev libnetcdf-c++4-dev
 netcdf = True
