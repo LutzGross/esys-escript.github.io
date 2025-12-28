@@ -24,14 +24,15 @@ cmake \
       -D TPL_ENABLE_UMFPACK=OFF \
       -D TPL_BLAS_INCLUDE_DIRS=/usr/include/suitesparse \
       -D TPL_Cholmod_INCLUDE_DIRS=/usr/include/suitesparse \
-      -D TPL_Cholmod_LIBRARIES='libcholmod.so;libamd.so;libcolamd.so' \
+      -D TPL_Cholmod_LIBRARIES='cholmod;amd;colamd' \
       -D TPL_UMFPACK_INCLUDE_DIRS=/usr/include/suitesparse \
-      -D TPL_Boost_INCLUDE_DIRS=/usr/local/boost/include \
-      -D TPL_Boost_LIBRARY_DIRS=lib \
+      -D TPL_Boost_INCLUDE_DIRS=/usr/include \
+      -D TPL_Boost_LIBRARY_DIRS=/usr/lib/x86_64-linux-gnu \
       -D Trilinos_ENABLE_Amesos=ON \
       -D Trilinos_ENABLE_Amesos2=ON \
       -D Trilinos_ENABLE_AztecOO=ON \
       -D Trilinos_ENABLE_Belos=ON \
+      -D Trilinos_ENABLE_EpetraExt=ON \
       -D Trilinos_ENABLE_Ifpack=ON \
       -D Trilinos_ENABLE_Ifpack2=ON \
       -D Trilinos_ENABLE_Kokkos=ON \
@@ -40,7 +41,6 @@ cmake \
       -D Trilinos_ENABLE_MueLu=ON \
       -D Trilinos_ENABLE_Teuchos=ON \
       -D Trilinos_ENABLE_Tpetra=ON \
-      -D Trilinos_ENABLE_ALL_OPTIONAL_PACKAGES=ON \
       -D Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION=ON \
       -D Tpetra_INST_COMPLEX_DOUBLE=ON \
       -D Trilinos_ENABLE_COMPLEX_DOUBLE=ON \
