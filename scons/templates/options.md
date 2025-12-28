@@ -134,8 +134,14 @@ Each option is followed by a brief explanation.
 
 - `mpi = 'OPENMPI'`:
   Flavour of MPI implementation
-  Recognized values: 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
+  Recognized values: 'auto', 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
+  - 'auto': Auto-detect MPI implementation from mpi4py (recommended when mpi4py=True)
+    * If mpi4py=True: Detects MPI flavour from installed mpi4py package
+    * If mpi4py=False: Sets mpi='none'
+  - 'none': Disable MPI
+  - Other values: Explicitly specify MPI implementation
   DEFAULT: 'none' (disable MPI)
+  **Note:** When mpi4py=True, the MPI flavour must match the MPI implementation that mpi4py was compiled against. Using mpi='auto' handles this automatically.
 
 - `mpi_prefix = '/usr/lib/openmpi'`:
   Prefix or paths to MPI headers and libraries. See note above about prefixes.

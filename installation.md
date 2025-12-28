@@ -488,13 +488,28 @@ Edit your options file (`scons/<hostname>_options.py`) to customize:
 
 ### MPI Configuration
 
-To enable MPI, ensure in your options file:
+#### Basic MPI Setup
+
+To enable MPI with auto-detection (recommended):
 
 ```python
-mpi = 'OPENMPI'  # or 'MPICH'
+mpi = 'auto'       # Auto-detect MPI implementation from mpi4py
+mpi4py = True
+```
+
+When `mpi='auto'` is set:
+- If `mpi4py=True`: Automatically detects the MPI implementation (OpenMPI, MPICH, Intel MPI) from your installed mpi4py package
+- If `mpi4py=False`: Sets `mpi='none'` (MPI disabled)
+
+To manually specify the MPI implementation:
+
+```python
+mpi = 'OPENMPI'  # or 'MPICH', 'MPICH2', 'INTELMPI'
 mpi_prefix = '/usr/lib/x86_64-linux-gnu/openmpi'
 mpi_libs = ['mpi_cxx', 'mpi']
 ```
+
+**Important:** When using `mpi4py`, the MPI flavour must match the MPI implementation that mpi4py was compiled against. The build system will verify compatibility and report an error if there's a mismatch.
 
 To disable MPI:
 
@@ -504,13 +519,7 @@ mpi = 'none'
 
 #### Custom MPI Communicators with mpi4py
 
-To enable custom MPI communicator support (allowing you to pass custom MPI communicators from Python to domain factory functions), add to your options file:
-
-```python
-mpi4py = True
-```
-
-When enabled, all domain factory functions (e.g., `Rectangle`, `Brick`, `ReadMesh`, `ReadGmsh`) accept an optional `comm` parameter that takes an mpi4py communicator object:
+When `mpi4py = True` is enabled, all domain factory functions (e.g., `Rectangle`, `Brick`, `ReadMesh`, `ReadGmsh`) accept an optional `comm` parameter that takes an mpi4py communicator object:
 
 ```python
 from mpi4py import MPI

@@ -57,7 +57,7 @@ if not os.path.isfile(options_file):
 ############################### Build options ################################
 
 default_prefix='/usr'
-mpi_flavours=('none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
+mpi_flavours=('auto', 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
 all_domains = ('finley','oxley','ripley','speckley')
 version_info=['0.0','5','6']
 build_trilinos_flavours = ( "check",      # check for unsuccessful make before setting up make
@@ -259,12 +259,65 @@ if env['cc'] != 'default':
 if ( env['cc'] == 'default' and env['cxx'] != 'default') :
     env['CC'] = env['cxx']
 
+# Auto-detect MPI flavour from mpi4py if mpi='auto'
+if env['mpi'] == 'auto':
+    if env['mpi4py']:
+        try:
+            from mpi4py import MPI
+            mpi_version = MPI.Get_library_version()
+            if 'Open MPI' in mpi_version:
+                env['mpi'] = 'OPENMPI'
+                print("Auto-detected MPI flavour from mpi4py: OPENMPI")
+            elif 'MPICH' in mpi_version or 'MVAPICH' in mpi_version:
+                env['mpi'] = 'MPICH'
+                print("Auto-detected MPI flavour from mpi4py: MPICH")
+            elif 'Intel(R) MPI' in mpi_version:
+                env['mpi'] = 'INTELMPI'
+                print("Auto-detected MPI flavour from mpi4py: INTELMPI")
+            else:
+                print("ERROR: Could not auto-detect MPI flavour from mpi4py.")
+                print(f"       MPI library version: {mpi_version}")
+                print("       Please set mpi='OPENMPI', 'MPICH', or 'INTELMPI' explicitly.")
+                Exit(1)
+        except ImportError:
+            print("ERROR: mpi='auto' with mpi4py=True but mpi4py is not installed.")
+            print("       Please install mpi4py or set mpi flavour explicitly.")
+            Exit(1)
+    else:
+        # mpi4py not enabled, disable MPI
+        env['mpi'] = 'none'
+        print("MPI flavour set to 'none' (mpi4py not enabled)")
+
+# Verify MPI flavour matches mpi4py if both are enabled
+if env['mpi4py'] and env['mpi'] != 'none':
+    try:
+        from mpi4py import MPI
+        mpi_version = MPI.Get_library_version()
+        # Check for compatibility
+        if env['mpi'] == 'OPENMPI' and 'Open MPI' not in mpi_version:
+            print(f"ERROR: mpi='OPENMPI' but mpi4py is built against: {mpi_version}")
+            print("       MPI flavour must match mpi4py's MPI implementation.")
+            Exit(1)
+        elif env['mpi'] in ('MPICH', 'MPICH2') and 'MPICH' not in mpi_version and 'MVAPICH' not in mpi_version:
+            print(f"ERROR: mpi='{env['mpi']}' but mpi4py is built against: {mpi_version}")
+            print("       MPI flavour must match mpi4py's MPI implementation.")
+            Exit(1)
+        elif env['mpi'] == 'INTELMPI' and 'Intel(R) MPI' not in mpi_version:
+            print(f"ERROR: mpi='INTELMPI' but mpi4py is built against: {mpi_version}")
+            print("       MPI flavour must match mpi4py's MPI implementation.")
+            Exit(1)
+    except ImportError:
+        print("ERROR: mpi4py=True but mpi4py is not installed.")
+        print("       Please install mpi4py or set mpi4py=False.")
+        Exit(1)
+
 if env['mpi'] == 'OPENMPI':
     env['CXX'] = 'mpic++'
     env['CC'] = 'mpicc'
 
 if env['mpi4py'] and env['mpi'] == 'none':
-    print("mpi4py is switched on but no mpi flavour given (most likely `MPICH`).")
+    print("ERROR: mpi4py is enabled but mpi='none'.")
+    print("       Set mpi='auto' to auto-detect or specify mpi flavour explicitly.")
     Exit(1)
 # set the vars for clang
 def mkclang(env):

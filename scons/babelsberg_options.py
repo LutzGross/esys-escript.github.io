@@ -19,4 +19,20 @@ from templates.ubuntu_options import *
 # MANDATORY: Explicitly set version to ensure SCons recognizes it
 escript_opts_version = 2032
 
-mpi = "none"
+
+# Enable MPI - auto-detect flavour from mpi4py
+mpi = 'auto'
+
+# Enable mpi4py support
+mpi4py = True
+
+# Enable parmetis
+parmetis = True
+parmetis_prefix = ['/usr/include/parmetis', '/usr/lib/x86_64-linux-gnu']
+parmetis_libs = ['parmetis']
+
+# Build Trilinos with MPI support
+build_trilinos = 'make'
+
+# Override cxx_extra to avoid duplicate optimization flags with MPI
+cxx_extra = ['-fdiagnostics-color=always', '-fstack-protector-strong', '-Wformat', '-Werror=format-security']
