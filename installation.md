@@ -502,6 +502,27 @@ To disable MPI:
 mpi = 'none'
 ```
 
+#### Custom MPI Communicators with mpi4py
+
+To enable custom MPI communicator support (allowing you to pass custom MPI communicators from Python to domain factory functions), add to your options file:
+
+```python
+mpi4py = True
+```
+
+When enabled, all domain factory functions (e.g., `Rectangle`, `Brick`, `ReadMesh`, `ReadGmsh`) accept an optional `comm` parameter that takes an mpi4py communicator object:
+
+```python
+from mpi4py import MPI
+from esys.ripley import Rectangle
+
+# Use a custom communicator instead of MPI_COMM_WORLD
+custom_comm = MPI.COMM_WORLD.Split(color=..., key=...)
+domain = Rectangle(10, 10, comm=custom_comm)
+```
+
+If the `comm` parameter is not provided or is `None`, `MPI_COMM_WORLD` is used by default.
+
 ### SymPy Symbolic Module
 
 **Note:** SymPy is a **runtime-only dependency** - it is not needed for compiling C++ code. However, **SymPy must be installed at build time** when `sympy = True` to enable the symbolic module. The build system checks for SymPy availability and sets a feature flag. If SymPy is not found at build time, the symbolic support will be disabled even if SymPy is installed later.

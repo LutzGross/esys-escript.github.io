@@ -150,7 +150,7 @@ Each option is followed by a brief explanation.
   said problem.
 
 - `mpi4py = False`:
-  Whether to build escript with the *mpi4py* library
+  Whether to build escript with the *mpi4py* library. When enabled, allows passing custom MPI communicators to domain factory functions via the `comm` parameter.
   DEFAULT: False
 
 - `cuda = True`:
@@ -198,14 +198,14 @@ Each option is followed by a brief explanation.
 - `umfpack_libs = ['umfpack', 'blas', 'amd']`:
   UMFPACK library/libraries to link against
 
-- `mumps = False`:
-  Whether to add support for the MUMPS direct solver
+- `mumps_seq = False`:
+  Whether to add support for the sequential MUMPS direct solver
 
-- `mumps_prefix = ['/usr/lib']`:
-  Prefix or paths to MUMPS headers and libraries. See note above.
+- `mumps_seq_prefix = ['/usr/lib']`:
+  Prefix or paths to sequential MUMPS headers and libraries. See note above.
 
-- `mumps_libs = ['mumps_common', 'dmumps', 'zmumps']`:
-  MUMPS library/libraries to link against
+- `mumps_seq_libs = ['mumps_common', 'dmumps', 'zmumps']`:
+  Sequential MUMPS library/libraries to link against
 
 
 - `p4est = False`:
