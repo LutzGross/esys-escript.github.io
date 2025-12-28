@@ -71,12 +71,12 @@ if conda_prefix:
     # list comprehension not working with scons?
     # boost_libs = [os.path.splitext(l)[0] for l in os.listdir(boost_prefix + '\\lib')
     #     if l.startswith('boost_python')][-1]
-    mumps = True
-    mumps_prefix = lib_prefix + '\\mingw-w64'
-    ld_extra = ' '.join(filter(None, ('/LIBPATH:"{mp}\\lib" /LIBPATH:"{mp}\\bin"'.format(mp=mumps_prefix), ld_extra)))
+    mumps_seq = True
+    mumps_seq_prefix = lib_prefix + '\\mingw-w64'
+    ld_extra = ' '.join(filter(None, ('/LIBPATH:"{mp}\\lib" /LIBPATH:"{mp}\\bin"'.format(mp=mumps_seq_prefix), ld_extra)))
     ld_extra = ' '.join(filter(None, ('libmumps_common.a libdmumps.dll.a libzmumps.dll.a', ld_extra)))
-#    mumps_libs = ['libmumps_common.a', 'libdmumps.dll.a', 'libzmumps.dll.a']
-    mumps_libs = []
+#    mumps_seq_libs = ['libmumps_common.a', 'libdmumps.dll.a', 'libzmumps.dll.a']
+    mumps_seq_libs = []
     silo_prefix = lib_prefix
     silo_libs = ['silohdf5']
 
