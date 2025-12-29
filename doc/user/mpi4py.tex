@@ -1,0 +1,542 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2025 by The University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Apache License, version 2.0
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%!TEX root = user.tex
+\chapter{Using \mpifo with \escript}
+\label{CHAP:mpi4py}
+
+\section{Introduction}
+
+\mpifo\footnote{\url{https://mpi4py.readthedocs.io/}} is a Python package that provides bindings to the Message Passing Interface (\MPI) standard.
+When \escript is built with \mpifo support enabled, you can use standard \MPI programming techniques directly in your \PYTHON scripts to control how \escript uses parallel resources.
+
+This chapter explains how to use \mpifo to:
+\begin{itemize}
+\item Pass custom \MPI communicators to \escript domains
+\item Run multiple simulations simultaneously on different process groups
+\item Implement ensemble simulations and parameter sweeps
+\item Couple multiple physics domains on separate communicators
+\item Retrieve \MPI communicators from \escript objects for custom communication
+\end{itemize}
+
+\subsection{Why use \mpifo with \escript?}
+
+By default, when \escript runs with multiple \MPI processes, it automatically uses all available processes to solve each PDE.
+This works well for large, high-resolution problems.
+However, there are scenarios where you might want more control:
+
+\begin{enumerate}
+\item \textbf{Ensemble simulations}: Run multiple parameter values simultaneously, each on a smaller group of processes
+\item \textbf{Parameter sweeps}: Explore parameter space by running many simulations in parallel
+\item \textbf{Multi-physics coupling}: Solve different physics on different process groups
+\item \textbf{Uncertainty quantification}: Run multiple realizations of stochastic problems
+\item \textbf{Optimization}: Evaluate multiple trial solutions in parallel
+\end{enumerate}
+
+Using \mpifo gives you direct control over how processes are organized and allows you to implement these patterns using standard \MPI techniques.
+
+\subsection{Requirements}
+
+To use \mpifo with \escript:
+\begin{itemize}
+\item \escript must be built with \texttt{mpi4py=True} in the build configuration
+\item \mpifo must be installed and compiled against the same \MPI implementation as \escript
+\item Use \texttt{mpi='auto'} in the build configuration to automatically detect the correct \MPI implementation
+\end{itemize}
+
+See the \escript installation guide for detailed instructions.
+
+\section{Basic Concepts}
+
+\subsection{MPI Communicators}
+
+An \MPI communicator defines a group of processes that can communicate with each other.
+By default, all processes belong to \texttt{MPI\_COMM\_WORLD}, which includes every process in the job.
+
+In \mpifo, you can access this default communicator:
+\begin{python}
+from mpi4py import MPI
+
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()  # My process rank (0 to size-1)
+size = comm.Get_size()  # Total number of processes
+\end{python}
+
+\subsection{Splitting Communicators}
+
+You can create smaller communicators by splitting \texttt{MPI\_COMM\_WORLD}:
+\begin{python}
+# Split into groups based on color
+color = rank % 2  # Processes with same color go in same group
+sub_comm = comm.Split(color, rank)
+
+# Now sub_comm is a communicator with only part of the processes
+sub_rank = sub_comm.Get_rank()
+sub_size = sub_comm.Get_size()
+\end{python}
+
+Processes with the same \var{color} are grouped together into a new communicator.
+The second argument to \texttt{Split()} determines the rank ordering within each new group.
+
+\section{Passing Communicators to \escript Domains}
+
+All \escript domain constructors accept an optional \var{comm} parameter that allows you to specify which \MPI communicator the domain should use:
+
+\begin{python}
+from mpi4py import MPI
+from esys.ripley import Rectangle
+
+# Create a domain using default MPI_COMM_WORLD
+domain = Rectangle(n0=100, n1=100)
+
+# Or explicitly pass MPI_COMM_WORLD
+domain = Rectangle(n0=100, n1=100, comm=MPI.COMM_WORLD)
+
+# Or use a custom communicator
+sub_comm = MPI.COMM_WORLD.Split(color, rank)
+domain = Rectangle(n0=100, n1=100, comm=sub_comm)
+\end{python}
+
+The \var{comm} parameter is available in all domain types:
+\begin{itemize}
+\item \textbf{Finley}: \texttt{ReadMesh()}, \texttt{ReadGmsh()}, \texttt{Rectangle()}, \texttt{Brick()}
+\item \textbf{Ripley}: \texttt{Rectangle()}, \texttt{Brick()}, \texttt{MultiRectangle()}, \texttt{MultiBrick()}
+\item \textbf{Speckley}: \texttt{Rectangle()}, \texttt{Brick()}
+\item \textbf{Oxley}: \texttt{Rectangle()}, \texttt{Brick()} (requires Trilinos)
+\end{itemize}
+
+\section{Retrieving Communicators from \escript Objects}
+
+You can retrieve the \MPI communicator from any \escript domain, function space, or data object:
+
+\begin{python}
+# From a domain
+domain_comm = domain.getMPIComm()
+
+# From a function space
+fs = ContinuousFunction(domain)
+fs_comm = fs.getMPIComm()
+
+# From a data object
+data = Scalar(1.0, fs)
+data_comm = data.getMPIComm()
+
+# All return the same communicator
+assert MPI.Comm.Compare(domain_comm, fs_comm) == MPI.IDENT
+assert MPI.Comm.Compare(fs_comm, data_comm) == MPI.IDENT
+\end{python}
+
+This allows you to:
+\begin{itemize}
+\item Verify which communicator a domain is using
+\item Perform custom \MPI operations using the domain's communicator
+\item Pass the communicator to other libraries or functions
+\end{itemize}
+
+\textbf{Important}: When comparing \MPI communicators, always use \texttt{MPI.Comm.Compare()}, never use \texttt{==}.
+The comparison returns \texttt{MPI.IDENT} if the communicators are identical, \texttt{MPI.CONGRUENT} if they have the same processes but different contexts, or \texttt{MPI.UNEQUAL} if they differ.
+
+\section{Simple Example: Ensemble Simulation}
+
+This example demonstrates running multiple parameter values in parallel.
+Each process group solves the same problem with a different parameter:
+
+\begin{python}
+from mpi4py import MPI
+from esys.escript import *
+from esys.escript.linearPDEs import LinearPDE
+from esys.ripley import Rectangle
+
+# Get MPI information
+world_comm = MPI.COMM_WORLD
+world_rank = world_comm.Get_rank()
+world_size = world_comm.Get_size()
+
+# Define parameter values to explore
+parameters = [0.1, 0.5, 1.0, 2.0]
+num_params = len(parameters)
+
+# Ensure we have enough processes
+if world_size < num_params:
+    if world_rank == 0:
+        print(f"Need at least {num_params} processes for this example")
+    exit(1)
+
+# Assign each process to a parameter
+param_id = world_rank % num_params
+my_parameter = parameters[param_id]
+
+# Split communicator: processes with same parameter work together
+processes_per_param = world_size // num_params
+group_comm = world_comm.Split(param_id, world_rank)
+
+# Create domain with group communicator
+domain = Rectangle(n0=50, n1=50, comm=group_comm)
+
+# Solve PDE with this parameter value
+pde = LinearPDE(domain)
+x = domain.getX()
+pde.setValue(A=my_parameter*kronecker(2), Y=x[0]*x[1])
+solution = pde.getSolution()
+
+# Each group can now process its result independently
+if group_comm.Get_rank() == 0:
+    result = integrate(solution)
+    print(f"Parameter {my_parameter}: Result = {result}")
+
+# Clean up communicator
+group_comm.Free()
+\end{python}
+
+\textbf{Running this example}:
+\begin{verbatim}
+mpirun -n 8 run-escript ensemble_example.py
+\end{verbatim}
+
+With 8 processes and 4 parameter values, each parameter gets 2 processes.
+All 4 simulations run simultaneously.
+
+\section{Advanced Example: Parameter Sweep}
+
+This example shows a more realistic scenario where different grid resolutions are tested simultaneously:
+
+\begin{python}
+from mpi4py import MPI
+from esys.escript import *
+from esys.escript.linearPDEs import LinearPDE
+from esys.ripley import Rectangle
+import time
+
+world_comm = MPI.COMM_WORLD
+world_rank = world_comm.Get_rank()
+world_size = world_comm.Get_size()
+
+# Grid resolutions to test
+grid_sizes = [
+    (10, 10),   # Coarse
+    (20, 20),   # Medium
+    (40, 40),   # Fine
+    (80, 80),   # Very fine
+]
+num_grids = len(grid_sizes)
+
+# Split into groups
+grid_id = world_rank % num_grids
+nx, ny = grid_sizes[grid_id]
+grid_comm = world_comm.Split(grid_id, world_rank)
+grid_rank = grid_comm.Get_rank()
+
+if world_rank == 0:
+    print(f"Running {num_grids} grid resolutions simultaneously")
+    print(f"Total processes: {world_size}")
+
+# Synchronize before starting
+world_comm.Barrier()
+start_time = time.time()
+
+# Create domain with this grid size
+domain = Rectangle(n0=nx, n1=ny, comm=grid_comm)
+
+# Solve a test problem
+pde = LinearPDE(domain)
+x = domain.getX()
+pde.setValue(A=kronecker(2), Y=exp(-((x[0]-0.5)**2 + (x[1]-0.5)**2)/0.1))
+solution = pde.getSolution()
+
+# Compute result
+result = integrate(solution)
+elapsed = time.time() - start_time
+
+# Leader of each group reports
+if grid_rank == 0:
+    procs = grid_comm.Get_size()
+    print(f"Grid {nx}x{ny} ({procs} proc): "
+          f"time={elapsed:.4f}s, result={result:.6f}")
+
+# Gather all results to rank 0
+all_results = world_comm.gather((nx, ny, elapsed, result), root=0)
+
+if world_rank == 0:
+    print("\nSummary:")
+    print("  Grid Size  |  Time (s)  |   Result")
+    print("-" * 42)
+    for i in range(0, len(all_results), world_size // num_grids):
+        nx, ny, t, r = all_results[i]
+        print(f"  {nx:3d} x {ny:3d}   |   {t:6.4f}   |  {r:8.6f}")
+
+grid_comm.Free()
+\end{python}
+
+\section{Multi-Physics Example}
+
+This example demonstrates coupling different physics on separate communicators:
+
+\begin{python}
+from mpi4py import MPI
+from esys.escript import *
+from esys.escript.linearPDEs import LinearPDE
+from esys.ripley import Rectangle
+
+world_comm = MPI.COMM_WORLD
+world_rank = world_comm.Get_rank()
+world_size = world_comm.Get_size()
+
+# Decide which physics this process will compute
+# Assign first half to thermal, second half to mechanical
+is_thermal = (world_rank < world_size // 2)
+
+if is_thermal:
+    physics_id = 0  # Thermal physics
+    physics_name = "Thermal"
+else:
+    physics_id = 1  # Mechanical physics
+    physics_name = "Mechanical"
+
+# Create separate communicators
+physics_comm = world_comm.Split(physics_id, world_rank)
+physics_rank = physics_comm.Get_rank()
+physics_size = physics_comm.Get_size()
+
+# Create domain on physics-specific communicator
+domain = Rectangle(n0=50, n1=50, comm=physics_comm)
+
+if physics_id == 0:  # Thermal solver
+    pde = LinearPDE(domain)
+    x = domain.getX()
+    # Thermal diffusion equation
+    pde.setValue(A=kronecker(2), Y=100.0)
+    temperature = pde.getSolution()
+
+    if physics_rank == 0:
+        avg_temp = integrate(temperature)
+        print(f"Thermal solver ({physics_size} proc): "
+              f"Average temperature = {avg_temp}")
+
+        # Send result to mechanical solver
+        world_comm.send(avg_temp, dest=world_size//2, tag=100)
+
+else:  # Mechanical solver
+    pde = LinearPDE(domain)
+    x = domain.getX()
+
+    # Receive temperature from thermal solver
+    if physics_rank == 0:
+        avg_temp = world_comm.recv(source=0, tag=100)
+        print(f"Mechanical solver received temperature: {avg_temp}")
+    else:
+        avg_temp = None
+
+    # Broadcast within mechanical group
+    avg_temp = physics_comm.bcast(avg_temp, root=0)
+
+    # Solve mechanical problem with thermal coupling
+    pde.setValue(A=kronecker(2), Y=avg_temp*x[0])
+    displacement = pde.getSolution()
+
+    if physics_rank == 0:
+        avg_disp = integrate(displacement)
+        print(f"Mechanical solver ({physics_size} proc): "
+              f"Average displacement = {avg_disp}")
+
+physics_comm.Free()
+\end{python}
+
+\section{Best Practices}
+
+\subsection{Communicator Management}
+
+Always free custom communicators when you're done with them:
+\begin{python}
+sub_comm = MPI.COMM_WORLD.Split(color, rank)
+# ... use sub_comm ...
+sub_comm.Free()  # Important: free when done
+\end{python}
+
+Do \textbf{not} free \texttt{MPI.COMM\_WORLD} or communicators returned by \texttt{getMPIComm()}, as these are managed by the system.
+
+\subsection{Synchronization}
+
+Use barriers when you need to synchronize across groups:
+\begin{python}
+# Synchronize within a group
+group_comm.Barrier()
+
+# Synchronize all processes
+MPI.COMM_WORLD.Barrier()
+\end{python}
+
+\subsection{Error Handling}
+
+Exceptions in one process group won't automatically propagate to others.
+Consider using \MPI collective operations to detect and handle errors:
+
+\begin{python}
+try:
+    # Solve PDE
+    solution = pde.getSolution()
+    error_code = 0
+except Exception as e:
+    print(f"Rank {rank} error: {e}")
+    error_code = 1
+
+# Check if any process had an error
+global_error = group_comm.allreduce(error_code, op=MPI.MAX)
+if global_error != 0:
+    print(f"Group {group_id} had errors")
+\end{python}
+
+\subsection{Load Balancing}
+
+When splitting into groups, ensure each group has sufficient resources:
+\begin{python}
+# Good: evenly divides processes
+num_groups = 4
+group_id = rank // (world_size // num_groups)
+
+# Bad: might create groups with different sizes
+group_id = rank % num_groups  # Only works if size divisible by num_groups
+\end{python}
+
+\section{Comparison with SplitWorld}
+
+\escript's \texttt{SplitWorld} class (Chapter~\ref{CHAP:subworld}) provides similar functionality but with a higher-level interface.
+
+\begin{center}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Feature} & \textbf{mpi4py} & \textbf{SplitWorld} \\
+\hline
+Flexibility & Full \MPI control & Predefined patterns \\
+Learning curve & Requires \MPI knowledge & Easier for beginners \\
+Communicator control & Direct access & Abstracted \\
+Custom communication & Easy & Limited \\
+Standard MPI & Yes & No \\
+Interoperability & Works with other libraries & \escript-specific \\
+\hline
+\end{tabular}
+\end{center}
+
+\textbf{When to use mpi4py}:
+\begin{itemize}
+\item You need fine-grained control over process organization
+\item You want to integrate with other \MPI-based libraries
+\item You're familiar with \MPI programming
+\item You need custom communication patterns
+\end{itemize}
+
+\textbf{When to use SplitWorld}:
+\begin{itemize}
+\item You want a simple, high-level interface
+\item You're running straightforward ensemble simulations
+\item You don't need custom \MPI operations
+\end{itemize}
+
+\section{Performance Considerations}
+
+\subsection{Process Group Size}
+
+Each domain needs enough processes to solve efficiently:
+\begin{itemize}
+\item Very small groups (1-2 processes) may not parallelize well
+\item Very large groups waste resources on small problems
+\item Experiment to find the optimal group size for your problem
+\end{itemize}
+
+\subsection{Communication Overhead}
+
+Minimize communication between process groups:
+\begin{itemize}
+\item Use group-local operations when possible
+\item Reduce data before sending between groups
+\item Consider asynchronous communication (\texttt{isend/irecv})
+\end{itemize}
+
+\subsection{Load Balancing}
+
+Ensure all groups have similar workloads:
+\begin{itemize}
+\item Groups with different problem sizes finish at different times
+\item The slowest group determines overall runtime
+\item Use dynamic work distribution for highly variable problems
+\end{itemize}
+
+\section{Advanced Topics}
+
+\subsection{Custom Topologies}
+
+Create communicators with specific topologies:
+\begin{python}
+# Cartesian topology for structured grids
+dims = [2, 2]  # 2x2 process grid
+periods = [False, False]  # Non-periodic boundaries
+cart_comm = comm.Create_cart(dims, periods=periods)
+
+# Use in escript domain
+domain = Rectangle(n0=100, n1=100, comm=cart_comm)
+\end{python}
+
+\subsection{Interoperability}
+
+The communicators work with other \MPI-based Python libraries:
+\begin{python}
+# Use with mpi4py
+comm = domain.getMPIComm()
+
+# Send data using standard MPI
+if comm.Get_rank() == 0:
+    data = numpy.array([1.0, 2.0, 3.0])
+    comm.Send(data, dest=1, tag=11)
+\end{python}
+
+\subsection{Fault Tolerance}
+
+Handle communicator-specific failures:
+\begin{python}
+try:
+    solution = pde.getSolution()
+    success = 1
+except:
+    success = 0
+
+# Check if all processes succeeded
+all_success = group_comm.allreduce(success, op=MPI.MIN)
+if all_success == 0:
+    # At least one process failed
+    if group_rank == 0:
+        print(f"Group {group_id} failed")
+\end{python}
+
+\section{Summary}
+
+Using \mpifo with \escript provides:
+\begin{itemize}
+\item Direct control over parallel resource allocation
+\item Standard \MPI programming techniques
+\item Flexibility for complex parallel patterns
+\item Interoperability with other \MPI libraries
+\item Fine-grained performance tuning
+\end{itemize}
+
+Key capabilities:
+\begin{itemize}
+\item Pass custom communicators to domains via \var{comm} parameter
+\item Retrieve communicators via \texttt{getMPIComm()}
+\item Run ensemble simulations and parameter sweeps
+\item Implement multi-physics coupling
+\item Use standard \MPI collective operations
+\end{itemize}
+
+For more information:
+\begin{itemize}
+\item \mpifo documentation: \url{https://mpi4py.readthedocs.io/}
+\item \MPI standard: \url{https://www.mpi-forum.org/}
+\item \escript examples directory: \texttt{doc/examples/}
+\end{itemize}
