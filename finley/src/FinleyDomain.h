@@ -366,6 +366,10 @@ public:
 
     MPI_Comm getMPIComm() const { return m_mpiInfo->comm; }
 
+    boost::python::object getMPICommPython() const {
+        return escript::makePyCommFromMPI(m_mpiInfo->comm);
+    }
+
     /**
      \brief
      writes the current mesh to a file with the given name in the fly file

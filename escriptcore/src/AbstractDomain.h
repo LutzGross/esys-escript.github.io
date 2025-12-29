@@ -31,8 +31,6 @@
 
 #ifdef ESYS_HAVE_MPI4PY
 #include <mpi4py/mpi4py.h>
-#include <mpi4py/mpi4py.MPI.h>
-#include <mpi4py/mpi4py.MPI_api.h>
 #endif
 
 #include <vector>
@@ -110,6 +108,14 @@ public:
        Routine must be implemented by the DomainAdapter.
     */
     virtual MPI_Comm getMPIComm() const = 0;
+
+    /**
+       \brief
+       get the communicator for this domain as a Python mpi4py.MPI.Comm object.
+       Returns None if MPI or mpi4py support is not enabled.
+       This allows Python code to retrieve the domain's communicator.
+    */
+    virtual boost::python::object getMPICommPython() const = 0;
 
     /**
        \brief

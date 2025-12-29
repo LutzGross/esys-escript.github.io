@@ -79,7 +79,7 @@ RipleyDomain::RipleyDomain(dim_t dim) :
     m_numDim(dim),
     m_status(0)
 {
-    m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
+    m_mpiInfo = escript::makeInfo(MPI_COMM_SELF);
     assembler_type = DEFAULT_ASSEMBLER;
 }
 

@@ -32,12 +32,6 @@
 #include <omp.h>
 #endif
 
-#ifdef ESYS_HAVE_MPI4PY
-#include <mpi4py/mpi4py.h>
-#include <mpi4py/mpi4py.MPI.h>
-#include <mpi4py/mpi4py.MPI_api.h>
-#endif
-
 #ifdef ESYS_MPI
 #include <mpi.h>
 
@@ -67,6 +61,10 @@
    // end MPI_op
 
 #endif // ESYS_MPI
+
+#ifdef ESYS_HAVE_MPI4PY
+#include <mpi4py/mpi4py.h>
+#endif
 
 namespace escript {
 
@@ -112,6 +110,11 @@ JMPI makeInfo(MPI_Comm comm, bool owncom=false);
 /// requires ESYS_HAVE_MPI4PY to be enabled for custom communicators
 ESCRIPT_DLL_API
 JMPI makeInfoFromPyComm(boost::python::object py_comm);
+
+/// converts an MPI_Comm to a Python mpi4py.MPI.Comm object
+/// Returns None if MPI is not enabled or mpi4py is not available
+ESCRIPT_DLL_API
+boost::python::object makePyCommFromMPI(MPI_Comm comm);
 
 class ESCRIPT_DLL_API JMPI_
 {

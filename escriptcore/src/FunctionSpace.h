@@ -61,6 +61,14 @@ public:
     Domain_ptr getDomainPython() const;
 
     /**
+      \brief Returns the MPI communicator for this function space's domain
+             as a Python mpi4py.MPI.Comm object (or None if MPI/mpi4py not enabled)
+    */
+    boost::python::object getMPIComm() const {
+        return getDomain()->getMPICommPython();
+    }
+
+    /**
       \brief Returns true if this function space support tags
     */
     bool canTag() const;

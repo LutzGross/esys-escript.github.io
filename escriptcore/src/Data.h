@@ -505,6 +505,18 @@ contains datapoints.
 
   /**
      \brief
+     Returns the MPI communicator for this data's domain
+     as a Python mpi4py.MPI.Comm object (or None if MPI/mpi4py not enabled)
+  */
+  inline
+  boost::python::object
+  getMPIComm() const
+  {
+     return getFunctionSpace().getMPIComm();
+  }
+
+  /**
+     \brief
      Return the rank of the point data.
   */
   inline

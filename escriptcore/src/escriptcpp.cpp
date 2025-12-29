@@ -248,6 +248,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
         ":rtype: ``int``")
      .def("getMPIRank",&escript::AbstractDomain::getMPIRank,":return: the rank of this process\n"
         ":rtype: ``int``")
+     .def("getMPIComm",&escript::AbstractDomain::getMPICommPython,":return: the MPI communicator for this domain as an mpi4py.MPI.Comm object (or None if MPI/mpi4py not enabled)\n"
+        ":rtype: mpi4py.MPI.Comm or None")
      .def("MPIBarrier",&escript::AbstractDomain::MPIBarrier,"Wait until all processes have reached this point")
      .def("onMasterProcessor",&escript::AbstractDomain::onMasterProcessor,":return: True if this code is executing on the master process\n"
         ":rtype: `bool`")
@@ -434,6 +436,8 @@ args("arg"), "assigns new location to the domain\n\n"
 //                  return_internal_reference<>());
   fs_definer.def("getDomain",&escript::FunctionSpace::getDomainPython,":return: the underlying `Domain` for this FunctionSpace.\n"
         ":rtype: `Domain`");
+  fs_definer.def("getMPIComm",&escript::FunctionSpace::getMPIComm,":return: the MPI communicator for this function space's domain as an mpi4py.MPI.Comm object (or None if MPI/mpi4py not enabled)\n"
+        ":rtype: mpi4py.MPI.Comm or None");
   fs_definer.def("getX",&escript::FunctionSpace::getX,"\n"
         ":return: a function whose values are its input coordinates. ie an identity function.\n"
         ":rtype: `Data`");
@@ -479,6 +483,8 @@ args("arg"), "assigns new location to the domain\n\n"
     .def("__str__",&escript::Data::toString)
     .def("getDomain",&escript::Data::getDomainPython,":rtype: `Domain`")
     .def("getFunctionSpace",&escript::Data::getFunctionSpace,return_value_policy<copy_const_reference>(),":rtype: `FunctionSpace`")
+    .def("getMPIComm",&escript::Data::getMPIComm,":return: the MPI communicator for this data's domain as an mpi4py.MPI.Comm object (or None if MPI/mpi4py not enabled)\n"
+        ":rtype: mpi4py.MPI.Comm or None")
     .def("getX",&escript::Data::getXFromFunctionSpace,
         "Returns the spatial coordinates of the spatial nodes.\n"
         ":rtype: `Data`")

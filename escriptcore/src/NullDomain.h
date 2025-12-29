@@ -53,6 +53,10 @@ public:
     virtual bool onMasterProcessor() const { return true; }
     virtual MPI_Comm getMPIComm() const { return MPI_COMM_WORLD; }
 
+    virtual boost::python::object getMPICommPython() const {
+        return makePyCommFromMPI(MPI_COMM_WORLD);
+    }
+
     virtual bool isValidFunctionSpaceType(int fsCode) const {
         return fsCode==NullDomainFS;
     }

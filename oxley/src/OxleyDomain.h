@@ -195,6 +195,10 @@ public:
     */
     MPI_Comm getMPIComm() const { return m_mpiInfo->comm; }
 
+    boost::python::object getMPICommPython() const {
+        return escript::makePyCommFromMPI(m_mpiInfo->comm);
+    }
+
     /**
        \brief
        returns true if the argument is a valid function space type for this

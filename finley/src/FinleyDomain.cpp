@@ -209,10 +209,11 @@ void FinleyDomain::dump(const string& fileName) const
     H5::DataType h5_type_double = H5::PredType::NATIVE_DOUBLE;
     #ifdef ESYS_MPI
     MPI_Status status;
+    int dummy = 0;
     #endif
     #ifdef ESYS_MPI
         if (mpi_rank > 0)
-            MPI_Recv(&num_Tags, 0, MPI_INT, mpi_rank-1, 81800, getMPIComm(), &status);
+            MPI_Recv(&dummy, 1, MPI_INT, mpi_rank-1, 81800, getMPIComm(), &status);
     #endif
     try
     {
@@ -325,7 +326,7 @@ void FinleyDomain::dump(const string& fileName) const
     {
         #ifdef ESYS_MPI
         if (mpi_rank < mpi_size-1)
-            MPI_Send(&num_Tags, 0, MPI_INT, mpi_rank+1, 81800, getMPIComm());
+            MPI_Send(&dummy, 1, MPI_INT, mpi_rank+1, 81800, getMPIComm());
         #endif
         error.printErrorStack();
         throw FinleyException("Error - DataConstant:: creating HDF5 file failed.");
@@ -333,7 +334,7 @@ void FinleyDomain::dump(const string& fileName) const
     // pass the MPI token:
     #ifdef ESYS_MPI
         if (mpi_rank < mpi_size-1)
-            MPI_Send(&num_Tags, 0, MPI_INT, mpi_rank+1, 81800, getMPIComm());
+            MPI_Send(&dummy, 1, MPI_INT, mpi_rank+1, 81800, getMPIComm());
     #endif
 #else
     throw FinleyException("FinleyDomain::dump: not configured with NDF5. Please contact your installation manager.");
