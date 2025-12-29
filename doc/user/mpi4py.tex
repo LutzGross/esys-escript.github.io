@@ -275,6 +275,114 @@ if world_rank == 0:
 grid_comm.Free()
 \end{python}
 
+\section{Master-Slave Pattern Example}
+
+The master-slave pattern is useful when you have a collection of independent tasks to distribute among worker processes. One process (the master) manages task distribution and result collection, while other processes (slaves) compute results.
+
+This example shows how to use a master-slave pattern to solve magnetotelluric (MT) problems for multiple frequencies:
+
+\begin{python}
+from mpi4py import MPI
+from esys.escript import *
+from esys.finley import Rectangle
+from esys.escript.linearPDEs import LinearSinglePDE
+import numpy as np
+
+comm_world = MPI.COMM_WORLD
+rank = comm_world.Get_rank()
+size = comm_world.Get_size()
+
+def solve_MT_for_frequency(freq):
+    """Solve MT problem using MPI.COMM_SELF (single process)"""
+    # Create independent domain
+    domain = Rectangle(n0=200, n1=100, l0=40000, l1=20000,
+                      comm=MPI.COMM_SELF)
+
+    # Setup PDE (complex-valued for frequency domain)
+    pde = LinearSinglePDE(domain, isComplex=True)
+    Mu0 = 4*np.pi*1e-7
+    pde.setValue(D=1j*2*np.pi*freq*Mu0)
+
+    # Set resistivity and boundary conditions
+    # (simplified - see full example for details)
+    pde.setValue(A=100*kronecker(2))  # 100 Ohm-m
+    x = domain.getX()
+    pde.setValue(q=whereZero(x[1]-20000), r=1)
+
+    # Solve and return impedance
+    Hx = pde.getSolution()
+    return integrate(abs(Hx))
+
+if rank == 0:
+    # MASTER PROCESS
+    frequencies = np.logspace(-1, 1, 10)  # 0.1 to 10 Hz
+    results = []
+    tasks_sent = 0
+    tasks_received = 0
+
+    # Send initial tasks to slaves
+    for slave in range(1, min(size, len(frequencies)+1)):
+        if tasks_sent < len(frequencies):
+            comm_world.send(frequencies[tasks_sent], dest=slave, tag=1)
+            tasks_sent += 1
+
+    # Receive results and send more tasks
+    while tasks_received < len(frequencies):
+        # Receive result from any slave
+        status = MPI.Status()
+        result = comm_world.recv(source=MPI.ANY_SOURCE, tag=2,
+                                status=status)
+        slave = status.Get_source()
+        results.append(result)
+        tasks_received += 1
+
+        # Send next task if available
+        if tasks_sent < len(frequencies):
+            comm_world.send(frequencies[tasks_sent], dest=slave, tag=1)
+            tasks_sent += 1
+
+    # Send termination signal
+    for slave in range(1, size):
+        comm_world.send(None, dest=slave, tag=1)
+
+    print(f"Completed {len(results)} frequencies")
+
+else:
+    # SLAVE PROCESS
+    while True:
+        # Receive task from master
+        freq = comm_world.recv(source=0, tag=1)
+
+        # Check for termination
+        if freq is None:
+            break
+
+        # Solve problem
+        result = solve_MT_for_frequency(freq)
+
+        # Send result back
+        comm_world.send((freq, result), dest=0, tag=2)
+
+comm_world.Barrier()
+\end{python}
+
+\textbf{Key features of this pattern}:
+\begin{itemize}
+\item \textbf{Dynamic load balancing}: Master assigns tasks as slaves become available
+\item \textbf{Independent domains}: Each slave uses \texttt{MPI.COMM\_SELF} for its own domain
+\item \textbf{Asynchronous communication}: \texttt{MPI.ANY\_SOURCE} allows receiving from any slave
+\item \textbf{Scalability}: Works with any number of slave processes
+\end{itemize}
+
+\textbf{Running this example}:
+\begin{verbatim}
+mpirun -n 11 run-escript mt_master_slave.py
+\end{verbatim}
+
+This runs with 1 master and 10 slaves, solving 10 frequencies efficiently. If more slaves than tasks are available, some slaves will be idle.
+
+A complete working example (\texttt{MT\_master\_slave.py}) is provided in the \texttt{doc/examples/usersguide/} directory.
+
 \section{Multi-Physics Example}
 
 This example demonstrates coupling different physics on separate communicators:
