@@ -32,7 +32,10 @@ parmetis_prefix = ['/usr/include/parmetis', '/usr/lib/x86_64-linux-gnu']
 parmetis_libs = ['parmetis']
 
 # Build Trilinos with MPI support
-build_trilinos = 'make'
+build_trilinos = 'always'
+
+# Exclude oxley since it requires Trilinos
+domains = ['finley', 'ripley', 'speckley']
 
 # Override cxx_extra to avoid duplicate optimization flags with MPI
 cxx_extra = ['-fdiagnostics-color=always', '-fstack-protector-strong', '-Wformat', '-Werror=format-security']

@@ -101,7 +101,7 @@ void SystemMatrix<double>::solve(double* out, double* in, Options* options) cons
             options->converged = false;
             options->time = escript::gettime();
             Performance_startMonitor(&pp, PERFORMANCE_ALL);
-            MUMPS_solve(mainBlock, out, in, options->refinements, options->verbose);
+            MUMPS_solve(mainBlock, out, in, options->refinements, options->verbose, mpi_info);
             solver_package = PASO_MUMPS;
             Performance_stopMonitor(&pp, PERFORMANCE_ALL);
             options->time = escript::gettime()-options->time;
@@ -166,7 +166,7 @@ void SystemMatrix<cplx_t>::solve(cplx_t* out, cplx_t* in, Options* options) cons
             options->converged = false;
             options->time = escript::gettime();
             Performance_startMonitor(&pp, PERFORMANCE_ALL);
-            MUMPS_solve(mainBlock, out, in, options->refinements, options->verbose);
+            MUMPS_solve(mainBlock, out, in, options->refinements, options->verbose, mpi_info);
             solver_package = PASO_MUMPS;
             Performance_stopMonitor(&pp, PERFORMANCE_ALL);
             options->time = escript::gettime()-options->time;

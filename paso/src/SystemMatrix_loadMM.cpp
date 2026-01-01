@@ -107,7 +107,7 @@ SystemMatrix_ptr<double> SystemMatrix<double>::loadMM_toCSR(const char *filename
     SystemMatrix_ptr<double> out;
     int curr_row;
     MM_typecode matrixCode;
-    escript::JMPI mpi_info = escript::makeInfo(MPI_COMM_WORLD);
+    escript::JMPI mpi_info = escript::makeInfo(MPI_COMM_SELF);
     if (mpi_info->size > 1) {
         throw PasoException("SystemMatrix::loadMM_toCSR: supports single processor only");
     }
@@ -211,7 +211,7 @@ SystemMatrix_ptr<double> SystemMatrix<double>::loadMM_toCSC(const char* filename
     double *val = NULL;
     int curr_col=0;
     MM_typecode matrixCode;
-    escript::JMPI mpi_info = escript::makeInfo(MPI_COMM_WORLD);
+    escript::JMPI mpi_info = escript::makeInfo(MPI_COMM_SELF);
     if (mpi_info->size > 1) {
         throw PasoException("SystemMatrix::loadMM_toCSC: supports single processor only");
     }

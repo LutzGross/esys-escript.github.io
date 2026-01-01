@@ -433,7 +433,7 @@ def main():
         vlog("Pre-launch command: '"+prelaunch+"'")
         subprocess.call(prelaunch, shell=True, env=export_env)
 
-    launch = fixEnvVars('${EXEC_CMD}')
+    launch = fixEnvVars('mpirun ${AGENTOVERRIDE} --gmca mpi_warn_on_fork 0 ${EE} --host ${HOSTLIST} --map-by node:pe=${ESCRIPT_NUM_THREADS} -bind-to core -np ${TOTPROC} ${EXEC_CMD}')
     if len(launch) > 0:
         vlog("Launch command: '"+launch+"'")
         exit_code = subprocess.call(launch, shell=True, env=export_env)

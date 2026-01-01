@@ -34,11 +34,19 @@ example_files_allow_mpi = []
 example_files_no_mpi = []
 example_deps = []
 skipped_tests = []
+example_metadata = {}  # Store metadata for each example
 
-def sortOutExample(name, needsMPL=False, needsMagicMPL=False, needsGD=False, allowsMPI=True):
+def sortOutExample(name, needsMPL=False, needsMagicMPL=False, needsGD=False, allowsMPI=True,
+                   minMPISize=1, requiresMPI4py=False):
     if needsMagicMPL: needsMPL=True
     if needsGD: needsMPL=True
 
+    # Store metadata for this example
+    example_metadata[name] = {
+        'minMPISize': minMPISize,
+        'requiresMPI4py': requiresMPI4py,
+        'needsMPL': needsMPL
+    }
 
     if  (not needsMPL or haveMPL):
         if allowsMPI:
@@ -68,6 +76,7 @@ sortOutExample('usersguide/simpletest.py')
 sortOutExample('usersguide/rosenbrock.py', allowsMPI=False)
 sortOutExample('usersguide/inclusion.py')
 sortOutExample('usersguide/MT.py', allowsMPI=False)
+sortOutExample('usersguide/MT_master_slave.py', allowsMPI=True, minMPISize=2, requiresMPI4py=True)
 
 # Supporting files for examples
 example_deps.append('usersguide/simplemesh.msh')      # for simpletest.py
@@ -147,4 +156,4 @@ local_env.SConscript(dirs = ['#/doc/user'], variant_dir='user', duplicate=1)
 #local_env.SConscript(dirs = ['#/doc/epydoc'], variant_dir='epydoc', duplicate=1)
 local_env.SConscript(dirs = ['#/doc/sphinx_api'], variant_dir='sphinx_api', duplicate=1)
 local_env.SConscript(dirs = ['#/doc/doxygen'], variant_dir='doxygen', duplicate=1)
-local_env.SConscript(dirs = ['#/doc/examples'], variant_dir='examples', duplicate=1, exports=['example_files_allow_mpi', 'example_files_no_mpi', 'example_deps'])
+local_env.SConscript(dirs = ['#/doc/examples'], variant_dir='examples', duplicate=1, exports=['example_files_allow_mpi', 'example_files_no_mpi', 'example_deps', 'example_metadata'])

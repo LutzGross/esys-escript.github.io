@@ -29,7 +29,8 @@ class GroupTest(object):
     _allfuncs = []
     repEnv = None
 
-    def __init__(self, name, exec_cmd, evars, python_dir, working_dir, test_list, single_process_tests=[]):
+    def __init__(self, name, exec_cmd, evars, python_dir, working_dir, test_list, single_process_tests=[],
+                 test_metadata={}, single_process_metadata={}):
         self.name=name
         self.python_dir=python_dir
         self.working_dir=working_dir
@@ -38,6 +39,8 @@ class GroupTest(object):
         self.evars=evars
         self.mkdirs=[]
         self.single_process_tests=single_process_tests
+        self.test_metadata=test_metadata
+        self.single_process_metadata=single_process_metadata
         self._allfuncs.append(name)
         if IS_WINDOWS:
             self.exec_cmd = self.setWinEnvs(self.exec_cmd)
@@ -53,6 +56,59 @@ class GroupTest(object):
         if IS_WINDOWS:
             dirname = self.setWinEnvs(dirname)
         self.mkdirs.append(dirname)
+
+    def getSkipCondition(self, test_name, metadata_dict, is_bash=True):
+        """
+        Generate shell code to check if a test should be skipped.
+        Returns tuple: (condition_check, skip_message)
+        """
+        if test_name not in metadata_dict:
+            return (None, None)
+
+        metadata = metadata_dict[test_name]
+        conditions = []
+        messages = []
+
+        # Check minimum MPI size
+        minMPISize = metadata.get('minMPISize', 1)
+        if minMPISize > 1:
+            if is_bash:
+                conditions.append(f"$MPIPROD -lt {minMPISize}")
+                messages.append(f"Skipping {test_name}: requires at least {minMPISize} MPI processes (have $MPIPROD)")
+            else:
+                conditions.append(f"MPIPROD < {minMPISize}")
+                messages.append(f"Skipping {test_name}: requires at least {minMPISize} MPI processes (have {{MPIPROD}})")
+
+        # Check mpi4py requirement
+        if metadata.get('requiresMPI4py', False):
+            if is_bash:
+                # Note: This generates a special marker that needs custom handling
+                conditions.append("NEED_MPI4PY")
+                messages.append(f"Skipping {test_name}: requires mpi4py")
+            else:
+                conditions.append("not_have_mpi4py")
+                messages.append(f"Skipping {test_name}: requires mpi4py")
+
+        if not conditions:
+            return (None, None)
+
+        if is_bash:
+            # Build condition parts
+            cond_parts = []
+            for c in conditions:
+                if c == "NEED_MPI4PY":
+                    # This needs to be checked as a variable
+                    cond_parts.append("\"$SKIP_NO_MPI4PY\" = \"true\"")
+                else:
+                    cond_parts.append(c)
+            # Combine all conditions in a single [ ] bracket
+            condition = "[ " + " -o ".join(cond_parts) + " ]"
+            skip_msg = f"Skipping {test_name}: " + ", ".join([m.split(": ", 1)[1] for m in messages])
+        else:
+            condition = " or ".join(conditions)
+            skip_msg = f"Skipping {test_name}: " + ", ".join([m.split(": ", 1)[1] for m in messages])
+
+        return (condition, skip_msg)
 
     def setWinEnvs(self,path):
         if self.repEnv is None:
@@ -95,6 +151,12 @@ do
     esac
 done
 MPIPROD=$(($NUMPROCS * $NUMNODES))
+
+# Check if mpi4py is available
+SKIP_NO_MPI4PY=false
+if ! python3 -c 'import mpi4py' 2>/dev/null; then
+    SKIP_NO_MPI4PY=true
+fi
 """
         res+="BUILD_DIR=$1"+"/"+build_platform
         res+="\nif [ ! -d $BUILD_DIR ]\nthen\n    echo Can not find build directory $BUILD_DIR\n     exit 2\nfi\n" 
@@ -140,6 +202,14 @@ PYTHONTESTRUNNER="{0}/bin/run-escript $2 {0}/tools/testrunner.py"
             #res+=tt+'if [ "$MPITYPE" == "mpi=none" ]; then\n'
             tt+="\t"
             for t in self.single_process_tests:
+                # Check if test should be skipped
+                skip_condition, skip_msg = self.getSkipCondition(t, self.single_process_metadata, is_bash=True)
+                if skip_condition:
+                    res += tt+"if "+skip_condition+"; then\n"
+                    res += tt+"\techo \""+skip_msg+"\"\n"
+                    res += tt+"else\n"
+                    tt += "\t"
+
                 res=res+tt+"echo Starting "+t+"\n"+tt+"date\n"
                 skipoutputfile = ""
                 failoutputfile = ""
@@ -152,9 +222,22 @@ PYTHONTESTRUNNER="{0}/bin/run-escript $2 {0}/tools/testrunner.py"
                     cmd = cmd.replace("PYTHONRUNNER", "PYTHONTESTRUNNER")
                 res += "".join([tt, cmd, t, failoutputfile, skipoutputfile, exit_on_failure, "\n"])
                 res += tt+"echo Completed "+t+"\n"
+
+                if skip_condition:
+                    tt = tt[:-1]  # Remove one tab
+                    res += tt+"fi\n"
+
             tt="\t"
             res+=tt+"fi\n"
         for t in self.test_list:
+            # Check if test should be skipped
+            skip_condition, skip_msg = self.getSkipCondition(t, self.test_metadata, is_bash=True)
+            if skip_condition:
+                res += tt+"if "+skip_condition+"; then\n"
+                res += tt+"\techo \""+skip_msg+"\"\n"
+                res += tt+"else\n"
+                tt += "\t"
+
             res=res+tt+"echo Starting "+t+"\n"+tt+"date\n"
             skipoutputfile = ""
             failoutputfile = ""
@@ -167,6 +250,10 @@ PYTHONTESTRUNNER="{0}/bin/run-escript $2 {0}/tools/testrunner.py"
                 cmd = cmd.replace("PYTHONRUNNER", "PYTHONTESTRUNNER")
             res += "".join([tt, cmd, t, failoutputfile, skipoutputfile, exit_on_failure, "\n"])
             res += tt+"echo Completed "+t+"\n"
+
+            if skip_condition:
+                tt = tt[:-1]  # Remove one tab
+                res += tt+"fi\n"
         res=res+"}\n"
         return res
     
@@ -237,6 +324,13 @@ if not os.path.isdir(build_dir):
     print("Can not find build directory "+build_dir)
     exit(2)
 
+# Check if mpi4py is available
+not_have_mpi4py = False
+try:
+    import mpi4py
+except ImportError:
+    not_have_mpi4py = True
+
 os.environ['BUILD_DIR'] = build_dir
 os.environ['BATCH_ROOT'] = os.getcwd()
 run_args = '' if len(args) < 2 else args[1]
@@ -282,6 +376,14 @@ else:
             res += tt+'if MPIPROD <= 1:\n'
             tt += '    '
             for t in self.single_process_tests:
+                # Check if test should be skipped
+                skip_condition, skip_msg = self.getSkipCondition(t, self.single_process_metadata, is_bash=False)
+                if skip_condition:
+                    res += tt+"if "+skip_condition+":\n"
+                    res += tt+"    print('"+skip_msg+"')\n"
+                    res += tt+"else:\n"
+                    tt += '    '
+
                 res += tt+"print('Starting "+t+"\\n'+now())\n"+tt+"sys.stdout.flush()\n"
                 skipoutputfile = ''
                 failoutputfile = ''
@@ -294,8 +396,19 @@ else:
                 res += tt+"if subprocess.call(r'"+cmd+t+failoutputfile+skipoutputfile+"', shell=True) != 0:\n"
                 res += tt+tt+"failed(r'"+t+"')\n"
                 res += tt+"print('Completed "+t+"')\n"
+
+                if skip_condition:
+                    tt = tt[:-4]  # Remove 4 spaces
             tt = '    '
         for t in self.test_list:
+            # Check if test should be skipped
+            skip_condition, skip_msg = self.getSkipCondition(t, self.test_metadata, is_bash=False)
+            if skip_condition:
+                res += tt+"if "+skip_condition+":\n"
+                res += tt+"    print('"+skip_msg+"')\n"
+                res += tt+"else:\n"
+                tt += '    '
+
             res += tt+"print('Starting "+t+"\\n'+now())\n"+tt+"sys.stdout.flush()\n"
             skipoutputfile = ''
             failoutputfile = ''
@@ -308,6 +421,9 @@ else:
             res += tt+"if subprocess.call(r'"+cmd+t+failoutputfile+skipoutputfile+"', shell=True) != 0:\n"
             res += tt+tt+"failed(r'"+t+"')\n"
             res += tt+"print('Completed "+t+"')\n"
+
+            if skip_condition:
+                tt = tt[:-4]  # Remove 4 spaces
         res += '\n'
         return res
 

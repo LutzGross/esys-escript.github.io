@@ -19,6 +19,7 @@
 #include "Data.h"
 #include "DataException.h"
 #include "DataVectorOps.h"
+#include "Utils.h"
 
 #include <iostream>
 
@@ -614,11 +615,14 @@ void DataConstant::dump_hdf5(const H5::Group h5_grp) const
 
 #ifdef ESYS_MPI
    /* Serialize I/O */
+   JMPI mpiInfo = getFunctionSpace().getDomain()->getMPI();
    const int mpi_iam = mpiInfo->rank;
    const int mpi_num = mpiInfo->size;
+   MPI_Comm comm = mpiInfo->comm;
    MPI_Status status;
+   int dummy = 0;
    if (mpi_iam > 0)
-       MPI_Recv(&ndims, 0, MPI_INT, mpi_iam-1, 81802, mpiInfo->comm, &status);
+       MPI_Recv(&dummy, 1, MPI_INT, mpi_iam-1, 81802, comm, &status);
 #endif
     try
     {
@@ -655,13 +659,13 @@ void DataConstant::dump_hdf5(const H5::Group h5_grp) const
     catch (H5::Exception& error)
     {
         #ifdef ESYS_MPI
-            if ( mpi_iam < mpi_num-1 ) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81802, MPI_COMM_WORLD);
+            if ( mpi_iam < mpi_num-1 ) MPI_Send(&dummy, 1, MPI_INT, mpi_iam+1, 81802, comm);
         #endif
         error.printErrorStack();
         throw DataException("Error - DataConstant:: creating HDF5 file failed.");
     }
     #ifdef ESYS_MPI
-        if ( mpi_iam < mpi_num-1 ) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81802, MPI_COMM_WORLD);
+        if ( mpi_iam < mpi_num-1 ) MPI_Send(&dummy, 1, MPI_INT, mpi_iam+1, 81802, comm);
     #endif
 }
 #endif

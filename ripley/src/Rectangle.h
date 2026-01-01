@@ -29,8 +29,6 @@
 
 #ifdef ESYS_HAVE_MPI4PY
 #include <mpi4py/mpi4py.h>
-#include <mpi4py/mpi4py.MPI.h>
-#include <mpi4py/mpi4py.MPI_api.h>
 #endif
 
 #include <ripley/RipleyDomain.h>

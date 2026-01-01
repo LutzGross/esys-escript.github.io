@@ -55,11 +55,20 @@ dirs = set([os.path.split(i)[0] for i in example_files])
 for d in dirs:
     single_runs=[]
     runs=[]
+    runs_metadata={}
+    single_runs_metadata={}
     for i in example_files_no_mpi:
         if i.startswith(d):
-            single_runs.append(os.path.split(i)[1])
+            basename = os.path.split(i)[1]
+            single_runs.append(basename)
+            if i in example_metadata:
+                single_runs_metadata[basename] = example_metadata[i]
     for i in example_files_allow_mpi:
         if i.startswith(d):
-            runs.append(os.path.split(i)[1])
-    TestGroups.append(GroupTest(d, "$PYTHONRUNNER ", (), "", os.path.join("$BATCH_ROOT/doc/examples",d), runs, single_runs))
+            basename = os.path.split(i)[1]
+            runs.append(basename)
+            if i in example_metadata:
+                runs_metadata[basename] = example_metadata[i]
+    TestGroups.append(GroupTest(d, "$PYTHONRUNNER ", (), "", os.path.join("$BATCH_ROOT/doc/examples",d),
+                                runs, single_runs, runs_metadata, single_runs_metadata))
 

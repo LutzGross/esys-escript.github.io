@@ -514,6 +514,145 @@ mpirun -n 8 run-escript thermo_mechanical.py
 
 This uses 4 processes for thermal and 4 for mechanical. The thermal solver is always one step ahead, computing the temperature field that the mechanical solver will use in the next iteration.
 
+\section{Master-Slave Pattern for Embarrassingly Parallel Problems}
+
+The master-slave pattern is ideal for \textbf{embarrassingly parallel} problems where many independent computations must be performed with different parameters. One master process distributes tasks to multiple slave processes, which compute results independently and return them to the master.
+
+This example demonstrates solving a magnetotelluric (MT) problem for multiple frequencies in parallel. The MT method uses electromagnetic induction to image subsurface electrical resistivity. Each frequency requires solving a complex-valued PDE, but the solutions are independent, making this an ideal master-slave problem.
+
+\subsection{Domain Creation Strategy}
+
+Each slave process creates its own domain on \texttt{MPI.COMM\_SELF} (a communicator containing only that process). This allows:
+\begin{itemize}
+\item \textbf{Independent execution}: Each slave solves its problem without MPI collective operations
+\item \textbf{OpenMP parallelization}: Each domain can use OpenMP threads for shared-memory parallelism
+\item \textbf{Efficiency}: Domain is created once and reused for all frequencies assigned to that slave
+\end{itemize}
+
+\textbf{Key code structure} from \texttt{MT\_master\_slave.py}:
+
+\begin{python}
+from mpi4py import MPI
+from esys.escript import *
+from esys.finley import Rectangle
+
+comm_world = MPI.COMM_WORLD
+rank = comm_world.Get_rank()
+size = comm_world.Get_size()
+
+# Create domain once on COMM_SELF (single MPI rank with OpenMP)
+# Each process creates its own independent domain
+domain = Rectangle(n0=NE0, n1=NE1, l0=L0, l1=L1, comm=MPI.COMM_SELF)
+
+def solve_MT_problem(frequency):
+    """Solve MT problem for given frequency using pre-created domain."""
+
+    # Set up complex-valued PDE for magnetic field
+    pde = LinearSinglePDE(domain, isComplex=True)
+    pde.setValue(D=1j*2*np.pi*frequency*Mu0)
+
+    # Define resistivity distribution (anomaly + background)
+    rho = rho_b * (1-m) + rho_a * m  # m is anomaly mask
+    pde.setValue(A=rho*np.eye(2))
+
+    # Boundary condition: Hx = 1 at top surface
+    pde.setValue(q=mD, r=1)
+
+    # Solve for magnetic field
+    Hx = pde.getSolution()
+
+    # Calculate impedance and apparent resistivity
+    Ey = rho * grad(Hx)[1]
+    Zyx = Ey / Hx
+    rho_a = 1./(2*np.pi*frequency*Mu0) * abs(Zyx)**2
+
+    return x_positions, rho_a, phase
+
+def master_process():
+    """Distribute frequencies to slaves and collect results."""
+    frequencies = np.logspace(-1, 1, 10)  # 0.1 to 10 Hz
+
+    # Send initial tasks to all slaves
+    for slave_rank in range(1, size):
+        if tasks_sent < len(frequencies):
+            comm_world.send(frequencies[tasks_sent], dest=slave_rank, tag=1)
+            tasks_sent += 1
+
+    # Receive results and send new tasks
+    while tasks_received < len(frequencies):
+        result = comm_world.recv(source=MPI.ANY_SOURCE, tag=2, status=status)
+        results.append(result)
+
+        # Send next task if available
+        if tasks_sent < len(frequencies):
+            comm_world.send(frequencies[tasks_sent], dest=slave_rank, tag=1)
+
+    # Send termination signal
+    for slave_rank in range(1, size):
+        comm_world.send(None, dest=slave_rank, tag=1)
+
+    plot_results(results)
+
+def slave_process():
+    """Receive frequencies, solve, and return results."""
+    while True:
+        freq = comm_world.recv(source=0, tag=1)
+        if freq is None:  # Termination signal
+            break
+
+        # Solve MT problem for this frequency
+        x_ts, rho_a_ts, phi_ts = solve_MT_problem(freq)
+
+        # Send results back to master
+        comm_world.send((freq, x_ts, rho_a_ts, phi_ts), dest=0, tag=2)
+
+# Main execution
+if rank == 0:
+    master_process()
+else:
+    slave_process()
+\end{python}
+
+\subsection{Performance Considerations}
+
+For embarrassingly parallel problems with relatively small domains:
+\begin{verbatim}
+OMP_NUM_THREADS=1 mpirun -n 11 python3 MT_master_slave.py
+\end{verbatim}
+
+Setting \texttt{OMP\_NUM\_THREADS=1} maximizes parallelism by using more slave processes rather than OpenMP threads. With 11 processes (1 master + 10 slaves), you can solve 10 frequencies simultaneously.
+
+\subsection{Results}
+
+Figure~\ref{fig:mt_master_slave} shows apparent resistivity and phase computed for 10 frequencies (0.1--10~Hz). The conductive anomaly (0.5~$\Omega$m) within the resistive background (100~$\Omega$m) creates a characteristic signature that varies with frequency due to electromagnetic skin depth effects.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/MT_master_slave_results.png}
+\caption{Magnetotelluric apparent resistivity and phase transects computed for 10 frequencies using the master-slave pattern. Lower frequencies penetrate deeper and show stronger anomaly response.}
+\label{fig:mt_master_slave}
+\end{figure}
+
+Figure~\ref{fig:mt_normalized} shows the normalized resistivity (apparent resistivity divided by background resistivity), clearly revealing the frequency-dependent anomaly signature centered at 41~km.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/MT_master_slave_normalized.png}
+\caption{Normalized resistivity showing frequency-dependent anomaly response. The anomaly signature is strongest at lower frequencies which penetrate deeper into the subsurface.}
+\label{fig:mt_normalized}
+\end{figure}
+
+\textbf{Key advantages of the master-slave pattern}:
+\begin{itemize}
+\item \textbf{Load balancing}: Master dynamically assigns work as slaves finish
+\item \textbf{Scalability}: Add more slaves to process more parameters in parallel
+\item \textbf{Simplicity}: No complex inter-process communication or synchronization
+\item \textbf{Fault tolerance}: Easy to detect and reassign failed tasks
+\item \textbf{Resource efficiency}: Each slave uses minimal MPI resources (single rank)
+\end{itemize}
+
+The complete example code is available in \texttt{doc/examples/usersguide/MT\_master\_slave.py}.
+
 \section{Best Practices}
 
 \subsection{Communicator Management}

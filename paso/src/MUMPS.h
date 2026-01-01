@@ -75,7 +75,7 @@ template <typename T>
 void MUMPS_free(SparseMatrix<T>* A);
 
 template <typename T>
-void MUMPS_solve(SparseMatrix_ptr<T> A, T* out, T* in, dim_t numRefinements, bool verbose);
+void MUMPS_solve(SparseMatrix_ptr<T> A, T* out, T* in, dim_t numRefinements, bool verbose, escript::JMPI mpi_info);
 
 template <typename T>
 void MUMPS_print_list(const char* name, const T* vals, const int n, const int max_n=100);
@@ -159,11 +159,16 @@ void MUMPS_free(SparseMatrix<T>* A)
 
 /// calls the solver
 template <typename T>
-void MUMPS_solve(SparseMatrix_ptr<T> A, T* out, T* in, dim_t numRefinements, bool verbose)
+void MUMPS_solve(SparseMatrix_ptr<T> A, T* out, T* in, dim_t numRefinements, bool verbose, escript::JMPI mpi_info)
 {
 #ifdef ESYS_HAVE_MUMPS
     if (! (A->type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) ) {
         throw PasoException("Paso: MUMPS requires CSR format with index offset 1 and block size 1.");
+    }
+
+    // MUMPS only supports single MPI rank (this should be checked in solve.cpp)
+    if (mpi_info->size != 1) {
+        throw PasoException("Paso: MUMPS support for single MPI rank only.");
     }
 
     auto pt = reinterpret_cast<MUMPS_Handler<T>*>(A->solver_p);
@@ -194,17 +199,17 @@ void MUMPS_solve(SparseMatrix_ptr<T> A, T* out, T* in, dim_t numRefinements, boo
         A->solver_package = PASO_MUMPS;
         A->pattern->template csrToHB_typed<MUMPS_INT>(); // generate Harwell-Boeing format for MUMPS
         pt->rhs = new T[n];
-        /* avoid "unused variable warning" */
-//#ifdef ESYS_MPI
-//        /* MUMPS_INT ierr; */
-//        /* ierr = */ MPI_Init(NULL, NULL);
-//        /* ierr = */ MPI_Comm_rank(MPI_COMM_WORLD, &pt->myid);
-//#else
-        pt->myid = 0;  // Sequential mode - always rank 0
-//#endif
 
-        // Initialize a MUMPS instance. Use MPI_COMM_WORLD
+        // Get rank within domain communicator
+        pt->myid = mpi_info->rank;  // Should be 0 for single-rank domains
+
+        // Initialize a MUMPS instance using domain communicator instead of MPI_COMM_WORLD
+#ifdef ESYS_MPI
+        // Convert MPI_Comm to Fortran integer for MUMPS
+        pt->id.comm_fortran = MPI_Comm_c2f(mpi_info->comm);
+#else
         pt->id.comm_fortran = MUMPS_USE_COMM_WORLD;
+#endif
         pt->id.par = 1; pt->id.sym = 0;
         pt->id.job = MUMPS_JOB_INIT;
         pt->mumps_c(&pt->id);
