@@ -44,27 +44,53 @@ BOOST_PYTHON_MODULE(finleycpp)
     register_exception_translator<finley::FinleyException>(&escript::RuntimeErrorTranslator);
 
   def("LoadMesh", finley::FinleyDomain::load,
-      (arg("fileName") = "file.h5"), ":rtype: `FinleyDomain`");
+      (arg("fileName"),
+       arg("comm")=bp::object()),
+      "Load a mesh from an HDF5 file.\n\n"
+      ":param fileName: Path to HDF5 file\n:type fileName: ``string``\n"
+      ":param comm: MPI communicator (optional, defaults to MPI_COMM_WORLD)\n"
+      ":rtype: `FinleyDomain`");
 
 
   def("__ReadMesh_driver", finley::readMesh_driver,
-      (arg("params"))
+      (arg("fileName"),
+       arg("integrationOrder")=-1,
+       arg("reducedIntegrationOrder")=-1,
+       arg("optimize")=true,
+       arg("diracPoints")=bp::list(),
+       arg("diracTags")=bp::list(),
+       arg("comm")=bp::object())
 	,"Read a mesh from a file. For MPI parallel runs fan out the mesh to multiple processes.\n\n"
 ":rtype: `Domain`\n:param fileName:\n:type fileName: ``string``\n"
 ":param integrationOrder: order of the quadrature scheme. If *integrationOrder<0* the integration order is selected independently.\n"
 ":type integrationOrder: ``int``\n"
 ":param reducedIntegrationOrder: order of the quadrature scheme. If *reducedIntegrationOrder<0* the integration order is selected independently.\n"
-":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``");
+":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``\n"
+":param diracPoints: Dirac point coordinates\n:type diracPoints: ``list``\n"
+":param diracTags: Dirac point tags\n:type diracTags: ``list``\n"
+":param comm: MPI communicator (optional)\n:type comm: MPI communicator");
 
   def("__ReadGmsh_driver", finley::readGmsh_driver,
-      (arg("params"))  
+      (arg("fileName"),
+       arg("numDim"),
+       arg("integrationOrder")=-1,
+       arg("reducedIntegrationOrder")=-1,
+       arg("optimize")=true,
+       arg("useMacroElements")=false,
+       arg("diracPoints")=bp::list(),
+       arg("diracTags")=bp::list(),
+       arg("comm")=bp::object())
 ,"Read a gmsh mesh file\n\n"
 ":rtype: `Domain`\n:param fileName:\n:type fileName: ``string``\n"
+":param numDim: number of spatial dimensions\n:type numDim: ``int``\n"
 ":param integrationOrder: order of the quadrature scheme. If *integrationOrder<0* the integration order is selected independently.\n"
 ":type integrationOrder: ``int``\n"
 ":param reducedIntegrationOrder: order of the quadrature scheme. If *reducedIntegrationOrder<0* the integration order is selected independently.\n"
 ":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``\n"
-":param useMacroElements: Enable the usage of macro elements instead of second order elements.\n:type useMacroElements: ``bool``"
+":param useMacroElements: Enable the usage of macro elements instead of second order elements.\n:type useMacroElements: ``bool``\n"
+":param diracPoints: Dirac point coordinates\n:type diracPoints: ``list``\n"
+":param diracTags: Dirac point tags\n:type diracTags: ``list``\n"
+":param comm: MPI communicator (optional)\n:type comm: MPI communicator"
 );
 
   def ("__Brick_driver",finley::brick_driver,

@@ -60,10 +60,10 @@ default_prefix='/usr'
 mpi_flavours=('auto', 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
 all_domains = ('finley','oxley','ripley','speckley')
 version_info=['0.0','5','6']
-build_trilinos_flavours = ( "check",      # check for unsuccessful make before setting up make
-                            "make",       # set-up standard make install
-                            "always",     # always build
-                            "never"       # never build
+build_trilinos_flavours = ( "check",      # check if rebuild needed (default - fast)
+                            "make",       # same as check (for backward compatibility)
+                            "always",     # always rebuild (slow - ignores timestamps)
+                            "never"       # never build (use existing installation)
                             )
 
 #Note that scons construction vars the following purposes:
@@ -588,47 +588,108 @@ else:
 if env['build_trilinos'] != 'never':
     if not os.path.isdir(env['trilinos_build']): # create a build folder if the user deleted it
         os.mkdir(env['trilinos_build'])
-    #os.chdir(env['trilinos_build'])
-    if env['openmp']:
-        OPENMPFLAG='ON'
-    else:
-        OPENMPFLAG='OFF'
-    if not env['cc'] == 'default ':
-        os.environ['CC'] = env['cc']
-    if not env['cxx'] == 'default ':
-        os.environ['CXX'] = env['cxx']
-    SHARGS = [ env['trilinos_install'], env['CC'],  env['CXX'], OPENMPFLAG, env['trilinos_src'] ]
 
-    print("Initialization of Trilinos build using", SHARGS )
-    if env['trilinos_make_sh'] == 'default':
-        if env['mpi'] != 'none':
-            #source=startdir + "/scripts/trilinos_mpi.sh"
-            shutil.copy("scripts/trilinos_mpi.sh", env['trilinos_build'] + "/trilinos_mpi.sh")
-            print("Building (MPI) trilinos..............................")
-            SH ="trilinos_mpi.sh"
+    # Sentinel file to track successful builds
+    sentinel_file = os.path.join(env['trilinos_build'], '.trilinos_build_complete')
+
+    # Determine if rebuild is needed
+    needs_rebuild = False
+
+    if env['build_trilinos'] == "always":
+        needs_rebuild = True
+        print("Trilinos: Always rebuild requested")
+    elif not os.path.exists(sentinel_file):
+        needs_rebuild = True
+        print("Trilinos: No previous build found")
+    elif env['build_trilinos'] in ["check", "make"]:
+        # Check if source or config files are newer than the sentinel
+        sentinel_time = os.path.getmtime(sentinel_file)
+
+        # Check trilinos source directory - only check key CMake files for performance
+        # If you modify source files, touch the top-level CMakeLists.txt to trigger rebuild
+        trilinos_src_newer = False
+        key_files = [
+            os.path.join(env['trilinos_src'], 'CMakeLists.txt'),
+            os.path.join(env['trilinos_src'], 'Version.cmake'),
+        ]
+        for fpath in key_files:
+            if os.path.exists(fpath) and os.path.getmtime(fpath) > sentinel_time:
+                trilinos_src_newer = True
+                print(f"Trilinos: Key file {fpath} is newer than last build")
+                break
+
+        # Check build script files
+        build_scripts = []
+        if env['trilinos_make_sh'] == 'default':
+            if env['mpi'] != 'none':
+                build_scripts.append('scripts/trilinos_mpi.sh')
+            else:
+                build_scripts.append('scripts/trilinos_nompi.sh')
         else:
-            #source=startdir + "/scripts/trilinos_nompi.sh"
-            shutil.copy("scripts/trilinos_nompi.sh", env['trilinos_build'] + "/trilinos_nompi.sh")
-            print("Building (no MPI) trilinos..............................")
-            SH = "trilinos_nompi.sh"
-    else:
-        shutil.copy(env['trilinos_make_sh'], os.path.join(env['trilinos_build'],"hostmake.sh"))
-        SH = "hostmake.sh"
-    import subprocess
-    p_init = subprocess.run(['sh', SH ] + SHARGS, capture_output=False, cwd =  env['trilinos_build'],  text=True)
-    if p_init.returncode :
-        print(">>> Initialization of Trilinos build failed. Scons stopped.")
-        Exit(1)
+            build_scripts.append(env['trilinos_make_sh'])
 
-    SHARGS = [ ]
-    if env['build_trilinos'] == "always" :
-            SHARGS += ['--always-make']
-    SHARGS += [ f'-j{GetOption("num_jobs")}', 'install' ]
-    print("Trilinos build using", SHARGS)
-    p_make = subprocess.run( [ 'make' ] + SHARGS, capture_output=False, cwd =  env['trilinos_build'],  text=True)
-    if p_make.returncode :
-        print(">>> Installation of Trilinos failed. Scons stopped.")
-        Exit(1)
+        scripts_newer = any(os.path.getmtime(s) > sentinel_time for s in build_scripts if os.path.exists(s))
+
+        # Check if esys.trilinos directory is missing
+        trilinos_install_missing = not os.path.isdir(env['trilinos_install'])
+
+        needs_rebuild = trilinos_src_newer or scripts_newer or trilinos_install_missing
+
+        if trilinos_src_newer:
+            print("Trilinos: Source files changed")
+        if scripts_newer:
+            print("Trilinos: Build scripts changed")
+        if trilinos_install_missing:
+            print("Trilinos: Installation directory missing")
+        if not needs_rebuild:
+            print("Trilinos: Up to date, skipping build")
+
+    if needs_rebuild:
+        if env['openmp']:
+            OPENMPFLAG='ON'
+        else:
+            OPENMPFLAG='OFF'
+        if not env['cc'] == 'default ':
+            os.environ['CC'] = env['cc']
+        if not env['cxx'] == 'default ':
+            os.environ['CXX'] = env['cxx']
+        SHARGS = [ env['trilinos_install'], env['CC'],  env['CXX'], OPENMPFLAG, env['trilinos_src'] ]
+
+        print("Initialization of Trilinos build using", SHARGS )
+        if env['trilinos_make_sh'] == 'default':
+            if env['mpi'] != 'none':
+                shutil.copy("scripts/trilinos_mpi.sh", env['trilinos_build'] + "/trilinos_mpi.sh")
+                print("Building (MPI) trilinos..............................")
+                SH ="trilinos_mpi.sh"
+            else:
+                shutil.copy("scripts/trilinos_nompi.sh", env['trilinos_build'] + "/trilinos_nompi.sh")
+                print("Building (no MPI) trilinos..............................")
+                SH = "trilinos_nompi.sh"
+        else:
+            shutil.copy(env['trilinos_make_sh'], os.path.join(env['trilinos_build'],"hostmake.sh"))
+            SH = "hostmake.sh"
+        import subprocess
+        p_init = subprocess.run(['sh', SH ] + SHARGS, capture_output=False, cwd =  env['trilinos_build'],  text=True)
+        if p_init.returncode :
+            print(">>> Initialization of Trilinos build failed. Scons stopped.")
+            Exit(1)
+
+        SHARGS = [ ]
+        if env['build_trilinos'] == "always" :
+                SHARGS += ['--always-make']
+        SHARGS += [ f'-j{GetOption("num_jobs")}', 'install' ]
+        print("Trilinos build using", SHARGS)
+        p_make = subprocess.run( [ 'make' ] + SHARGS, capture_output=False, cwd =  env['trilinos_build'],  text=True)
+        if p_make.returncode :
+            print(">>> Installation of Trilinos failed. Scons stopped.")
+            Exit(1)
+
+        # Create/update sentinel file on successful build
+        with open(sentinel_file, 'w') as f:
+            import time
+            f.write(f"Trilinos build completed at {time.ctime()}\n")
+        print(f"Trilinos: Build complete, sentinel file updated")
+
     env['trilinos'] = True
     env['trilinos_prefix'] = env['trilinos_install']
 #=====

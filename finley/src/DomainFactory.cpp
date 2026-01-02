@@ -30,7 +30,7 @@ using namespace escript;
 
 namespace finley {
 
-Domain_ptr FinleyDomain::load(const string& fileName)
+Domain_ptr FinleyDomain::load(const string& fileName, const bp::object& comm)
 {
     int error = 0;
     std::string msg;
@@ -40,7 +40,7 @@ Domain_ptr FinleyDomain::load(const string& fileName)
     #else
         H5::DataType h5_type_index = H5::PredType::NATIVE_INT;
     #endif
-    JMPI mpiInfo = makeInfo(MPI_COMM_WORLD);
+    JMPI mpiInfo = makeInfoFromPyComm(comm);
     const string fName(mpiInfo->appendRankToFileName(fileName));
     try
     {
@@ -301,40 +301,31 @@ Domain_ptr FinleyDomain::load(const string& fileName)
     return NULL;
 }
 
-Domain_ptr readMesh_driver(const bp::list& args)
+Domain_ptr readMesh_driver(const string& fileName,
+                           int integrationOrder,
+                           int reducedIntegrationOrder,
+                           bool optimize,
+                           const bp::list& diracPoints,
+                           const bp::list& diracTags,
+                           const bp::object& comm)
 {
-    int l = len(args);
-    if (l < 7) {
-        throw ValueError("Insufficient arguments to readMesh_driver");
-    }
-    string fileName = bp::extract<string>(args[0])();
-    int integrationOrder = bp::extract<int>(args[1])();
-    int reducedIntegrationOrder = bp::extract<int>(args[2])();
-    bool optimize = bp::extract<bool>(args[3])();
     vector<double> points;
     vector<int> tags;
 
     // we need to convert lists to stl vectors
-    bp::list pypoints = bp::extract<bp::list>(args[4]);
-    bp::list pytags = bp::extract<bp::list>(args[5]);
-    int numpts = bp::extract<int>(pypoints.attr("__len__")());
-    int numtags = bp::extract<int>(pytags.attr("__len__")());
+    int numpts = bp::len(diracPoints);
+    int numtags = bp::len(diracTags);
 
-    // Handle optional MPI communicator (args[7] if provided)
-    JMPI info;
-    if (l >= 8) {
-        bp::object py_comm = args[7];
-        info = makeInfoFromPyComm(py_comm);
-    } else {
-        info = makeInfo(MPI_COMM_WORLD);
-    }
+    // Handle optional MPI communicator (defaults to MPI_COMM_WORLD if None)
+    JMPI info = makeInfoFromPyComm(comm);
+
     Domain_ptr dom(FinleyDomain::read(info, fileName, integrationOrder,
                                       reducedIntegrationOrder, optimize));
 
     FinleyDomain* fd = dynamic_cast<FinleyDomain*>(dom.get());
 
     for (int i = 0; i < numpts; ++i) {
-        bp::object temp = pypoints[i];
+        bp::object temp = diracPoints[i];
         int l = bp::extract<int>(temp.attr("__len__")());
         for (int k = 0; k < l; ++k) {
               points.push_back(bp::extract<double>(temp[k]));
@@ -352,8 +343,8 @@ Domain_ptr readMesh_driver(const bp::list& args)
 
     tags.resize(numtags, -1);
     for (int i = 0; i < numtags; ++i) {
-        bp::extract<int> ex_int(pytags[i]);
-        bp::extract<string> ex_str(pytags[i]);
+        bp::extract<int> ex_int(diracTags[i]);
+        bp::extract<string> ex_str(diracTags[i]);
         if (ex_int.check()) {
             tags[i] = ex_int();
             if (tags[i] >= curmax) {
@@ -379,42 +370,33 @@ Domain_ptr readMesh_driver(const bp::list& args)
     return dom;
 }
 
-Domain_ptr readGmsh_driver(const bp::list& args)
+Domain_ptr readGmsh_driver(const string& fileName,
+                            int numDim,
+                            int integrationOrder,
+                            int reducedIntegrationOrder,
+                            bool optimize,
+                            bool useMacroElements,
+                            const bp::list& diracPoints,
+                            const bp::list& diracTags,
+                            const bp::object& comm)
 {
-    int l = len(args);
-    if (l < 7) {
-        throw ValueError("Insufficient arguments to readMesh_driver");
-    }
-    string fileName = bp::extract<string>(args[0])();
-    int numDim = bp::extract<int>(args[1])();
-    int integrationOrder = bp::extract<int>(args[2])();
-    int reducedIntegrationOrder = bp::extract<int>(args[3])();
-    bool optimize = bp::extract<bool>(args[4])();
-    bool useMacroElements = bp::extract<bool>(args[5])();
     vector<double> points;
     vector<int> tags;
 
     // we need to convert lists to stl vectors
-    bp::list pypoints = bp::extract<bp::list>(args[6]);
-    bp::list pytags = bp::extract<bp::list>(args[7]);
-    int numpts = bp::extract<int>(pypoints.attr("__len__")());
-    int numtags = bp::extract<int>(pytags.attr("__len__")());
+    int numpts = bp::len(diracPoints);
+    int numtags = bp::len(diracTags);
 
-    // Handle optional MPI communicator (args[9] if provided)
-    JMPI info;
-    if (l >= 10) {
-        bp::object py_comm = args[9];
-        info = makeInfoFromPyComm(py_comm);
-    } else {
-        info = makeInfo(MPI_COMM_WORLD);
-    }
+    // Handle optional MPI communicator (defaults to MPI_COMM_WORLD if None)
+    JMPI info = makeInfoFromPyComm(comm);
+
     Domain_ptr dom(FinleyDomain::readGmsh(info, fileName, numDim,
                                      integrationOrder, reducedIntegrationOrder,
                                      optimize, useMacroElements));
     FinleyDomain* fd = dynamic_cast<FinleyDomain*>(dom.get());
 
     for (int i = 0; i < numpts; ++i) {
-        bp::object temp = pypoints[i];
+        bp::object temp = diracPoints[i];
         int l = bp::extract<int>(temp.attr("__len__")());
         for (int k = 0; k < l; ++k) {
             points.push_back(bp::extract<double>(temp[k]));
@@ -431,8 +413,8 @@ Domain_ptr readGmsh_driver(const bp::list& args)
 
     tags.resize(numtags, -1);
     for (int i = 0; i < numtags; ++i) {
-        bp::extract<int> ex_int(pytags[i]);
-        bp::extract<string> ex_str(pytags[i]);
+        bp::extract<int> ex_int(diracTags[i]);
+        bp::extract<string> ex_str(diracTags[i]);
         if (ex_int.check()) {
             tags[i] = ex_int();
             if (tags[i] >= curmax) {

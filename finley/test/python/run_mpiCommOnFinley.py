@@ -24,7 +24,8 @@ from esys.escriptcore.testing import *
 from test_mpiComm import Test_MPI_Comm_Retrieval
 
 from esys.escript import getMPISizeWorld
-from esys.finley import Rectangle, Brick
+from esys.finley import Rectangle, Brick, ReadMesh, ReadGmsh, LoadMesh
+import os
 
 # Determine optimal domain subdivisions for current MPI configuration
 mpiSize = getMPISizeWorld()
@@ -67,6 +68,61 @@ class Test_MPI_Comm_Finley3D(Test_MPI_Comm_Retrieval):
         else:
             # For custom communicators, let finley auto-detect subdivision
             return Brick(n0=12, n1=12, n2=12, comm=comm)
+
+
+class Test_MPI_Comm_ReadMesh(Test_MPI_Comm_Retrieval):
+    """Test MPI communicator retrieval on domains loaded via ReadMesh"""
+
+    def createDomain(self, comm=None):
+        """Create a domain by reading a mesh file"""
+        # Use a test mesh file from the finley test data
+        mesh_path = os.path.join(os.environ.get('FINLEY_TEST_MESH_PATH', 'test/python/data'),
+                                 'rectangle_8x10.fly')
+        if comm is None:
+            return ReadMesh(mesh_path)
+        else:
+            return ReadMesh(mesh_path, comm=comm)
+
+
+class Test_MPI_Comm_ReadGmsh(Test_MPI_Comm_Retrieval):
+    """Test MPI communicator retrieval on domains loaded via ReadGmsh"""
+
+    def createDomain(self, comm=None):
+        """Create a domain by reading a Gmsh file"""
+        # Use a test Gmsh file from the finley test data
+        mesh_path = os.path.join(os.environ.get('FINLEY_TEST_MESH_PATH', 'test/python/data'),
+                                 'tagtest.msh')
+        if comm is None:
+            return ReadGmsh(mesh_path, 2)
+        else:
+            return ReadGmsh(mesh_path, 2, comm=comm)
+
+
+class Test_MPI_Comm_LoadMesh(Test_MPI_Comm_Retrieval):
+    """Test MPI communicator retrieval on domains loaded via LoadMesh"""
+
+    def createDomain(self, comm=None):
+        """Create a domain by loading an HDF5 dump file"""
+        # First create and dump a test domain
+        import tempfile
+        temp_dir = os.environ.get('FINLEY_WORKDIR', tempfile.gettempdir())
+        dump_file = os.path.join(temp_dir, 'test_load_comm.dump.h5')
+
+        # Create a small domain and dump it (only do this once per rank)
+        if not os.path.exists(dump_file) or getMPIRankWorld() == 0:
+            test_domain = Rectangle(n0=8, n1=8)
+            test_domain.dump(dump_file)
+
+        # Wait for all ranks to ensure file is written
+        import esys.escript
+        if hasattr(esys.escript, 'barrier'):
+            esys.escript.barrier()
+
+        # Load the domain with the specified communicator
+        if comm is None:
+            return LoadMesh(dump_file)
+        else:
+            return LoadMesh(dump_file, comm=comm)
 
 
 if __name__ == '__main__':

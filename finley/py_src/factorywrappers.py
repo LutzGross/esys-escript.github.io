@@ -27,31 +27,41 @@ __url__="https://launchpad.net/escript-finley"
 from .finleycpp import __Brick_driver, __Brick_driver_MPI, __Rectangle_driver, __Rectangle_driver_MPI, __ReadMesh_driver, __ReadGmsh_driver
 
 
-def ReadMesh(filename, integrationOrder=-1, reducedIntegrationOrder=-1, optimize=True, **kwargs):
-    points=[]
-    tags=[]
-    if 'diracPoints' in kwargs:
-        points=kwargs['diracPoints']
-    if 'diracTags' in kwargs:
-        tags=kwargs['diracTags']
-    args=[filename, integrationOrder, reducedIntegrationOrder, optimize, points, tags, None];
-    return __ReadMesh_driver(args)
-  
-ReadMesh.__doc__=__ReadMesh_driver.__doc__  
-  
-def ReadGmsh(fileName, numDim, integrationOrder=-1, reducedIntegrationOrder=-1, optimize=True,  
-      useMacroElements=False, **kwargs):
-    points=[]
-    tags=[]
-    if 'diracPoints' in kwargs:
-        points=kwargs['diracPoints']
-    if 'diracTags' in kwargs:
-        tags=kwargs['diracTags']
-    args=[fileName, numDim, integrationOrder, reducedIntegrationOrder, optimize,  
-      useMacroElements, points, tags, None];
-    return __ReadGmsh_driver(args)      
+def ReadMesh(filename, integrationOrder=-1, reducedIntegrationOrder=-1, optimize=True,
+             diracPoints=[], diracTags=[], comm=None):
+    """
+    Read a mesh from a file. For MPI parallel runs fan out the mesh to multiple processes.
 
-ReadGmsh.__doc__=__ReadGmsh_driver.__doc__
+    :param filename: Path to mesh file
+    :param integrationOrder: Order of quadrature scheme (-1 for automatic)
+    :param reducedIntegrationOrder: Order of reduced quadrature scheme (-1 for automatic)
+    :param optimize: Enable optimization of node labels
+    :param diracPoints: Dirac point coordinates
+    :param diracTags: Dirac point tags
+    :param comm: MPI communicator (optional, defaults to MPI_COMM_WORLD)
+    :return: Domain object
+    """
+    return __ReadMesh_driver(filename, integrationOrder, reducedIntegrationOrder,
+                             optimize, diracPoints, diracTags, comm)
+
+def ReadGmsh(fileName, numDim, integrationOrder=-1, reducedIntegrationOrder=-1, optimize=True,
+             useMacroElements=False, diracPoints=[], diracTags=[], comm=None):
+    """
+    Read a gmsh mesh file.
+
+    :param fileName: Path to gmsh file
+    :param numDim: Number of spatial dimensions
+    :param integrationOrder: Order of quadrature scheme (-1 for automatic)
+    :param reducedIntegrationOrder: Order of reduced quadrature scheme (-1 for automatic)
+    :param optimize: Enable optimization of node labels
+    :param useMacroElements: Enable usage of macro elements instead of second order elements
+    :param diracPoints: Dirac point coordinates
+    :param diracTags: Dirac point tags
+    :param comm: MPI communicator (optional, defaults to MPI_COMM_WORLD)
+    :return: Domain object
+    """
+    return __ReadGmsh_driver(fileName, numDim, integrationOrder, reducedIntegrationOrder,
+                             optimize, useMacroElements, diracPoints, diracTags, comm)
 
 
 def Rectangle(n0=1, n1=1, order=1, l0=1.0, l1=1.0, periodic0=False, periodic1=False, integrationOrder=-1, 

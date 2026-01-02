@@ -455,9 +455,12 @@ communicator instead of \texttt{MPI\_COMM\_WORLD}. If \var{comm} is not \var{Non
 \escript must be built with \texttt{mpi4py} support enabled.
 \end{funcdesc}
 
-\begin{funcdesc}{load}{fileName}
+\begin{funcdesc}{load}{fileName\optional{, comm=None}}
 recovers a \Domain object from a dump file \var{fileName} created by the
 \function{dump} method of a \Domain object.
+\var{comm} is an optional \MPI communicator (from \texttt{mpi4py}) that allows using a custom
+communicator instead of \texttt{MPI\_COMM\_WORLD}. If \var{comm} is not \var{None},
+\escript must be built with \texttt{mpi4py} support enabled.
 \end{funcdesc}
 
 \begin{funcdesc}{Rectangle}{n0,n1,order=1,l0=1.,l1=1., integrationOrder=-1, \\

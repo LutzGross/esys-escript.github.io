@@ -100,8 +100,10 @@ public:
      \brief
      recovers domain from a dump file
      \param filename the name of the file
+     \param comm MPI communicator (optional, defaults to MPI_COMM_WORLD if None)
     */
-    static escript::Domain_ptr load(const std::string& filename);
+    static escript::Domain_ptr load(const std::string& filename,
+                                     const boost::python::object& comm = boost::python::object());
 
     /**
      \brief

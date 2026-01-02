@@ -32,7 +32,7 @@ parmetis_prefix = ['/usr/include/parmetis', '/usr/lib/x86_64-linux-gnu']
 parmetis_libs = ['parmetis']
 
 # Build Trilinos with MPI support
-build_trilinos = 'always'
+build_trilinos = 'make'  # Use smart dependency checking
 
 # Exclude oxley since it requires Trilinos
 domains = ['finley', 'ripley', 'speckley']

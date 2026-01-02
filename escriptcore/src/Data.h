@@ -1561,7 +1561,7 @@ instead of manually manipulating process and point IDs.
   /**
      \brief
      return the MPI rank number of the local data
-                The result of MPI_Comm_size()
+                MPI_COMM_WORLD is assumed and the result of MPI_Comm_size()
                  is returned
   */
         int

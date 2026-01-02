@@ -34,17 +34,45 @@ namespace finley {
 
 /**
     \brief Python driver for readMesh()
-    \param args see readMesh() definition for order of parameters
+    \param fileName Path to mesh file
+    \param integrationOrder Order of quadrature scheme (-1 for automatic)
+    \param reducedIntegrationOrder Order of reduced quadrature scheme (-1 for automatic)
+    \param optimize Enable optimization of node labels
+    \param diracPoints Dirac point coordinates
+    \param diracTags Dirac point tags
+    \param comm MPI communicator (optional, defaults to MPI_COMM_WORLD if None)
 */
 FINLEY_DLL_API
-escript::Domain_ptr readMesh_driver(const boost::python::list& args);
-   
+escript::Domain_ptr readMesh_driver(const std::string& fileName,
+                                     int integrationOrder,
+                                     int reducedIntegrationOrder,
+                                     bool optimize,
+                                     const boost::python::list& diracPoints,
+                                     const boost::python::list& diracTags,
+                                     const boost::python::object& comm);
+
 /**
     \brief Python driver for readGMesh()
-    \param args see readGMesh() definition for order of parameters
+    \param fileName Path to gmsh file
+    \param numDim Number of spatial dimensions
+    \param integrationOrder Order of quadrature scheme (-1 for automatic)
+    \param reducedIntegrationOrder Order of reduced quadrature scheme (-1 for automatic)
+    \param optimize Enable optimization of node labels
+    \param useMacroElements Enable usage of macro elements instead of second order elements
+    \param diracPoints Dirac point coordinates
+    \param diracTags Dirac point tags
+    \param comm MPI communicator (optional, defaults to MPI_COMM_WORLD if None)
 */
 FINLEY_DLL_API
-escript::Domain_ptr readGmsh_driver(const boost::python::list& args);
+escript::Domain_ptr readGmsh_driver(const std::string& fileName,
+                                     int numDim,
+                                     int integrationOrder,
+                                     int reducedIntegrationOrder,
+                                     bool optimize,
+                                     bool useMacroElements,
+                                     const boost::python::list& diracPoints,
+                                     const boost::python::list& diracTags,
+                                     const boost::python::object& comm);
 
 /**
     \brief

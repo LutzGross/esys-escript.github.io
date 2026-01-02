@@ -169,6 +169,7 @@ bool EscriptParams::hasFeature(const std::string& name) const
     if (name == "PASO_DIRECT") {
         // This is not in the constructor because escriptparams could be
         // constructed before main (and hence no opportunity to call INIT)
+        // This use of MPI_COMM_WORLD is ok.
 #ifdef ESYS_MPI
         int size;
         if (MPI_Comm_size(MPI_COMM_WORLD, &size) != MPI_SUCCESS || size > 1)
