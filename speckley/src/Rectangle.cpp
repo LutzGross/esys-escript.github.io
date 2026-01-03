@@ -61,8 +61,9 @@ Rectangle::Rectangle(int order, dim_t n0, dim_t n1, double x0, double y0, double
                      double y1, int d0, int d1,
                      const std::vector<double>& points,
                      const std::vector<int>& tags,
-                     const TagMap& tagnamestonums) :
-    SpeckleyDomain(2, order)
+                     const TagMap& tagnamestonums,
+                     const boost::python::object& comm) :
+    SpeckleyDomain(2, order, comm)
 {
     if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1)
             > std::numeric_limits<dim_t>::max())

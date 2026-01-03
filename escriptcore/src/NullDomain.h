@@ -33,7 +33,7 @@ namespace escript {
    of a default FunctionSpace. Inherits from AbstractDomain and overrides its
    methods.
    This domain supports a single type of FunctionSpace for which canTag is true.
-   This compromise is needed to allow the default contructor of DataTagged to
+   This compromise is needed to allow the default constructor of DataTagged to
    have a FunctionSpace which supports tagging.
    See notes on the borrowListOfTagsInUse() method.
 */

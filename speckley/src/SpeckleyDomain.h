@@ -86,9 +86,10 @@ class Speckley_DLL_API SpeckleyDomain : public escript::AbstractContinuousDomain
 public:
     /**
        \brief
-       Constructor with number of dimensions. Allocates MPI info structure.
+       Constructor with number of dimensions and optional Python MPI communicator.
+       \param comm Python mpi4py communicator object (None defaults to MPI_COMM_WORLD)
     */
-    SpeckleyDomain(dim_t dim, int order);
+    SpeckleyDomain(dim_t dim, int order, const boost::python::object& comm);
 
     /**
        \brief

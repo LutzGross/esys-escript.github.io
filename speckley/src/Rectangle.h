@@ -40,12 +40,14 @@ public:
        \param n0,n1 number of elements in each dimension
        \param x0,y0,x1,y1 coordinates of bottom-left and top-right corners
        \param d0,d1 number of subdivisions in each dimension
+       \param comm Python mpi4py communicator object (None defaults to MPI_COMM_WORLD)
     */
     Rectangle(int order, dim_t n0, dim_t n1, double x0, double y0,
               double x1, double y1, int d0=-1, int d1=-1,
               const std::vector<double>& points = std::vector<double>(),
               const std::vector<int>& tags = std::vector<int>(),
-              const TagMap& tagnamestonums = TagMap()
+              const TagMap& tagnamestonums = TagMap(),
+              const boost::python::object& comm = boost::python::object()
  	    );
 
     /**
