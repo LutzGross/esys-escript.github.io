@@ -229,9 +229,11 @@ escript::Domain_ptr _brick(int order, double _n0, double _n1, double _n2,
     if (numtags != numpts)
         throw SpeckleyException("Number of tags does not match number of points.");
 
-    // Pass comm to Brick constructor - makeInfoFromPyComm handles None→MPI_COMM_WORLD
-    return escript::Domain_ptr(new Brick(order, n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2,
-                                        points, tags, tagstonames, py_comm));
+    // Handle optional MPI communicator
+    escript::JMPI jmpi = escript::makeInfoFromPyComm(py_comm);
+
+    return escript::Domain_ptr(new Brick(jmpi, order, n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2,
+                                        points, tags, tagstonames));
 }
 
 escript::Domain_ptr _rectangle(int order, double _n0, double _n1,
@@ -312,9 +314,11 @@ escript::Domain_ptr _rectangle(int order, double _n0, double _n1,
     if (numtags != numpts)
         throw SpeckleyException("Number of tags does not match number of points.");
 
-    // Pass comm to Rectangle constructor - makeInfoFromPyComm handles None→MPI_COMM_WORLD
-    return escript::Domain_ptr(new Rectangle(order, n0,n1, x0,y0, x1,y1, d0,d1,
-                                         points, tags, tagstonames, py_comm));
+    // Handle optional MPI communicator
+    escript::JMPI jmpi = escript::makeInfoFromPyComm(py_comm);
+
+    return escript::Domain_ptr(new Rectangle(jmpi, order, n0,n1, x0,y0, x1,y1, d0,d1,
+                                         points, tags, tagstonames));
 }
 
 } // end of namespace speckley

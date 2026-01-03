@@ -48,16 +48,6 @@ void tupleListToMap(DataMap& mapping, const bp::list& list)
     }
 }
 
-SpeckleyDomain::SpeckleyDomain(dim_t dim, int order, const boost::python::object& comm) :
-    m_numDim(dim),
-    m_status(0),
-    m_order(order)
-{
-    // makeInfoFromPyComm is the single entry point for handling MPI_COMM_WORLD from Python
-    m_mpiInfo = escript::makeInfoFromPyComm(comm);
-    assembler_type = DEFAULT_ASSEMBLER;
-}
-
 SpeckleyDomain::SpeckleyDomain(dim_t dim, int order, escript::JMPI jmpi) :
     m_numDim(dim),
     m_status(0),
