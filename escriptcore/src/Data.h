@@ -1560,26 +1560,21 @@ instead of manually manipulating process and point IDs.
 
   /**
      \brief
-     return the MPI rank number of the local data
-                MPI_COMM_WORLD is assumed and the result of MPI_Comm_size()
-                 is returned
+     return the MPI rank number of the local data.
   */
         int
         get_MPIRank(void) const;
 
   /**
      \brief
-     return the MPI rank number of the local data
-                 MPI_COMM_WORLD is assumed and the result of MPI_Comm_rank()
-                 is returned
+     return the number of MPI ranks of the data which is the size of communicator group of the associated domain.
   */
         int
         get_MPISize(void) const;
 
   /**
      \brief
-     return the MPI rank number of the local data
-                 MPI_COMM_WORLD is assumed and returned.
+     return the MPI communicator of the data which is the communicator of the associated domain.
   */
         MPI_Comm
         get_MPIComm(void) const;
