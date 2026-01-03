@@ -111,12 +111,30 @@ escript::Domain_ptr brick(escript::JMPI jmpi,
 
 /**
     \brief Python driver for brick()
-    \param args see brick() definition for order of params
+    \param n_tuple tuple of (n0, n1, n2) - number of elements in each direction
+    \param order order of shape functions (1, 2, or -1 for macro elements)
+    \param l_tuple tuple of (l0, l1, l2) - length of each side
+    \param periodic_tuple tuple of (periodic0, periodic1, periodic2) - periodic boundary conditions
+    \param integrationOrder order of quadrature scheme (-1 for automatic)
+    \param reducedIntegrationOrder order of reduced quadrature scheme (-1 for automatic)
+    \param useElementsOnFace whether to use elements on face
+    \param useFullElementOrder whether to use Hex27 elements
+    \param optimize enable optimization of node labels
+    \param diracPoints Dirac point coordinates
+    \param diracTags Dirac point tags
+    \param comm MPI communicator (optional, defaults to MPI_COMM_WORLD if None)
 */
 FINLEY_DLL_API
-escript::Domain_ptr brick_driver(const boost::python::list& args);
-FINLEY_DLL_API
-escript::Domain_ptr brick_driver_MPI(const boost::python::list& args);
+escript::Domain_ptr brick_driver(const boost::python::tuple& n_tuple,
+                                 int order,
+                                 const boost::python::tuple& l_tuple,
+                                 const boost::python::tuple& periodic_tuple,
+                                 int integrationOrder, int reducedIntegrationOrder,
+                                 bool useElementsOnFace, bool useFullElementOrder,
+                                 bool optimize,
+                                 const boost::python::list& diracPoints,
+                                 const boost::python::list& diracTags,
+                                 const boost::python::object& comm);
 
 /**
     \brief
@@ -157,13 +175,30 @@ escript::Domain_ptr rectangle(escript::JMPI jmpi,
 
 /**
     \brief Python driver for rectangle()
-    \param args see rectangle() definition for order of params
+    \param n_tuple tuple of (n0, n1) - number of elements in each direction
+    \param order order of shape functions (1, 2, or -1 for macro elements)
+    \param l_tuple tuple of (l0, l1) - length of each side
+    \param periodic_tuple tuple of (periodic0, periodic1) - periodic boundary conditions
+    \param integrationOrder order of quadrature scheme (-1 for automatic)
+    \param reducedIntegrationOrder order of reduced quadrature scheme (-1 for automatic)
+    \param useElementsOnFace whether to use elements on face
+    \param useFullElementOrder whether to use Rec9 elements
+    \param optimize enable optimization of node labels
+    \param diracPoints Dirac point coordinates
+    \param diracTags Dirac point tags
+    \param comm MPI communicator (optional, defaults to MPI_COMM_WORLD if None)
 */
 FINLEY_DLL_API
-escript::Domain_ptr rectangle_driver(const boost::python::list& args);
-
-FINLEY_DLL_API
-escript::Domain_ptr rectangle_driver_MPI(const boost::python::list& args);
+escript::Domain_ptr rectangle_driver(const boost::python::tuple& n_tuple,
+                                     int order,
+                                     const boost::python::tuple& l_tuple,
+                                     const boost::python::tuple& periodic_tuple,
+                                     int integrationOrder, int reducedIntegrationOrder,
+                                     bool useElementsOnFace, bool useFullElementOrder,
+                                     bool optimize,
+                                     const boost::python::list& diracPoints,
+                                     const boost::python::list& diracTags,
+                                     const boost::python::object& comm);
 
 /**
     \brief

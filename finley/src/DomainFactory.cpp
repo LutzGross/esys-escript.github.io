@@ -479,28 +479,52 @@ Domain_ptr brick(JMPI info, dim_t n0, dim_t n1, dim_t n2, int order,
     return dom;
 }
 
-Domain_ptr brick_driver(const bp::list& args)
+Domain_ptr brick_driver(const bp::tuple& n_tuple,
+                        int order,
+                        const bp::tuple& l_tuple,
+                        const bp::tuple& periodic_tuple,
+                        int integrationOrder, int reducedIntegrationOrder,
+                        bool useElementsOnFace, bool useFullElementOrder,
+                        bool optimize,
+                        const bp::list& diracPoints,
+                        const bp::list& diracTags,
+                        const bp::object& comm)
 {
-    // we need to convert lists to stl vectors
-    bp::list pypoints = bp::extract<bp::list>(args[15]);
-    bp::list pytags = bp::extract<bp::list>(args[16]);
-    int numpts = bp::extract<int>(pypoints.attr("__len__")());
-    int numtags = bp::extract<int>(pytags.attr("__len__")());
+    // Extract dimensions from tuple
+    dim_t n0 = bp::extract<dim_t>(n_tuple[0]);
+    dim_t n1 = bp::extract<dim_t>(n_tuple[1]);
+    dim_t n2 = bp::extract<dim_t>(n_tuple[2]);
+
+    // Extract lengths from tuple
+    double l0 = bp::extract<double>(l_tuple[0]);
+    double l1 = bp::extract<double>(l_tuple[1]);
+    double l2 = bp::extract<double>(l_tuple[2]);
+
+    // Extract periodic flags from tuple
+    bool periodic0 = bp::extract<bool>(periodic_tuple[0]);
+    bool periodic1 = bp::extract<bool>(periodic_tuple[1]);
+    bool periodic2 = bp::extract<bool>(periodic_tuple[2]);
+
+    // Convert lists to stl vectors
+    int numpts = bp::len(diracPoints);
+    int numtags = bp::len(diracTags);
     vector<double> points;
     vector<int> tags;
     tags.resize(numtags, -1);
+
     for (int i = 0; i < numpts; ++i) {
-        bp::object temp = pypoints[i];
+        bp::object temp = diracPoints[i];
         int l = bp::extract<int>(temp.attr("__len__")());
         for (int k = 0; k < l; ++k) {
             points.push_back(bp::extract<double>(temp[k]));
         }
     }
+
     map<string, int> namestonums;
     int curmax = 40; // bricks use up to 30
     for (int i = 0; i < numtags; ++i) {
-        bp::extract<int> ex_int(pytags[i]);
-        bp::extract<string> ex_str(pytags[i]);
+        bp::extract<int> ex_int(diracTags[i]);
+        bp::extract<string> ex_str(diracTags[i]);
         if (ex_int.check()) {
             tags[i] = ex_int();
             if (tags[i] >= curmax) {
@@ -521,89 +545,15 @@ Domain_ptr brick_driver(const bp::list& args)
             throw FinleyException("Unable to extract tag value.");
         }
     }
-    bp::object pworld = args[16];
-#ifdef ESYS_MPI 
-    int mpi_init = 0;
-    MPI_Initialized(&mpi_init);
-    if(!mpi_init)
-        MPI_Init(NULL,NULL);
-#endif
-    JMPI info = makeInfo(MPI_COMM_WORLD);
 
+    // Handle optional MPI communicator (defaults to MPI_COMM_WORLD if None)
+    JMPI info = makeInfoFromPyComm(comm);
 
-
-    return brick(info, static_cast<dim_t>(bp::extract<float>(args[0])),
-                 static_cast<dim_t>(bp::extract<float>(args[1])),
-                 static_cast<dim_t>(bp::extract<float>(args[2])),
-                 bp::extract<int>(args[3]), bp::extract<double>(args[4]),
-                 bp::extract<double>(args[5]), bp::extract<double>(args[6]),
-                 bp::extract<int>(args[7]), bp::extract<int>(args[8]),
-                 bp::extract<int>(args[9]), bp::extract<int>(args[10]),
-                 bp::extract<int>(args[11]), bp::extract<int>(args[12]),
-                 bp::extract<int>(args[13]), bp::extract<int>(args[14]),
+    return brick(info, n0, n1, n2, order, l0, l1, l2,
+                 periodic0, periodic1, periodic2,
+                 integrationOrder, reducedIntegrationOrder,
+                 useElementsOnFace, useFullElementOrder, optimize,
                  points, tags, namestonums);
-}
-
-Domain_ptr brick_driver_MPI(const bp::list& args)
-{
-#ifdef ESYS_MPI
-    // we need to convert lists to stl vectors
-    bp::list pypoints = bp::extract<bp::list>(args[15]);
-    bp::list pytags = bp::extract<bp::list>(args[16]);
-    int numpts = bp::extract<int>(pypoints.attr("__len__")());
-    int numtags = bp::extract<int>(pytags.attr("__len__")());
-    vector<double> points;
-    vector<int> tags;
-    tags.resize(numtags, -1);
-    for (int i = 0; i < numpts; ++i) {
-        bp::object temp = pypoints[i];
-        int l = bp::extract<int>(temp.attr("__len__")());
-        for (int k = 0; k < l; ++k) {
-            points.push_back(bp::extract<double>(temp[k]));
-        }
-    }
-    map<string, int> namestonums;
-    int curmax = 40; // bricks use up to 30
-    for (int i = 0; i < numtags; ++i) {
-        bp::extract<int> ex_int(pytags[i]);
-        bp::extract<string> ex_str(pytags[i]);
-        if (ex_int.check()) {
-            tags[i] = ex_int();
-            if (tags[i] >= curmax) {
-                curmax = tags[i]+1;
-            }
-        } else if (ex_str.check()) {
-            string s = ex_str();
-            TagMap::iterator it = namestonums.find(s);
-            if (it != namestonums.end()) {
-                // we have the tag already so look it up
-                tags[i] = it->second;
-            } else {
-                namestonums[s] = curmax;
-                tags[i] = curmax;
-                curmax++;
-            }
-        } else {
-            throw FinleyException("Unable to extract tag value.");
-        }
-    }
-    // Handle optional MPI communicator
-    bp::object py_comm = args[17];
-    JMPI info = makeInfoFromPyComm(py_comm);
-
-    return brick(info, static_cast<dim_t>(bp::extract<float>(args[0])),
-                 static_cast<dim_t>(bp::extract<float>(args[1])),
-                 static_cast<dim_t>(bp::extract<float>(args[2])),
-                 bp::extract<int>(args[3]), bp::extract<double>(args[4]),
-                 bp::extract<double>(args[5]), bp::extract<double>(args[6]),
-                 bp::extract<int>(args[7]), bp::extract<int>(args[8]),
-                 bp::extract<int>(args[9]), bp::extract<int>(args[10]),
-                 bp::extract<int>(args[11]), bp::extract<int>(args[12]),
-                 bp::extract<int>(args[13]), bp::extract<int>(args[14]),
-                 points, tags, namestonums);
-#else
-    throw FinleyException("escript was not compiled with MPI");
-#endif
 }
 
 Domain_ptr rectangle(JMPI info, dim_t n0, dim_t n1, int order,
@@ -643,32 +593,49 @@ Domain_ptr rectangle(JMPI info, dim_t n0, dim_t n1, int order,
     return dom;
 }
 
-Domain_ptr rectangle_driver(const bp::list& args)
+Domain_ptr rectangle_driver(const bp::tuple& n_tuple,
+                            int order,
+                            const bp::tuple& l_tuple,
+                            const bp::tuple& periodic_tuple,
+                            int integrationOrder, int reducedIntegrationOrder,
+                            bool useElementsOnFace, bool useFullElementOrder,
+                            bool optimize,
+                            const bp::list& diracPoints,
+                            const bp::list& diracTags,
+                            const bp::object& comm)
 {
-    // we need to convert lists to stl vectors
-    bp::list pypoints = bp::extract<bp::list>(args[12]);
-    bp::list pytags = bp::extract<bp::list>(args[13]);
-    int numpts = bp::len(pypoints);
-    int numtags = bp::len(pytags);
+    // Extract dimensions from tuple
+    dim_t n0 = bp::extract<dim_t>(n_tuple[0]);
+    dim_t n1 = bp::extract<dim_t>(n_tuple[1]);
 
-    // int numpts = bp::extract<int>(pypoints.attr("__len__")());
-    // int numtags = bp::extract<int>(pytags.attr("__len__")());
+    // Extract lengths from tuple
+    double l0 = bp::extract<double>(l_tuple[0]);
+    double l1 = bp::extract<double>(l_tuple[1]);
+
+    // Extract periodic flags from tuple
+    bool periodic0 = bp::extract<bool>(periodic_tuple[0]);
+    bool periodic1 = bp::extract<bool>(periodic_tuple[1]);
+
+    // Convert lists to stl vectors
+    int numpts = bp::len(diracPoints);
+    int numtags = bp::len(diracTags);
     vector<double> points;
     vector<int> tags;
     tags.resize(numtags, -1);
+
     for (int i = 0; i < numpts; ++i) {
-        bp::object temp = pypoints[i];
+        bp::object temp = diracPoints[i];
         int l = bp::extract<int>(temp.attr("__len__")());
         for (int k = 0; k < l; ++k) {
             points.push_back(bp::extract<double>(temp[k]));
         }
     }
+
     TagMap tagstonames;
     int curmax = 40;
-    // but which order to assign tags to names?????
     for (int i = 0; i < numtags; ++i) {
-        bp::extract<int> ex_int(pytags[i]);
-        bp::extract<string> ex_str(pytags[i]);
+        bp::extract<int> ex_int(diracTags[i]);
+        bp::extract<string> ex_str(diracTags[i]);
         if (ex_int.check()) {
             tags[i] = ex_int();
             if (tags[i] >= curmax) {
@@ -690,90 +657,16 @@ Domain_ptr rectangle_driver(const bp::list& args)
         }
     }
 
-//if ( bp::len(args) > 14 ) {
-//
-//} else {
-//
-//}
-#ifdef ESYS_MPI 
-    int mpi_init = 0;
-    MPI_Initialized(&mpi_init);
-    if(!mpi_init)
-        MPI_Init(NULL,NULL);
-#endif
-    JMPI info = makeInfo(MPI_COMM_WORLD);
+    // Handle optional MPI communicator (defaults to MPI_COMM_WORLD if None)
+    JMPI info = makeInfoFromPyComm(comm);
 
-    return rectangle(info, static_cast<dim_t>(bp::extract<float>(args[0])),
-                     static_cast<dim_t>(bp::extract<float>(args[1])),
-                     bp::extract<int>(args[2]), bp::extract<double>(args[3]),
-                     bp::extract<double>(args[4]), bp::extract<int>(args[5]),
-                     bp::extract<int>(args[6]), bp::extract<int>(args[7]),
-                     bp::extract<int>(args[8]), bp::extract<int>(args[9]),
-                     bp::extract<int>(args[10]), bp::extract<int>(args[11]),
+    return rectangle(info, n0, n1, order, l0, l1,
+                     periodic0, periodic1,
+                     integrationOrder, reducedIntegrationOrder,
+                     useElementsOnFace, useFullElementOrder, optimize,
                      points, tags, tagstonames);
 }
 
-Domain_ptr rectangle_driver_MPI(const bp::list& args)
-{
-#if defined(ESYS_MPI) && defined(ESYS_HAVE_MPI4PY)
-    // we need to convert lists to stl vectors
-    bp::list pypoints = bp::extract<bp::list>(args[12]);
-    bp::list pytags = bp::extract<bp::list>(args[13]);
-    int numpts = bp::extract<int>(pypoints.attr("__len__")());
-    int numtags = bp::extract<int>(pytags.attr("__len__")());
-    vector<double> points;
-    vector<int> tags;
-    tags.resize(numtags, -1);
-    for (int i = 0; i < numpts; ++i) {
-        bp::object temp = pypoints[i];
-        int l = bp::extract<int>(temp.attr("__len__")());
-        for (int k = 0; k < l; ++k) {
-            points.push_back(bp::extract<double>(temp[k]));
-        }
-    }
-    TagMap tagstonames;
-    int curmax = 40;
-    // but which order to assign tags to names?????
-    for (int i = 0; i < numtags; ++i) {
-        bp::extract<int> ex_int(pytags[i]);
-        bp::extract<string> ex_str(pytags[i]);
-        if (ex_int.check()) {
-            tags[i] = ex_int();
-            if (tags[i] >= curmax) {
-                curmax = tags[i]+1;
-            }
-        } else if (ex_str.check()) {
-            string s = ex_str();
-            TagMap::iterator it = tagstonames.find(s);
-            if (it != tagstonames.end()) {
-                // we have the tag already so look it up
-                tags[i] = it->second;
-            } else {
-                tagstonames[s] = curmax;
-                tags[i] = curmax;
-                curmax++;
-            }
-        } else {
-            throw FinleyException("Unable to extract tag value.");
-        }
-    }
-
-    // Handle optional MPI communicator
-    bp::object py_comm = args[14];
-    JMPI info = makeInfoFromPyComm(py_comm);
-
-    return rectangle(info, static_cast<dim_t>(bp::extract<float>(args[0])),
-                     static_cast<dim_t>(bp::extract<float>(args[1])),
-                     bp::extract<int>(args[2]), bp::extract<double>(args[3]),
-                     bp::extract<double>(args[4]), bp::extract<int>(args[5]),
-                     bp::extract<int>(args[6]), bp::extract<int>(args[7]),
-                     bp::extract<int>(args[8]), bp::extract<int>(args[9]),
-                     bp::extract<int>(args[10]), bp::extract<int>(args[11]),
-                     points, tags, tagstonames);
-#else
-    throw FinleyException("escript was not compiled with mpi4py");
-#endif
-}
 
 Domain_ptr meshMerge(const bp::list& meshList)
 {

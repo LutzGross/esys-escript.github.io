@@ -27,6 +27,20 @@ from esys.escript import getMPISizeWorld
 from esys.finley import Rectangle, Brick, ReadMesh, ReadGmsh, LoadMesh
 import os
 
+# Test data paths
+try:
+    FINLEY_TEST_DATA = os.environ['FINLEY_TEST_DATA']
+except KeyError:
+    # Default to finley/test/python directory
+    FINLEY_TEST_DATA = os.path.dirname(__file__)
+
+FINLEY_TEST_MESH_PATH = os.path.join(FINLEY_TEST_DATA, "data_meshes")
+
+try:
+    FINLEY_WORKDIR = os.environ['FINLEY_WORKDIR']
+except KeyError:
+    FINLEY_WORKDIR = '.'
+
 # Determine optimal domain subdivisions for current MPI configuration
 mpiSize = getMPISizeWorld()
 
@@ -52,9 +66,8 @@ class Test_MPI_Comm_Finley2D(Test_MPI_Comm_Retrieval):
     def createDomain(self, comm=None):
         """Create a 2D Rectangle domain"""
         if comm is None:
-            return Rectangle(n0=20, n1=20, d0=NX, d1=NY)
+            return Rectangle(n0=20, n1=20)
         else:
-            # For custom communicators, let finley auto-detect subdivision
             return Rectangle(n0=20, n1=20, comm=comm)
 
 
@@ -64,9 +77,8 @@ class Test_MPI_Comm_Finley3D(Test_MPI_Comm_Retrieval):
     def createDomain(self, comm=None):
         """Create a 3D Brick domain"""
         if comm is None:
-            return Brick(n0=12, n1=12, n2=12, d0=NXb, d1=NYb, d2=NZb)
+            return Brick(n0=12, n1=12, n2=12)
         else:
-            # For custom communicators, let finley auto-detect subdivision
             return Brick(n0=12, n1=12, n2=12, comm=comm)
 
 
@@ -75,9 +87,7 @@ class Test_MPI_Comm_ReadMesh(Test_MPI_Comm_Retrieval):
 
     def createDomain(self, comm=None):
         """Create a domain by reading a mesh file"""
-        # Use a test mesh file from the finley test data
-        mesh_path = os.path.join(os.environ.get('FINLEY_TEST_MESH_PATH', 'test/python/data'),
-                                 'rectangle_8x10.fly')
+        mesh_path = os.path.join(FINLEY_TEST_MESH_PATH, 'rect_4x4.fly')
         if comm is None:
             return ReadMesh(mesh_path)
         else:
@@ -89,9 +99,7 @@ class Test_MPI_Comm_ReadGmsh(Test_MPI_Comm_Retrieval):
 
     def createDomain(self, comm=None):
         """Create a domain by reading a Gmsh file"""
-        # Use a test Gmsh file from the finley test data
-        mesh_path = os.path.join(os.environ.get('FINLEY_TEST_MESH_PATH', 'test/python/data'),
-                                 'tagtest.msh')
+        mesh_path = os.path.join(FINLEY_TEST_MESH_PATH, 'tagtest.msh')
         if comm is None:
             return ReadGmsh(mesh_path, 2)
         else:
@@ -103,10 +111,7 @@ class Test_MPI_Comm_LoadMesh(Test_MPI_Comm_Retrieval):
 
     def createDomain(self, comm=None):
         """Create a domain by loading an HDF5 dump file"""
-        # First create and dump a test domain
-        import tempfile
-        temp_dir = os.environ.get('FINLEY_WORKDIR', tempfile.gettempdir())
-        dump_file = os.path.join(temp_dir, 'test_load_comm.dump.h5')
+        dump_file = os.path.join(FINLEY_WORKDIR, 'test_load_comm.dump.h5')
 
         # Create a small domain and dump it (only do this once per rank)
         if not os.path.exists(dump_file) or getMPIRankWorld() == 0:
