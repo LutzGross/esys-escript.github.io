@@ -26,11 +26,31 @@ namespace escript
 using DataTypes::dim_t;
 using DataTypes::index_t;
 
+void ensureMPIInitialized()
+{
+#ifdef ESYS_MPI
+    int mpi_initialized = 0;
+    MPI_Initialized(&mpi_initialized);
+    if (!mpi_initialized) {
+        throw EsysException("MPI has not been initialized. "
+                          "MPI must be initialized before using escript domains. "
+                          "When using Python, import mpi4py before importing escript, "
+                          "or use the run-escript launcher for MPI programs.");
+    }
+#endif
+}
+
 JMPI makeInfo(MPI_Comm comm, bool owncom)
 {
     if (NoCOMM_WORLD::active() && comm==MPI_COMM_WORLD)
         throw EsysException("Attempt to use the MPI_COMM_WORLD "
                             "communicator when it is blocked.");
+
+    // Ensure MPI is initialized when using MPI_COMM_WORLD
+    if (comm == MPI_COMM_WORLD) {
+        ensureMPIInitialized();
+    }
+
     JMPI_* p = new JMPI_(comm, owncom);
     return JMPI(p);
 }

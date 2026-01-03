@@ -81,15 +81,7 @@ Rectangle::Rectangle(int order,
     int periodic0, int periodic1):
     OxleyDomain(2, order){
 
-    // For safety
-#ifdef ESYS_MPI
-    int active = false;
-    int temp = MPI_Initialized(&active);
-    int * argc = nullptr;
-    auto argv = nullptr;
-    if (active == false)
-        MPI_Init(argc,argv);
-#endif
+    // makeInfo will ensure MPI is initialized and throw exception if not
     m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
 
     // Possible error: User passes invalid values for the dimensions
@@ -319,16 +311,8 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order,
     int periodic0, int periodic1):
     OxleyDomain(2, order){
 
-    // For safety
-#ifdef ESYS_MPI
-    int active = false;
-    int temp = MPI_Initialized(&active);
-    int * argc = nullptr;
-    auto argv = nullptr;
-    if (active == false)
-        MPI_Init(argc,argv);
-#endif
     // Use provided MPI communicator instead of MPI_COMM_WORLD
+    // Caller is responsible for ensuring MPI is initialized
     m_mpiInfo = jmpi;
 
     // Possible error: User passes invalid values for the dimensions

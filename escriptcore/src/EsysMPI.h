@@ -100,6 +100,12 @@ class JMPI_;
 
 typedef boost::shared_ptr<JMPI_> JMPI;
 
+/// ensures MPI has been initialized, throws exception if not
+/// This should be called before using MPI_COMM_WORLD or any MPI operations
+/// Does not call MPI_Init - initialization must happen at a higher level
+ESCRIPT_DLL_API
+void ensureMPIInitialized();
+
 /// creates a JMPI shared pointer from MPI communicator
 /// if owncom is true, the communicator is freed when mpi info is destroyed.
 ESCRIPT_DLL_API

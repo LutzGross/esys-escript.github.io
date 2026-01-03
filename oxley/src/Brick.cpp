@@ -82,13 +82,7 @@ Brick::Brick(int order,
 
     oxleytimer.toc("Creating an oxley::Brick...");
 
-    // For safety
-#ifdef ESYS_MPI
-    int mpi_init = 0;
-    MPI_Initialized(&mpi_init);
-    if(!mpi_init)
-        MPI_Init(NULL,NULL);
-#endif
+    // makeInfo will ensure MPI is initialized and throw exception if not
     m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
 
     // Possible error: User passes invalid values for the dimensions
@@ -184,12 +178,6 @@ Brick::Brick(int order,
         multiplier = 1.0;
 
     tuple_tolerance = TOLERANCE * multiplier;
-
-
-
-
-
-
 
     // Find the grid spacing for each level of refinement in the mesh
 #pragma omp parallel for
@@ -295,14 +283,8 @@ Brick::Brick(escript::JMPI jmpi, int order,
 
     oxleytimer.toc("Creating an oxley::Brick...");
 
-    // For safety
-#ifdef ESYS_MPI
-    int mpi_init = 0;
-    MPI_Initialized(&mpi_init);
-    if(!mpi_init)
-        MPI_Init(NULL,NULL);
-#endif
     // Use provided MPI communicator instead of MPI_COMM_WORLD
+    // Caller is responsible for ensuring MPI is initialized
     m_mpiInfo = jmpi;
 
     // Possible error: User passes invalid values for the dimensions
