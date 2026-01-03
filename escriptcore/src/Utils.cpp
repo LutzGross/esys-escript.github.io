@@ -17,6 +17,7 @@
 
 #include "Data.h"
 #include "DataVector.h"
+#include "EsysMPI.h"
 #include "FileWriter.h"
 #include "Utils.h"
 
@@ -132,6 +133,7 @@ int getMPISizeWorld()
 {
     int mpi_num = 1;
 #ifdef ESYS_MPI
+    ensureMPIInitialized();
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_num);
 #endif
     return mpi_num;
@@ -141,6 +143,7 @@ int getMPIRankWorld()
 {
     int mpi_iam = 0;
 #ifdef ESYS_MPI
+    ensureMPIInitialized();
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_iam);
 #endif
     return mpi_iam;
@@ -149,6 +152,7 @@ int getMPIRankWorld()
 int getMPIWorldMax(int val)
 {
 #ifdef ESYS_MPI
+    ensureMPIInitialized();
     int val2 = val;
     int out = val;
     MPI_Allreduce(&val2, &out, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
@@ -161,6 +165,7 @@ int getMPIWorldMax(int val)
 int getMPIWorldSum(int val)
 {
 #ifdef ESYS_MPI
+    ensureMPIInitialized();
     int val2 = val;
     int out = 0;
     MPI_Allreduce(&val2, &out, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
