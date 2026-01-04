@@ -309,11 +309,11 @@
 
 /* DEPRECATED (use SC_ENABLE_MPI instead) */
 /* #undef MPI */
-// #define SC_ENABLE_MPI 1
+#define SC_ENABLE_MPI 1
 
 /* DEPRECATED (use SC_ENABLE_MPIIO instead) */
 /* #undef MPIIO */
-// #define SC_ENABLE_MPIIO 1
+#define SC_ENABLE_MPIIO 1
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 /* #undef NO_MINUS_C_MINUS_O */

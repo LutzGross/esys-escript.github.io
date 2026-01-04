@@ -34,8 +34,8 @@ parmetis_libs = ['parmetis']
 # Build Trilinos with MPI support
 build_trilinos = 'make'  # Use smart dependency checking
 
-# Exclude oxley since it requires Trilinos
-domains = ['finley', 'ripley', 'speckley']
+# Include oxley with sc_MPI_COMM_WORLD for p4est/p8est integration
+domains = ['finley', 'ripley', 'speckley', 'oxley']
 
 # Override cxx_extra to avoid duplicate optimization flags with MPI
 cxx_extra = ['-fdiagnostics-color=always', '-fstack-protector-strong', '-Wformat', '-Werror=format-security']

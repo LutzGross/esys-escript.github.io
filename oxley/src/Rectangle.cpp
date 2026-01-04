@@ -38,11 +38,7 @@
 #include <oxley/RefinementType.h>
 #include <oxley/RefinementZone.h>
 
-// Include MPI before p4est to get MPI_COMM_WORLD
-#ifdef ESYS_MPI
-#include <mpi.h>
-#endif
-
+// p4est headers will include MPI via sc.h when SC_ENABLE_MPI is defined
 #include <p4est.h>
 #include <p4est_algorithms.h>
 #include <p4est_bits.h>
@@ -75,14 +71,17 @@ namespace oxley {
 
     /**
        \brief
-       Constructor
+       OLD Constructor - DEPRECATED - Uses sc_MPI_COMM_WORLD which violates the rule that
+       mpiInfo must be handed over from the caller, not created internally.
+       This constructor is not used - all code uses the JMPI-based constructor below.
     */
+#if 0
 Rectangle::Rectangle(int order,
     dim_t n0, dim_t n1,
     double x0, double y0,
     double x1, double y1,
     int d0, int d1,
-    const std::vector<double>& points, 
+    const std::vector<double>& points,
     const std::vector<int>& tags,
     const TagMap& tagnamestonums,
     int periodic0, int periodic1):
@@ -302,6 +301,7 @@ Rectangle::Rectangle(int order,
 
     oxleytimer.toc("Class initialised");
 }
+#endif  // End of deprecated constructor
 
 /**
    \brief

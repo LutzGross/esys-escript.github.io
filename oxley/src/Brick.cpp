@@ -36,12 +36,7 @@
 #include <oxley/Brick.h>
 #include <oxley/RefinementAlgorithms.h>
 
-// Include MPI before p8est to get MPI_COMM_WORLD
-#ifdef ESYS_MPI
-#include <mpi.h>
-#endif
-
-
+// p8est headers will include MPI via sc.h when SC_ENABLE_MPI is defined
 #include <p8est.h>
 #include <p8est_algorithms.h>
 #include <p8est_bits.h>
@@ -73,17 +68,19 @@ namespace oxley {
 
     /**
        \brief
-       Constructor
+       OLD Constructor - DEPRECATED - Uses sc_MPI_COMM_WORLD which causes compilation issues with mpi4py
+       This constructor is not used - all code uses the JMPI-based constructor below
     */
+#if 0
 Brick::Brick(int order,
     dim_t n0, dim_t n1, dim_t n2,
     double x0, double y0, double z0,
     double x1, double y1, double z1,
     int d0, int d1, int d2,
-    const std::vector<double>& points, 
+    const std::vector<double>& points,
     const std::vector<int>& tags,
     const TagMap& tagnamestonums,
-    int periodic0, int periodic1, int periodic2): 
+    int periodic0, int periodic1, int periodic2):
     OxleyDomain(3, order)
 {
 
@@ -271,6 +268,7 @@ Brick::Brick(int order,
 
     oxleytimer.toc("Brick initialised");
 }
+#endif  // End of deprecated constructor
 
 /**
    \brief
