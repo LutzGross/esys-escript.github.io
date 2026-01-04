@@ -2211,7 +2211,7 @@ escript::Data FinleyDomain::randomFill(
     // since we just made this object, no sharing is possible and we don't
     // need to check for exclusive write
     escript::DataTypes::RealVectorType& dv(towipe.getExpandedVectorReference());
-    escript::randomFillArray(seed, &dv[0], dv.size());
+    escript::randomFillArray(seed, &dv[0], dv.size(), m_mpiInfo);
     return towipe;
 }
 

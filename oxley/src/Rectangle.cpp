@@ -5302,7 +5302,7 @@ escript::Data Rectangle::randomFillWorker(
     }
 
     double* src = new double[ext[0]*ext[1]*numvals];
-    escript::randomFillArray(seed, src, ext[0]*ext[1]*numvals);
+    escript::randomFillArray(seed, src, ext[0]*ext[1]*numvals, m_mpiInfo);
 
     //TODO
 // #ifdef ESYS_MPI

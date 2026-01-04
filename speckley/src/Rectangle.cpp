@@ -1137,7 +1137,7 @@ escript::Data Rectangle::randomFill(const escript::DataTypes::ShapeType& shape,
     }
 
     double* src = new double[m_NE[0] * m_NE[1] * per_element * numvals];
-    escript::randomFillArray(seed, src, m_NE[0]*m_NE[1]*per_element);
+    escript::randomFillArray(seed, src, m_NE[0]*m_NE[1]*per_element, m_mpiInfo);
     escript::Data res(0, shape, escript::function(*this), true);
     int current = 0;
     for (index_t ei = 0; ei < m_NE[1]; ++ei) {

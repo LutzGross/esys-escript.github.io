@@ -76,13 +76,13 @@ namespace escript
 // notes:
 // - uses openmp
 // - don't forget to call CHECK_FOR_EX_WRITE if using this on Data
-void randomFillArray(long seed, double* array, size_t n)
+void randomFillArray(long seed, double* array, size_t n, JMPI mpiInfo)
 {
-    // So if we create a bunch of objects we don't get the same start seed 
+    // So if we create a bunch of objects we don't get the same start seed
     static unsigned prevseed=0;
     if (seed==0)                // for each one
     {
-        if (prevseed==0) 
+        if (prevseed==0)
         {
             time_t s=time(0);
             seed=s;
@@ -95,16 +95,11 @@ void randomFillArray(long seed, double* array, size_t n)
                 seed=((int)(seed)%0xABCD)+1;
             }
         }
-    }  
-    // now we need to consider MPI since we don't want each rank to start with
-    // the same seed. Rank in COMM_WORLD will do
-#ifdef ESYS_MPI
-    int rank;
-    int mperr=MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    if (mperr != MPI_SUCCESS) {
-        rank=0;
     }
-    seed+=rank*5;
+    // now we need to consider MPI since we don't want each rank to start with
+    // the same seed. Use rank from the provided communicator
+#ifdef ESYS_MPI
+    seed += mpiInfo->rank * 5;
 #endif
     prevseed=seed;  
     

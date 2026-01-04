@@ -18,6 +18,7 @@
 #define __ESCRIPT_RANDOM_H__
 
 #include "system_dep.h"
+#include "EsysMPI.h"
 
 namespace escript
 {
@@ -25,7 +26,7 @@ namespace escript
    If using this on Data, then be sure to CHECK_EX_WRITE first
 */
 ESCRIPT_DLL_API
-void randomFillArray(long seed, double* array, size_t n);
+void randomFillArray(long seed, double* array, size_t n, JMPI mpiInfo);
 
 
 ESCRIPT_DLL_API

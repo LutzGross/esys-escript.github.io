@@ -284,7 +284,7 @@ escript::Data TestDomain::randomFill(const DataTypes::ShapeType& shape,
     // need to check for exclusive write
     escript::DataTypes::RealVectorType& dv=towipe.getExpandedVectorReference();
     const size_t dvsize=dv.size();
-    escript::randomFillArray(seed, &(dv[0]), dvsize);
+    escript::randomFillArray(seed, &(dv[0]), dvsize, getMPI());
     return towipe;
 }
 

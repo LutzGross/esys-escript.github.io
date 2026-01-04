@@ -2660,7 +2660,7 @@ escript::Data Rectangle::randomFillWorker(
     }
 
     double* src = new double[ext[0]*ext[1]*numvals];
-    escript::randomFillArray(seed, src, ext[0]*ext[1]*numvals);
+    escript::randomFillArray(seed, src, ext[0]*ext[1]*numvals, m_mpiInfo);
 
 #ifdef ESYS_MPI
     if ((internal[0] < 5) || (internal[1] < 5)) {
