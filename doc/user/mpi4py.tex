@@ -54,6 +54,63 @@ To use \mpifo with \escript:
 
 See the \escript installation guide for detailed instructions.
 
+\subsection{MPI Initialization}
+\label{sec:mpi4py:init}
+
+\textbf{Important}: When running \PYTHON scripts directly (not using the \texttt{run-escript} launcher), you \textbf{must} import \mpifo before importing any \escript modules to ensure \MPI is properly initialized.
+
+\subsubsection{Correct Import Order}
+
+Always import \mpifo \textbf{before} importing \escript modules:
+
+\begin{python}
+# CORRECT - Import mpi4py first
+from mpi4py import MPI
+from esys.ripley import Rectangle
+
+domain = Rectangle(n0=100, n1=100)
+\end{python}
+
+The import statement \texttt{from mpi4py import MPI} automatically initializes \MPI when the module is loaded.
+This must happen before any \escript domains are created.
+
+\subsubsection{Common Mistake}
+
+Do \textbf{not} import \escript modules before \mpifo:
+
+\begin{python}
+# WRONG - This will fail!
+from esys.ripley import Rectangle
+from mpi4py import MPI  # Too late!
+
+domain = Rectangle(n0=100, n1=100)  # Error: MPI not initialized
+\end{python}
+
+This will produce an error:
+\begin{verbatim}
+RuntimeError: MPI has not been initialized. MPI must be
+initialized before using escript domains. When using Python,
+import mpi4py before importing escript, or use the run-escript
+launcher for MPI programs.
+\end{verbatim}
+
+\subsubsection{Alternative: Use run-escript}
+
+The \texttt{run-escript} launcher automatically handles \MPI initialization, so import order doesn't matter when using it:
+
+\begin{verbatim}
+run-escript myscript.py
+\end{verbatim}
+
+With \texttt{run-escript}, both of these work:
+\begin{python}
+# Both are fine when using run-escript
+from esys.ripley import Rectangle
+from mpi4py import MPI
+\end{python}
+
+However, for portability and clarity, it's still good practice to import \mpifo first.
+
 \section{Basic Concepts}
 
 \subsection{MPI Communicators}
