@@ -36,6 +36,11 @@
 #include <oxley/Brick.h>
 #include <oxley/RefinementAlgorithms.h>
 
+// Include MPI before p8est to get MPI_COMM_WORLD
+#ifdef ESYS_MPI
+#include <mpi.h>
+#endif
+
 
 #include <p8est.h>
 #include <p8est_algorithms.h>
@@ -48,6 +53,8 @@
 #include <p8est_vtk.h>
 #include <sc_containers.h>
 #include <sc_mpi.h>
+
+// Include after p8est to get MPI_COMM_WORLD
 
 #ifdef ESYS_HAVE_SILO
 #include <silo.h>
@@ -83,7 +90,7 @@ Brick::Brick(int order,
     oxleytimer.toc("Creating an oxley::Brick...");
 
     // makeInfo will ensure MPI is initialized and throw exception if not
-    m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
+    m_mpiInfo = escript::makeInfo(sc_MPI_COMM_WORLD);
 
     // Possible error: User passes invalid values for the dimensions
     if(n0 <= 0 || n1 <= 0 || n2 <= 0)

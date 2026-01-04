@@ -38,6 +38,11 @@
 #include <oxley/RefinementType.h>
 #include <oxley/RefinementZone.h>
 
+// Include MPI before p4est to get MPI_COMM_WORLD
+#ifdef ESYS_MPI
+#include <mpi.h>
+#endif
+
 #include <p4est.h>
 #include <p4est_algorithms.h>
 #include <p4est_bits.h>
@@ -50,6 +55,8 @@
 #include <p4est_vtk.h>
 
 #include <sc_mpi.h>
+
+// Include after p4est to get MPI_COMM_WORLD
 
 #ifdef ESYS_HAVE_SILO
 #include <silo.h>
@@ -82,7 +89,7 @@ Rectangle::Rectangle(int order,
     OxleyDomain(2, order){
 
     // makeInfo will ensure MPI is initialized and throw exception if not
-    m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
+    m_mpiInfo = escript::makeInfo(sc_MPI_COMM_WORLD);
 
     // Possible error: User passes invalid values for the dimensions
     if(n0 <= 0 || n1 <= 0)
