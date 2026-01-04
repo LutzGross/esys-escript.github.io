@@ -354,6 +354,7 @@ int waitForCompletion(int sfd, int key)
 int runMPIProgram(bp::list args)
 {
 #ifdef ESYS_MPI
+    ensureMPIInitialized();
     unsigned short port = 0;
     int key = 0;
     int sock = prepareSocket(&port, &key);
@@ -419,11 +420,8 @@ double getMaxFloat()
 void MPIBarrierWorld()
 {
 #ifdef ESYS_MPI
-    if (!NoCOMM_WORLD::active()) {
-        MPI_Barrier(MPI_COMM_WORLD );
-    } else {
-        throw EsysException("Attempt to use MPI_COMM_WORLD while it is blocked.");
-    }
+    ensureMPIInitialized();
+    MPI_Barrier(MPI_COMM_WORLD);
 #endif
 }
 
