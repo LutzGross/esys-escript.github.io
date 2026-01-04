@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 ##############################################################################
 #
 # Copyright (c) 2003-2020 by The University of Queensland
@@ -176,8 +175,8 @@ def main():
             printExports()
         die('Unable to read escript build information!')
 
-    PYTHON_MPI_NULL = os.path.join(ESCRIPT_ROOT, 'lib', 'pythonMPI')
-    PYTHON_MPI_REDIRECT = os.path.join(ESCRIPT_ROOT, 'lib', 'pythonMPIredirect')
+    PYTHON_MPI_NULL = os.path.join(ESCRIPT_ROOT, 'lib', 'esys', 'pythonMPI')
+    PYTHON_MPI_REDIRECT = os.path.join(ESCRIPT_ROOT, 'lib', 'esys', 'pythonMPIredirect')
     PYTHON_CMD = get_buildvar('python')
 
     #==============================================================================

@@ -107,8 +107,8 @@ get_buildvar () {
     echo $(grep "^$1=" "$BUILDINFO_FILE" |cut -d= -f2)
 }
 
-PYTHON_MPI_NULL="$ESCRIPT_ROOT/lib/pythonMPI"
-PYTHON_MPI_REDIRECT="$ESCRIPT_ROOT/lib/pythonMPIredirect"
+PYTHON_MPI_NULL="$ESCRIPT_ROOT/lib/esys/pythonMPI"
+PYTHON_MPI_REDIRECT="$ESCRIPT_ROOT/lib/esys/pythonMPIredirect"
 PYTHON_CMD=$(get_buildvar python)
 
 HELP_TEXT="

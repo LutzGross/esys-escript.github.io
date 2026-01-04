@@ -111,19 +111,42 @@ class Test_MPI_Comm_LoadMesh(Test_MPI_Comm_Retrieval):
 
     def createDomain(self, comm=None):
         """Create a domain by loading an HDF5 dump file"""
-        dump_file = os.path.join(FINLEY_WORKDIR, 'test_load_comm.dump.h5')
+        from esys.escript import getMPIRankWorld, getMPISizeWorld
 
-        # Create a small domain and dump it (only do this once per rank)
-        if not os.path.exists(dump_file) or getMPIRankWorld() == 0:
+        # Use unique filename per MPI world rank to avoid file conflicts
+        # when split communicators are used
+        world_rank = getMPIRankWorld()
+        dump_file = os.path.join(FINLEY_WORKDIR, f'test_load_comm_{world_rank}.dump.h5')
+
+        # Step 1: Create a Rectangle domain with the provided communicator
+        if comm is None:
             test_domain = Rectangle(n0=8, n1=8)
-            test_domain.dump(dump_file)
+        else:
+            test_domain = Rectangle(n0=8, n1=8, comm=comm)
 
-        # Wait for all ranks to ensure file is written
-        import esys.escript
-        if hasattr(esys.escript, 'barrier'):
-            esys.escript.barrier()
+        # Step 2: Dump the domain to file
+        test_domain.dump(dump_file)
 
-        # Load the domain with the specified communicator
+        # Step 3: Verify the dump file exists for this rank
+        # Determine which rank we are in the communicator
+        if comm is not None:
+            my_rank = comm.Get_rank()
+            comm_size = comm.Get_size()
+        else:
+            my_rank = getMPIRankWorld()
+            comm_size = getMPISizeWorld()
+
+        # Check if the expected file exists
+        # dump() appends rank to filename if comm size > 1: filename.0000, filename.0001, etc.
+        if comm_size > 1:
+            my_dump_file = f"{dump_file}.{my_rank:04d}"
+        else:
+            my_dump_file = dump_file
+
+        if not os.path.exists(my_dump_file):
+            raise RuntimeError(f"Expected dump file {my_dump_file} not found after dump()")
+
+        # Step 4: Load the domain and return it
         if comm is None:
             return LoadMesh(dump_file)
         else:
