@@ -338,42 +338,6 @@ public:
 
     /**
      \brief
-     returns a reference to the MPI information wrapper for this domain
-    */
-    virtual escript::JMPI getMPI() const { return m_mpiInfo; }
-
-    /**
-     \brief
-     returns the number of processors used for this domain
-    */
-    virtual int getMPISize() const { return m_mpiInfo->size; }
-
-    /**
-     \brief
-     returns the number MPI rank of this processor
-    */
-    virtual int getMPIRank() const { return m_mpiInfo->rank; }
-
-    /**
-     \brief
-     If compiled for MPI then execute an MPI_Barrier, else do nothing
-    */
-    virtual void MPIBarrier() const;
-
-    /**
-     \brief
-     returns true if on MPI processor 0, else false
-    */
-    virtual bool onMasterProcessor() const { return getMPIRank() == 0; }
-
-    MPI_Comm getMPIComm() const { return m_mpiInfo->comm; }
-
-    boost::python::object getMPICommPython() const {
-        return escript::makePyCommFromMPI(m_mpiInfo->comm);
-    }
-
-    /**
-     \brief
      writes the current mesh to a file with the given name in the fly file
      format.
      \param fileName Input - The name of the file to write to.

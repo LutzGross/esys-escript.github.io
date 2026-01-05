@@ -387,7 +387,7 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
     if domain is None:
         raise ValueError("saveESD: no domain detected.")
 
-    if domain.onMasterProcessor() and not os.path.isdir(dataDir):
+    if domain.isRootRank() and not os.path.isdir(dataDir):
         os.mkdir(dataDir)
 
     meshFile = datasetName+"_mesh"
@@ -403,7 +403,7 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
 
     outputString = ""
 
-    if domain.onMasterProcessor():
+    if domain.isRootRank():
         outputString += "#escript datafile V1.0\n"
         # number of timesteps (currently only 1 is supported)
         outputString += "T=%d\n" % (fileNumber+1)
@@ -418,10 +418,10 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
     for varName,d in sorted(new_data.items(), key=lambda x: x[0]):
         varFile = datasetName+"_"+varName+".%s"%timeStepFormat
         d.dump(os.path.join(dataDir, (varFile ) % fileNumber))
-        if domain.onMasterProcessor():
+        if domain.isRootRank():
             outputString += "V=%s:%s\n" % (varFile, varName)
 
-    if domain.onMasterProcessor():
+    if domain.isRootRank():
         esdfile = open(os.path.join(dataDir, datasetName+".esd"), "w")
         esdfile.write(outputString)
         esdfile.close()

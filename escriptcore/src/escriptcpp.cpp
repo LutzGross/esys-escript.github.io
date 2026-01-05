@@ -251,7 +251,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("getMPIComm",&escript::AbstractDomain::getMPICommPython,":return: the MPI communicator for this domain as an mpi4py.MPI.Comm object (or None if MPI/mpi4py not enabled)\n"
         ":rtype: mpi4py.MPI.Comm or None")
      .def("MPIBarrier",&escript::AbstractDomain::MPIBarrier,"Wait until all processes have reached this point")
-     .def("onMasterProcessor",&escript::AbstractDomain::onMasterProcessor,":return: True if this code is executing on the master process\n"
+     .def("isRootRank",&escript::AbstractDomain::isRootRank,":return: True if this code is executing on the root rank (rank 0)\n"
         ":rtype: `bool`")
      .def("supportsContactElements", &escript::AbstractDomain::supportsContactElements,"Does this domain support contact elements.")
      .def(self == self)

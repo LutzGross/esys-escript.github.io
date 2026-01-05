@@ -100,13 +100,6 @@ FinleyDomain::~FinleyDomain()
     delete m_points;
 }
 
-void FinleyDomain::MPIBarrier() const
-{
-#ifdef ESYS_MPI
-    MPI_Barrier(getMPIComm());
-#endif
-}
-
 void FinleyDomain::setElements(ElementFile* elements)
 {
     delete m_elements;

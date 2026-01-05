@@ -35,9 +35,10 @@ const int TestDomainFS=1;     // Null domains only support 1 functionspace type.
 }
 
 TestDomain::TestDomain(int pointspersample, int numsamples, int dpsize)
-        : m_totalsamples(numsamples), m_samples(numsamples), m_dpps(pointspersample), m_dpsize(dpsize),
-        myworld(makeInfo(MPI_COMM_WORLD))
+        : m_totalsamples(numsamples), m_samples(numsamples), m_dpps(pointspersample), m_dpsize(dpsize)
 {
+    // Override NullDomain's MPI_COMM_NULL with MPI_COMM_WORLD for testing
+    m_mpiInfo = makeInfo(MPI_COMM_WORLD);
     int world=getMPISizeWorld();
     int rank=getMPIRankWorld();
     m_samples/=world;
@@ -76,29 +77,6 @@ int TestDomain::getMPISize() const
 int TestDomain::getMPIRank() const
 {
     return getMPIRankWorld();
-}
-
-void TestDomain::MPIBarrier() const
-{
-    return MPIBarrierWorld();
-}
-
-bool TestDomain::onMasterProcessor() const
-{
-    return getMPIRank() == 0;
-}
-
-/*
-MPI_Comm TestDomain::getMPIComm() const
-{
-    return MPI_COMM_WORLD;
-}
-*/
-
-escript::JMPI TestDomain::getMPI() const
-{
-    return myworld;
-  
 }
 
 

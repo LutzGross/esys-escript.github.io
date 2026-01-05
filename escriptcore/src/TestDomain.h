@@ -48,10 +48,6 @@ public:
 
     virtual int getMPISize() const;
     virtual int getMPIRank() const;
-    virtual void MPIBarrier() const;
-    virtual bool onMasterProcessor() const;
-    
-    virtual escript::JMPI getMPI() const;
 
     virtual bool isValidFunctionSpaceType(int functionSpaceType) const;
 
@@ -121,9 +117,8 @@ private:
     
     std::vector<int> mytags;
     std::vector<int> tag_assignment; 	// which tag is assigned to each sample
-				// to make testing easier, the tags in use list is 
+				// to make testing easier, the tags in use list is
 				// controlled separately
-    escript::JMPI myworld;
 };
 
 ESCRIPT_DLL_API

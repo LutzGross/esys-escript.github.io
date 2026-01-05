@@ -708,7 +708,7 @@ BOOST_PYTHON_MODULE(ripleycpp)
         .def("getMPISize",&ripley::RipleyDomain::getMPISize,":return: the number of processes used for this `Domain`\n:rtype: ``int``")
         .def("getMPIRank",&ripley::RipleyDomain::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
         .def("MPIBarrier",&ripley::RipleyDomain::MPIBarrier,"Wait until all processes have reached this point")
-        .def("onMasterProcessor",&ripley::RipleyDomain::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`");
+        .def("isRootRank",&ripley::RipleyDomain::isRootRank,":return: True if this code is executing on the root rank (rank 0)\n:rtype: `bool`");
     // These two class exports are necessary to ensure that the extra methods
     // added by ripley make it to python. This change became necessary when
     // the Brick and Rectangle constructors turned into factories instead of

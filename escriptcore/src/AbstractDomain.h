@@ -75,31 +75,35 @@ public:
      \brief
      returns a shared pointer to the MPI information wrapper for this domain
     */
-    virtual JMPI getMPI() const = 0;
+    virtual JMPI getMPI() const { return m_mpiInfo; }
 
     /**
      \brief
      return the number of processors used for this domain
     */
-    virtual int getMPISize() const = 0;
+    virtual int getMPISize() const { return m_mpiInfo->size; }
 
     /**
      \brief
      return the number MPI rank of this processor
     */
-    virtual int getMPIRank() const = 0;
+    virtual int getMPIRank() const { return m_mpiInfo->rank; }
 
     /**
      \brief
      If compiled for MPI then execute an MPI_Barrier, else do nothing
     */
-    virtual void MPIBarrier() const = 0;
+    virtual void MPIBarrier() const {
+#ifdef ESYS_MPI
+        MPI_Barrier(m_mpiInfo->comm);
+#endif
+    }
 
     /**
      \brief
-     Return true if on MPI master, else false
+     Return true if this is the root MPI rank (rank 0), else false
     */
-    virtual bool onMasterProcessor() const = 0;
+    virtual bool isRootRank() const { return m_mpiInfo->rank == 0; }
 
     /**
        \brief
@@ -107,7 +111,7 @@ public:
        Returns an integer on non-MPI builds
        Routine must be implemented by the DomainAdapter.
     */
-    virtual MPI_Comm getMPIComm() const = 0;
+    virtual MPI_Comm getMPIComm() const { return m_mpiInfo->comm; }
 
     /**
        \brief
@@ -115,7 +119,9 @@ public:
        Returns None if MPI or mpi4py support is not enabled.
        This allows Python code to retrieve the domain's communicator.
     */
-    virtual boost::python::object getMPICommPython() const = 0;
+    virtual boost::python::object getMPICommPython() const {
+        return makePyCommFromMPI(m_mpiInfo->comm);
+    }
 
     /**
        \brief
@@ -423,11 +429,34 @@ public:
     virtual bool supportsFilter(const boost::python::tuple& t) const;
 
     /**
-    * \brief Fills the data object with filtered random values 
-    */ 
+    * \brief Fills the data object with filtered random values
+    */
     virtual escript::Data randomFill(const DataTypes::ShapeType& shape,
                                 const FunctionSpace& what, long seed,
                                 const boost::python::tuple& filter) const = 0;
+
+protected:
+    /**
+     \brief
+     MPI information wrapper for this domain.
+     Contains communicator, rank, and size information.
+     All domains should initialize this in their constructors.
+    */
+    JMPI m_mpiInfo;
+
+    /**
+     \brief
+     Default constructor for AbstractDomain.
+     Domains should call this and initialize m_mpiInfo in their constructors.
+    */
+    AbstractDomain() {}
+
+    /**
+     \brief
+     Constructor that initializes MPI information.
+     \param mpiInfo MPI information wrapper
+    */
+    explicit AbstractDomain(JMPI mpiInfo) : m_mpiInfo(mpiInfo) {}
 };
 
 } // end of namespace

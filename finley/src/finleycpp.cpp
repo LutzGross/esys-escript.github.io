@@ -266,7 +266,7 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
       .def("getMPISize", &finley::FinleyDomain::getMPISize,":return: the number of processes used for this `Domain`\n:rtype: ``int``")
       .def("getMPIRank", &finley::FinleyDomain::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
       .def("MPIBarrier", &finley::FinleyDomain::MPIBarrier,"Wait until all processes have reached this point")
-      .def("onMasterProcessor", &finley::FinleyDomain::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`")
+      .def("isRootRank", &finley::FinleyDomain::isRootRank,":return: True if this code is executing on the root rank (rank 0)\n:rtype: `bool`")
  ;
 }
 

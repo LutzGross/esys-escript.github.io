@@ -44,18 +44,7 @@ private:
     static DataTypes::dim_t referenceID;
         
 public:
-    NullDomain() {}
-
-    virtual JMPI getMPI() const;
-    virtual int getMPISize() const { return 1; }
-    virtual int getMPIRank() const { return 0; }
-    virtual void MPIBarrier() const {}
-    virtual bool onMasterProcessor() const { return true; }
-    virtual MPI_Comm getMPIComm() const { return MPI_COMM_WORLD; }
-
-    virtual boost::python::object getMPICommPython() const {
-        return makePyCommFromMPI(MPI_COMM_WORLD);
-    }
+    NullDomain() : AbstractDomain(makeInfo(MPI_COMM_NULL)) {}
 
     virtual bool isValidFunctionSpaceType(int fsCode) const {
         return fsCode==NullDomainFS;

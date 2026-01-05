@@ -491,9 +491,9 @@ The \Domain class provides an abstract interface to the domain of \FunctionSpace
     \Domain.
 \end{methoddesc}
 %
-\begin{methoddesc}[Domain]{onMasterProcessor}{}
-    returns \True if the process is the master process within the \MPI
-    process group used by the \Domain. This is the process with rank 0.
+\begin{methoddesc}[Domain]{isRootRank}{}
+    returns \True if the process is the root rank (rank 0) within the \MPI
+    process group used by the \Domain.
     If \MPI support is not enabled the return value is always \True.
 \end{methoddesc}
 %

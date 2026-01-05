@@ -156,50 +156,6 @@ public:
     virtual std::string getDescription() const;
 
     /**
-     \brief
-     returns a reference to the MPI information wrapper for this domain
-    */
-    virtual escript::JMPI getMPI() const { return m_mpiInfo; }
-
-    /**
-       \brief
-       returns the number of processors used for this domain
-    */
-    virtual int getMPISize() const { return m_mpiInfo->size; }
-
-    /**
-       \brief
-       returns the MPI rank of this processor
-    */
-    virtual int getMPIRank() const { return m_mpiInfo->rank; }
-
-    /**
-       \brief
-       if compiled for MPI then executes an MPI_Barrier, else does nothing
-    */
-    virtual void MPIBarrier() const {
-#ifdef ESYS_MPI
-        MPI_Barrier(m_mpiInfo->comm);
-#endif
-    }
-
-    /**
-       \brief
-       returns true if on MPI processor 0, else false
-    */
-    virtual bool onMasterProcessor() const { return getMPIRank()==0; }
-
-    /**
-       \brief
-       returns the MPI communicator
-    */
-    MPI_Comm getMPIComm() const { return m_mpiInfo->comm; }
-
-    boost::python::object getMPICommPython() const {
-        return escript::makePyCommFromMPI(m_mpiInfo->comm);
-    }
-
-    /**
        \brief
        returns true if the argument is a valid function space type for this
        domain

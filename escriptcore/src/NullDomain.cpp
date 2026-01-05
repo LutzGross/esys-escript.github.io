@@ -40,11 +40,6 @@ std::string NullDomain::functionSpaceTypeAsString(int functionSpaceType) const
     return "Default_FunctionSpace";
 }
 
-JMPI NullDomain::getMPI() const
-{
-    throw DomainException("NullDomain::getMPI() not supported.");
-}
-
 void NullDomain::interpolateOnDomain(Data& target,const Data& source) const
 {
    if (source.getFunctionSpace().getDomain().get()!=this)  
