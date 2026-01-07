@@ -76,18 +76,18 @@ void tupleListToMap(DataMap& mapping, const bp::list& list)
 }
 
 RipleyDomain::RipleyDomain(dim_t dim) :
+    escript::AbstractContinuousDomain(escript::makeInfo(MPI_COMM_SELF)),
     m_numDim(dim),
     m_status(0)
 {
-    m_mpiInfo = escript::makeInfo(MPI_COMM_SELF);
     assembler_type = DEFAULT_ASSEMBLER;
 }
 
 RipleyDomain::RipleyDomain(dim_t dim, escript::JMPI jmpi) :
+    escript::AbstractContinuousDomain(jmpi),
     m_numDim(dim),
     m_status(0)
 {
-    m_mpiInfo = jmpi;
     assembler_type = DEFAULT_ASSEMBLER;
 }
 

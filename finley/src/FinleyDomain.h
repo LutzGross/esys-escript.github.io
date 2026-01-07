@@ -853,8 +853,6 @@ private:
     void writeElementInfo(std::ostream& stream, const ElementFile* e,
                           const std::string& defaultType) const;
 
-    /// MPI information
-    escript::JMPI m_mpiInfo;
     /// domain description
     std::string m_name;
     int approximationOrder;

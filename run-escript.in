@@ -149,6 +149,7 @@ do
       "p")  ESCRIPT_NUM_PROCS=$OPTARG
         ;;
       "t")  ESCRIPT_NUM_THREADS=$OPTARG
+            USER_SET_THREADS=1
         ;;
       "f")  ESCRIPT_HOSTFILE=$OPTARG
         ;;
@@ -289,8 +290,9 @@ else
            die "Cannot find hostfile $ESCRIPT_HOSTFILE!"
         fi
     else
-        echo "localhost" > $HOSTFILE
-        HOSTLIST="localhost"
+        NUM_SLOTS=$(nproc 2>/dev/null || echo 1)
+        echo "localhost slots=${NUM_SLOTS}" > $HOSTFILE
+        HOSTLIST="localhost:${NUM_SLOTS}"
     fi
 
     if [ -z $ESCRIPT_NUM_NODES ]
@@ -332,6 +334,19 @@ TOTPROC=$((ESCRIPT_NUM_NODES * ESCRIPT_NUM_PROCS))
 if [ $? -ne 0 ] #Some compute error
 then            #This could happen if the args were not a number
     die "Expression of total number of processors = $ESCRIPT_NUM_NODES * $ESCRIPT_NUM_PROCS is not numerical!"
+fi
+
+# Auto-calculate threads per process for localhost to avoid oversubscription
+if [ "$WITH_OPENMP" = "1" ] && [ -z "$ESCRIPT_HOSTFILE" ] && [ $ESCRIPT_NUM_NODES -eq 1 ] && [ -z "$USER_SET_THREADS" ]
+then
+    NUM_SLOTS=$(nproc 2>/dev/null || echo 1)
+    CALC_THREADS=$((NUM_SLOTS / TOTPROC))
+    if [ $CALC_THREADS -lt 1 ]
+    then
+        CALC_THREADS=1
+    fi
+    ESCRIPT_NUM_THREADS=$CALC_THREADS
+    vlog "Auto-calculated ESCRIPT_NUM_THREADS = $ESCRIPT_NUM_THREADS (${NUM_SLOTS} cores / ${TOTPROC} processes)"
 fi
 
 # set up thread binding if unset -- disabled by default because it interfers

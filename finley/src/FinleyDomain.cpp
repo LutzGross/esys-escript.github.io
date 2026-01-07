@@ -59,7 +59,7 @@ using escript::DataTypes::cplx_t;
 FinleyDomain::FunctionSpaceNamesMapType FinleyDomain::m_functionSpaceTypeNames;
 
 FinleyDomain::FinleyDomain(const string& name, int numDim, escript::JMPI jmpi) :
-    m_mpiInfo(jmpi),
+    escript::AbstractContinuousDomain(jmpi),
     m_name(name),
     approximationOrder(-1),
     reducedApproximationOrder(-1),
@@ -76,7 +76,7 @@ FinleyDomain::FinleyDomain(const string& name, int numDim, escript::JMPI jmpi) :
 }
 
 FinleyDomain::FinleyDomain(const FinleyDomain& in) :
-    m_mpiInfo(in.m_mpiInfo),
+    escript::AbstractContinuousDomain(in.m_mpiInfo),
     m_name(in.m_name),
     approximationOrder(in.approximationOrder),
     reducedApproximationOrder(in.reducedApproximationOrder),

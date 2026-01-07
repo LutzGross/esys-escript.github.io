@@ -734,7 +734,6 @@ public:
 protected:
     int m_numDim;
     StatusType m_status;
-    escript::JMPI m_mpiInfo;
     TagMap m_tagMap;
     mutable std::vector<int> m_nodeTags, m_nodeTagsInUse;
     mutable std::vector<int> m_elementTags, m_elementTagsInUse;

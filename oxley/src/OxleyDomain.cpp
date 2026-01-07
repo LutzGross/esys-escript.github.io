@@ -64,7 +64,8 @@ namespace oxley {
        \brief
        Constructor
     */
-    OxleyDomain::OxleyDomain(dim_t dim, int order)
+    OxleyDomain::OxleyDomain(dim_t dim, int order, escript::JMPI jmpi) :
+        escript::AbstractContinuousDomain(jmpi)
     {
 
         // These two statements configure the level of verbosity used by p4est

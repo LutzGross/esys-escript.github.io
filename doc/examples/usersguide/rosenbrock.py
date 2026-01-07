@@ -85,8 +85,7 @@ class RosenFunc(CostFunction):
 
 # ... callback function is used to collect the table of iteration count vs. value of the cost function
 TABLE = []
-
-def myCallback(iterCount, m, dm, Fm, grad_Fm, norm_m, norm_gradFm, args_m, failed):
+def myCallback(iterCount, m, dm, Fm, grad_Fm, norm_m, args_m, failed):
     if not failed:
         TABLE.append( [ iterCount, Fm ] )
 

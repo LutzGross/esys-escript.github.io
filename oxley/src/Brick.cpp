@@ -283,14 +283,13 @@ Brick::Brick(escript::JMPI jmpi, int order,
     const std::vector<int>& tags,
     const TagMap& tagnamestonums,
     int periodic0, int periodic1, int periodic2):
-    OxleyDomain(3, order)
+    OxleyDomain(3, order, jmpi)
 {
 
     oxleytimer.toc("Creating an oxley::Brick...");
 
-    // Use provided MPI communicator instead of MPI_COMM_WORLD
+    // MPI communicator passed to base class constructor
     // Caller is responsible for ensuring MPI is initialized
-    m_mpiInfo = jmpi;
 
     // Possible error: User passes invalid values for the dimensions
     if(n0 <= 0 || n1 <= 0 || n2 <= 0)

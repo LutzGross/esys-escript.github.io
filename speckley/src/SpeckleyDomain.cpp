@@ -49,11 +49,11 @@ void tupleListToMap(DataMap& mapping, const bp::list& list)
 }
 
 SpeckleyDomain::SpeckleyDomain(dim_t dim, int order, escript::JMPI jmpi) :
+    escript::AbstractContinuousDomain(jmpi),
     m_numDim(dim),
     m_status(0),
     m_order(order)
 {
-    m_mpiInfo = jmpi;
     assembler_type = DEFAULT_ASSEMBLER;
 }
 

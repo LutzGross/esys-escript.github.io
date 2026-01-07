@@ -77,6 +77,10 @@ sortOutExample('usersguide/rosenbrock.py', allowsMPI=False)
 sortOutExample('usersguide/inclusion.py')
 sortOutExample('usersguide/MT.py', allowsMPI=False)
 sortOutExample('usersguide/MT_master_slave.py', allowsMPI=True, minMPISize=2, requiresMPI4py=True)
+sortOutExample('usersguide/ensemble_example.py', allowsMPI=True, minMPISize=4, requiresMPI4py=True)
+sortOutExample('usersguide/thermo_mechanical.py', allowsMPI=True, minMPISize=8, requiresMPI4py=True)
+sortOutExample('usersguide/voxet_reader.py', allowsMPI=True)
+sortOutExample('usersguide/split.py', allowsMPI=True, minMPISize=2)
 
 # Supporting files for examples
 example_deps.append('usersguide/simplemesh.msh')      # for simpletest.py

@@ -26,6 +26,11 @@ AbstractContinuousDomain::AbstractContinuousDomain()
 {
 }
 
+AbstractContinuousDomain::AbstractContinuousDomain(JMPI mpiInfo)
+    : AbstractDomain(mpiInfo)
+{
+}
+
 AbstractContinuousDomain::~AbstractContinuousDomain()
 {
 }

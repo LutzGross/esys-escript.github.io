@@ -72,6 +72,14 @@ class ESCRIPT_DLL_API AbstractContinuousDomain : public AbstractDomain
   */
   AbstractContinuousDomain();
 
+ protected:
+  /**
+     \brief
+     Constructor with MPI info for AbstractContinuousDomain
+  */
+  explicit AbstractContinuousDomain(JMPI mpiInfo);
+
+ public:
   /**
      \brief
      Destructor for AbstractContinuousDomain

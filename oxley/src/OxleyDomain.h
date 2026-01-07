@@ -138,7 +138,7 @@ public:
        \brief
        Constructor
     */
-    OxleyDomain(dim_t dim, int order);
+    OxleyDomain(dim_t dim, int order, escript::JMPI jmpi = escript::JMPI());
 
     /**
        \brief
@@ -880,9 +880,6 @@ protected:
 
     //max levels of refinement
     int m_refinement_levels;
-
-    // MPI info
-    escript::JMPI m_mpiInfo;
 
     // A second MPI handle for p4est.
     sc_MPI_Comm m_p4est_mpiInfo;

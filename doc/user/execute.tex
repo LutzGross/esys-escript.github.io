@@ -44,6 +44,7 @@ you can use
 run-escript -t 4 myscript.py
 \end{verbatim}
 This requires {\it escript} to be compiled with \OPENMP\cite{OPENMP} support.
+The \programopt{-t} option sets the \env{OMP_NUM_THREADS} environment variable to control the number of \OPENMP threads.
 To run the script using \MPI\cite{MPI} with 8 processes use
 \begin{verbatim}
 run-escript -p 8 myscript.py
@@ -124,10 +125,16 @@ The options have the following meaning:
     The default value is 1.
 
 \item[\programopt{-t} \var{nt}] the number of threads used per process.
-    The option overwrites the value of the \OPENMP environment variable \env{ESCRIPT_NUM_THREADS}.
+    The option sets the \env{ESCRIPT_NUM_THREADS} variable, which is then
+    exported as the standard \OPENMP environment variable \env{OMP_NUM_THREADS}.
     If $\var{nt}>1$ but {\it escript} is not compiled for \OPENMP, a warning
     is printed but execution is continued with $\var{nt}=1$.
+    When running MPI jobs on localhost without specifying \programopt{-t},
+    the launcher automatically calculates an appropriate number of threads
+    per process to avoid oversubscription (total threads = available cores / number of MPI processes).
     The default value is 1.
+    Note: If not using \program{run-escript}, you can set \env{OMP_NUM_THREADS}
+    directly to control threading.
 
 \item[\programopt{-f} \var{hostfile}] the name of a file with a list of host names.
     Some systems require to specify the addresses or names of the compute

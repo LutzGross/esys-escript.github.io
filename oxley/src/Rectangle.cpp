@@ -85,10 +85,9 @@ Rectangle::Rectangle(int order,
     const std::vector<int>& tags,
     const TagMap& tagnamestonums,
     int periodic0, int periodic1):
-    OxleyDomain(2, order){
+    OxleyDomain(2, order, escript::makeInfo(sc_MPI_COMM_WORLD)){
 
-    // makeInfo will ensure MPI is initialized and throw exception if not
-    m_mpiInfo = escript::makeInfo(sc_MPI_COMM_WORLD);
+    // makeInfo called in base class constructor
 
     // Possible error: User passes invalid values for the dimensions
     if(n0 <= 0 || n1 <= 0)
@@ -316,11 +315,10 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order,
     const std::vector<int>& tags,
     const TagMap& tagnamestonums,
     int periodic0, int periodic1):
-    OxleyDomain(2, order){
+    OxleyDomain(2, order, jmpi){
 
-    // Use provided MPI communicator instead of MPI_COMM_WORLD
+    // MPI communicator passed to base class constructor
     // Caller is responsible for ensuring MPI is initialized
-    m_mpiInfo = jmpi;
 
     // Possible error: User passes invalid values for the dimensions
     if(n0 <= 0 || n1 <= 0)
