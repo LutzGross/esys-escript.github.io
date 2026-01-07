@@ -77,7 +77,6 @@ from esys.escriptcore.nonlinearPDE import NonlinearPDE
 from esys.escriptcore.datamanager import DataManager
 if HAVE_SYMBOLS:
     from esys.escriptcore.symboliccore import *
-from esys.escriptcore.splitworld import *
 from . import minimizer
 import logging
 logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)

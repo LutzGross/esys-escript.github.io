@@ -29,10 +29,8 @@ public:
     MPIScalarReducer(MPI_Op op);
     ~MPIScalarReducer(){};
     
-    // This is not a constructor parameter because 
-    // if these are created outside the subworld, they won't have
-    // access to a domain yet.
-    // I also want SplitWorld to be able to set this
+    // This is not a constructor parameter because the domain
+    // may not be available at construction time.
     void setDomain(Domain_ptr d);
     bool valueCompatible(boost::python::object v);
     bool reduceLocalValue(boost::python::object v, std::string& errstring);

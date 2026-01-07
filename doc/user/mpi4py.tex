@@ -766,40 +766,6 @@ group_id = rank // (world_size // num_groups)
 group_id = rank % num_groups  # Only works if size divisible by num_groups
 \end{python}
 
-\section{Comparison with SplitWorld}
-
-\escript's \texttt{SplitWorld} class (Chapter~\ref{CHAP:subworld}) provides similar functionality but with a higher-level interface.
-
-\begin{center}
-\begin{tabular}{|l|l|l|}
-\hline
-\textbf{Feature} & \textbf{mpi4py} & \textbf{SplitWorld} \\
-\hline
-Flexibility & Full \MPI control & Predefined patterns \\
-Learning curve & Requires \MPI knowledge & Easier for beginners \\
-Communicator control & Direct access & Abstracted \\
-Custom communication & Easy & Limited \\
-Standard MPI & Yes & No \\
-Interoperability & Works with other libraries & \escript-specific \\
-\hline
-\end{tabular}
-\end{center}
-
-\textbf{When to use mpi4py}:
-\begin{itemize}
-\item You need fine-grained control over process organization
-\item You want to integrate with other \MPI-based libraries
-\item You're familiar with \MPI programming
-\item You need custom communication patterns
-\end{itemize}
-
-\textbf{When to use SplitWorld}:
-\begin{itemize}
-\item You want a simple, high-level interface
-\item You're running straightforward ensemble simulations
-\item You don't need custom \MPI operations
-\end{itemize}
-
 \section{Performance Considerations}
 
 \subsection{Process Group Size}
