@@ -68,16 +68,6 @@
 
 namespace escript {
 
-/** \brief tag reserved for use by SubWorld code
-    This value should be higher than the modulus used in JMPI_::setCounter.
-    Apart from that, its value is not particularly significant.
-*/
-inline int getSubWorldTag()
-{
-    return (('S'<< 24) + ('u' << 16) + ('b' << 8) + 'W')%1010201;
-}
-
-
 inline static MPI_Comm * extractMPICommunicator(boost::python::object py_comm)
 {
     MPI_Comm *comm_p = 0;
@@ -107,9 +97,8 @@ ESCRIPT_DLL_API
 void ensureMPIInitialized();
 
 /// creates a JMPI shared pointer from MPI communicator
-/// if owncom is true, the communicator is freed when mpi info is destroyed.
 ESCRIPT_DLL_API
-JMPI makeInfo(MPI_Comm comm, bool owncom=false);
+JMPI makeInfo(MPI_Comm comm);
 
 /// creates a JMPI shared pointer from optional Python mpi4py communicator
 /// if py_comm is None or not provided, uses MPI_COMM_WORLD
@@ -202,22 +191,9 @@ public:
     MPI_Comm comm;
 
 private:
-    JMPI_(MPI_Comm comm, bool owncomm);
-    friend ESCRIPT_DLL_API JMPI makeInfo(MPI_Comm comm, bool owncom);
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-private-field"
-    bool ownscomm;
-#pragma clang diagnostic pop
+    JMPI_(MPI_Comm comm);
+    friend ESCRIPT_DLL_API JMPI makeInfo(MPI_Comm comm);
     int msg_tag_counter;
-};
-
-// Does not cope with nested calls
-class NoCOMM_WORLD
-{
-public:
-    NoCOMM_WORLD();
-    ~NoCOMM_WORLD();
-    static bool active();
 };
 
 /// Everyone puts in their error code and everyone gets the largest one

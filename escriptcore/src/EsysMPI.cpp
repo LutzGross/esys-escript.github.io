@@ -40,18 +40,14 @@ void ensureMPIInitialized()
 #endif
 }
 
-JMPI makeInfo(MPI_Comm comm, bool owncom)
+JMPI makeInfo(MPI_Comm comm)
 {
-    if (NoCOMM_WORLD::active() && comm==MPI_COMM_WORLD)
-        throw EsysException("Attempt to use the MPI_COMM_WORLD "
-                            "communicator when it is blocked.");
-
     // Ensure MPI is initialized when using MPI_COMM_WORLD
     if (comm == MPI_COMM_WORLD) {
         ensureMPIInitialized();
     }
 
-    JMPI_* p = new JMPI_(comm, owncom);
+    JMPI_* p = new JMPI_(comm);
     return JMPI(p);
 }
 
@@ -93,8 +89,8 @@ boost::python::object makePyCommFromMPI(MPI_Comm comm)
 #endif
 }
 
-JMPI_::JMPI_(MPI_Comm mpicomm, bool owncom)
-        : comm(mpicomm), ownscomm(owncom), msg_tag_counter(0)
+JMPI_::JMPI_(MPI_Comm mpicomm)
+        : comm(mpicomm), msg_tag_counter(0)
 {
 #ifdef ESYS_MPI
     if (mpicomm != MPI_COMM_NULL) {
@@ -108,16 +104,14 @@ JMPI_::JMPI_(MPI_Comm mpicomm, bool owncom)
     }
 #else
     rank = 0;
-    size = 1;        
-#endif        
+    size = 1;
+#endif
 }
 
 JMPI_::~JMPI_()
 {
-#ifdef ESYS_MPI
-    if (ownscomm && comm != MPI_COMM_NULL)
-        MPI_Comm_free(&comm);
-#endif
+    // MPI communicators are managed externally (e.g., MPI_COMM_WORLD, mpi4py)
+    // and should not be freed by JMPI_
 }
 
 dim_t JMPI_::setDistribution(index_t min_id, index_t max_id,
@@ -130,6 +124,7 @@ dim_t JMPI_::setDistribution(index_t min_id, index_t max_id,
         for (int p=0; p<size; ++p) {
             if (p < rest) {
                 distribution[p]=min_id+(local_N+1)*p;
+
             } else {
                 distribution[p]=min_id+rest+local_N*p;
             }
@@ -173,7 +168,8 @@ bool checkResult(int res, int& mres, const JMPI& info)
     }
 #ifdef ESYS_MPI
     const int leader = 0;
-    const int BIGTAG = getSubWorldTag();
+    // Use a fixed tag that won't conflict with counter-based tags (0-1010200)
+    const int BIGTAG = 1010200;
     if (info->rank != leader) {  
         if (MPI_Send(&res, 1, MPI_INT, leader, BIGTAG, info->comm) != MPI_SUCCESS)
             return false;
@@ -270,31 +266,6 @@ bool shipString(const char* src, char** dest, MPI_Comm& comm)
     strcpy(*dest, src);
     return true;
 #endif
-}
-
-namespace 
-{
-    // true if a split world call is currently running and MPI_COMM_WORLD
-    // should not be allowed by default
-    bool nocommworldplease=false;
-}
-
-NoCOMM_WORLD::NoCOMM_WORLD()
-{
-    if (nocommworldplease)
-        throw EsysException("NoCOMM_WORLD does not nest.");
-
-    nocommworldplease=true;
-}
-
-NoCOMM_WORLD::~NoCOMM_WORLD()
-{
-    nocommworldplease=false;
-}  
-
-bool NoCOMM_WORLD::active()
-{
-    return nocommworldplease;
 }
 
 } // namespace escript
