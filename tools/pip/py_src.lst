@@ -2,7 +2,6 @@ esys/escript/datamanager.py
 esys/escript/linearPDEs.py
 esys/escript/pdetools.py
 esys/escript/run_escript.py
-esys/escript/splitworld.py
 esys/escript/symbolic.py
 esys/escript/unitsSI.py
 esys/escript/util.py
@@ -14,7 +13,6 @@ esys/escriptcore/heat.py
 esys/escriptcore/linearPDEs.py
 esys/escriptcore/nonlinearPDE.py
 esys/escriptcore/pdetools.py
-esys/escriptcore/splitworld.py
 esys/escriptcore/start.py
 esys/escriptcore/symbolic/evaluator.py
 esys/escriptcore/symbolic/functions.py
