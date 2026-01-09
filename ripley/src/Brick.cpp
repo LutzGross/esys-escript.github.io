@@ -139,7 +139,7 @@ Brick::Brick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
         throw ValueError("Invalid number of spatial subdivisions");
     }
     if (warn) {
-        std::cout << "Warning: Automatic domain subdivision (d0=" << d0 << ", d1="
+        std::cout << "ripley.Brick: Warning: Automatic domain subdivision (d0=" << d0 << ", d1="
             << d1 << ", d2=" << d2 << "). This may not be optimal!" << std::endl;
     }
 
@@ -201,7 +201,7 @@ Brick::Brick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
                     "is set to STRICT. Use setDecompositionPolicy() "
                     "to allow adding elements.");
         } else {
-            std::cout << "Warning: Domain setup has been adjusted as follows "
+            std::cout << "ripley.Brick: Warning: Domain setup has been adjusted as follows "
                     "to allow decomposition into " << m_mpiInfo->size
                     << " MPI ranks:" << std::endl
                     << "    N0=" << n0 << ", l0=" << l0 << std::endl
@@ -326,7 +326,7 @@ Brick::Brick(escript::JMPI jmpi, dim_t n0, dim_t n1, dim_t n2, double x0, double
         throw ValueError("Invalid number of spatial subdivisions");
     }
     if (warn) {
-        std::cout << "Warning: Automatic domain subdivision (d0=" << d0 << ", d1="
+        std::cout << "ripley.Brick: Warning: Automatic domain subdivision (d0=" << d0 << ", d1="
             << d1 << ", d2=" << d2 << "). This may not be optimal!" << std::endl;
     }
 
@@ -388,7 +388,7 @@ Brick::Brick(escript::JMPI jmpi, dim_t n0, dim_t n1, dim_t n2, double x0, double
                     "is set to STRICT. Use setDecompositionPolicy() "
                     "to allow adding elements.");
         } else {
-            std::cout << "Warning: Domain setup has been adjusted as follows "
+            std::cout << "ripley.Brick: Warning: Domain setup has been adjusted as follows "
                     "to allow decomposition into " << m_mpiInfo->size
                     << " MPI ranks:" << std::endl
                     << "    N0=" << n0 << ", l0=" << l0 << std::endl

@@ -129,7 +129,7 @@ Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
         throw ValueError("Invalid number of spatial subdivisions");
 
     if (warn) {
-        std::cout << "Warning: Automatic domain subdivision (d0=" << d0 << ", d1="
+        std::cout << "ripley.Rectangle: Warning: Automatic domain subdivision (d0=" << d0 << ", d1="
             << d1 << "). This may not be optimal!" << std::endl;
     }
 
@@ -176,7 +176,7 @@ Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
                     "is set to STRICT. Use setDecompositionPolicy() "
                     "to allow adding elements.");
         } else {
-            std::cout << "Warning: Domain setup has been adjusted as follows "
+            std::cout << "ripley.Rectangle: Warning: Domain setup has been adjusted as follows "
                     "to allow decomposition into " << m_mpiInfo->size
                     << " MPI ranks:" << std::endl
                     << "    N0=" << n0 << ", l0=" << l0 << std::endl
@@ -290,7 +290,7 @@ Rectangle::Rectangle(escript::JMPI jmpi, dim_t n0, dim_t n1, double x0, double y
         throw ValueError("Invalid number of spatial subdivisions");
 
     if (warn) {
-        std::cout << "Warning: Automatic domain subdivision (d0=" << d0 << ", d1="
+        std::cout << "ripley.Rectangle: Warning: Automatic domain subdivision (d0=" << d0 << ", d1="
             << d1 << "). This may not be optimal!" << std::endl;
     }
 
@@ -337,7 +337,7 @@ Rectangle::Rectangle(escript::JMPI jmpi, dim_t n0, dim_t n1, double x0, double y
                     "is set to STRICT. Use setDecompositionPolicy() "
                     "to allow adding elements.");
         } else {
-            std::cout << "Warning: Domain setup has been adjusted as follows "
+            std::cout << "ripley.Rectangle: Warning: Domain setup has been adjusted as follows "
                     "to allow decomposition into " << m_mpiInfo->size
                     << " MPI ranks:" << std::endl
                     << "    N0=" << n0 << ", l0=" << l0 << std::endl

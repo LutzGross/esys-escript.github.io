@@ -118,7 +118,7 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order, dim_t n0, dim_t n1, double x
         throw SpeckleyException("Invalid number of spatial subdivisions");
 
     if (warn) {
-        std::cout << "Warning: Automatic domain subdivision (d0=" << d0 << ", d1="
+        std::cout << "speckley.Rectangle: Warning: Automatic domain subdivision (d0=" << d0 << ", d1="
             << d1 << "). This may not be optimal!" << std::endl;
     }
 
@@ -130,13 +130,13 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order, dim_t n0, dim_t n1, double x
     if (n0 % d0 > 0) {
         n0 += d0 - (n0 % d0);
         l0 = m_dx[0]*n0;
-        std::cout << "Warning: Adjusted number of elements and length. N0="
+        std::cout << "speckley.Rectangle: Warning: Adjusted number of elements and length. N0="
             << n0 << ", l0=" << l0 << std::endl;
     }
     if (n1 % d1 > 0) {
         n1 += d1 - (n1 % d1);
         l1 = m_dx[1]*n1;
-        std::cout << "Warning: Adjusted number of elements and length. N1="
+        std::cout << "speckley.Rectangle: Warning: Adjusted number of elements and length. N1="
             << n1 << ", l1=" << l1 << std::endl;
     }
 
