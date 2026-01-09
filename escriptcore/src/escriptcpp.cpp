@@ -16,7 +16,6 @@
 *****************************************************************************/
 
 #include "AbstractContinuousDomain.h"
-#include "AbstractReducer.h"
 #include "AbstractSystemMatrix.h"
 #include "AbstractTransportProblem.h"
 #include "Data.h"
@@ -26,9 +25,6 @@
 #include "ExceptionTranslators.h"
 #include "FunctionSpace.h"
 #include "FunctionSpaceFactory.h"
-#include "MPIDataReducer.h"
-#include "MPIScalarReducer.h"
-#include "NonReducedVariable.h"
 #include "SolverOptions.h"
 #include "TestDomain.h"
 #include "Utils.h"

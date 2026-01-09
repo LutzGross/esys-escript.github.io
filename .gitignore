@@ -42,4 +42,4 @@ test_*.csv
 test_*.log
 test_*.txt
 scons_py_tests*.log
-uniform_mesh_ae.silo
+uniform_mesh_ae.silo/removed_code/
