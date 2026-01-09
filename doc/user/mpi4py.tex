@@ -54,39 +54,113 @@ To use \mpifo with \escript:
 
 See the \escript installation guide for detailed instructions.
 
-\subsection{MPI Initialization}
+\subsection{MPI Initialization and the pythonMPI Wrapper}
 \label{sec:mpi4py:init}
 
-\textbf{Important}: When running \PYTHON scripts directly (not using the \texttt{run-escript} launcher), you \textbf{must} import \mpifo before importing any \escript modules to ensure \MPI is properly initialized.
+\textbf{Critical}: \escript requires \MPI to be initialized \textbf{before} the Python interpreter starts to ensure proper initialization of C++ libraries like Trilinos. This section explains why and how to do it correctly.
 
-\subsubsection{Correct Import Order}
+\subsubsection{Why MPI Initialization Order Matters}
 
-Always import \mpifo \textbf{before} importing \escript modules:
+\escript uses the Trilinos library for distributed linear algebra operations. Trilinos contains C++ code with static objects that capture \MPI state when shared libraries are loaded. If \MPI is initialized \textbf{after} Python starts, some C++ static objects may capture an uninitialized \MPI state, leading to inconsistent behavior and errors.
+
+\textbf{Symptoms of incorrect initialization}:
+\begin{itemize}
+\item Trilinos errors like: \texttt{global index N does not have a corresponding local index in the Directory Map}
+\item Hangs during interpolation between function spaces
+\item Crashes or incorrect results when using multiple \MPI processes
+\end{itemize}
+
+These errors occur because different parts of the C++ code disagree about how many global indices exist, leading to off-by-one errors and invalid memory access.
+
+\subsubsection{The pythonMPI Wrapper}
+
+To solve this problem, \escript provides a custom Python launcher called \texttt{pythonMPI} that ensures \MPI is initialized \textbf{before} Python starts:
+
+\begin{enumerate}
+\item The \texttt{pythonMPI} executable (a C++ program) calls \texttt{MPI\_Init\_thread()}
+\item \MPI runtime is fully initialized with \texttt{MPI\_COMM\_WORLD} ready
+\item \texttt{pythonMPI} then starts the Python interpreter via \texttt{Py\_Main()}
+\item Python and all C++ libraries load with \MPI already active
+\item All C++ static initialization sees a consistent, initialized \MPI state
+\end{enumerate}
+
+The \texttt{run-escript} launcher automatically uses \texttt{pythonMPI} when running with \MPI.
+
+\subsubsection{Correct Usage: Always Use run-escript}
+
+\textbf{CORRECT}:
+\begin{verbatim}
+# For MPI jobs, always use run-escript
+run-escript -n 4 myscript.py
+
+# For serial jobs, run-escript also works
+run-escript myscript.py
+\end{verbatim}
+
+\textbf{WRONG}:
+\begin{verbatim}
+# DO NOT use mpirun/mpiexec with python3 directly
+mpirun -n 4 python3 myscript.py  # Will cause Trilinos errors!
+\end{verbatim}
+
+\subsubsection{What Happens with Direct mpirun python3}
+
+When you run \texttt{mpirun -n 4 python3 myscript.py}, the initialization sequence is incorrect:
+
+\begin{enumerate}
+\item Python interpreter starts \textbf{without} \MPI
+\item Python imports \mpifo
+\item \mpifo calls \texttt{MPI\_Init()} ← \MPI initialized \textbf{after} Python started
+\item Python imports \escript modules
+\item Some Trilinos C++ static objects were created \textbf{before} \texttt{MPI\_Init()}
+\item Later code uses \MPI state from \textbf{after} \texttt{MPI\_Init()}
+\item Inconsistent state causes index calculation errors
+\end{enumerate}
+
+\textbf{Example error}: For a mesh with 861 nodes (indices 0--860), some code may think there are 862 nodes and try to access index 862, which doesn't exist.
+
+\subsubsection{Import Order When Using run-escript}
+
+When using \texttt{run-escript}, the import order doesn't matter because \MPI is already initialized:
 
 \begin{python}
-# CORRECT - Import mpi4py first
+# Both work with run-escript
+from esys.ripley import Rectangle
+from mpi4py import MPI
+\end{python}
+
+However, for portability and clarity, it's still good practice to import \mpifo first:
+
+\begin{python}
+# Best practice - import mpi4py first
+from mpi4py import MPI
+from esys.escript import *
+from esys.ripley import Rectangle
+\end{python}
+
+\subsubsection{Why Import Order Matters Without run-escript}
+
+If you run scripts directly with the Python interpreter (e.g., for serial jobs), you \textbf{must} import \mpifo before \escript:
+
+\begin{python}
+# CORRECT for direct python3 execution (serial only)
 from mpi4py import MPI
 from esys.ripley import Rectangle
 
 domain = Rectangle(n0=100, n1=100)
 \end{python}
 
-The import statement \texttt{from mpi4py import MPI} automatically initializes \MPI when the module is loaded.
-This must happen before any \escript domains are created.
-
-\subsubsection{Common Mistake}
-
-Do \textbf{not} import \escript modules before \mpifo:
+Do \textbf{not} import \escript before \mpifo:
 
 \begin{python}
-# WRONG - This will fail!
+# WRONG - Will fail
 from esys.ripley import Rectangle
 from mpi4py import MPI  # Too late!
 
 domain = Rectangle(n0=100, n1=100)  # Error: MPI not initialized
 \end{python}
 
-This will produce an error:
+This produces:
 \begin{verbatim}
 RuntimeError: MPI has not been initialized. MPI must be
 initialized before using escript domains. When using Python,
@@ -94,22 +168,15 @@ import mpi4py before importing escript, or use the run-escript
 launcher for MPI programs.
 \end{verbatim}
 
-\subsubsection{Alternative: Use run-escript}
+\subsubsection{Summary: Best Practices}
 
-The \texttt{run-escript} launcher automatically handles \MPI initialization, so import order doesn't matter when using it:
-
-\begin{verbatim}
-run-escript myscript.py
-\end{verbatim}
-
-With \texttt{run-escript}, both of these work:
-\begin{python}
-# Both are fine when using run-escript
-from esys.ripley import Rectangle
-from mpi4py import MPI
-\end{python}
-
-However, for portability and clarity, it's still good practice to import \mpifo first.
+\begin{itemize}
+\item \textbf{Always use} \texttt{run-escript} for \MPI programs (required for correct Trilinos initialization)
+\item \textbf{Never use} \texttt{mpirun python3} directly (will cause Trilinos errors)
+\item \textbf{Always import} \mpifo before \escript modules (good practice even with \texttt{run-escript})
+\item The \texttt{pythonMPI} wrapper ensures \MPI initializes before Python starts
+\item This prevents C++ static initialization order issues with Trilinos
+\end{itemize}
 
 \section{Basic Concepts}
 

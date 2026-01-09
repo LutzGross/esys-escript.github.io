@@ -251,8 +251,17 @@ The project uses Boost.Python for Python bindings:
 ### Working with MPI
 
 - MPI must be enabled at build time (`mpi='OPENMPI'` etc.)
-- Use `run-escript` launcher to handle MPI setup
+- **ALWAYS use `run-escript` launcher for MPI programs** - DO NOT use `mpirun python3` directly
 - Launcher flags: `-n` (processes), `-p` (processes per node), `-t` (threads)
+
+**Critical**: The `pythonMPI` wrapper (used by `run-escript`) initializes MPI *before* Python starts, which is essential for proper Trilinos/Tpetra initialization. Using `mpirun python3` directly causes MPI initialization order issues that lead to index errors and crashes.
+
+**Sub-communicators with mpi4py**:
+- You CAN use mpi4py to create sub-communicators and pass them to escript domains
+- This replaces the old SplitWorld functionality
+- Example: `sub_comm = MPI.COMM_WORLD.Split(color, rank); domain = Rectangle(n0=20, n1=10, comm=sub_comm)`
+- See `doc/user/mpi4py.tex` for detailed documentation and examples
+- See `MPI_INITIALIZATION_EXPLAINED.md` for technical details on the initialization order issue
 
 ### Compiler Selection
 
