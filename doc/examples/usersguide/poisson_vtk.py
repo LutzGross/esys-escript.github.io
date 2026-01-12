@@ -42,5 +42,5 @@ else:
     mypde.setValue(f=1,q=gammaD)
     u = mypde.getSolution()
     # write u to an external file
-    saveVTK("u.vtu",sol=u)
+    saveVTK("output/u.vtu",sol=u)
 

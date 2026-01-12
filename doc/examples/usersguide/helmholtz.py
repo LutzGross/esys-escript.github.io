@@ -1,3 +1,4 @@
+
 ##############################################################################
 #
 # Copyright (c) 2003-2018 by The University of Queensland
@@ -49,5 +50,5 @@ else:
     u=mypde.getSolution()
     print("error is ",Lsup(u-x[0]))
     # output should be similar to "error is 1.e-7"
-    saveVTK("x0.vtu",sol=u)
+    saveVTK("output/x0.vtu",sol=u)
  

@@ -62,5 +62,5 @@ else:
           print("time step :",t)
           mypde.setValue(Y=qH+rhocp/h*T)
           T=mypde.getSolution()
-          saveVTK("T.%d.vtu"%i,temp=T)
+          saveVTK("output/T.%d.vtu"%i,temp=T)
 

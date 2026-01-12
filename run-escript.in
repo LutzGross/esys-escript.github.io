@@ -109,6 +109,7 @@ get_buildvar () {
 
 PYTHON_MPI_NULL="$ESCRIPT_ROOT/lib/esys/pythonMPI"
 PYTHON_MPI_REDIRECT="$ESCRIPT_ROOT/lib/esys/pythonMPIredirect"
+PYTHON_MPI_VERBOSE="$ESCRIPT_ROOT/lib/esys/pythonMPIverbose"
 PYTHON_CMD=$(get_buildvar python)
 
 HELP_TEXT="
@@ -123,6 +124,7 @@ Usage: run-escript [options] script.py [arguments...]
 	-b		do not invoke python (run non-python programs)
 	-e		print export statements for environment and exit
 	-o		redirect output from MPI to files
+	-a		show output from all MPI ranks (verbose mode)
 	-v		print diagnostics
 	-x		run in new xterm instance
 	-m tool		run with valgrind {tool=m[emcheck]/c[allgrind]/[cac]h[egrind]}
@@ -137,9 +139,11 @@ fi
 #==============================================================================
 
 # Parse the command-line options
-while getopts 'bn:p:t:f:echim:oVvx' option
+while getopts 'abn:p:t:f:echim:oVvx' option
 do
     case "$option" in
+      "a")  ESCRIPT_VERBOSE_MPI=y
+        ;;
       "b")  DO_BINARY=y
         ;;
       "m")  DO_VALGRIND=$OPTARG
@@ -370,7 +374,10 @@ fi
 
 if [ $TOTPROC -gt 1 ]
 then
-    if [ "$ESCRIPT_CREATESTDFILES" = "y" ]
+    if [ "$ESCRIPT_VERBOSE_MPI" = "y" ]
+    then
+        PYTHON_MPI=$PYTHON_MPI_VERBOSE
+    elif [ "$ESCRIPT_CREATESTDFILES" = "y" ]
     then
         PYTHON_MPI=$PYTHON_MPI_REDIRECT
     else

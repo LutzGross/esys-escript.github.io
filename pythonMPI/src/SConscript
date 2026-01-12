@@ -28,12 +28,14 @@ headers = """
 
 # sources = ['ScriptMPI.cpp']
 sources_redirect = ['ScriptMPIredirect.cpp']
+sources_verbose = ['ScriptMPIverbose.cpp']
 
 local_env = env.Clone()
 local_env.PrependUnique(LIBS = ['escript'])
 
 progs = local_env.Program('pythonMPI', sources)
 progs += local_env.Program('pythonMPIredirect', sources_redirect)
+progs += local_env.Program('pythonMPIverbose', sources_verbose)
 
 include_path = Dir('pythonMPI', local_env['incinstall'])
 hdr_inst = local_env.Install(include_path, headers)

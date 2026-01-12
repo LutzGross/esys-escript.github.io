@@ -69,7 +69,7 @@ plt.tricontourf(x_np[0], x_np[1], m_np[0], 15)
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
 plt.colorbar()
-plt.savefig('mt_anomaly.png')
+plt.savefig('output/mt_anomaly.png')
 print("anomaly plot generated.")
 # now we can set the resistivity distribution:
 rho = rho_b*(1-m)+rho_a*m
@@ -102,7 +102,7 @@ Zyx_ts=np.array(locator_transect(Zyx))
 #
 # and save to file:
 #
-np.savetxt('MTData2.csv', (x_ts, Zyx_ts.real, Zyx_ts.imag ), delimiter=',')
+np.savetxt('output/MTData2.csv', (x_ts, Zyx_ts.real, Zyx_ts.imag ), delimiter=',')
 #
 # ... plot the apparent resistivity and phase:
 #
@@ -116,7 +116,7 @@ plt.plot(x_ts, rho_a_ts)
 plt.xlabel('x [m]')
 plt.ylabel('resistivity [m]')
 plt.title(f"Resistivity vs offset  (f={f} Hz)")
-plt.savefig('mt_resistivity.png')
+plt.savefig('output/mt_resistivity.png')
 print("resistivity plot generated.")
 
 plt.figure()
@@ -124,5 +124,5 @@ plt.plot(x_ts, phi_ts)
 plt.xlabel('x [m]')
 plt.ylabel('phase [deg]')
 plt.title(f"phase vs offset (f={f} Hz)")
-plt.savefig("mt_phase.png")
+plt.savefig("output/mt_phase.png")
 print("phase plot generated.")

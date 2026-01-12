@@ -53,4 +53,4 @@ else:
     u = mypde.getSolution()
     print("Solution = ",str(u))
     # write u to an external file
-    saveVTK("u.vtu",sol=u)
+    saveVTK("output/u.vtu",sol=u)

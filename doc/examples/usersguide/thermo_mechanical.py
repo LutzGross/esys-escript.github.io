@@ -13,15 +13,19 @@
 Multi-Physics Example: Thermo-Mechanical Coupling
 
 This example demonstrates time-dependent coupling of thermal and mechanical
-physics on separate communicators. The thermal solver computes temperature
-evolution while the mechanical solver calculates thermal stresses. The
-mechanical model runs one time-step behind to use the temperature from the
-previous step (staggered coupling).
+physics using DataCoupler for communication between domains. The thermal
+solver computes temperature evolution while the mechanical solver calculates
+thermal stresses. The mechanical model runs one time-step behind to use the
+temperature from the previous step (staggered coupling).
 
 Usage:
-    mpirun -n 8 run-escript thermo_mechanical.py
+    # Standard mode (only rank 0 output visible):
+    ./bin/run-escript -n 8 thermo_mechanical.py
 
-This uses 4 processes for thermal and 4 for mechanical.
+    # Verbose mode (see output from all domains):
+    ./bin/run-escript -n 8 -a thermo_mechanical.py
+
+This uses 4 processes for thermal domain and 4 for mechanical domain.
 """
 
 __copyright__ = """Copyright (c) 2003-2025 by The University of Queensland
@@ -33,27 +37,52 @@ http://www.apache.org/licenses/LICENSE-2.0"""
 from mpi4py import MPI
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
+from esys.escript.util import identityTensor4
 from esys.ripley import Rectangle
-import numpy as np
+from esys.weipa import saveVTK
+import sys
+import os
+
+# Add MPIproposal directory to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', 'MPIproposal'))
+from esysmpi import MPIDomainArray
+from datacoupler import DataCoupler
 
 world_comm = MPI.COMM_WORLD
 world_rank = world_comm.Get_rank()
 world_size = world_comm.Get_size()
 
-# Split processes: first half for thermal, second half for mechanical
-is_thermal = (world_rank < world_size // 2)
-physics_id = 0 if is_thermal else 1
+# Create output directory
+mkDir("output")
 
-# Create separate communicators for each physics
-physics_comm = world_comm.Split(physics_id, world_rank)
+# Create domain array: 2 domains (thermal and mechanical)
+# Domain 0: thermal solver
+# Domain 1: mechanical solver
+num_domains = 2
+domain_array = MPIDomainArray(numDomains=num_domains, comm=world_comm)
 
-# Create domain on physics-specific communicator
-domain = Rectangle(n0=80, n1=80, l0=1.0, l1=1.0, comm=physics_comm)
+my_domain_idx = domain_array.getDomainIndex()
+domain_comm = domain_array.getDomainComm()
+subdomain_comm = domain_array.getSubdomainComm()
+domain_rank = domain_comm.Get_rank()
+
+is_thermal = (my_domain_idx == 0)
+
+# Print initialization from each domain's rank 0
+if domain_rank == 0:
+    print(f"Domain {my_domain_idx} ({'thermal' if is_thermal else 'mechanical'}) "
+          f"initialized with {domain_comm.Get_size()} processes", flush=True)
+
+# Create DataCoupler for inter-domain communication
+coupler = DataCoupler(domain_array)
+
+# Create domain on domain-specific communicator
+domain = Rectangle(n0=80, n1=80, l0=1.0, l1=1.0, comm=domain_comm)
 x = domain.getX()
 
 # Time stepping parameters
-dt = 0.01      # Time step
-n_steps = 50   # Number of time steps
+dt = 0.00025      # Time step
+n_steps = 200  # Number of time steps
 
 if is_thermal:
     # THERMAL SOLVER: Transient heat equation
@@ -61,7 +90,7 @@ if is_thermal:
 
     pde = LinearPDE(domain)
     kappa = 1.0  # Thermal diffusivity
-    pde.setValue(A=kappa*kronecker(2), D=1.0)
+    pde.setValue(A=kappa*kronecker(2), D=1/dt)
 
     # Initial temperature: hot spot in center
     T = 20.0 + 100.0*exp(-50*((x[0]-0.5)**2 + (x[1]-0.5)**2))
@@ -76,17 +105,14 @@ if is_thermal:
         pde.setValue(Y=T_old/dt + Q)
         T = pde.getSolution()
 
-        # Send temperature field to mechanical solver
-        if domain.isRootRank():
-            # Convert to numpy for efficient MPI transfer
-            T_data = interpolate(T, Function(domain))
-            T_array = convertToNumpy(T_data)
-            world_comm.send(T_array, dest=world_size//2, tag=step)
+        # Send temperature field to mechanical solver using DataCoupler
+        # Interpolate to Function space for consistent transfer
+        T_data = interpolate(T, Function(domain))
+        coupler.send(T_data, dest_domain_index=1, tag=step)
 
-            if step % 10 == 0:
-                T_max = Lsup(T)
-                print(f"Thermal step {step}: T_max = {T_max:.2f}")
-
+        T_max = Lsup(T)
+        if domain_rank == 0 and step % 10 == 0:
+            print(f"Thermal step {step}: T_max = {T_max:.2f}")
         T_old = T
 
 else:
@@ -100,40 +126,40 @@ else:
     T0 = 20.0       # Reference temperature
 
     # Elastic stiffness tensor (plane stress)
-    C = E/(1-nu**2) * kronecker(2)
-    pde.setValue(A=C)
+    # C_ijkl = λ δ_ij δ_kl + μ (δ_ik δ_jl + δ_il δ_jk)
+    lam = E*nu/(1-nu**2)       # Lamé's first parameter (plane stress)
+    mu = E/(2*(1+nu))           # Shear modulus
 
+    # Construct rank-4 elastic stiffness tensor
+    d = 2  # 2D
+    C = lam * kronecker(d).reshape(d,1,d,1) * kronecker(d).reshape(1,d,1,d) + \
+        mu * (identityTensor4(d) + identityTensor4(d).transpose(0,1,3,2))
+
+    pde.setValue(A=C)
     # Fixed displacement on left edge
     x = domain.getX()
-    pde.setValue(q=whereZero(x[0]), r=[0.0, 0.0])
-
-    for step in range(1, n_steps):  # Start at 1 (one step behind)
-        # Receive temperature from thermal solver (previous step)
-        if domain.isRootRank():
-            T_array = world_comm.recv(source=0, tag=step-1)
-            # Reconstruct escript Data from numpy array
-            T_data = Data(T_array, Function(domain))
-        else:
-            T_data = None
-
-        # Broadcast temperature within mechanical group
-        T_data = physics_comm.bcast(T_data, root=0)
-
-        # Thermal strain causes body force
+    pde.setValue(q=whereZero(x[0])*[1,1], r=[0.0, 0.0])
+    for step in range(0, n_steps):
+        # Receive temperature from thermal solver (previous step) using DataCoupler
+        # DataCoupler handles the receive and distribution across all ranks
+        T_data = coupler.receive(Function(domain), source_domain_index=0, tag=step)
+        # Thermal stress (prestress due to thermal expansion)
         Delta_T = T_data - T0
-        thermal_stress = alpha * E/(1-nu) * Delta_T
+        sigma_thermal = (lam + 2./3.*mu) * alpha * Delta_T * kronecker(2)
 
-        # Thermal stress acts as body force in equilibrium equation
-        pde.setValue(Y=[grad(thermal_stress)[0], grad(thermal_stress)[1]])
+        # Set thermal stress as prestress (X coefficient)
+        pde.setValue(X=sigma_thermal)
 
         # Solve for displacement
         u = pde.getSolution()
-
-        if domain.isRootRank() and step % 10 == 0:
-            u_max = Lsup(length(u))
+        u_max = Lsup(length(u))
+        if domain_rank == 0 and step % 10 == 0:
             print(f"Mechanical step {step}: u_max = {u_max:.2e} m")
 
-physics_comm.Free()
+        # Save displacement and temperature fields
+        if step % 10 == 0:
+            saveVTK(f"output/thermal_{step//10:04d}.vtu", u=u, T=T_data)
+
 world_comm.Barrier()
 
 if world_rank == 0:

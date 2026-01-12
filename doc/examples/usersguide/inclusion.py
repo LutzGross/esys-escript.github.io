@@ -62,5 +62,5 @@ else:
     # ... calculate error of the PDE solution ...
     T = mypde.getSolution()
     print("Temperature is ", T)
-    saveVTK("T.vtu", temperature=T)
+    saveVTK("output/T.vtu", temperature=T)
 

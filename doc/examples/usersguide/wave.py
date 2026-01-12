@@ -50,7 +50,7 @@ else:
 
 
     U0=1. # maximum displacement
-    mkDir("data") # create directory data if it does not exist already.
+    mkDir("output") # create directory output if it does not exist already.
 
     def wavePropagation(domain,h,tend,lam,mu,rho, xc, src_radius, U0):
        # lists to collect displacement at point source
@@ -99,7 +99,7 @@ else:
          ts.append(t); u_pc0.append(u_pc[0]), u_pc1.append(u_pc[1]), u_pc2.append(u_pc[2])
      
          # ... save current acceleration in units of gravity and displacements 
-         if n==1 or n%10==0: saveVTK("./data/usoln.%i.vtu"%(n/10),acceleration=length(a)/9.81,
+         if n==1 or n%10==0: saveVTK("output/usoln.%i.vtu"%(n/10),acceleration=length(a)/9.81,
          displacement = length(u), tensor = stress, Ux = u[0] )
        return ts, u_pc0,u_pc1,u_pc2
 
@@ -134,9 +134,9 @@ else:
         plt.xlabel('time')
         plt.ylabel('displacement')
         plt.legend()
-        plt.savefig('u_pc.png', format='png')
+        plt.savefig('output/u_pc.png', format='png')
     # or save displacement
-    u_pc_data=FileWriter('./data/U_pc.out')
+    u_pc_data=FileWriter('output/U_pc.out')
     for i in range(len(ts)) :
         u_pc_data.write("%f %f %f %f\n"%(ts[i],u_pc0[i],u_pc1[i],u_pc2[i]))
     u_pc_data.close()
