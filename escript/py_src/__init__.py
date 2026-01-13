@@ -78,6 +78,7 @@ from esys.escriptcore.datamanager import DataManager
 if HAVE_SYMBOLS:
     from esys.escriptcore.symboliccore import *
 from . import minimizer
+from .domaincoupler import MPIDomainArray, DataCoupler
 import logging
 logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
 

@@ -36,17 +36,11 @@ http://www.apache.org/licenses/LICENSE-2.0"""
 
 from mpi4py import MPI
 from esys.escript import *
+from esys.escript import MPIDomainArray, DataCoupler
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript.util import identityTensor4
 from esys.ripley import Rectangle
 from esys.weipa import saveVTK
-import sys
-import os
-
-# Add MPIproposal directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', 'MPIproposal'))
-from esysmpi import MPIDomainArray
-from datacoupler import DataCoupler
 
 world_comm = MPI.COMM_WORLD
 world_rank = world_comm.Get_rank()
