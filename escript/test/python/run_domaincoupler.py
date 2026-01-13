@@ -123,8 +123,8 @@ class Test_DataCoupler_PointToPoint(unittest.TestCase):
             # Domain 1 receives
             received = self.coupler.receive(fs, source_domain_index=0, tag=100)
 
-            # All ranks in domain 1 verify (Lsup is collective)
-            received_val = Lsup(received)
+            # All ranks in domain 1 verify (sup is collective)
+            received_val = sup(received)  # sup() not Lsup() - checking actual value
             self.assertAlmostEqual(received_val, 42.0, places=10)
 
     def test_send_receive_vector(self):
@@ -154,16 +154,16 @@ class Test_DataCoupler_PointToPoint(unittest.TestCase):
             send_data = Scalar(10.0, fs)
             received = self.coupler.exchange(send_data, fs, peer_domain_index=1, tag=200)
 
-            # All ranks verify (Lsup is collective)
-            received_val = Lsup(received)
+            # All ranks verify (sup is collective)
+            received_val = sup(received)  # sup() not Lsup() - checking actual value
             self.assertAlmostEqual(received_val, 20.0, places=10)
 
         elif self.my_domain_idx == 1:
             send_data = Scalar(20.0, fs)
             received = self.coupler.exchange(send_data, fs, peer_domain_index=0, tag=200)
 
-            # All ranks verify (Lsup is collective)
-            received_val = Lsup(received)
+            # All ranks verify (sup is collective)
+            received_val = sup(received)  # sup() not Lsup() - checking actual value
             self.assertAlmostEqual(received_val, 10.0, places=10)
 
 
@@ -224,9 +224,9 @@ class Test_DataCoupler_Collective(unittest.TestCase):
         else:
             result = self.coupler.broadcast(function_space=fs, root_domain_index=0)
 
-        # All ranks verify (Lsup is collective)
+        # All ranks verify (sup is collective)
         expected = x[0] + x[1]
-        diff = Lsup(abs(result - expected))
+        diff = sup(abs(result - expected))  # sup(abs()) not Lsup(abs())
         self.assertLess(diff, 1e-8)
 
     def test_allreduce_data_sum(self):
@@ -237,10 +237,10 @@ class Test_DataCoupler_Collective(unittest.TestCase):
         my_data = Scalar(float(self.my_domain_idx), fs)
         result = self.coupler.allreduce(my_data, op=MPI.SUM)
 
-        # All ranks verify (Lsup and inf are collective)
+        # All ranks verify (sup and inf are collective)
         expected_value = sum(range(self.num_domains))
-        result_max = Lsup(result)
-        result_min = inf(result)  # inf() not Linf()
+        result_max = sup(result)  # sup() not Lsup() - we want max, not max(abs())
+        result_min = inf(result)
         self.assertAlmostEqual(result_max, expected_value, places=10)
         self.assertAlmostEqual(result_min, expected_value, places=10)
 
