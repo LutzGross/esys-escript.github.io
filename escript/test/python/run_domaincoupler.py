@@ -219,7 +219,7 @@ class Test_DataCoupler_Collective(unittest.TestCase):
 
         # All ranks participate in broadcast
         if self.my_domain_idx == 0:
-            data = Scalar(x[0] + x[1], fs)
+            data = Data(x[0] + x[1], fs)  # Use Data, not Scalar (this is a field)
             result = self.coupler.broadcast(data=data, root_domain_index=0)
         else:
             result = self.coupler.broadcast(function_space=fs, root_domain_index=0)
@@ -237,10 +237,10 @@ class Test_DataCoupler_Collective(unittest.TestCase):
         my_data = Scalar(float(self.my_domain_idx), fs)
         result = self.coupler.allreduce(my_data, op=MPI.SUM)
 
-        # All ranks verify (Lsup and Linf are collective)
+        # All ranks verify (Lsup and inf are collective)
         expected_value = sum(range(self.num_domains))
         result_max = Lsup(result)
-        result_min = Linf(result)
+        result_min = inf(result)  # inf() not Linf()
         self.assertAlmostEqual(result_max, expected_value, places=10)
         self.assertAlmostEqual(result_min, expected_value, places=10)
 
