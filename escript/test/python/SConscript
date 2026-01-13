@@ -22,6 +22,7 @@ local_env = env.Clone()
 #  files defining test runs (passing in a release)
 testruns = []
 testruns += ['run_minimizer.py']
+testruns += ['run_domaincoupler.py']
 
 # files defining tests run locally (not as part of a release)
 localtestruns = [x for x in Glob('*.py', strings=True) if not x.startswith('run_')]
