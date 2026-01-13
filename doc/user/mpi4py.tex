@@ -509,43 +509,52 @@ A complete working example (\texttt{MT\_master\_slave.py}) is provided in the \t
 
 \section{Multi-Physics Example: Thermo-Mechanical Coupling}
 
-This example demonstrates time-dependent coupling of thermal and mechanical physics on separate communicators. The thermal solver computes temperature evolution while the mechanical solver calculates thermal stresses. The mechanical model runs one time-step behind to use the temperature from the previous step (staggered coupling).
+This example demonstrates time-dependent coupling of thermal and mechanical physics using DataCoupler for inter-domain communication. The thermal solver computes temperature evolution while the mechanical solver calculates thermal stresses. The mechanical model runs one time-step behind to use the temperature from the previous step (staggered coupling).
 
 \begin{python}
 from mpi4py import MPI
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
+from esys.escript.util import identityTensor4
 from esys.ripley import Rectangle
-import numpy as np
+import sys, os
+
+# Import DataCoupler for inter-domain communication
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', 'MPIproposal'))
+from esysmpi import MPIDomainArray
+from datacoupler import DataCoupler
 
 world_comm = MPI.COMM_WORLD
 world_rank = world_comm.Get_rank()
 world_size = world_comm.Get_size()
 
-# Split processes: first half for thermal, second half for mechanical
-is_thermal = (world_rank < world_size // 2)
-physics_id = 0 if is_thermal else 1
+# Create domain array: 2 domains (thermal and mechanical)
+num_domains = 2
+domain_array = MPIDomainArray(numDomains=num_domains, comm=world_comm)
 
-# Create separate communicators for each physics
-physics_comm = world_comm.Split(physics_id, world_rank)
-physics_rank = physics_comm.Get_rank()
+my_domain_idx = domain_array.getDomainIndex()
+domain_comm = domain_array.getDomainComm()
+domain_rank = domain_comm.Get_rank()
+is_thermal = (my_domain_idx == 0)
 
-# Create domain on physics-specific communicator
-domain = Rectangle(n0=80, n1=80, l0=1.0, l1=1.0, comm=physics_comm)
+# Create DataCoupler for inter-domain communication
+coupler = DataCoupler(domain_array)
+
+# Create domain on domain-specific communicator
+domain = Rectangle(n0=80, n1=80, l0=1.0, l1=1.0, comm=domain_comm)
 x = domain.getX()
 
 # Time stepping parameters
-dt = 0.01      # Time step
-n_steps = 50   # Number of time steps
+dt = 0.00025   # Time step
+n_steps = 200  # Number of time steps
 
 if is_thermal:
     # THERMAL SOLVER: Transient heat equation
     # du/dt = kappa * nabla^2(u) + Q
-    from esys.escript.linearPDEs import LinearPDE
 
     pde = LinearPDE(domain)
     kappa = 1.0  # Thermal diffusivity
-    pde.setValue(A=kappa*kronecker(2), D=1.0)
+    pde.setValue(A=kappa*kronecker(2), D=1/dt)
 
     # Initial temperature: hot spot in center
     T = 20.0 + 100.0*exp(-50*((x[0]-0.5)**2 + (x[1]-0.5)**2))
@@ -560,23 +569,18 @@ if is_thermal:
         pde.setValue(Y=T_old/dt + Q)
         T = pde.getSolution()
 
-        # Send temperature field to mechanical solver
-        if physics_rank == 0:
-            # Convert to numpy for efficient MPI transfer
-            T_data = interpolate(T, Function(domain))
-            T_array = convertToNumpy(T_data)
-            world_comm.send(T_array, dest=world_size//2, tag=step)
+        # Send temperature field to mechanical solver using DataCoupler
+        T_data = interpolate(T, Function(domain))
+        coupler.send(T_data, dest_domain_index=1, tag=step)
 
-            if step % 10 == 0:
-                T_max = Lsup(T)
-                print(f"Thermal step {step}: T_max = {T_max:.2f}")
-
+        T_max = Lsup(T)
+        if domain_rank == 0 and step % 10 == 0:
+            print(f"Thermal step {step}: T_max = {T_max:.2f}")
         T_old = T
 
 else:
     # MECHANICAL SOLVER: Thermal stress (one step behind)
     # Solve: -div(sigma) = 0, sigma = E*epsilon - alpha*E*Delta_T
-    from esys.escript.linearPDEs import LinearPDE
 
     pde = LinearPDE(domain, numEquations=2)
     E = 70e9        # Young's modulus (Pa)
@@ -585,58 +589,59 @@ else:
     T0 = 20.0       # Reference temperature
 
     # Elastic stiffness tensor (plane stress)
-    C = E/(1-nu**2) * kronecker(2)
+    # C_ijkl = lambda * delta_ij * delta_kl + mu * (delta_ik * delta_jl + delta_il * delta_jk)
+    lam = E*nu/(1-nu**2)       # Lamé's first parameter (plane stress)
+    mu = E/(2*(1+nu))           # Shear modulus
+
+    # Construct rank-4 elastic stiffness tensor
+    d = 2  # 2D
+    C = lam * kronecker(d).reshape(d,1,d,1) * kronecker(d).reshape(1,d,1,d) + \
+        mu * (identityTensor4(d) + identityTensor4(d).transpose(0,1,3,2))
+
     pde.setValue(A=C)
-
     # Fixed displacement on left edge
-    x = domain.getX()
-    pde.setValue(q=whereZero(x[0]), r=[0.0, 0.0])
+    pde.setValue(q=whereZero(x[0])*[1,1], r=[0.0, 0.0])
 
-    for step in range(1, n_steps):  # Start at 1 (one step behind)
-        # Receive temperature from thermal solver (previous step)
-        if physics_rank == 0:
-            T_array = world_comm.recv(source=0, tag=step-1)
-            # Reconstruct escript Data from numpy array
-            T_data = Data(T_array, Function(domain))
-        else:
-            T_data = None
+    for step in range(0, n_steps):
+        # Receive temperature from thermal solver using DataCoupler
+        T_data = coupler.receive(Function(domain), source_domain_index=0, tag=step)
 
-        # Broadcast temperature within mechanical group
-        T_data = physics_comm.bcast(T_data, root=0)
-
-        # Thermal strain causes body force
+        # Thermal stress (prestress due to thermal expansion)
         Delta_T = T_data - T0
-        thermal_stress = alpha * E/(1-nu) * Delta_T
+        sigma_thermal = (lam + 2./3.*mu) * alpha * Delta_T * kronecker(2)
 
-        # Thermal stress acts as body force in equilibrium equation
-        pde.setValue(Y=[grad(thermal_stress)[0], grad(thermal_stress)[1]])
+        # Set thermal stress as prestress (X coefficient)
+        pde.setValue(X=sigma_thermal)
 
         # Solve for displacement
         u = pde.getSolution()
-
-        if physics_rank == 0 and step % 10 == 0:
-            u_max = Lsup(length(u))
+        u_max = Lsup(length(u))
+        if domain_rank == 0 and step % 10 == 0:
             print(f"Mechanical step {step}: u_max = {u_max:.2e} m")
 
-physics_comm.Free()
 world_comm.Barrier()
 \end{python}
 
 \textbf{Key features of this coupled simulation}:
 \begin{itemize}
-\item \textbf{Staggered coupling}: Mechanical solver uses temperature from the previous time step
-\item \textbf{Parallel physics}: Both solvers run simultaneously on separate process groups
-\item \textbf{Data exchange}: Temperature field transferred between physics at each step
+\item \textbf{DataCoupler}: Uses high-level DataCoupler API for inter-domain communication
+\item \textbf{MPIDomainArray}: Manages 2D Cartesian communicator topology with domain and subdomain communicators
+\item \textbf{Parallel physics}: Both solvers run simultaneously on separate communicators
+\item \textbf{Correct physics}: Uses proper rank-4 elastic tensor and prestress formulation
 \item \textbf{Realistic model}: Thermal expansion causes mechanical deformation
 \item \textbf{Scalability}: Each physics can use different number of processes
 \end{itemize}
 
 \textbf{Running this example}:
 \begin{verbatim}
-mpirun -n 8 run-escript thermo_mechanical.py
+# Standard mode (only rank 0 output visible):
+run-escript -p 8 thermo_mechanical.py
+
+# Verbose mode (see output from both domains):
+run-escript -p 8 -a thermo_mechanical.py
 \end{verbatim}
 
-This uses 4 processes for thermal and 4 for mechanical. The thermal solver is always one step ahead, computing the temperature field that the mechanical solver will use in the next iteration.
+This uses 4 processes for thermal domain and 4 for mechanical domain. The \texttt{-a} flag enables viewing output from all MPI ranks, allowing you to see progress messages from both the thermal and mechanical solvers.
 
 \section{Master-Slave Pattern for Embarrassingly Parallel Problems}
 

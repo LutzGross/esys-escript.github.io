@@ -79,8 +79,8 @@ The general form of the \program{run-escript} launcher is as follows:
 % If you are thinking about changing this please remember to update the man page as well
 %%%%
 
-\program{run-escript} 
-\optional{\programopt{-n \var{nn}}} 
+\program{run-escript}
+\optional{\programopt{-n \var{nn}}}
 \optional{\programopt{-p \var{np}}}
 \optional{\programopt{-t \var{nt}}}
 \optional{\programopt{-f \var{hostfile}}}
@@ -89,6 +89,7 @@ The general form of the \program{run-escript} launcher is as follows:
 \optional{\programopt{-e}}
 \optional{\programopt{-h}}
 \optional{\programopt{-v}}
+\optional{\programopt{-a}}
 \optional{\programopt{-o}}
 \optional{\programopt{-c}}
 \optional{\programopt{-i}}
@@ -164,6 +165,12 @@ The options have the following meaning:
     used to set up the {\it escript} environment.
     This option is useful if users wish to execute scripts without using
     the \program{run-escript} command.
+
+\item[\programopt{-a}] shows output from all \MPI ranks.
+    By default, output from ranks other than 0 is suppressed to avoid cluttered output.
+    This option is particularly useful for multi-domain simulations where you want to
+    see progress messages from all domains.
+    Note: Output from different ranks may be interleaved.
 
 \item[\programopt{-o}] enables the redirection of messages printed by
     processors with \MPI rank greater than zero to the files
