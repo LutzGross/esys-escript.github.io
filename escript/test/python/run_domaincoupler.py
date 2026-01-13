@@ -97,12 +97,76 @@ class Test_MPIDomainArray(unittest.TestCase):
         self.assertEqual(subdomain_comm.Get_size(), num_domains)
 
 
-# NOTE: Data-based point-to-point tests currently have issues and are disabled
-# The implementation works (as demonstrated by thermo_mechanical.py) but needs
-# investigation of test framework interaction with MPI
-# TODO: Debug and re-enable these tests
-# @unittest.skipIf(SKIP_MPI_TESTS, "MPI with at least 2 processes required")
-# class Test_DataCoupler_PointToPoint(unittest.TestCase):
+@unittest.skipIf(SKIP_MPI_TESTS, "MPI with at least 2 processes required")
+class Test_DataCoupler_PointToPoint(unittest.TestCase):
+    """Tests for DataCoupler point-to-point communication."""
+
+    def setUp(self):
+        # Create 2 domains with identical meshes
+        from esys.ripley import Rectangle
+        self.num_domains = 2
+        self.domain_array = MPIDomainArray(numDomains=self.num_domains,
+                                          comm=MPI.COMM_WORLD)
+        self.domain = Rectangle(n0=10, n1=10,
+                               comm=self.domain_array.getDomainComm())
+        self.coupler = DataCoupler(self.domain_array)
+        self.my_domain_idx = self.domain_array.getDomainIndex()
+
+    def test_send_receive_scalar(self):
+        """Test sending and receiving scalar Data."""
+        fs = Solution(self.domain)
+
+        # All ranks participate
+        if self.my_domain_idx == 0:
+            # Domain 0 sends
+            data = Scalar(42.0, fs)
+            self.coupler.send(data, dest_domain_index=1, tag=100)
+        elif self.my_domain_idx == 1:
+            # Domain 1 receives
+            received = self.coupler.receive(fs, source_domain_index=0, tag=100)
+
+            # All ranks in domain 1 verify (Lsup is collective)
+            received_val = Lsup(received)
+            self.assertAlmostEqual(received_val, 42.0, places=10)
+
+    def test_send_receive_vector(self):
+        """Test sending and receiving vector Data."""
+        fs = Solution(self.domain)
+        x = self.domain.getX()
+
+        if self.my_domain_idx == 0:
+            # Domain 0 sends position field
+            data = Data(x, fs)
+            self.coupler.send(data, dest_domain_index=1, tag=101)
+        elif self.my_domain_idx == 1:
+            # Domain 1 receives
+            received = self.coupler.receive(fs, source_domain_index=0, tag=101)
+
+            # All ranks in domain 1 verify (Lsup is collective)
+            x_received = Data(received, fs)
+            diff = Lsup(length(x_received - x))
+            self.assertLess(diff, 1e-10)
+
+    def test_exchange_bidirectional(self):
+        """Test bidirectional exchange between two domains."""
+        fs = Solution(self.domain)
+
+        # All ranks in both domains participate
+        if self.my_domain_idx == 0:
+            send_data = Scalar(10.0, fs)
+            received = self.coupler.exchange(send_data, fs, peer_domain_index=1, tag=200)
+
+            # All ranks verify (Lsup is collective)
+            received_val = Lsup(received)
+            self.assertAlmostEqual(received_val, 20.0, places=10)
+
+        elif self.my_domain_idx == 1:
+            send_data = Scalar(20.0, fs)
+            received = self.coupler.exchange(send_data, fs, peer_domain_index=0, tag=200)
+
+            # All ranks verify (Lsup is collective)
+            received_val = Lsup(received)
+            self.assertAlmostEqual(received_val, 10.0, places=10)
 
 
 @unittest.skipIf(SKIP_MPI_TESTS, "MPI with at least 2 processes required")
@@ -150,17 +214,44 @@ class Test_DataCoupler_Collective(unittest.TestCase):
         expected = float(self.num_domains - 1)
         self.assertAlmostEqual(result, expected)
 
-    # NOTE: Data broadcast and allreduce currently have issues and are disabled
-    # TODO: Debug and re-enable these tests
-    # def test_broadcast_data(self):
-    # def test_allreduce_data_sum(self):
+    def test_broadcast_data(self):
+        """Test broadcasting Data object from root domain."""
+        fs = Solution(self.domain)
+        x = self.domain.getX()
+
+        # All ranks participate in broadcast
+        if self.my_domain_idx == 0:
+            data = Scalar(x[0] + x[1], fs)
+            result = self.coupler.broadcast(data=data, root_domain_index=0)
+        else:
+            result = self.coupler.broadcast(function_space=fs, root_domain_index=0)
+
+        # All ranks verify (Lsup is collective)
+        expected = x[0] + x[1]
+        diff = Lsup(abs(result - expected))
+        self.assertLess(diff, 1e-8)
+
+    def test_allreduce_data_sum(self):
+        """Test all-reduce on Data with SUM operation."""
+        fs = Solution(self.domain)
+
+        # All ranks participate - each domain contributes its index
+        my_data = Scalar(float(self.my_domain_idx), fs)
+        result = self.coupler.allreduce(my_data, op=MPI.SUM)
+
+        # All ranks verify (Lsup and Linf are collective)
+        expected_value = sum(range(self.num_domains))
+        result_max = Lsup(result)
+        result_min = Linf(result)
+        self.assertAlmostEqual(result_max, expected_value, places=10)
+        self.assertAlmostEqual(result_min, expected_value, places=10)
 
 
 # Create test suite
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(unittest.makeSuite(Test_MPIDomainArray))
-    # Test_DataCoupler_PointToPoint disabled - see comments above
+    test_suite.addTest(unittest.makeSuite(Test_DataCoupler_PointToPoint))
     test_suite.addTest(unittest.makeSuite(Test_DataCoupler_Collective))
     return test_suite
 
