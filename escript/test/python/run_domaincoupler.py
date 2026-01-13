@@ -77,11 +77,9 @@ class Test_MPIDomainArray(unittest.TestCase):
         subdomain_comm = domain_array.getSubdomainComm()
         self.assertEqual(subdomain_comm.Get_size(), num_domains)
 
+    @unittest.skipIf(WORLD_SIZE < 4, "Need at least 4 processes")
     def test_topology_with_multiple_subdomains(self):
         """Test topology with multiple subdomains per domain."""
-        if WORLD_SIZE < 4:
-            return  # Need at least 4 processes
-
         num_domains = 2
         num_subdomains = WORLD_SIZE // 2
         domain_array = MPIDomainArray(numDomains=num_domains,
