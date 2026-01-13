@@ -517,12 +517,8 @@ from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript.util import identityTensor4
 from esys.ripley import Rectangle
-import sys, os
-
-# Import DataCoupler for inter-domain communication
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', 'MPIproposal'))
-from esysmpi import MPIDomainArray
-from datacoupler import DataCoupler
+# Import DataCoupler and MPIDomainArray from escript
+from esys.escript import MPIDomainArray, DataCoupler
 
 world_comm = MPI.COMM_WORLD
 world_rank = world_comm.Get_rank()
