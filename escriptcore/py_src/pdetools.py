@@ -52,7 +52,7 @@ import numpy
 
 class TimeIntegrationManager(object):
   """
-  A simple mechanism to manage time dependend values.
+  A simple mechanism to manage time dependent values.
 
   Typical usage is::
 
@@ -85,9 +85,21 @@ class TimeIntegrationManager(object):
      self.__num_val=len(inital_values)
 
   def getTime(self):
+      """
+      Returns the current time.
+
+      :return: the current time value
+      :rtype: ``float``
+      """
       return self.__t
 
   def getValue(self):
+      """
+      Returns the current value(s).
+
+      :return: the current stored value(s)
+      :rtype: single value or ``tuple`` of values
+      """
       out=self.__v_mem[0]
       if len(out)==1:
           return out[0]
@@ -140,8 +152,11 @@ class Projector(object):
     Creates a continuous function space projector for a domain.
 
     :param domain: Domain of the projection.
+    :type domain: `Domain`
     :param reduce: Flag to reduce projection order
+    :type reduce: ``bool``
     :param fast: Flag to use a fast method based on matrix lumping
+    :type fast: ``bool``
     """
     self.__pde = linearPDEs.LinearPDE(domain)
     if fast:
@@ -1968,12 +1983,12 @@ class HomogeneousSaddlePointProblem(object):
          return self.__atol
 
 
-def MaskFromBoundaryTag(domain,*tags):
+def getMaskFromBoundaryTag(domain,*tags):
    """
    Creates a mask on the Solution(domain) function space where the value is
-   one for samples that touch the boundary tagged by tags.
+   one for samples that touch the **boundary** tagged by tags.
 
-   Usage: m=MaskFromBoundaryTag(domain, "left", "right")
+   Usage: m=getMaskFromBoundaryTag(domain, "left", "right")
 
    :param domain: domain to be used
    :type domain: `escript.Domain`
@@ -1989,8 +2004,31 @@ def MaskFromBoundaryTag(domain,*tags):
    pde.setValue(y=d)
    return util.whereNonZero(pde.getRightHandSide())
 
+def MaskFromBoundaryTag(domain,*tags):
+   """
+    Deprecates: use getMaskFromBoundaryTag instead,
+
+   Creates a mask on the Solution(domain) function space where the value is
+   one for samples that touch the **boundary** tagged by tags.
+
+   Usage: m=MaskFromBoundaryTag(domain, "left", "right")
+
+   :param domain: domain to be used
+   :type domain: `escript.Domain`
+   :param tags: boundary tags
+   :type tags: ``str``
+   :return: a mask which marks samples that are touching the boundary tagged
+            by any of the given tags
+   :rtype: `escript.Data` of rank 0
+   """
+   import warnings
+   warnings.warn("MaskFromTag is depreciated, use getMaskFromBoundaryTag")
+   return getMaskFromBoundaryTag(domain)
+
 def MaskFromTag(domain,*tags):
    """
+     Deprecates: use getMaskFromBoundaryTag instead,
+
    Creates a mask on the Solution(domain) function space where the value is
    one for samples that touch regions tagged by tags.
 
@@ -2006,19 +2044,42 @@ def MaskFromTag(domain,*tags):
 
 
    """
-   raise DeprecationWarning("MaskFromTag is deprecated. Use MaskFromBoundaryTag instead.")
-   pde=linearPDEs.LinearPDE(domain,numEquations=1, numSolutions=1)
-   d=escore.Scalar(0.,escore.Function(domain))
-   for t in tags: d.setTaggedValue(t,1.)
-   pde.setValue(Y=d)
-   return util.whereNonZero(pde.getRightHandSide())
+   import warnings
+   warnings.warn("MaskFromTag is depreciated, use getMaskFromBoundaryTag")
+   return getMaskFromBoundaryTag(domain)
+
+def getBoundaryValuesFromVolumeTag(domain, **values):
+       """
+       Creates values as the Solution(domain) function space where the value is
+       one for samples that touch regions tagged by tags.
+
+       Usage: m=getBoundaryValuesFromVolumeTag(domain, ham=1, f=6)
+
+       :param domain: domain to be used
+       :type domain: `escript.Domain`
+       :return: a mask which marks samples that are touching the boundary tagged
+                by any of the given tags
+       :rtype: `escript.Data` of rank 0
+       """
+       pde = linearPDEs.LinearPDE(domain, numEquations=1, numSolutions=1)
+       out = escore.Scalar(0., escore.FunctionOnBoundary(domain))
+       for t, v in values.items():
+           d = escore.Scalar(0., escore.Function(domain))
+           d.setTaggedValue(t, 1.)
+           pde.setValue(Y=d)
+           out += v * util.whereZero(
+               util.interpolate(util.whereNonZero(pde.getRightHandSide()), escore.FunctionOnBoundary(domain)) - 1.)
+       return out
+
+
 
 def BoundaryValuesFromVolumeTag(domain,**values):
    """
+   depreciated: use getBoundaryMaskFromVolumeTag instead.
    Creates a mask on the Solution(domain) function space where the value is
    one for samples that touch regions tagged by tags.
 
-   Usage: m=BoundaryValuesFromVolumeTag(domain, ham=1, f=6)
+   Usage: m=getBoundaryValuesFromVolumeTag(domain, ham=1, f=6)
 
    :param domain: domain to be used
    :type domain: `escript.Domain`
@@ -2026,14 +2087,9 @@ def BoundaryValuesFromVolumeTag(domain,**values):
             by any of the given tags
    :rtype: `escript.Data` of rank 0
    """
-   pde=linearPDEs.LinearPDE(domain,numEquations=1, numSolutions=1)
-   out=escore.Scalar(0.,escore.FunctionOnBoundary(domain))
-   for t,v in values.items():
-       d=escore.Scalar(0.,escore.Function(domain))
-       d.setTaggedValue(t,1.)
-       pde.setValue(Y=d)
-       out+=v*util.whereZero(util.interpolate(util.whereNonZero(pde.getRightHandSide()), escore.FunctionOnBoundary(domain))-1.)
-   return out
+   import warnings
+   warnings.warn("BoundaryValuesFromVolumeTag is depreciated, use getBoundaryValuesFromVolumeTag")
+   return getBoundaryValuesFromVolumeTag(domain, **values)
 
 class Wavelet(object):
        """

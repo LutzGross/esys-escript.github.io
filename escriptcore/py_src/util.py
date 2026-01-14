@@ -71,10 +71,22 @@ else:
 #   some helpers:
 #=========================================================
 def getEpsilon():
+     """
+     Returns the machine epsilon (smallest positive value where 1.0 + epsilon != 1.0).
+
+     :return: machine precision epsilon
+     :rtype: ``float``
+     """
      return escore.getMachinePrecision()
 EPSILON=getEpsilon()
 
 def getMaxFloat():
+     """
+     Returns the largest representable positive floating point number.
+
+     :return: maximum float value
+     :rtype: ``float``
+     """
      return escore.getMaxFloat()
 DBLE_MAX=getMaxFloat()
 
@@ -118,6 +130,27 @@ def insertTaggedValues(target,**kwargs):
 
 
 def interpolateTable(tab, dat, start, step, undef=1.e50, check_boundaries=False):
+    """
+    Interpolates values from a lookup table.
+
+    :param tab: the lookup table array
+    :type tab: ``numpy.ndarray``
+    :param dat: input data to interpolate
+    :type dat: `Data` or ``numpy.ndarray``
+    :param start: starting coordinate(s) for the table
+    :type start: ``float`` or ``tuple`` of ``float``
+    :param step: step size(s) for the table
+    :type step: ``float`` or ``tuple`` of ``float``
+    :param undef: value to use for undefined/out-of-bounds results
+    :type undef: ``float``
+    :param check_boundaries: if ``True``, check that input is within table bounds
+    :type check_boundaries: ``bool``
+    :return: interpolated values
+    :rtype: `Data` or ``numpy.ndarray``
+
+    .. deprecated::
+       This function is deprecated and is known to contain bugs.
+    """
     print("WARNING: This function is deprecated and is known to contain bugs.")
     try:
         dim=len(start)
@@ -215,19 +248,25 @@ def saveDataCSV(filename, append=False, refid=False, sep=", ", csep="_", **data)
 
 def getNumpy(**data):
     """
-    Writes `Data` objects to a numpy array.
+    Converts `Data` objects to numpy arrays.
 
-    The keyword args are Data objects to save.
+    The keyword args are Data objects to convert.
     If a scalar `Data` object is passed with the name ``mask``, then only
     samples which correspond to positive values in ``mask`` will be output.
 
-    Example usage:
+    :keyword <name>: Data object or scalar to convert
+    :type <name>: `Data` or ``float``
+    :return: dictionary mapping names to numpy record arrays
+    :rtype: ``dict`` of ``numpy.ndarray``
+    :raise ValueError: if no Data object is provided
 
-    s=Scalar(..)
-    v=Vector(..)
-    t=Tensor(..)
-    f=float()
-    array = getNumpy(a=s, b=v, c=t, d=f)
+    Example usage::
+
+        s=Scalar(..)
+        v=Vector(..)
+        t=Tensor(..)
+        f=float()
+        array = getNumpy(a=s, b=v, c=t, d=f)
     """
     # find a function space:
     fs = None
@@ -280,7 +319,12 @@ def getNumpy(**data):
 
 def convertToNumpy(data):
     """
-    converts `Data` object `data` to a numpy array.
+    Converts a `Data` object to a numpy array.
+
+    :param data: the Data object to convert
+    :type data: `Data`
+    :return: numpy array containing the data values
+    :rtype: ``numpy.ndarray``
     """
     if hasFeature("boostnumpy"):
         return escore._convertToNumpy(Data(data,data.getFunctionSpace()))
@@ -302,10 +346,21 @@ def convertToNumpy(data):
 
 def NumpyToData(array, isComplex, functionspace):
     """
-    Uses a numpy ndarray to create a `Data` object
+    Creates a `Data` object from a numpy ndarray.
 
-    Example usage:
-    NewDataObject = NumpyToData(ndarray, isComplex, FunctionSpace)
+    :param array: the numpy array to convert
+    :type array: ``numpy.ndarray``
+    :param isComplex: whether the data contains complex values
+    :type isComplex: ``bool``
+    :param functionspace: the function space for the new Data object
+    :type functionspace: `FunctionSpace`
+    :return: Data object created from the numpy array
+    :rtype: `Data`
+    :raise ValueError: if arguments are invalid or boost numpy is not available
+
+    Example usage::
+
+        NewDataObject = NumpyToData(ndarray, isComplex, FunctionSpace)
     """
     if hasFeature("boostnumpy"):
       if(not isinstance(array, (numpy.ndarray, numpy.generic))):
@@ -3150,6 +3205,22 @@ def mkDir(*pathname):
                   raise IOError("Unable to create directory.")
                else:
                   raise IOError("Unable to create directory %s."%p_fail)
+
+def getRegionTags(self, function_space):
+    """
+    returns the tag distribution opf a function_space as a Data object.
+
+    :param function_space: function_space to be used
+    :type function_space: `escript.FunctionSpace`
+    :return: a data object which contains the tag distribution
+    :rtype: `escript.Data` of rank 0 with ReducedFunction attributes.
+
+    """
+
+    out = escore.Scalar(0., function_space)
+    for tag in escore.Rfunction_space.getListOfTags():
+        out.setTaggedValue(tag,float(tag))
+    return out
 
 class FileWriter(object):
     """
