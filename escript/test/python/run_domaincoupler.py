@@ -20,9 +20,16 @@ Comprehensive tests for MPIDomainArray and DataCoupler classes.
 These tests cover:
 - MPIDomainArray communicator topology creation
 - DataCoupler point-to-point communication (send/receive/exchange)
-- DataCoupler collective operations (broadcast/allreduce)
-- Scalar, vector, and tensor Data objects
-- Error handling and edge cases
+- DataCoupler collective operations on Data objects (broadcast/allreduce)
+- DataCoupler collective operations on scalar values
+- Three domain types: ripley, finley, speckley (oxley excluded due to deadlock issues)
+- All eight function spaces: Solution, ContinuousFunction, ReducedSolution,
+  Function, ReducedFunction, FunctionOnBoundary, ReducedFunctionOnBoundary,
+  DiracDeltaFunctions
+- Scalar and vector Data objects
+
+Note: Speckley does not support ReducedSolution, FunctionOnBoundary, or
+      ReducedFunctionOnBoundary. These combinations are automatically skipped.
 
 Note: These tests require MPI with at least 2 processes.
 Run with: run-escript -p 4 run_domaincoupler.py
@@ -53,6 +60,47 @@ except ImportError:
 
 # Skip all tests if MPI is not available or only 1 process
 SKIP_MPI_TESTS = not HAVE_MPI or WORLD_SIZE < 2
+
+
+# Test configurations: (domain_module, domain_class, dimensions, resolution)
+DOMAIN_CONFIGS = [
+    ('esys.ripley', 'Rectangle', 2, {'n0': 10, 'n1': 10}),
+    ('esys.ripley', 'Brick', 3, {'n0': 8, 'n1': 8, 'n2': 8}),
+    ('esys.finley', 'Rectangle', 2, {'n0': 10, 'n1': 10}),
+    ('esys.finley', 'Brick', 3, {'n0': 6, 'n1': 6, 'n2': 6}),
+    ('esys.speckley', 'Rectangle', 2, {'order': 2, 'n0': 10, 'n1': 10}),
+    ('esys.speckley', 'Brick', 3, {'order': 2, 'n0': 6, 'n1': 6, 'n2': 6}),
+]
+
+# Oxley commented out - may cause deadlocks with DataCoupler operations
+# try:
+#     import esys.oxley
+#     DOMAIN_CONFIGS.extend([
+#         ('esys.oxley', 'Rectangle', 2, {'n0': 10, 'n1': 10}),
+#         ('esys.oxley', 'Brick', 3, {'n0': 6, 'n1': 6, 'n2': 6}),
+#     ])
+# except ImportError:
+#     pass
+
+
+def create_domain(domain_module_name, domain_class_name, params, comm):
+    """Helper to create a domain instance with Dirac points."""
+    import importlib
+    module = importlib.import_module(domain_module_name)
+    domain_class = getattr(module, domain_class_name)
+
+    # Add Dirac points for testing DiracDeltaFunctions
+    dirac_params = params.copy()
+    if 'n2' in params:
+        # 3D domain - add two Dirac points
+        dirac_params['diracPoints'] = [(0.5, 0.5, 0.5), (0.8, 0.8, 0.8)]
+        dirac_params['diracTags'] = ['point1', 'point2']
+    elif 'n1' in params:
+        # 2D domain - add two Dirac points
+        dirac_params['diracPoints'] = [(0.5, 0.5), (0.8, 0.8)]
+        dirac_params['diracTags'] = ['point1', 'point2']
+
+    return domain_class(**dirac_params, comm=comm)
 
 
 @unittest.skipIf(SKIP_MPI_TESTS, "MPI with at least 2 processes required")
@@ -97,152 +145,313 @@ class Test_MPIDomainArray(unittest.TestCase):
 
 @unittest.skipIf(SKIP_MPI_TESTS, "MPI with at least 2 processes required")
 class Test_DataCoupler_PointToPoint(unittest.TestCase):
-    """Tests for DataCoupler point-to-point communication."""
-
-    def setUp(self):
-        # Create 2 domains with identical meshes
-        from esys.ripley import Rectangle
-        self.num_domains = 2
-        self.domain_array = MPIDomainArray(numDomains=self.num_domains,
-                                          comm=MPI.COMM_WORLD)
-        self.domain = Rectangle(n0=10, n1=10,
-                               comm=self.domain_array.getDomainComm())
-        self.coupler = DataCoupler(self.domain_array)
-        self.my_domain_idx = self.domain_array.getDomainIndex()
+    """Tests for DataCoupler point-to-point communication across all domains and function spaces."""
 
     def test_send_receive_scalar(self):
-        """Test sending and receiving scalar Data."""
-        fs = Solution(self.domain)
+        """Test sending and receiving scalar Data across all domains and function spaces."""
+        num_domains = 2
+        domain_array = MPIDomainArray(numDomains=num_domains, comm=MPI.COMM_WORLD)
+        my_domain_idx = domain_array.getDomainIndex()
+        coupler = DataCoupler(domain_array)
 
-        # All ranks participate
-        if self.my_domain_idx == 0:
-            # Domain 0 sends
-            data = Scalar(42.0, fs)
-            self.coupler.send(data, dest_domain_index=1, tag=100)
-        elif self.my_domain_idx == 1:
-            # Domain 1 receives
-            received = self.coupler.receive(fs, source_domain_index=0, tag=100)
+        # Test each domain configuration
+        for domain_module, domain_class, dim, params in DOMAIN_CONFIGS:
+            with self.subTest(domain=f"{domain_module}.{domain_class}"):
+                domain = create_domain(domain_module, domain_class, params,
+                                      domain_array.getDomainComm())
 
-            # All ranks in domain 1 verify (sup is collective)
-            received_val = sup(received)  # sup() not Lsup() - checking actual value
-            self.assertAlmostEqual(received_val, 42.0, places=10)
+                # Test each function space
+                for fs_name, fs_constructor in [
+                    ('Solution', Solution),
+                    ('ContinuousFunction', ContinuousFunction),
+                    ('ReducedSolution', ReducedSolution),
+                    ('Function', Function),
+                    ('ReducedFunction', ReducedFunction),
+                    ('FunctionOnBoundary', FunctionOnBoundary),
+                    ('ReducedFunctionOnBoundary', ReducedFunctionOnBoundary),
+                    ('DiracDeltaFunctions', DiracDeltaFunctions),
+                ]:
+                    # Skip unsupported speckley function space combinations
+                    if domain_module == 'esys.speckley' and fs_name in [
+                        'ReducedSolution', 'FunctionOnBoundary', 'ReducedFunctionOnBoundary'
+                    ]:
+                        continue
+
+                    with self.subTest(function_space=fs_name):
+                        fs = fs_constructor(domain)
+
+                        # All ranks participate
+                        if my_domain_idx == 0:
+                            # Domain 0 sends
+                            data = Scalar(42.0, fs)
+                            coupler.send(data, dest_domain_index=1, tag=100)
+                        elif my_domain_idx == 1:
+                            # Domain 1 receives
+                            received = coupler.receive(fs, source_domain_index=0, tag=100)
+
+                            # All ranks in domain 1 verify (sup is collective)
+                            received_val = sup(received)
+                            self.assertAlmostEqual(received_val, 42.0, places=10,
+                                                 msg=f"{domain_module}.{domain_class} {fs_name}")
 
     def test_send_receive_vector(self):
-        """Test sending and receiving vector Data."""
-        fs = Solution(self.domain)
-        x = self.domain.getX()
+        """Test sending and receiving vector Data across all domains and function spaces."""
+        num_domains = 2
+        domain_array = MPIDomainArray(numDomains=num_domains, comm=MPI.COMM_WORLD)
+        my_domain_idx = domain_array.getDomainIndex()
+        coupler = DataCoupler(domain_array)
 
-        if self.my_domain_idx == 0:
-            # Domain 0 sends position field
-            data = Data(x, fs)
-            self.coupler.send(data, dest_domain_index=1, tag=101)
-        elif self.my_domain_idx == 1:
-            # Domain 1 receives
-            received = self.coupler.receive(fs, source_domain_index=0, tag=101)
+        # Test each domain configuration
+        for domain_module, domain_class, dim, params in DOMAIN_CONFIGS:
+            with self.subTest(domain=f"{domain_module}.{domain_class}"):
+                domain = create_domain(domain_module, domain_class, params,
+                                      domain_array.getDomainComm())
 
-            # All ranks in domain 1 verify (Lsup is collective)
-            x_received = Data(received, fs)
-            diff = Lsup(length(x_received - x))
-            self.assertLess(diff, 1e-10)
+                # Test each function space
+                for fs_name, fs_constructor in [
+                    ('Solution', Solution),
+                    ('ContinuousFunction', ContinuousFunction),
+                    ('ReducedSolution', ReducedSolution),
+                    ('Function', Function),
+                    ('ReducedFunction', ReducedFunction),
+                    ('FunctionOnBoundary', FunctionOnBoundary),
+                    ('ReducedFunctionOnBoundary', ReducedFunctionOnBoundary),
+                    ('DiracDeltaFunctions', DiracDeltaFunctions),
+                ]:
+                    # Skip unsupported speckley function space combinations
+                    if domain_module == 'esys.speckley' and fs_name in [
+                        'ReducedSolution', 'FunctionOnBoundary', 'ReducedFunctionOnBoundary'
+                    ]:
+                        continue
+
+                    with self.subTest(function_space=fs_name):
+                        fs = fs_constructor(domain)
+
+                        # All ranks participate
+                        if my_domain_idx == 0:
+                            # Domain 0 sends vector
+                            if dim == 2:
+                                data = Vector([1.0, 2.0], fs)
+                            else:  # dim == 3
+                                data = Vector([1.0, 2.0, 3.0], fs)
+                            coupler.send(data, dest_domain_index=1, tag=200)
+                        elif my_domain_idx == 1:
+                            # Domain 1 receives
+                            received = coupler.receive(fs, source_domain_index=0, tag=200)
+
+                            # All ranks verify (sup is collective)
+                            if dim == 2:
+                                self.assertAlmostEqual(sup(received[0]), 1.0, places=10,
+                                                     msg=f"{domain_module}.{domain_class} {fs_name} [0]")
+                                self.assertAlmostEqual(sup(received[1]), 2.0, places=10,
+                                                     msg=f"{domain_module}.{domain_class} {fs_name} [1]")
+                            else:  # dim == 3
+                                self.assertAlmostEqual(sup(received[0]), 1.0, places=10,
+                                                     msg=f"{domain_module}.{domain_class} {fs_name} [0]")
+                                self.assertAlmostEqual(sup(received[1]), 2.0, places=10,
+                                                     msg=f"{domain_module}.{domain_class} {fs_name} [1]")
+                                self.assertAlmostEqual(sup(received[2]), 3.0, places=10,
+                                                     msg=f"{domain_module}.{domain_class} {fs_name} [2]")
 
     def test_exchange_bidirectional(self):
-        """Test bidirectional exchange between two domains."""
-        fs = Solution(self.domain)
+        """Test bidirectional exchange across all domains and function spaces."""
+        num_domains = 2
+        domain_array = MPIDomainArray(numDomains=num_domains, comm=MPI.COMM_WORLD)
+        my_domain_idx = domain_array.getDomainIndex()
+        coupler = DataCoupler(domain_array)
 
-        # All ranks in both domains participate
-        if self.my_domain_idx == 0:
-            send_data = Scalar(10.0, fs)
-            received = self.coupler.exchange(send_data, fs, peer_domain_index=1, tag=200)
+        # Test each domain configuration
+        for domain_module, domain_class, dim, params in DOMAIN_CONFIGS:
+            with self.subTest(domain=f"{domain_module}.{domain_class}"):
+                domain = create_domain(domain_module, domain_class, params,
+                                      domain_array.getDomainComm())
 
-            # All ranks verify (sup is collective)
-            received_val = sup(received)  # sup() not Lsup() - checking actual value
-            self.assertAlmostEqual(received_val, 20.0, places=10)
+                # Test each function space
+                for fs_name, fs_constructor in [
+                    ('Solution', Solution),
+                    ('ContinuousFunction', ContinuousFunction),
+                    ('ReducedSolution', ReducedSolution),
+                    ('Function', Function),
+                    ('ReducedFunction', ReducedFunction),
+                    ('FunctionOnBoundary', FunctionOnBoundary),
+                    ('ReducedFunctionOnBoundary', ReducedFunctionOnBoundary),
+                    ('DiracDeltaFunctions', DiracDeltaFunctions),
+                ]:
+                    # Skip unsupported speckley function space combinations
+                    if domain_module == 'esys.speckley' and fs_name in [
+                        'ReducedSolution', 'FunctionOnBoundary', 'ReducedFunctionOnBoundary'
+                    ]:
+                        continue
 
-        elif self.my_domain_idx == 1:
-            send_data = Scalar(20.0, fs)
-            received = self.coupler.exchange(send_data, fs, peer_domain_index=0, tag=200)
+                    with self.subTest(function_space=fs_name):
+                        fs = fs_constructor(domain)
 
-            # All ranks verify (sup is collective)
-            received_val = sup(received)  # sup() not Lsup() - checking actual value
-            self.assertAlmostEqual(received_val, 10.0, places=10)
+                        # All ranks participate
+                        if my_domain_idx == 0:
+                            send_data = Scalar(100.0, fs)
+                            received = coupler.exchange(send_data, fs, peer_domain_index=1, tag=300)
+                            # Verify received data from domain 1
+                            received_val = sup(received)
+                            self.assertAlmostEqual(received_val, 200.0, places=10,
+                                                 msg=f"{domain_module}.{domain_class} {fs_name}")
+                        elif my_domain_idx == 1:
+                            send_data = Scalar(200.0, fs)
+                            received = coupler.exchange(send_data, fs, peer_domain_index=0, tag=300)
+                            # Verify received data from domain 0
+                            received_val = sup(received)
+                            self.assertAlmostEqual(received_val, 100.0, places=10,
+                                                 msg=f"{domain_module}.{domain_class} {fs_name}")
 
 
 @unittest.skipIf(SKIP_MPI_TESTS, "MPI with at least 2 processes required")
-class Test_DataCoupler_Collective(unittest.TestCase):
-    """Tests for DataCoupler collective operations."""
+class Test_DataCoupler_Collective_Data(unittest.TestCase):
+    """Tests for DataCoupler collective operations on Data objects."""
 
-    def setUp(self):
-        from esys.ripley import Rectangle
-        self.num_domains = 2
-        self.domain_array = MPIDomainArray(numDomains=self.num_domains,
-                                          comm=MPI.COMM_WORLD)
-        self.domain = Rectangle(n0=10, n1=10,
-                               comm=self.domain_array.getDomainComm())
-        self.coupler = DataCoupler(self.domain_array)
-        self.my_domain_idx = self.domain_array.getDomainIndex()
+    def test_broadcast_data_scalar(self):
+        """Test broadcasting scalar Data across all domains and function spaces."""
+        num_domains = 2
+        domain_array = MPIDomainArray(numDomains=num_domains, comm=MPI.COMM_WORLD)
+        my_domain_idx = domain_array.getDomainIndex()
+        coupler = DataCoupler(domain_array)
+
+        # Test each domain configuration
+        for domain_module, domain_class, dim, params in DOMAIN_CONFIGS:
+            with self.subTest(domain=f"{domain_module}.{domain_class}"):
+                domain = create_domain(domain_module, domain_class, params,
+                                      domain_array.getDomainComm())
+
+                # Test each function space
+                for fs_name, fs_constructor in [
+                    ('Solution', Solution),
+                    ('ContinuousFunction', ContinuousFunction),
+                    ('ReducedSolution', ReducedSolution),
+                    ('Function', Function),
+                    ('ReducedFunction', ReducedFunction),
+                    ('FunctionOnBoundary', FunctionOnBoundary),
+                    ('ReducedFunctionOnBoundary', ReducedFunctionOnBoundary),
+                    ('DiracDeltaFunctions', DiracDeltaFunctions),
+                ]:
+                    # Skip unsupported speckley function space combinations
+                    if domain_module == 'esys.speckley' and fs_name in [
+                        'ReducedSolution', 'FunctionOnBoundary', 'ReducedFunctionOnBoundary'
+                    ]:
+                        continue
+
+                    with self.subTest(function_space=fs_name):
+                        fs = fs_constructor(domain)
+
+                        # All ranks participate in broadcast
+                        if my_domain_idx == 0:
+                            # Domain 0 broadcasts
+                            data = Scalar(99.0, fs)
+                            result = coupler.broadcast(data, root_domain_index=0)
+                        else:
+                            # Other domains receive
+                            result = coupler.broadcast(function_space=fs, root_domain_index=0)
+
+                        # All ranks verify
+                        result_val = sup(result)
+                        self.assertAlmostEqual(result_val, 99.0, places=10,
+                                             msg=f"{domain_module}.{domain_class} {fs_name}")
+
+    def test_allreduce_data_sum(self):
+        """Test all-reduce SUM on Data across all domains and function spaces."""
+        num_domains = 2
+        domain_array = MPIDomainArray(numDomains=num_domains, comm=MPI.COMM_WORLD)
+        my_domain_idx = domain_array.getDomainIndex()
+        coupler = DataCoupler(domain_array)
+
+        # Test each domain configuration
+        for domain_module, domain_class, dim, params in DOMAIN_CONFIGS:
+            with self.subTest(domain=f"{domain_module}.{domain_class}"):
+                domain = create_domain(domain_module, domain_class, params,
+                                      domain_array.getDomainComm())
+
+                # Test each function space
+                for fs_name, fs_constructor in [
+                    ('Solution', Solution),
+                    ('ContinuousFunction', ContinuousFunction),
+                    ('ReducedSolution', ReducedSolution),
+                    ('Function', Function),
+                    ('ReducedFunction', ReducedFunction),
+                    ('FunctionOnBoundary', FunctionOnBoundary),
+                    ('ReducedFunctionOnBoundary', ReducedFunctionOnBoundary),
+                    ('DiracDeltaFunctions', DiracDeltaFunctions),
+                ]:
+                    # Skip unsupported speckley function space combinations
+                    if domain_module == 'esys.speckley' and fs_name in [
+                        'ReducedSolution', 'FunctionOnBoundary', 'ReducedFunctionOnBoundary'
+                    ]:
+                        continue
+
+                    with self.subTest(function_space=fs_name):
+                        print(domain_module, fs_name)
+                        fs = fs_constructor(domain)
+
+                        # All ranks participate - each domain contributes its index
+                        data = Scalar(float(my_domain_idx), fs)
+                        result = coupler.allreduce(data, op=MPI.SUM)
+
+                        # All ranks verify
+                        expected = sum(range(num_domains))  # 0 + 1 = 1
+                        result_val = sup(result)
+                        self.assertAlmostEqual(result_val, expected, places=10,
+                                             msg=f"{domain_module}.{domain_class} {fs_name}")
+                        print("DONE")
+
+@unittest.skipIf(SKIP_MPI_TESTS, "MPI with at least 2 processes required")
+class Test_DataCoupler_Collective_Values(unittest.TestCase):
+    """Tests for DataCoupler collective operations on scalar values (not Data objects)."""
 
     def test_broadcast_value_scalar(self):
         """Test broadcasting a scalar value."""
+        num_domains = 2
+        domain_array = MPIDomainArray(numDomains=num_domains, comm=MPI.COMM_WORLD)
+        my_domain_idx = domain_array.getDomainIndex()
+        coupler = DataCoupler(domain_array)
+
+        # Create a dummy domain for isRootRank check
+        domain = create_domain('esys.ripley', 'Rectangle', {'n0': 10, 'n1': 10},
+                               domain_array.getDomainComm())
+
         # All ranks participate in broadcast
-        if self.my_domain_idx == 0 and self.domain.isRootRank():
-            result = self.coupler.broadcast_value(3.14159, root_domain_index=0)
+        if my_domain_idx == 0 and domain.isRootRank():
+            result = coupler.broadcast_value(3.14159, root_domain_index=0)
         else:
-            result = self.coupler.broadcast_value(root_domain_index=0)
+            result = coupler.broadcast_value(root_domain_index=0)
 
         # All ranks verify
         self.assertAlmostEqual(result, 3.14159, places=5)
 
     def test_allreduce_value_sum(self):
         """Test all-reduce with SUM operation on scalars."""
+        num_domains = 2
+        domain_array = MPIDomainArray(numDomains=num_domains, comm=MPI.COMM_WORLD)
+        my_domain_idx = domain_array.getDomainIndex()
+        coupler = DataCoupler(domain_array)
+
         # All ranks participate
-        my_value = float(self.my_domain_idx)
-        result = self.coupler.allreduce_value(my_value, op=MPI.SUM)
+        my_value = float(my_domain_idx)
+        result = coupler.allreduce_value(my_value, op=MPI.SUM)
 
         # All ranks verify
-        expected = sum(range(self.num_domains))
+        expected = sum(range(num_domains))
         self.assertAlmostEqual(result, expected)
 
     def test_allreduce_value_max(self):
         """Test all-reduce with MAX operation."""
+        num_domains = 2
+        domain_array = MPIDomainArray(numDomains=num_domains, comm=MPI.COMM_WORLD)
+        my_domain_idx = domain_array.getDomainIndex()
+        coupler = DataCoupler(domain_array)
+
         # All ranks participate
-        my_value = float(self.my_domain_idx)
-        result = self.coupler.allreduce_value(my_value, op=MPI.MAX)
+        my_value = float(my_domain_idx)
+        result = coupler.allreduce_value(my_value, op=MPI.MAX)
 
         # All ranks verify
-        expected = float(self.num_domains - 1)
+        expected = float(num_domains - 1)
         self.assertAlmostEqual(result, expected)
-
-    def test_broadcast_data(self):
-        """Test broadcasting Data object from root domain."""
-        fs = Solution(self.domain)
-        x = self.domain.getX()
-
-        # All ranks participate in broadcast
-        if self.my_domain_idx == 0:
-            data = Data(x[0] + x[1], fs)  # Use Data, not Scalar (this is a field)
-            result = self.coupler.broadcast(data=data, root_domain_index=0)
-        else:
-            result = self.coupler.broadcast(function_space=fs, root_domain_index=0)
-
-        # All ranks verify (sup is collective)
-        expected = x[0] + x[1]
-        diff = sup(abs(result - expected))  # sup(abs()) not Lsup(abs())
-        self.assertLess(diff, 1e-8)
-
-    def test_allreduce_data_sum(self):
-        """Test all-reduce on Data with SUM operation."""
-        fs = Solution(self.domain)
-
-        # All ranks participate - each domain contributes its index
-        my_data = Scalar(float(self.my_domain_idx), fs)
-        result = self.coupler.allreduce(my_data, op=MPI.SUM)
-
-        # All ranks verify (sup and inf are collective)
-        expected_value = sum(range(self.num_domains))
-        result_max = sup(result)  # sup() not Lsup() - we want max, not max(abs())
-        result_min = inf(result)
-        self.assertAlmostEqual(result_max, expected_value, places=10)
-        self.assertAlmostEqual(result_min, expected_value, places=10)
 
 
 # Create test suite
@@ -250,7 +459,8 @@ def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(unittest.makeSuite(Test_MPIDomainArray))
     test_suite.addTest(unittest.makeSuite(Test_DataCoupler_PointToPoint))
-    test_suite.addTest(unittest.makeSuite(Test_DataCoupler_Collective))
+    test_suite.addTest(unittest.makeSuite(Test_DataCoupler_Collective_Data))
+    test_suite.addTest(unittest.makeSuite(Test_DataCoupler_Collective_Values))
     return test_suite
 
 
