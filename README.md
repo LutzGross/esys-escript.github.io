@@ -54,12 +54,7 @@ At present, this is the recommended way to run esys-escript on Windows.
 Online documentation for [master branch](https://github.com/LutzGross/esys-escript.github.io/tree/master) 
 is available [here](https://lutzgross.github.io/esys-escript.github.io).
 
-## Funding 
-The project was funded by the
-
-- [AuScope National Collaborative Research Infrastructure Strategy (NCRIS)](https://www.auscope.org.au/) (until end of 2023),
-- Australian Geophysical Observing System (AGOS) (ended 2014),
-- [The University of Queensland](https://www.uq.edu.au)
+## Reference
 
 If you publish work that makes use of esys-escript, we would appreciate it if you would cite the following reference:
 
@@ -70,21 +65,14 @@ Physics of the Earth and Planetary Interiors,
 Volume 163, Issues 1–4, 2007,
 Pages 23-34](doi:10.1016/j.pepi.2007.04.004)
 
+## License
 
-### Contributors
+Copyright (c) 20004-2026 by the esys.escript Group.
+The majority of the files contained in this distribution are licensed 
+under the Apache License, version 2.0, http://www.apache.org/licenses/LICENSE-2.0, see [LICENSE](LICENSE).
 
-- Lutz Gross
-- Claude
-- Adam Ellery
-- Andrea Codd
-- Joel Fenwick
-- Cihan Altinay
-- Simon Shaw
-- Jaco Du Plessis
-- Ralf Schaa
-- Peter Hornby (late)
-- Thomas Poulet
-- Lin Gao
-- Artak Amirbekyan
-- Ken Steube
+## Contributors
+
+Esys-escript has started in 2003 as one of the first projects that made systemic use of the Python language for large-scale scientific computing. 
+It is the product of years of work by many people with funding from Australian Commonwealth, see [CREDITS](CREDITS). 
 
