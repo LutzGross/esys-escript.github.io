@@ -61,7 +61,7 @@ def symbols(*names, **kwargs):
     s = names[0]
     if not isinstance(s, list):
         import re
-        s = re.split('\s|,', s)
+        s = re.split(r'\s|,', s)
     res = []
     for t in s:
         # skip empty strings
