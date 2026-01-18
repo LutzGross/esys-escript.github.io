@@ -41,7 +41,7 @@ try:
     from esys.speckley import Rectangle as sRectangle
     from esys.speckley import Brick as sBrick
 except ImportError:
-    raise ImportError("Missing required ripley module")
+    raise ImportError("Missing required speckley module")
 class SpeckleyToRipley(object):
     """
     A class for creating and storing a matching pair of domains from speckley
@@ -177,7 +177,7 @@ class SpeckleyToRipley(object):
 
     def getRipleyShape(self):
         """
-        Returns the shape of the speckley domain
+        Returns the shape of the ripley domain.
 
        :return: A ``tuple`` containing the number of elements in each dimension
        :rtype: ``tuple`` of ``int``
@@ -185,6 +185,12 @@ class SpeckleyToRipley(object):
         return self.ripleyShape
 
     def getDomains(self):
+        """
+        Returns both domains as a tuple.
+
+        :return: A tuple containing (speckley_domain, ripley_domain)
+        :rtype: ``tuple``
+        """
         return (self.speckley, self.ripley)
 
     def getSpeckley(self):

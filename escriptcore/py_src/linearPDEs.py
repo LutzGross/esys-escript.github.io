@@ -167,7 +167,10 @@ class PDECoef(object):
 
     def isComplex(self):
         """
-        Returns true if the coefficient is complex
+        Returns true if the coefficient is complex.
+
+        :return: ``True`` if the coefficient is complex-valued
+        :rtype: ``bool``
         """
         return self.__complex
 

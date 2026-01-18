@@ -15,20 +15,9 @@
 #
 ##############################################################################
 
-from __future__ import print_function, division
-
-__copyright__="""Copyright (c) 2003-2020 by The University of Queensland
-http://www.uq.edu.au
-Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Apache License, version 2.0
-http://www.apache.org/licenses/LICENSE-2.0"""
-__url__="https://launchpad.net/escript-finley"
-
-filter# $Id:$
-
 """
 A simple framework to run benchmarks under OpenMP and to summarize the results
-in tables for instance in HTML
+in tables for instance in HTML.
 
 :var __author__: name of author
 :var __license__: licence agreement
@@ -38,6 +27,14 @@ in tables for instance in HTML
 :var __date__: date of the version
 """
 
+from __future__ import print_function, division
+
+__copyright__="""Copyright (c) 2003-2020 by The University of Queensland
+http://www.uq.edu.au
+Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Apache License, version 2.0
+http://www.apache.org/licenses/LICENSE-2.0"""
+__url__="https://launchpad.net/escript-finley"
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import os, socket, sys, time, traceback

@@ -26,6 +26,13 @@ http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
 
 """
+Provides an interface to define and solve nonlinear partial differential
+equations (PDEs) within escript using symbolic differentiation.
+
+The module provides the `NonlinearPDE` class which uses symbolic mathematics
+(via sympy) to automatically compute the Jacobian required for Newton-Raphson
+iteration.
+
 :var __author__: name of author
 :var __copyright__: copyrights
 :var __license__: licence agreement
@@ -64,6 +71,12 @@ class InadmissiblePDEOrdering(Exception):
 
 def concatenateRow(*args):
     """
+    Concatenates Symbol arrays row-wise.
+
+    :param args: Symbol objects to concatenate
+    :type args: `Symbol`
+    :return: concatenated Symbol array
+    :rtype: `Symbol`
     """
     if len(args)==1:
         return args[0]
@@ -175,6 +188,7 @@ class NonlinearPDE(object):
         :param u: The symbol for the unknown PDE function u.
         :type u: `Symbol`
         :param debug: level of debug information to be printed
+        :type debug: ``int`` (one of DEBUG0, DEBUG1, DEBUG2, DEBUG3, DEBUG4)
         """
         if not HAVE_SYMBOLS:
             raise RuntimeError("Trying to instantiate a NonlinearPDE but sympy not available")

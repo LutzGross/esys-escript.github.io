@@ -67,6 +67,17 @@ import os
 import sys
 
 def __add_tests(suite, modulename):
+    """
+    Discovers and adds all test classes from a module to a test suite.
+
+    Test classes are identified by having a name starting with "Test" and
+    being a subclass of ``unittest.TestCase``.
+
+    :param suite: the test suite to add tests to
+    :type suite: ``unittest.TestSuite``
+    :param modulename: name of the module to discover tests from
+    :type modulename: ``str``
+    """
     import inspect
     clsmembers = inspect.getmembers(sys.modules[modulename], inspect.isclass)
     for name, cls in clsmembers:
@@ -75,6 +86,16 @@ def __add_tests(suite, modulename):
             suite.addTest(unittest.TestLoader().loadTestsFromTestCase(cls))
 
 def run_single_test(test, exit_on_failure=False):
+    """
+    Runs a single test case and returns the result.
+
+    :param test: the test instance to run
+    :type test: ``unittest.TestCase``
+    :param exit_on_failure: if ``True``, exits with code 1 on test failure
+    :type exit_on_failure: ``bool``
+    :return: the test result object containing pass/fail information
+    :rtype: ``unittest.TestResult``
+    """
     suite = unittest.TestSuite()
     suite.addTest(test)
     s=unittest.TextTestRunner(verbosity=2).run(suite)
@@ -83,6 +104,26 @@ def run_single_test(test, exit_on_failure=False):
     return s
 
 def run_tests(modulename, classes = [], exit_on_failure = False):
+    """
+    Runs test classes from a module and returns the result.
+
+    If no specific classes are provided, all test classes (those starting
+    with "Test" and subclassing ``unittest.TestCase``) are discovered and
+    run automatically.
+
+    In MPI environments, only rank 0 produces output; other ranks run
+    silently.
+
+    :param modulename: name of the module containing the tests
+    :type modulename: ``str``
+    :param classes: specific test classes to run; if empty, all tests
+                    in the module are discovered and run
+    :type classes: ``list`` of ``unittest.TestCase`` subclasses
+    :param exit_on_failure: if ``True``, exits with code 1 on test failure
+    :type exit_on_failure: ``bool``
+    :return: the test result object containing pass/fail information
+    :rtype: ``unittest.TestResult``
+    """
     rank = getMPIRankWorld()
     stream=sys.stderr #default
     verb=2

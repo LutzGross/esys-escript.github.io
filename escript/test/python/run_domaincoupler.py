@@ -15,24 +15,85 @@
 ##############################################################################
 
 """
-Comprehensive tests for MPIDomainArray and DataCoupler classes.
+Comprehensive test suite for MPIDomainArray and DataCoupler classes.
 
-These tests cover:
-- MPIDomainArray communicator topology creation
-- DataCoupler point-to-point communication (send/receive/exchange)
-- DataCoupler collective operations on Data objects (broadcast/allreduce)
-- DataCoupler collective operations on scalar values
-- Three domain types: ripley, finley, speckley (oxley excluded due to deadlock issues)
-- All eight function spaces: Solution, ContinuousFunction, ReducedSolution,
-  Function, ReducedFunction, FunctionOnBoundary, ReducedFunctionOnBoundary,
-  DiracDeltaFunctions
-- Scalar and vector Data objects
+This module provides extensive testing for MPI-based domain decomposition and
+inter-domain communication in escript. The test suite validates both the
+communicator topology infrastructure (MPIDomainArray) and the data coupling
+operations (DataCoupler) across multiple domain types and function spaces.
 
-Note: Speckley does not support ReducedSolution, FunctionOnBoundary, or
-      ReducedFunctionOnBoundary. These combinations are automatically skipped.
+Test Coverage
+-------------
+The test suite includes:
 
-Note: These tests require MPI with at least 2 processes.
-Run with: run-escript -p 4 run_domaincoupler.py
+**MPIDomainArray Tests:**
+    - Basic 2-domain topology creation
+    - Multiple subdomains per domain
+    - Communicator hierarchy validation
+
+**DataCoupler Point-to-Point Communication:**
+    - send() and receive() operations for scalar and vector Data
+    - Bidirectional exchange() operations
+    - Communication across all supported function spaces
+
+**DataCoupler Collective Operations on Data Objects:**
+    - broadcast() operations from root domain to all domains
+    - allreduce() operations with SUM operator
+
+**DataCoupler Collective Operations on Scalar Values:**
+    - broadcast_value() for Python scalar distribution
+    - allreduce_value() with SUM and MAX operators
+
+**Domain Types Tested:**
+    - esys.ripley (Rectangle and Brick)
+    - esys.finley (Rectangle and Brick)
+    - esys.speckley (Rectangle and Brick with order=2)
+    - Note: esys.oxley excluded due to deadlock issues (see GitHub issue #123)
+
+**Function Spaces Tested:**
+    - Solution
+    - ContinuousFunction
+    - ReducedSolution
+    - Function
+    - ReducedFunction
+    - FunctionOnBoundary
+    - ReducedFunctionOnBoundary
+    - DiracDeltaFunctions
+
+**Data Types Tested:**
+    - Scalar Data objects
+    - Vector Data objects (2D and 3D)
+    - Python scalar values
+
+Requirements
+------------
+These tests require MPI with at least 2 processes. Some tests require exactly
+4 processes for multiple subdomain validation.
+
+Usage
+-----
+Run the complete test suite with::
+
+    run-escript -p 4 run_domaincoupler.py
+
+Or run individual test classes with::
+
+    run-escript -p 4 -m unittest run_domaincoupler.Test_MPIDomainArray
+
+Notes
+-----
+- Speckley domains do not support ReducedSolution, FunctionOnBoundary, or
+  ReducedFunctionOnBoundary. These combinations are automatically skipped.
+- All tests use MPI collective operations, requiring all ranks to participate.
+- Tests validate results on all participating ranks using collective reduction
+  operations (sup, inf).
+- Dirac points are automatically added to all domains to enable testing of
+  DiracDeltaFunctions function space.
+
+See Also
+--------
+MPIDomainArray : MPI communicator topology for domain decomposition
+DataCoupler : Inter-domain communication interface
 """
 
 __copyright__="""Copyright (c) 2003-2025 by The University of Queensland

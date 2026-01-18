@@ -62,10 +62,12 @@ class CostFunction1DEvaluationFactory(object):
 
     def getEvaluation(self, a=1):
         """
-        issues a containe holder for Phi(a)=F(m+a*p), gradF(m+a*p) and the respective arguments
+        Creates a container for Phi(a)=F(m+a*p), gradF(m+a*p) and the respective arguments.
+
         :param a: scaling factor of search direction
         :type a: ``float``
-        :returns: instance ``EvalutedPhi``
+        :return: container holding evaluation state
+        :rtype: `EvalutedPhi`
         """
         return EvalutedPhi(self, a)
 
@@ -147,8 +149,13 @@ class EvalutedPhi(object):
 
     def getVal(self):
         """
-        return the value for Phi(alpha)=F(m+alpha*p). In contrast to use self.valF
-        the value is calculated if self.valF is None.
+        Returns the value for Phi(alpha)=F(m+alpha*p).
+
+        In contrast to using self.valF directly, the value is calculated
+        if self.valF is None.
+
+        :return: the function value at alpha
+        :rtype: ``float``
         """
         if self.valF is None:
             v, args = self.factory.getValue(self.alpha, self.args)
@@ -158,7 +165,10 @@ class EvalutedPhi(object):
 
     def getDiff(self):
         """
-        return the value for Phi'(alpha)=<p,grad(F(m+alpha*p)).
+        Returns the value for Phi'(alpha)=<p, grad(F(m+alpha*p))>.
+
+        :return: the derivative of Phi at alpha
+        :rtype: ``float``
         """
         if self.gradPhi is None:
             gp, g, args = self.factory.getGrad(self.alpha, self.gradF,  self.args)
@@ -184,7 +194,18 @@ class LineSearchInterpolationBreakDownError(LineSearchTerminationError):
 
 def muchLarger(x, y, vareps=0.):
     """
-    returns true is x > y and |x-y| > vareps * max(|x|,|y|)
+    Tests if x is much larger than y with tolerance.
+
+    Returns True if x > y and |x-y| > vareps * max(|x|,|y|).
+
+    :param x: first value
+    :type x: ``float``
+    :param y: second value
+    :type y: ``float``
+    :param vareps: relative tolerance
+    :type vareps: ``float``
+    :return: True if x is much larger than y
+    :rtype: ``bool``
     """
     L = vareps * max(abs(x), abs(y))
     return x > y and abs(x - y) > L
@@ -192,7 +213,18 @@ def muchLarger(x, y, vareps=0.):
 
 def muchSmaller(x, y, vareps=0.):
     """
-    returns true is x < y and |x-y| > vareps * max(|x|,|y|)
+    Tests if x is much smaller than y with tolerance.
+
+    Returns True if x < y and |x-y| > vareps * max(|x|,|y|).
+
+    :param x: first value
+    :type x: ``float``
+    :param y: second value
+    :type y: ``float``
+    :param vareps: relative tolerance
+    :type vareps: ``float``
+    :return: True if x is much smaller than y
+    :rtype: ``bool``
     """
     L = vareps * max(abs(x), abs(y))
     return x < y and abs(x - y) > L
@@ -200,7 +232,7 @@ def muchSmaller(x, y, vareps=0.):
 
 class LineSearchIterMaxReachedError(LineSearchTerminationError):
     """
-    Exception thrown if the line serach reaches maximum iteration count
+    Exception thrown if the line search reaches maximum iteration count
     """
     pass
 

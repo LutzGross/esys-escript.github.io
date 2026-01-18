@@ -14,6 +14,14 @@
 #
 ##############################################################################
 
+"""
+Symbolic mathematics support for escript.
+
+This package provides symbolic computation capabilities for escript using
+sympy as the backend. It allows defining PDEs symbolically and automatic
+computation of Jacobians for nonlinear PDE solvers.
+"""
+
 from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2003-2018 by The University of Queensland

@@ -13,6 +13,21 @@
 #
 ##############################################################################
 
+"""
+Symbolic mathematics support for escript.
+
+This module provides the `Symbol` class for representing symbolic mathematical
+expressions that can be manipulated algebraically and evaluated with escript
+Data objects.
+
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
+"""
+
 from __future__ import print_function, division
 
 __copyright__ = """Copyright (c) 2003-2018 by The University of Queensland
@@ -22,15 +37,6 @@ __license__ = """Licensed under the Apache License, version 2.0
 http://www.apache.org/licenses/LICENSE-2.0"""
 __url__ = "https://launchpad.net/escript-finley"
 __author__ = "Cihan Altinay"
-
-"""
-:var __author__: name of author
-:var __copyright__: copyrights
-:var __license__: licence agreement
-:var __url__: url entry point on documentation
-:var __version__: version
-:var __date__: date of the version
-"""
 
 from esys.escriptcore.start import HAVE_SYMBOLS
 import numpy
@@ -220,6 +226,10 @@ class Symbol(object):
 
     def _sympy_(self):
         """
+        Converts this Symbol to a sympy expression for compatibility.
+
+        :return: sympy-compatible representation of this symbol
+        :rtype: ``sympy.Basic`` or ``numpy.ndarray``
         """
         return self.applyfunc(sympy.sympify)
 
@@ -317,6 +327,13 @@ class Symbol(object):
 
     def lambdarepr(self):
         """
+        Returns a string representation suitable for use with lambdify.
+
+        This method converts the symbol to a string format that can be
+        parsed by sympy's lambdify function for numerical evaluation.
+
+        :return: string representation of this symbol for lambdify
+        :rtype: ``str``
         """
         from esys.escript.symbolic.printer import EsysEscriptPrinter
         printer = EsysEscriptPrinter()
@@ -441,6 +458,17 @@ class Symbol(object):
 
     def diff(self, *symbols, **assumptions):
         """
+        Computes the derivative of this symbol with respect to given symbols.
+
+        This method differentiates the expression component-wise with respect
+        to the specified symbols. Multiple symbols can be provided for higher
+        order derivatives.
+
+        :param symbols: symbols to differentiate with respect to
+        :type symbols: `Symbol` or ``sympy.Symbol``
+        :param assumptions: additional keyword arguments passed to sympy's diff
+        :return: the differentiated symbol
+        :rtype: `Symbol`
         """
         symbols=Symbol._symbolgen(*symbols)
         result=Symbol(self._arr, dim=self._dim, subs=self._subs)
@@ -467,7 +495,12 @@ class Symbol(object):
     def grad(self, where=None):
         """
         Returns a symbol which represents the gradient of this symbol.
-        :type where: ``Symbol``, ``FunctionSpace``
+
+        :param where: optional function space for the gradient
+        :type where: `Symbol` or ``FunctionSpace``
+        :return: the gradient of this symbol
+        :rtype: `Symbol`
+        :raises ValueError: if the symbol has undefined dimensionality
         """
         if self._dim < 0:
             raise ValueError("grad: cannot compute gradient as symbol has undefined dimensionality")
@@ -496,6 +529,14 @@ class Symbol(object):
 
     def inverse(self):
         """
+        Returns the symbolic inverse of this matrix symbol.
+
+        Only supports rank 2 symbols (matrices) with square shapes up to 3x3.
+
+        :return: the inverse of this matrix symbol
+        :rtype: `Symbol`
+        :raises TypeError: if the symbol is not rank 2 or not square
+        :raises ZeroDivisionError: if the matrix is symbolically singular
         """
         if not self.getRank()==2:
             raise TypeError("inverse: Only rank 2 supported")
@@ -550,11 +591,27 @@ class Symbol(object):
 
     def swap_axes(self, axis0, axis1):
         """
+        Returns a symbol with two axes interchanged.
+
+        :param axis0: first axis
+        :type axis0: ``int``
+        :param axis1: second axis
+        :type axis1: ``int``
+        :return: symbol with swapped axes
+        :rtype: `Symbol`
         """
         return Symbol(numpy.swapaxes(self._arr, axis0, axis1), dim=self._dim, subs=self._subs)
 
     def tensorProduct(self, other, axis_offset):
         """
+        Computes the general tensor product of this symbol with another.
+
+        :param other: the other operand
+        :type other: `Symbol` or ``numpy.ndarray``
+        :param axis_offset: number of axes to contract
+        :type axis_offset: ``int``
+        :return: the tensor product
+        :rtype: `Symbol`
         """
         arg0_c=self._arr.copy()
         sh0=self.getShape()
@@ -583,6 +640,14 @@ class Symbol(object):
 
     def transposedTensorProduct(self, other, axis_offset):
         """
+        Computes the transposed tensor product of this symbol with another.
+
+        :param other: the other operand
+        :type other: `Symbol` or ``numpy.ndarray``
+        :param axis_offset: number of axes to contract
+        :type axis_offset: ``int``
+        :return: the transposed tensor product
+        :rtype: `Symbol`
         """
         arg0_c=self._arr.copy()
         sh0=self.getShape()
@@ -611,6 +676,14 @@ class Symbol(object):
 
     def tensorTransposedProduct(self, other, axis_offset):
         """
+        Computes the tensor transposed product of this symbol with another.
+
+        :param other: the other operand
+        :type other: `Symbol` or ``numpy.ndarray``
+        :param axis_offset: number of axes to contract
+        :type axis_offset: ``int``
+        :return: the tensor transposed product
+        :rtype: `Symbol`
         """
         arg0_c=self._arr.copy()
         sh0=self.getShape()
@@ -797,6 +870,14 @@ class Symbol(object):
     @staticmethod
     def _symComp(sym):
         """
+        Extracts the name and component indices from a sympy symbol.
+
+        Parses symbol names like '[x]_0_1' into name 'x' and indices (0, 1).
+
+        :param sym: the sympy symbol to parse
+        :type sym: ``sympy.Symbol``
+        :return: tuple of (name, component_indices)
+        :rtype: ``tuple``
         """
         n=sym.name
         a=n.split('[')

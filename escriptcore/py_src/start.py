@@ -15,6 +15,17 @@
 #
 ##############################################################################
 
+"""
+Startup configuration and environment setup for escript core packages.
+
+This module performs initialization tasks required before other escript
+packages are loaded, including setting library load flags for Intel MKL
+compatibility and optional memory profiling setup.
+
+:note: No escript packages should be imported in this module to prevent
+       circular import issues.
+"""
+
 from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2003-2020 by The University of Queensland
@@ -47,6 +58,15 @@ else:
 
 # To have this function called automatically
 def escriptLogMemoryStatusNow(prefix='memescript'):
+    """
+    Logs the current memory status of the escript process to a file.
+
+    On POSIX systems, this reads /proc/<pid>/status and writes it to a file
+    named <prefix>.<pid>. This is useful for memory profiling and debugging.
+
+    :param prefix: prefix for the output filename
+    :type prefix: ``str``
+    """
     import os
     if os.name=='posix':
         pid=os.getpid()

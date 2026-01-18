@@ -16,6 +16,16 @@
 
 from __future__ import print_function, division
 
+"""
+Symbolic mathematical constants for escript.
+
+This module provides symbolic versions of common mathematical constants
+that can be used in symbolic expressions.
+
+:var pi: symbolic representation of pi (3.14159...)
+:var e: symbolic representation of Euler's number e (2.71828...)
+"""
+
 from .symbol import Symbol
 import sympy
 pi=Symbol(sympy.pi)

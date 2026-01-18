@@ -14,6 +14,12 @@
 #
 ##############################################################################
 
+"""
+Symbolic expression evaluator for escript.
+
+This module provides the `Evaluator` class which compiles symbolic expressions
+into callable functions that can be evaluated with escript Data objects.
+"""
 
 __copyright__="""Copyright (c) 2003-2018 by The University of Queensland
 http://www.uq.edu.au
@@ -31,10 +37,6 @@ from .printer import EsysEscriptPrinter
 from .utils import combineData
 import math
 
-"""
-Symbolic expression evaluator for escript
-"""
-
 escript_functions = [ "kronecker", "identity", "zeros", "identityTensor", "identityTensor4", "unitVector", "Lsup", "sup", "inf", "testForZero", "log10", "wherePositive",
                       "whereNegative", "whereNonNegative", "whereNonPositive", "whereZero", "whereNonZero", "Abs", "erf", "sin", "cos", "tan", "asin", "acos", "atan",
                       "atan2", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "exp", "sqrt", "log", "sign", "minval", "maxval", "length", "trace", "transpose", "swap_axes",
@@ -48,11 +50,19 @@ escript_functions = [ "kronecker", "identity", "zeros", "identityTensor", "ident
 translator = { n :  getattr(escript, n) for n in escript_functions }
 
 class Evaluator(object):
+    """
+    Evaluates symbolic expressions with escript Data objects.
+
+    The Evaluator compiles symbolic expressions into callable functions that
+    can be evaluated efficiently with substituted values.
+    """
+
     def __init__(self, *expressions):
         """
-        Returns a symbolic evaluator.
+        Creates a symbolic evaluator.
 
-        :param expressions: optional expressions to initialise with
+        :param expressions: optional expressions to initialize with
+        :type expressions: `Symbol` or ``sympy.Expr``
         """
         self.expressions=[]
         self.symbols=[]
@@ -79,7 +89,11 @@ class Evaluator(object):
         """
         Adds an expression to this evaluator.
 
+        :param expression: symbolic expression to add
+        :type expression: `Symbol` or ``sympy.Expr``
         :return: the modified Evaluator object
+        :rtype: `Evaluator`
+        :raise TypeError: if argument is not an expression
         """
         import sympy
         from esys import escript
@@ -111,20 +125,25 @@ class Evaluator(object):
 
     def subs(self, **args):
         """
-        Symbol substitution.
+        Performs symbol substitution.
 
+        :keyword args: symbol name to value mappings
         :return: the modified Evaluator object
+        :rtype: `Evaluator`
         """
         self._subsdict.update(args)
         return self
 
     def evaluate(self, evalf=False, **args):
         """
-        Evaluates all expressions in this evaluator and returns the result
-        as a tuple.
+        Evaluates all expressions in this evaluator and returns the result.
 
-        :return: the evaluated expressions in the order they were added to
-                 this Evaluator.
+        :param evalf: if True, call evalf() on Symbol results
+        :type evalf: ``bool``
+        :keyword args: additional symbol substitutions
+        :return: the evaluated expression (single) or tuple of expressions
+        :rtype: evaluated result or ``tuple``
+        :raise RuntimeError: if not all symbols have values
         """
         from esys import escript
         self.subs(**args)

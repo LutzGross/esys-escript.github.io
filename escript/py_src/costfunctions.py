@@ -75,7 +75,10 @@ class CostFunction(object):
         
     def getStatistics(self):
         """
-        return the call statistics as a string:
+        Returns the call statistics as a string.
+
+        :return: formatted string with counts of all function calls
+        :rtype: ``str``
         """
         out="Number of cost function evaluations: %d\n" % self.Value_calls
         out+="Number of gradient evaluations: %d\n" % self.Gradient_calls
@@ -178,7 +181,7 @@ class CostFunction(object):
 
         :param r: a given gradient
         :type r: g-type
-        :poram initializeHessian: indicates if the Hessian operator should be initialized using `m`.
+        :param initializeHessian: indicates if the Hessian operator should be initialized using `m`.
                                     If updating the Hessian is expensive it should only be done
                                     when initializeHessian is True. If this method provides an approximation
                                     only and building the new Hessian approximation is expensive
@@ -288,7 +291,7 @@ class CostFunction(object):
 
         :param r: a given gradient
         :type r: g-type
-        :poram initializeHessian: indicates if the Hessian operator should be initialized using `m`.
+        :param initializeHessian: indicates if the Hessian operator should be initialized using `m`.
                                     If this method provides an approximation
                                     only and building the new Hessian approximation is expensive
                                     it is typically more efficient to update the Hessian operator

@@ -24,6 +24,11 @@ __url__="https://launchpad.net/escript-finley"
 __author__="Cihan Altinay"
 
 """
+Utility functions for symbolic expressions in escript.
+
+This module provides helper functions for combining Data objects from
+symbolic expressions and computing total differentials.
+
 :var __author__: name of author
 :var __copyright__: copyrights
 :var __license__: licence agreement
@@ -39,6 +44,18 @@ from esys.escriptcore.symboliccore import Symbol
 
 def combineData(array, shape):
     """
+    Combines array elements into a Data object with the given shape.
+
+    This function takes an array of values (which may include Data objects)
+    and combines them into a single Data object or numpy array.
+
+    :param array: array of values to combine
+    :type array: array-like
+    :param shape: target shape for the result
+    :type shape: ``tuple`` of ``int``
+    :return: combined Data object or numpy array
+    :rtype: `Data` or ``numpy.ndarray``
+    :raise ValueError: if domains don't match
     """
 
     # array could just be a single value
@@ -79,8 +96,15 @@ def combineData(array, shape):
 
 def removeFsFromGrad(sym):
     """
-    Returns ``sym`` with all occurrences grad_n(a,b,c) replaced by grad_n(a,b).
-    That is, all functionspace parameters are removed.
+    Removes function space parameters from gradient expressions.
+
+    Returns ``sym`` with all occurrences of grad_n(a,b,c) replaced by
+    grad_n(a,b). This strips the function space parameter from gradient calls.
+
+    :param sym: symbolic expression to process
+    :type sym: `Symbol`
+    :return: expression with function space parameters removed from gradients
+    :rtype: `Symbol`
     """
     from esys.escript import symfn
     gg=sym.atoms(symfn.grad_n)
@@ -92,12 +116,22 @@ def removeFsFromGrad(sym):
 
 def getTotalDifferential(f, x, order=0):
     """
+    Computes the total differential of f with respect to x.
+
     This function computes::
 
         | Df/Dx = del_f/del_x + del_f/del_grad(x)*del_grad(x)/del_x + ...
-        |            \   /         \   /
+        |            \\   /         \\   /
         |              a             b
-    
+
+    :param f: the function to differentiate
+    :type f: `Symbol` or ``numpy.ndarray``
+    :param x: the variable to differentiate with respect to
+    :type x: `Symbol`
+    :param order: order of differentiation (0 or 1)
+    :type order: ``int``
+    :return: tuple of derivative terms (a,) for order=0, (a, b) for order=1
+    :rtype: `Symbol` or ``tuple`` of `Symbol`
     """
 
     from esys.escript import util

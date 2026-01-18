@@ -14,6 +14,15 @@
 #
 ##############################################################################
 
+"""
+An escript data import and export manager.
+
+:var __author__: name of authors
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point to documentation
+"""
+
 from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2003-2020 by The University of Queensland
@@ -23,15 +32,6 @@ __license__="""Licensed under the Apache License, version 2.0
 http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
 __author__="Lutz Gross, Cihan Altinay"
-
-"""
-an escript data import and export manager (still under development)
-
-:var __author__: name of authors
-:var __copyright__: copyrights
-:var __license__: licence agreement
-:var __url__: url entry point to documentation
-"""
 
 import pickle
 import os
@@ -143,6 +143,10 @@ class DataManager(object):
     def setDomain(self, domain):
         """
         Sets the domain without adding data.
+
+        :param domain: the escript domain to set
+        :type domain: `Domain`
+        :raise ValueError: if a different domain has already been set
         """
         if self._domain is None:
             self._domain = domain
@@ -152,13 +156,20 @@ class DataManager(object):
 
     def hasData(self):
         """
-        Returns True if the manager holds data for restart
+        Returns True if the manager holds data for restart.
+
+        :return: ``True`` if restart data is available, ``False`` otherwise
+        :rtype: ``bool``
         """
         return self._restartdir != None
 
     def getDomain(self):
         """
         Returns the domain as recovered from restart files.
+
+        :return: the domain loaded from restart files
+        :rtype: `Domain`
+        :raise ValueError: if no restart data is available
         """
         if not self.hasData():
             raise ValueError("No restart data available")
@@ -168,6 +179,12 @@ class DataManager(object):
         """
         Returns an 'escript.Data' object or other value that has been loaded
         from restart files.
+
+        :param value_name: name of the value to retrieve
+        :type value_name: ``str``
+        :return: the requested data object or value
+        :rtype: `Data` or other type depending on what was stored
+        :raise ValueError: if no restart data is available
         """
         if not self.hasData():
             raise ValueError("No restart data available")
@@ -182,7 +199,10 @@ class DataManager(object):
 
     def getCycle(self):
         """
-        Returns the export cycle (=number of times export() has been called)
+        Returns the export cycle (=number of times export() has been called).
+
+        :return: the current export cycle number
+        :rtype: ``int``
         """
         return self._N
 
@@ -190,12 +210,18 @@ class DataManager(object):
         """
         Sets the number of calls to export() before new restart files are
         generated.
+
+        :param freq: checkpoint frequency (1 = every export, 2 = every other, etc.)
+        :type freq: ``int``
         """
         self._checkpointfreq=freq
 
     def setTime(self, time):
         """
         Sets the simulation timestamp.
+
+        :param time: the current simulation time
+        :type time: ``float``
         """
         self._time = time
 
@@ -203,6 +229,13 @@ class DataManager(object):
         """
         Sets labels for the mesh axes. These are currently only used by the
         Silo exporter.
+
+        :param x: label for the x-axis
+        :type x: ``str``
+        :param y: label for the y-axis
+        :type y: ``str``
+        :param z: label for the z-axis (optional for 2D)
+        :type z: ``str``
         """
         self._meshlabels=[x,y,z]
 
@@ -210,6 +243,13 @@ class DataManager(object):
         """
         Sets units for the mesh axes. These are currently only used by the
         Silo exporter.
+
+        :param x: unit for the x-axis
+        :type x: ``str``
+        :param y: unit for the y-axis
+        :type y: ``str``
+        :param z: unit for the z-axis (optional for 2D)
+        :type z: ``str``
         """
         self._meshunits=[x,y,z]
 

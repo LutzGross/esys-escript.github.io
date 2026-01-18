@@ -1,4 +1,11 @@
-# TODO: not working yet!
+"""
+SymPy code printer for escript expressions.
+
+This module provides the EsysEscriptPrinter class which converts SymPy
+expressions to escript-compatible Python code for use with lambdify.
+
+:note: This module is still under development.
+"""
 
 from sympy.core import S
 from sympy.core.function import Lambda

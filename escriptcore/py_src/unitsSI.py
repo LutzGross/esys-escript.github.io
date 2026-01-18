@@ -14,75 +14,75 @@
 #
 ##############################################################################
 
+"""
+Tools supporting physical units and conversion.
+
+:synopsis: some tools supporting physical units and conversion
+
+:var Yotta: prefix yotta, symbol:   Y
+:var Zetta: prefix zetta, symbol: Z
+:var Exa: prefix exa, symbol: E
+:var Peta: prefix peta, symbol: P
+:var Tera: prefix tera, symbol: T
+:var Giga: prefix giga, symbol: G
+:var Mega: prefix mega, symbol: M
+:var Kilo: prefix kilo, symbol: k
+:var Hecto: prefix hecto, symbol: h
+:var Deca:  prefix deca, symbol: da
+:var Deci:  prefix deci, symbol: d
+:var Centi: prefix centi, symbol: c
+:var Milli: prefix milli, symbol: m
+:var Micro: prefix micro, symbol: mu
+:var Nano:  prefix nano, symbol: n
+:var Pico:  prefix pico, symbol: p
+:var Femto: prefix femto, symbol: f
+:var Atto: prefix atto, symbol: a
+:var Zepto: prefix zepto, symbol: z
+:var Yocto: prefix yocto, symbol: y
+
+:var km: unit of kilo meter
+:var m: unit of meter
+:var cm: unit of centi meter
+:var mm: unit of milli meter
+:var sec: unit of second
+:var msec: unit of milli second
+:var minute: unit of minute
+:var h: unit of hour
+:var hour: unit of hour
+:var day: unit of day
+:var yr: unit of year
+:var Myr: unit of mega year
+:var Gyr: unit of giga year
+:var gram: unit of gram
+:var kg: unit of kilo gram
+:var lb: unit of pound
+:var ton: metric ton
+:var A: unit of Ampere
+:var Hz: unit of Hertz (frequency)
+:var N: unit of Newton (force)
+:var Pa: unit of Pascal (pressure, stress)
+:var bar: unit of bar (pressure)
+:var atm: unit of atmosphere (pressure)
+:var J: unit of Joule (energy, work)
+:var W: unit of Watt (power)
+:var C: unit of Coulomb (electric charge)
+:var V: unit of Volt (electric potential)
+:var F: unit of Farad (capacitance)
+:var Ohm: unit of Ohm (electric resistance)
+:var K: unit of Kelvin (temperature)
+:var Mol: unit of Mole (amount of substance)
+:var Celsius: unit of Celsius (temperature)
+:var Fahrenheit: unit of Fahrenheit (temperature)
+:var Poise: unit of Poise (dynamic viscosity)
+:var R_Earth_equator: Earth's equatorial radius
+:var R_Earth_poles: Earth's polar radius
+:var R_Earth: Earth's radius
+:var v_light: speed of light
+:var pi: value of pi accurate to 10 decimal places
+:var Gravitational_Constant: gravitational constant
+"""
+
 from __future__ import print_function, division
-
-"""
-
-    :synopsis: some tools supporting physical units and conversion
-
-    :var Yotta: prefix yotta, symbol:   Y
-    :var Zetta: prefix zetta, symbol: Z
-    :var Exa: prefix exa, symbol: E
-    :var Peta: prefix peta, symbol: P
-    :var Tera: prefix tera, symbol: T
-    :var Giga: prefix giga, symbol: G
-    :var Mega: prefix mega, symbol: M
-    :var Kilo: prefix kilo, symbol: k
-    :var Hecto: prefix hecto, symbol: h
-    :var Deca:  prefix deca, symbol: da
-    :var Deci:  prefix deci, symbol: d
-    :var Centi: prefix centi, symbol: c
-    :var Milli: prefix milli, symbol: m
-    :var Micro: prefix micro, symbol: mu
-    :var Nano:  prefix nano, symbol: n
-    :var Pico:  prefix pico, symbol: p
-    :var Femto: prefix femto, symbol: f
-    :var Atto: prefix atto, symbol: a
-    :var Zepto: prefix zepto, symbol: z
-    :var Yocto: prefix yocto, symbol: y
-
-    :var km: unit of kilo meter
-    :var m: unit of meter
-    :var cm: unit of centi meter
-    :var mm: unit of milli meter
-    :var sec: unit of second
-    :var msec: unit of milli second
-    :var minute: unit of minute
-    :var h: unit of hour
-    :var hour: unit of hour
-    :var day: unit of day
-    :var yr: unit of year
-    :var Myr: unit of mega year
-    :var Gyr: unit of giga year
-    :var gram: unit of gram
-    :var kg: unit of kilo gram
-    :var lb: unit of pound
-    :var ton: metric ton
-    :var A: unit of Ampere
-    :var Hz: unit of Hertz (frequenacy)
-    :var N: unit of Newton (force)
-    :var Pa: unit of Pascal (pressure, stress)
-    :var bar: unit of bar (pressure)
-    :var atm: unit of atmosphere (pressure)
-    :var J: unit of Joule (energy, work)
-    :var W: unit of Watt (power)
-    :var C: unit of Coulomb (electric charge)
-    :var V: unit of Volt (electric potential)
-    :var F: unit of Farad (capacitance)
-    :var Ohm: unit of Ohm (electric resistance)
-    :var K: unit of Kelvin (temperature)
-    :var Mol: unit of Mole (temperature)
-    :var Celsius: unit of Celsius (temperature)
-    :var Fahrenheit: unit of Fahrenheit (temperature)
-    :var Poise: unit of Poise (dynamic viscosity)
-    :var R_Earth_equator: Earth's equatorial radius
-    :var R_Earth_poles: Earth's polar radius
-    :var R_Earth: Earth's radius
-    :var v_light: speed of light
-    :var pi: value of pi accurate to 10 decimal places
-    :var Gravitational_Constant: gravitational constant
-"""
-
 
 __copyright__="""Copyright (c) 2003-2020 by The University of Queensland
 http://www.uq.edu.au
@@ -114,7 +114,7 @@ class Unit(object):
        :type longname: ``str``
        :param a: absolute value in transformation
        :type a: ``float``
-       :param b: slop in translation
+       :param b: slope in transformation
        :type b: ``float``
        """
        self.setName(name)
@@ -123,6 +123,12 @@ class Unit(object):
        self.__b=b
 
    def __str__(self):
+       """
+       Returns the string representation of the unit (its short name).
+
+       :return: the short name of the unit
+       :rtype: ``str``
+       """
        return self.getName()
 
    def getName(self):
@@ -163,10 +169,12 @@ class Unit(object):
 
    def __call__(self,x):
        """
-       Converts a value x in the physical unit self to SI 
+       Converts a value x in the physical unit self to SI.
 
        :param x: value to convert
        :type x: an arithmetic object
+       :return: the value converted to SI units
+       :rtype: same type as input
        """
        return self.__b*x+self.__a
 

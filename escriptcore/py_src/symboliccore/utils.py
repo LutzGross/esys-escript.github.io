@@ -14,6 +14,20 @@
 #
 ##############################################################################
 
+"""
+Utility functions for symbolic computations in escript.
+
+This module provides helper functions for working with symbolic expressions,
+including creating Symbol objects and computing total differentials.
+
+:var __author__: name of author
+:var __copyright__: copyrights
+:var __license__: licence agreement
+:var __url__: url entry point on documentation
+:var __version__: version
+:var __date__: date of the version
+"""
+
 from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2003-2018 by The University of Queensland
@@ -24,22 +38,22 @@ http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
 __author__="Cihan Altinay"
 
-"""
-:var __author__: name of author
-:var __copyright__: copyrights
-:var __license__: licence agreement
-:var __url__: url entry point on documentation
-:var __version__: version
-:var __date__: date of the version
-"""
-
 import numpy
 import sympy
 from .symbol import Symbol
 
 def symbols(*names, **kwargs):
     """
-    Emulates the behaviour of sympy.symbols.
+    Creates one or more Symbol objects, emulating sympy.symbols behavior.
+
+    :param names: symbol name(s), space or comma separated
+    :type names: ``str``
+    :keyword shape: shape of the symbol (default: scalar)
+    :type shape: ``tuple`` of ``int``
+    :keyword dim: spatial dimension
+    :type dim: ``int``
+    :return: single Symbol or tuple of Symbols
+    :rtype: `Symbol` or ``tuple`` of `Symbol`
     """
 
     shape=kwargs.pop('shape', ())
@@ -66,15 +80,27 @@ def symbols(*names, **kwargs):
 
 def isSymbol(arg):
     """
-    Returns True if the argument ``arg`` is an escript ``Symbol`` or
-    ``sympy.Basic`` object, False otherwise.
+    Tests if the argument is a symbolic object.
+
+    :param arg: object to test
+    :type arg: any
+    :return: ``True`` if ``arg`` is an escript `Symbol` or ``sympy.Basic``
+             object, ``False`` otherwise
+    :rtype: ``bool``
     """
     return isinstance(arg, Symbol) or isinstance(arg, sympy.Basic)
 
 def removeFsFromGrad(sym):
     """
-    Returns ``sym`` with all occurrences grad_n(a,b,c) replaced by grad_n(a,b).
-    That is, all functionspace parameters are removed.
+    Removes function space parameters from gradient expressions.
+
+    Returns ``sym`` with all occurrences of grad_n(a,b,c) replaced by
+    grad_n(a,b). This strips the function space parameter from gradient calls.
+
+    :param sym: symbolic expression to process
+    :type sym: `Symbol`
+    :return: expression with function space parameters removed from gradients
+    :rtype: `Symbol`
     """
     from esys.escript import symfn
     gg=sym.atoms(symfn.grad_n)
@@ -86,12 +112,22 @@ def removeFsFromGrad(sym):
 
 def getTotalDifferential(f, x, order=0):
     """
+    Computes the total differential of f with respect to x.
+
     This function computes::
 
         | Df/Dx = del_f/del_x + del_f/del_grad(x)*del_grad(x)/del_x + ...
-        |            \   /         \   /
+        |            \\   /         \\   /
         |              a             b
 
+    :param f: the function to differentiate
+    :type f: `Symbol` or ``numpy.ndarray``
+    :param x: the variable to differentiate with respect to
+    :type x: `Symbol`
+    :param order: order of differentiation (0 or 1)
+    :type order: ``int``
+    :return: tuple of derivative terms (a,) for order=0, (a, b) for order=1
+    :rtype: `Symbol` or ``tuple`` of `Symbol`
     """
 
     from .. import util
