@@ -3206,7 +3206,7 @@ def mkDir(*pathname):
                else:
                   raise IOError("Unable to create directory %s."%p_fail)
 
-def getRegionTags(self, function_space):
+def getRegionTags(function_space):
     """
     returns the tag distribution opf a function_space as a Data object.
 
@@ -3218,8 +3218,9 @@ def getRegionTags(self, function_space):
     """
 
     out = escore.Scalar(0., function_space)
-    for tag in escore.Rfunction_space.getListOfTags():
+    for tag in function_space.getListOfTags():
         out.setTaggedValue(tag,float(tag))
+    out.expand()
     return out
 
 class FileWriter(object):
@@ -3469,3 +3470,13 @@ def conjugate(arg):
     returns the complex conjugate of arg
     """
     return arg.conjugate()
+
+
+#=========================================================
+#   Re-exports from submodules for backward compatibility
+#=========================================================
+# These imports make functions from the submodules available through util
+# This enables gradual migration without breaking existing code
+from .util_math import *
+from .util_tensor import *
+from .util_io import *
