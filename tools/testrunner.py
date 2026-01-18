@@ -13,7 +13,6 @@
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
 #
 ##############################################################################
-from __future__ import print_function, division
 import sys
 
 fail_format = """======================================================================

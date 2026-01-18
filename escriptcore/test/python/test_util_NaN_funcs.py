@@ -14,7 +14,6 @@
 #
 ##############################################################################
 
-from __future__ import print_function, division
 
 #here be nan tests
 import esys.escript as es

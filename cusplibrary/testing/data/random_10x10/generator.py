@@ -14,7 +14,6 @@
 #
 ##############################################################################
 
-from __future__ import print_function, division
 
 from scipy.sparse import coo_matrix
 from scipy.io import mmwrite

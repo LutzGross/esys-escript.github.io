@@ -14,7 +14,6 @@
 #
 ##############################################################################
 
-from __future__ import print_function, division
 
 """
 Symbolic mathematical constants for escript.

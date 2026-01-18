@@ -14,7 +14,6 @@
 # Development from 2019 by School of Earth and Environmental Sciences
 #
 ##############################################################################
-from __future__ import print_function, division
 
 EnsureSConsVersion(1,2)
 

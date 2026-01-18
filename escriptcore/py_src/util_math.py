@@ -24,7 +24,6 @@ conditional mask functions (wherePositive, whereNegative, etc.) that work
 with escript Data objects, numpy arrays, and symbolic expressions.
 """
 
-from __future__ import print_function, division
 
 __copyright__ = """Copyright (c) 2003-2020 by The University of Queensland
 http://www.uq.edu.au

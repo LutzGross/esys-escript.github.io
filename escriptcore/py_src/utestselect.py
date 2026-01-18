@@ -23,7 +23,6 @@ a central point to switch between the standard ``unittest`` module and
 ``unittest2`` (if installed) without modifying individual test scripts.
 """
 
-from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2014-2018 by The University of Queensland
 http://www.uq.edu.au

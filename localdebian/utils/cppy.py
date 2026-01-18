@@ -18,7 +18,6 @@
 
 # locates the source of .pyc in the esys directory and copies to the specified dest directory
 
-from __future__ import print_function, division
 
 import os, shutil, sys
 

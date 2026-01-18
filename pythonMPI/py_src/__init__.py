@@ -18,7 +18,6 @@
 """Our most general domain representation. Imports submodules into its namespace
 """
 
-from __future__ import print_function, division
 
 import esys.escript
 

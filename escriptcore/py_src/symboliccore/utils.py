@@ -28,7 +28,6 @@ including creating Symbol objects and computing total differentials.
 :var __date__: date of the version
 """
 
-from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2003-2018 by The University of Queensland
 http://www.uq.edu.au

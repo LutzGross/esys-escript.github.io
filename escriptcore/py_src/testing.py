@@ -51,7 +51,6 @@ Printing the list of skipped tests::
 
 """
 
-from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2014-2018 by The University of Queensland
 http://www.uq.edu.au
