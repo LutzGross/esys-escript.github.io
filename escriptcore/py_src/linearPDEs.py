@@ -16,15 +16,6 @@
 #
 ##############################################################################
 
-from __future__ import print_function, division
-
-__copyright__="""Copyright (c) 2003-2020 by The University of Queensland
-http://www.uq.edu.au
-Primary Business: Queensland, Australia"""
-__license__="""Licensed under the Apache License, version 2.0
-http://www.apache.org/licenses/LICENSE-2.0"""
-__url__="https://launchpad.net/escript-finley"
-
 """
 The module provides an interface to define and solve linear partial
 differential equations (PDEs) and Transport problems within `escript`.
@@ -41,6 +32,15 @@ by their advective terms.
 :var __version__: version
 :var __date__: date of the version
 """
+
+from __future__ import print_function, division
+
+__copyright__="""Copyright (c) 2003-2020 by The University of Queensland
+http://www.uq.edu.au
+Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Apache License, version 2.0
+http://www.apache.org/licenses/LICENSE-2.0"""
+__url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
 from . import escriptcpp as escore
