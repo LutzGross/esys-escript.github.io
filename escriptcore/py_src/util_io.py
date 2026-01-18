@@ -119,13 +119,12 @@ def insertTaggedValues(target,**kwargs):
 
 def getRegionTags(function_space):
     """
-    returns the tag distribution opf a function_space as a Data object.
+    Returns the tag distribution of a function_space as a Data object.
 
     :param function_space: function_space to be used
     :type function_space: `escript.FunctionSpace`
     :return: a data object which contains the tag distribution
     :rtype: `escript.Data` of rank 0 with ReducedFunction attributes.
-
     """
 
     out = escore.Scalar(0., function_space)
@@ -136,8 +135,13 @@ def getRegionTags(function_space):
 
 def makeTagMap(fs):
     """
-    Produce an expanded Data over the function space where
-    the value is the tag associated with the sample
+    Produces an expanded Data over the function space where
+    the value is the tag associated with the sample.
+
+    :param fs: the function space
+    :type fs: `escript.FunctionSpace`
+    :return: Data object with tag values at each sample point
+    :rtype: `escript.Data`
     """
     out=escore.Scalar(0, fs)    # The default tag is zero anyway
     for t in fs.getListOfTags():
@@ -635,14 +639,14 @@ def mkDir(*pathname):
 
 class FileWriter(object):
     """
-    Interface to write data to a file. In essence this class wrappes the standard ``file`` object to write data that are global in MPI
-    to a file. In fact, data are writen on the processor with MPI rank 0 only. It is recommended to use ``FileWriter`` rather than ``open`` in order to write
-    code that is running with as well as with MPI. It is safe to use ``open`` onder MPI to read data which are global under MPI.
+    Interface to write data to a file. In essence this class wraps the standard ``file`` object to write data that are global in MPI
+    to a file. In fact, data are written on the processor with MPI rank 0 only. It is recommended to use ``FileWriter`` rather than ``open`` in order to write
+    code that is running with as well as without MPI. It is safe to use ``open`` under MPI to read data which are global under MPI.
 
     :var name: name of file
     :var mode: access mode (='w' or ='a')
     :var closed: True to indicate closed file
-    :var newlines: line seperator
+    :var newlines: line separator
     """
     def __init__(self,fn,append=False,createLocalFiles=False):
          """
@@ -653,7 +657,7 @@ class FileWriter(object):
 
          :param fn: filename.
          :type fn: ``str``
-         :param append: switches on the creation of local files.
+         :param append: if True, open file for appending rather than overwriting
          :type append: ``bool``
          :param createLocalFiles: switches on the creation of local files.
          :type createLocalFiles: ``bool``
@@ -742,11 +746,11 @@ class FileWriter(object):
 
     def writelines(self, txts):
         """
-        Write the list ``txt`` of strings to the file.
+        Write the list ``txts`` of strings to the file.
 
-        :param txts: sequense of strings to be written to file
+        :param txts: sequence of strings to be written to file
         :type txts: any iterable object producing strings
-        :note: Note that newlines are not added. This method is equivalent to call write() for each string.
+        :note: Note that newlines are not added. This method is equivalent to calling write() for each string.
         """
         errno=0
         e=None

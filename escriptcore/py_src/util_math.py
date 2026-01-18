@@ -229,13 +229,13 @@ def whereZero(arg, tol=None, rtol=math.sqrt(EPSILON)):
     :param arg: argument
     :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
     :param tol: absolute tolerance. Values with absolute value less than tol are accepted
-                as zero. If ``tol`` is not present ``rtol``*```Lsup` (arg)`` is used.
+                as zero. If ``tol`` is not present ``rtol * Lsup(arg)`` is used.
     :type tol: ``float``
     :param rtol: relative tolerance used to define the absolute tolerance if ``tol`` is not present.
     :type rtol: non-negative ``float``
     :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
             on the type of ``arg``
-    :raise ValueError: if ``rtol`` is non-negative.
+    :raise ValueError: if ``rtol`` is negative.
     :raise TypeError: if the type of the argument is not expected
     """
     if tol is None and not isinstance(arg, sym.Symbol):
@@ -268,12 +268,11 @@ def whereNonZero(arg, tol=0.):
 
     :param arg: argument
     :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
-    :param tol: absolute tolerance. Values with absolute value less than tol are accepted
-                as zero. If ``tol`` is not present ``rtol``*```Lsup` (arg)`` is used.
+    :param tol: absolute tolerance. Values with absolute value less than or equal
+                to tol are considered zero.
     :type tol: ``float``
     :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
             on the type of ``arg``
-    :raise ValueError: if ``rtol`` is non-negative.
     :raise TypeError: if the type of the argument is not expected
     """
     if isinstance(arg, numpy.ndarray):
@@ -305,7 +304,7 @@ def Abs(arg):
     :raise TypeError: if the type of the argument is not expected
     """
     if isinstance(arg, sym.Symbol):
-        return arg.applyfunc(sym.sym.symfn.abs)
+        return arg.applyfunc(sym.symfn.abs)
     else:
         return abs(arg)
 
@@ -474,11 +473,14 @@ def atan(arg):
 
 def atan2(arg0, arg1):
     """
-    Returns inverse tangent of argument ``arg0`` over ``arg1``.
+    Returns inverse tangent of ``arg0/arg1``, handling quadrant correctly.
 
-    :param arg0: numerator argument
-    :param arg1: denominator argument
-    :return: atan2(arg0, arg1)
+    :param arg0: numerator argument (y coordinate)
+    :type arg0: ``float``, `escript.Data`, ``numpy.ndarray``
+    :param arg1: denominator argument (x coordinate)
+    :type arg1: ``float``, `escript.Data`, ``numpy.ndarray``
+    :return: angle in radians between -pi and pi
+    :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending on input types
     """
     m = whereZero(arg1, rtol=EPSILON)
     m2 = whereNegative(arg1 * arg0)

@@ -114,7 +114,7 @@ def zeros(shape=()):
     """
     Returns the ``shape`` zero tensor.
 
-    :param shape: input shape for the identity tensor
+    :param shape: input shape for the zero tensor
     :type shape: ``tuple`` of ``int``
     :return: array of shape filled with zeros
     :rtype: ``numpy.ndarray``
@@ -589,7 +589,14 @@ def inverse(arg):
 
 
 def escript_inverse(arg):
-    """arg is a Data object!"""
+    """
+    Returns the inverse of an escript Data matrix.
+
+    :param arg: square matrix Data object (dimension restricted to 3)
+    :type arg: `escript.Data`
+    :return: inverse of the matrix
+    :rtype: `escript.Data`
+    """
     return arg._inverse()
 
 
@@ -1051,7 +1058,20 @@ def generalTensorProduct(arg0, arg1, axis_offset=0):
 
 
 def escript_generalTensorProduct(arg0, arg1, axis_offset, transpose=0):
-    """arg0 and arg1 are both Data objects but not necessarily on the same function space."""
+    """
+    Generalized tensor product for escript Data objects.
+
+    :param arg0: first Data object
+    :type arg0: `escript.Data`
+    :param arg1: second Data object (not necessarily on the same function space)
+    :type arg1: `escript.Data`
+    :param axis_offset: axis offset for the tensor product
+    :type axis_offset: ``int``
+    :param transpose: transpose mode (0=none, 1=transpose arg0, 2=transpose arg1)
+    :type transpose: ``int``
+    :return: tensor product result
+    :rtype: `escript.Data`
+    """
     return C_GeneralTensorProduct(arg0, arg1, axis_offset, transpose)
 
 
@@ -1207,7 +1227,18 @@ def generalTransposedTensorProduct(arg0, arg1, axis_offset=0):
 
 
 def escript_generalTransposedTensorProduct(arg0, arg1, axis_offset):
-    """arg0 and arg1 are both Data objects but not necessarily on the same function space."""
+    """
+    Generalized tensor product of transposed arg0 and arg1 for escript Data objects.
+
+    :param arg0: first Data object (will be transposed)
+    :type arg0: `escript.Data`
+    :param arg1: second Data object (not necessarily on the same function space)
+    :type arg1: `escript.Data`
+    :param axis_offset: axis offset for the tensor product
+    :type axis_offset: ``int``
+    :return: tensor product of transpose(arg0) and arg1
+    :rtype: `escript.Data`
+    """
     return C_GeneralTensorProduct(arg0, arg1, axis_offset, 1)
 
 
@@ -1269,7 +1300,7 @@ def tensor_transposed_mult(arg0, arg1):
     :param arg1: second argument of shape greater of 1 or 2 depending on rank
                  of ``arg0``
     :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`
-    :return: the tensor product of the transposed of ``arg0`` and ``arg1`` at
+    :return: the tensor product of ``arg0`` and the transposed of ``arg1`` at
              each data point
     :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
@@ -1359,5 +1390,16 @@ def generalTensorTransposedProduct(arg0, arg1, axis_offset=0):
 
 
 def escript_generalTensorTransposedProduct(arg0, arg1, axis_offset):
-    """arg0 and arg1 are both Data objects but not necessarily on the same function space."""
+    """
+    Generalized tensor product of arg0 and transposed arg1 for escript Data objects.
+
+    :param arg0: first Data object
+    :type arg0: `escript.Data`
+    :param arg1: second Data object (will be transposed, not necessarily on the same function space)
+    :type arg1: `escript.Data`
+    :param axis_offset: axis offset for the tensor product
+    :type axis_offset: ``int``
+    :return: tensor product of arg0 and transpose(arg1)
+    :rtype: `escript.Data`
+    """
     return C_GeneralTensorProduct(arg0, arg1, axis_offset, 2)
