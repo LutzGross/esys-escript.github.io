@@ -73,10 +73,11 @@ class Test_nlpde(Test_nonLinearPDEs):
             BTest[0]=0
             BTest[1]=0
             CTest=BTest
-            self.assertTrue(A-ATest==Symbol(numpy.zeros((2,2))))
-            self.assertTrue(B-BTest==Symbol(numpy.zeros((2,))))
-            self.assertTrue(C-CTest==Symbol(numpy.zeros((2,))))
-            temp=Symbol('temp') 
+            # Use dtype=int to match sympy Zero type from subtraction
+            self.assertTrue(A-ATest==Symbol(numpy.zeros((2,2), dtype=int)))
+            self.assertTrue(B-BTest==Symbol(numpy.zeros((2,), dtype=int)))
+            self.assertTrue(C-CTest==Symbol(numpy.zeros((2,), dtype=int)))
+            temp=Symbol('temp')
             self.assertTrue(D-temp.subs(temp,5)==temp.subs(temp,0))
         else:
             ATest=numpy.empty((3,3), dtype=object)
@@ -88,10 +89,11 @@ class Test_nlpde(Test_nonLinearPDEs):
             BTest[1]=0
             BTest[2]=0
             CTest=BTest
-            self.assertTrue(A-ATest==Symbol(numpy.zeros((3,3))))
-            self.assertTrue(B-BTest==Symbol(numpy.zeros((3,))))
-            self.assertTrue(C-CTest==Symbol(numpy.zeros((3,))))
-            temp=Symbol('temp') 
+            # Use dtype=int to match sympy Zero type from subtraction
+            self.assertTrue(A-ATest==Symbol(numpy.zeros((3,3), dtype=int)))
+            self.assertTrue(B-BTest==Symbol(numpy.zeros((3,), dtype=int)))
+            self.assertTrue(C-CTest==Symbol(numpy.zeros((3,), dtype=int)))
+            temp=Symbol('temp')
             self.assertTrue(D-temp.subs(temp,5)==temp.subs(temp,0))
 
     def test_setVals2eq(self):
