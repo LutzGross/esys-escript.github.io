@@ -1,0 +1,78 @@
+
+##############################################################################
+#
+# Copyright (c) 2003-2018 by The University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Apache License, version 2.0
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development 2012-2013 by School of Earth Sciences
+# Development from 2014 by Centre for Geoscience Computing (GeoComp)
+#
+##############################################################################
+
+import os
+Import('*')
+local_env = env.Clone(tools=['pdflatex'])
+
+tex_src = Glob('*.tex')+Glob('*.bib')+Glob('*.sty')+Glob('*.cfg')+Glob('*.cls')
+#fig_src = Glob('figures/*.eps')
+
+figures=Glob('figures/*.png') + Glob('figures/*.pdf')
+
+if local_env['pdflatex']:
+    if local_env['verbose']:
+        interaction='-interaction=nonstopmode'
+    else:
+        interaction='-interaction=batchmode'
+
+    # Define command to include SVN revision
+    local_env.Append(PDFLATEXFLAGS=[interaction,'\\\\newcommand{\\\\RepVersion}{%s\\\\xspace}\\\\input{user.tex}'%(local_env['svn_revision'])])
+    pdf=local_env.PDF(target='user.pdf', source='user.tex')
+    Depends(pdf, figures+tex_src)
+
+    pdf_path=os.path.join(release_dir, 'user', 'user.pdf')
+    # Work around an issue in SCons v1.0 where the list returned by env.PDF
+    # has too many elements
+    import SCons
+    scons_major_ver=int(SCons.__version__.split('.')[0])
+    if scons_major_ver>1:
+        pdf_inst=local_env.InstallAs(target=pdf_path, source=pdf)
+    else:
+        pdf_inst=local_env.InstallAs(target=pdf_path, source='user.pdf')
+    env.Alias('user_pdf', pdf_inst)
+else:
+    # Add warning to build summary
+    env['warnings'].append("pdflatex not found. User guide PDF will not be built. Install texlive-latex-base to enable PDF generation.")
+    env.Alias('user_pdf', '', '@echo "*** Warning: pdflatex not found. Skipping user guide PDF build." && echo "*** Install texlive-latex-base texlive-latex-extra to build the PDF user guide."')
+    env.AlwaysBuild('user_pdf')
+
+# html version
+#html_dir=os.path.join(release_dir,'user','html')
+#html=local_env.Command(Dir(html_dir), tex_src+fig_src,
+#                [Delete(Dir('html')),
+#                 Copy(Dir('html'), '${SOURCE.srcdir}'),
+#                 Delete(Dir('html/figures')),
+#                 Copy(Dir('html/figures'), Dir('figures')),
+#                 #Delete(html_dir),
+#                 Mkdir(html_dir),
+#                 "cd %s && latex2html -top_navigation \
+#                 -bottom_navigation \
+#                 -index_in_navigation \
+#                 -contents_in_navigation \
+#                 -next_page_in_navigation \
+#                 -previous_page_in_navigation \
+#                 -title \"esys users guide\" \
+#                 -noshow_section_numbers \
+#                 -dir %s -mkdir \
+#                 -address \"esys@esscc.uq.edu.au\" \
+#                 -antialias_text -antialias -transparent \
+#                 -noshort_extn \
+#                 -up_url \"https://github.com/LutzGross/esys-escript.github.io\" \
+#                 -up_title \"escript\" guide.tex"%(Dir('html').abspath,html_dir)])
+#env.Alias('guide_html', [figures,html])
+#env.AlwaysBuild(Dir(html_dir))
+
