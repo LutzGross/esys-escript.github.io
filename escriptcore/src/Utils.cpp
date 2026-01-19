@@ -679,7 +679,7 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
     }
 
 #ifdef ESYS_MPI
-    MPI_Comm com = data[0].getDomain()->getMPIComm();
+    MPI_Comm com = data[0].get_MPIComm();
     int rerror = 0;
     MPI_Allreduce(&error, &rerror, 1, MPI_INT, MPI_MAX, com);
     error = rerror;
@@ -931,7 +931,7 @@ boost::python::list getNumpy(boost::python::dict arg)
     }
 
 #ifdef ESYS_MPI
-    MPI_Comm com = data[0].getDomain()->getMPIComm();
+    MPI_Comm com = data[0].get_MPIComm();
     int rerror = 0;
     MPI_Allreduce(&error, &rerror, 1, MPI_INT, MPI_MAX, com);
     error = rerror;
