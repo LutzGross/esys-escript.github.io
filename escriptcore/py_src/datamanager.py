@@ -7,8 +7,7 @@
 # Licensed under the Apache License, version 2.0
 # http://www.apache.org/licenses/LICENSE-2.0
 #
-# See CREDITS file in the repository root for contributors and development history
-# https://github.com/LutzGross/esys-escript.github.io/blob/master/CREDITS
+# See CREDITS file for contributors and development history
 #
 ##############################################################################
 
