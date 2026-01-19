@@ -204,44 +204,44 @@ class Test_OxleyNonLinearPDE2D_Region(Test_nlpde):
 
 class Test_OxleyNonLinearPDE2D_Mesh(Test_nlpde):
    def setUp(self):
-        self.domain = test_Brick_Mesh(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
+        self.domain = test_Brick_refine_Mesh(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
    def tearDown(self):
         del self.domain
 
 class Test_OxleyNonLinearPDE2D_Point(Test_nlpde):
    def setUp(self):
-        self.domain = test_Brick_Point(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
+        self.domain = test_Brick_refine_Point(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
    def tearDown(self):
         del self.domain
 
 class Test_OxleyNonLinearPDE2D_top_Boundary(Test_nlpde):
    def setUp(self):
-        self.domain = test_Brick_top_Boundary(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
+        self.domain = test_Brick_refine_top_Boundary(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
    def tearDown(self):
         del self.domain
 
 class Test_OxleyNonLinearPDE2D_east_Boundary(Test_nlpde):
    def setUp(self):
-        self.domain = test_Brick_east_Boundary(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
+        self.domain = test_Brick_refine_east_Boundary(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
    def tearDown(self):
         del self.domain
 
 class Test_OxleyNonLinearPDE2D_west_Boundary(Test_nlpde):
    def setUp(self):
-        self.domain = test_Brick_west_Boundary(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
+        self.domain = test_Brick_refine_west_Boundary(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
    def tearDown(self):
         del self.domain
 
 class Test_OxleyNonLinearPDE2D_bottom_Boundary(Test_nlpde):
    def setUp(self):
-        self.domain = test_Brick_bottom_Boundary(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
+        self.domain = test_Brick_refine_bottom_Boundary(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
    def tearDown(self):
         del self.domain
 
 
 class Test_OxleyNonLinearPDE2D_Region(Test_nlpde):
    def setUp(self):
-        self.domain = test_Brick_Region(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
+        self.domain = test_Brick_refine_Region(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
    def tearDown(self):
         del self.domain
 
