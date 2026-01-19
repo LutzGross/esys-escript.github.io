@@ -1,6 +1,6 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0
 Upstream-Name: esys-escript
-Source: https://launchpad.net/escript-finley
+Source: https://github.com/LutzGross/esys-escript.github.io
 Files-Excluded: debian
 
 License: Apache-2.0

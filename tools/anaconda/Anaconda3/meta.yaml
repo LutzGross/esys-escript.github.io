@@ -4,7 +4,7 @@ package:
     name: esys-escript
     version: {{ version }}
 source:
-    - url: https://launchpad.net/escript-finley/3.0+/{{ version }}/+download/python_escript_{{ version }}.tar.gz
+    - url: https://github.com/LutzGross/esys-escript.github.io/3.0+/{{ version }}/+download/python_escript_{{ version }}.tar.gz
       sha256: 99c5bc9e7262fb0baef5d9aa3a99bcbf3965b9d718835c6b56c516e39bb6c992
       folder: escript
 build:
@@ -54,7 +54,7 @@ test:
         - run-escript /tmp/release_sanity.py  # [linux]
         - run-escript %TEMP%/release_sanity.py  # [win]
 about:
-    home: https://launchpad.net/escript-finley
+    home: https://github.com/LutzGross/esys-escript.github.io
     summary: esys-escript is a programming tool for implementing mathematical 
         models in python using the finite element method (FEM).
     license: Apache-2.0
@@ -67,9 +67,9 @@ about:
         earth mantle convection, geophysical inversion, earthquakes, 
         porous media flow, reactive transport, plate subduction, erosion, 
         and tsunamis.
-    dev_url: https://launchpad.net/escript-finley
-    doc_url: https://launchpad.net/escript-finley
-    doc_source_url: https://launchpad.net/escript-finley
+    dev_url: https://github.com/LutzGross/esys-escript.github.io
+    doc_url: https://github.com/LutzGross/esys-escript.github.io
+    doc_source_url: https://github.com/LutzGross/esys-escript.github.io
 
 extra:
     recipe-maintainers:

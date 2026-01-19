@@ -71,7 +71,7 @@ else:
 #                 -address \"esys@esscc.uq.edu.au\" \
 #                 -antialias_text -antialias -transparent \
 #                 -noshort_extn \
-#                 -up_url \"https://launchpad.net/escript-finley\" \
+#                 -up_url \"https://github.com/LutzGross/esys-escript.github.io\" \
 #                 -up_title \"escript\" guide.tex"%(Dir('html').abspath,html_dir)])
 #env.Alias('guide_html', [figures,html])
 #env.AlwaysBuild(Dir(html_dir))
