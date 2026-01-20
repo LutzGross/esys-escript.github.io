@@ -261,7 +261,6 @@ The project uses Boost.Python for Python bindings:
 - This replaces the old SplitWorld functionality
 - Example: `sub_comm = MPI.COMM_WORLD.Split(color, rank); domain = Rectangle(n0=20, n1=10, comm=sub_comm)`
 - See `doc/user/mpi4py.tex` for detailed documentation and examples
-- See `MPI_INITIALIZATION_EXPLAINED.md` for technical details on the initialization order issue
 
 ### Compiler Selection
 
