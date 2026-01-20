@@ -81,9 +81,9 @@ Surface Loop(1) = {1:6};
 Volume(1) = {1};
 \end{python}
 Run
-\begin{verbose}
+\begin{verbatim}
 gmsh -3 -optimize_netgen -o simplemesh.msh simplemesh.geo
-\end{verbose}
+\end{verbatim}
 to generate the mesh file \file{simplemesh.msh}.
 
 The most basic escript script to solve this pde using escript defaults is in program \ref{basic}.  T
