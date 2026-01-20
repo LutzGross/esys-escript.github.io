@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2020 by The University of Queensland
+# Copyright (c) 2003-2026 by the esys.escript Group
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -24,7 +24,7 @@ compatibility and optional memory profiling setup.
 """
 
 
-__copyright__="""Copyright (c) 2003-2020 by The University of Queensland
+__copyright__="""Copyright (c) 2003-2026 by the esys.escript Group
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Apache License, version 2.0

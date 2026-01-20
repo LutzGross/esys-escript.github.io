@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2013-2018 by The University of Queensland
+# Copyright (c) 2003-2026 by the esys.escript Group
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -18,7 +18,7 @@
 Specific solvers and domains are found in their respective packages."""
 
 
-__copyright__="""Copyright (c) 2013-2018 by The University of Queensland
+__copyright__="""Copyright (c) 2003-2026 by the esys.escript Group
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Apache License, version 2.0

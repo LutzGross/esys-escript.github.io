@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2018 by The University of Queensland
+# Copyright (c) 2003-2026 by the esys.escript Group
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au
 #
@@ -12,7 +12,7 @@
 ########################################################
 
 
-__copyright__="""Copyright (c) 2003-2018 by The University of Queensland
+__copyright__="""Copyright (c) 2003-2026 by the esys.escript Group
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""

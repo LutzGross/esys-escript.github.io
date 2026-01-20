@@ -63,7 +63,7 @@ If you use this software in your research, then we would appreciate (but do not 
 Copyright and License
 =====================
 
-Copyright (c) 2003-2025 by The University of Queensland
+Copyright (c) 2003-2026 by the esys.escript Group
 
 Primary Business: Queensland, Australia
 

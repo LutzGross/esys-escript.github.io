@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2018 by The University of Queensland
+# Copyright (c) 2003-2026 by the esys.escript Group
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -19,7 +19,7 @@ This module provides the `Evaluator` class which compiles symbolic expressions
 into callable functions that can be evaluated with escript Data objects.
 """
 
-__copyright__="""Copyright (c) 2003-2018 by The University of Queensland
+__copyright__="""Copyright (c) 2003-2026 by the esys.escript Group
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Apache License, version 2.0
