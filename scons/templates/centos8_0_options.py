@@ -2,7 +2,7 @@ ne
 ##############################################################################
 #
 # Copyright (c) 2003-2026 by the esys.escript Group
-# http://www.uq.edu.au
+# https://github.com/LutzGross/esys-escript.github.io
 #
 # Primary Business: Queensland, Australia
 # Licensed under the Apache License, version 2.0

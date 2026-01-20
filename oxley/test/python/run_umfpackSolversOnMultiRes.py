@@ -2,7 +2,7 @@
 ##############################################################################
 #
 # Copyright (c) 2003-2026 by the esys.escript Group
-# http://www.uq.edu.au
+# https://github.com/LutzGross/esys-escript.github.io
 #
 # Primary Business: Queensland, Australia
 # Licensed under the Apache License, version 2.0
@@ -14,7 +14,7 @@
 
 
 __copyright__="""Copyright (c) 2003-2026 by the esys.escript Group
-http://www.uq.edu.au
+https://github.com/LutzGross/esys-escript.github.io
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
