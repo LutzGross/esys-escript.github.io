@@ -374,9 +374,10 @@ BOOST_PYTHON_MODULE(oxleycpp)
             ":param column_functionspace:\n:type column_functionspace: `FunctionSpace`\n"
             ":param type:\n:type type: ``int``")
         .def("refineMesh", &oxley::OxleyDomain::refineMesh, (args("RefinementAlgorithm")),
-                "Refines the mesh.\n"
-                ":param RefinementAlgorithm:\n:type string: `The refinement algorithm \n"
-                "       accepted values are \"uniform\", \"MARE2DEM\" ")
+                "Refines the mesh.\n\n"
+                ":param RefinementAlgorithm: The refinement algorithm. "
+                "Accepted values are ``uniform``, ``MARE2DEM``.\n"
+                ":type RefinementAlgorithm: ``str``")
         // .def("resetRhs",&oxley::OxleyDomain::resetRhs, arg("rhs"), "resets the RHS")
         .def("saveMesh", &oxley::OxleyDomain::saveMesh, (arg("filename")),
                 "Saves the mesh to file using p4est format\n"
@@ -407,9 +408,11 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 "Applies a RefinementZone to the Brick.\n"
                 ":param RefinementZone:\n:type RefinementZone: A RefinementZone. \n")
         .def("refineBoundary", &oxley::Brick::refineBoundary, (args("boundary","dx")),
-                "Refines the mesh near a boundary.\n"
-                ":param boundary:\n:type string: `The boundary (top,bottom,right,left) \n"
-                ":param dx:\n:type double: all quadrants closer to the boundary than dx will be refined. ")
+                "Refines the mesh near a boundary.\n\n"
+                ":param boundary: The boundary name (top, bottom, right, left, north, south, east, west).\n"
+                ":type boundary: ``str``\n"
+                ":param dx: All quadrants closer to the boundary than dx will be refined.\n"
+                ":type dx: ``float``")
         .def("refineRegion", &oxley::Brick::refineRegion, (arg("x0")=-1,arg("x1")=-1,arg("y0")=-1,arg("y1")=-1,arg("z0")=-1,arg("z1")=-1),
                 "Refines the mesh within the interior of a region.\n"
                 ":param x0:\n:type double: boundary of the region.\n"
@@ -434,9 +437,11 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 "Applies a RefinementZone to the Rectangle.\n"
                 ":param RefinementZone:\n:type RefinementZone: A RefinementZone. \n")
         .def("refineBoundary", &oxley::Rectangle::refineBoundary, (args("boundary","dx")),
-                "Refines the mesh near a boundary.\n"
-                ":param boundary:\n:type string: `The boundary (top,bottom,right,left) \n"
-                ":param dx:\n:type double: all quadrants closer to the boundary than dx will be refined. ")
+                "Refines the mesh near a boundary.\n\n"
+                ":param boundary: The boundary name (top, bottom, right, left).\n"
+                ":type boundary: ``str``\n"
+                ":param dx: All quadrants closer to the boundary than dx will be refined.\n"
+                ":type dx: ``float``")
         .def("refineRegion", &oxley::Rectangle::refineRegion, (arg("x0")=-1,arg("x1")=-1,arg("y0")=-1,arg("y1")=-1),
                 "Refines the mesh within the interior of a region.\n"
                 ":param x0:\n:type double: boundary of the region.\n"

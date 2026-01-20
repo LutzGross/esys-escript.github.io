@@ -389,19 +389,19 @@ args("arg"), "assigns new location to the domain\n\n"
         ":rtype: ``int``")
 #ifdef ESYS_HAVE_TRILINOS
       .def("finaliseA",&escript::AbstractContinuousDomain::finaliseA, args("mat", "iz"),
-        "finalises the matrix system before it is passed to the solver\n\n"
-        ":param mat:\n"
+        "Finalises the matrix system before it is passed to the solver.\n\n"
+        ":param mat: the system matrix\n"
         ":type mat: ``AbstractSystemMatrix``\n"
-        ":param iz:\n"
+        ":param iz: constraint matrix\n"
         ":type iz: ``CRSMatrix``\n"
-        ":rtype ``AbstractSystemMatrix``")
+        ":rtype: ``AbstractSystemMatrix``")
       .def("finaliseRhs",&escript::AbstractContinuousDomain::finaliseRhs, args("rhs", "z"),
-        "finalises the matrix system before it is passed to the solver\n\n"
-        ":param rhs:\n"
-        ":type rhs: ``AbstractSystemMatrix``\n"
-        ":param z:\n"
-        ":type z: ``CRSMatrix``\n"
-        ":rtype ``AbstractSystemMatrix``");
+        "Finalises the right-hand side before it is passed to the solver.\n\n"
+        ":param rhs: the right-hand side vector\n"
+        ":type rhs: ``Data``\n"
+        ":param z: constraint data\n"
+        ":type z: ``Data``\n"
+        ":rtype: ``Data``");
 #else
         ;
 #endif //ESYS_HAVE_TRILINOS

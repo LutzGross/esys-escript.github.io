@@ -100,9 +100,9 @@ class MPIDomainArray(object):
     isub : int
         This rank's subdomain index (0 to numSubDomains-1)
 
-    Example:
-    --------
-        # 8 total ranks: 2 domains × 4 subdomains each
+    Example::
+
+        # 8 total ranks: 2 domains x 4 subdomains each
         domain_array = MPIDomainArray(numDomains=2, comm=MPI.COMM_WORLD)
 
         # Create domain using the domain communicator
@@ -243,8 +243,8 @@ class DataCoupler:
     allreduce_value(value, op=MPI.SUM)
         All-reduce scalar/array across all domains
 
-    Example:
-    --------
+    Example::
+
         from mpi4py import MPI
         from esys.ripley import Rectangle
         from esys.escript import Scalar, Solution
@@ -511,19 +511,19 @@ class DataCoupler:
         result : float, int, or numpy.ndarray
             The broadcasted value (same on all ranks of all domains)
 
-        Example:
-        --------
-        # Broadcast a scalar
-        if my_domain_idx == 0:
-            max_val = coupler.broadcast_value(42.0, root_domain_index=0)
-        else:
-            max_val = coupler.broadcast_value(root_domain_index=0)
+        Example::
 
-        # Broadcast an array
-        if my_domain_idx == 0:
-            coeffs = coupler.broadcast_value(np.array([1.0, 2.0, 3.0]), root_domain_index=0)
-        else:
-            coeffs = coupler.broadcast_value(root_domain_index=0)
+            # Broadcast a scalar
+            if my_domain_idx == 0:
+                max_val = coupler.broadcast_value(42.0, root_domain_index=0)
+            else:
+                max_val = coupler.broadcast_value(root_domain_index=0)
+
+            # Broadcast an array
+            if my_domain_idx == 0:
+                coeffs = coupler.broadcast_value(np.array([1.0, 2.0, 3.0]), root_domain_index=0)
+            else:
+                coeffs = coupler.broadcast_value(root_domain_index=0)
         """
         domain_comm = self.mpi_domain_array.getDomainComm()
 
@@ -559,15 +559,15 @@ class DataCoupler:
         result : float, int, or numpy.ndarray
             Reduced value (same on all ranks of all domains)
 
-        Example:
-        --------
-        # Reduce scalars from all domains
-        my_max_temp = Lsup(temperature)  # Same on all ranks within domain
-        global_max_temp = coupler.allreduce_value(my_max_temp, op=MPI.MAX)
+        Example::
 
-        # Reduce arrays from all domains
-        my_histogram = compute_histogram(data)  # Same on all ranks within domain
-        total_histogram = coupler.allreduce_value(my_histogram, op=MPI.SUM)
+            # Reduce scalars from all domains
+            my_max_temp = Lsup(temperature)  # Same on all ranks within domain
+            global_max_temp = coupler.allreduce_value(my_max_temp, op=MPI.MAX)
+
+            # Reduce arrays from all domains
+            my_histogram = compute_histogram(data)  # Same on all ranks within domain
+            total_histogram = coupler.allreduce_value(my_histogram, op=MPI.SUM)
         """
         domain_comm = self.mpi_domain_array.getDomainComm()
 
@@ -609,14 +609,14 @@ class DataCoupler:
         result : esys.escript.Data
             The broadcasted Data object (same on all domains)
 
-        Example:
-        --------
-        # Domain 0 broadcasts initial conditions to all ensemble members
-        if my_domain_idx == 0:
-            initial_temp = Scalar(20.0 + compute_perturbation(), Solution(domain))
-            temp = coupler.broadcast(data=initial_temp, root_domain_index=0)
-        else:
-            temp = coupler.broadcast(function_space=Solution(domain), root_domain_index=0)
+        Example::
+
+            # Domain 0 broadcasts initial conditions to all ensemble members
+            if my_domain_idx == 0:
+                initial_temp = Scalar(20.0 + compute_perturbation(), Solution(domain))
+                temp = coupler.broadcast(data=initial_temp, root_domain_index=0)
+            else:
+                temp = coupler.broadcast(function_space=Solution(domain), root_domain_index=0)
 
         Notes:
         ------
@@ -720,13 +720,13 @@ class DataCoupler:
         result : esys.escript.Data
             Reduced Data object on the same FunctionSpace (available on all domains)
 
-        Example:
-        --------
-        # Sum temperature fields from all ensemble members
-        coupler = DataCoupler(domain_array)
-        my_temperature = Scalar(value_array, Solution(domain))
-        total_temperature = coupler.allreduce(my_temperature, op=MPI.SUM)
-        avg_temperature = total_temperature / num_domains
+        Example::
+
+            # Sum temperature fields from all ensemble members
+            coupler = DataCoupler(domain_array)
+            my_temperature = Scalar(value_array, Solution(domain))
+            total_temperature = coupler.allreduce(my_temperature, op=MPI.SUM)
+            avg_temperature = total_temperature / num_domains
 
         Notes:
         ------

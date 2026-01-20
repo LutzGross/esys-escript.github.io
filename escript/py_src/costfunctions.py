@@ -37,17 +37,19 @@ class CostFunction(object):
     The class distinguishes between the representation of the solution
     m (m-type) and the cost function gradient (g-type).
 
-    Example of usage:
-        #
-        class DerivedCostFunction(CostFunction)
+    Example of usage::
+
+        class DerivedCostFunction(CostFunction):
             # overwrite: getArguments, etc.
-        cf=DerivedCostFunction()
+            pass
+
+        cf = DerivedCostFunction()
         # ... calculate m ...
-        args=cf.getArguments(m) # this could be potentially expensive!
-        f=cf.getValue(m, *args)
+        args = cf.getArguments(m)  # this could be potentially expensive!
+        f = cf.getValue(m, *args)
         # ... it could be required to update m without using the gradient...
         # ... but then ...
-        gf=cf.getGradient(m, *args)
+        gf = cf.getGradient(m, *args)
 
     Use the "AndCount" versions (e.g. getValueAndCount) if you want to count calls.
 

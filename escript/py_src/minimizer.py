@@ -193,7 +193,7 @@ def muchLarger(x, y, vareps=0.):
     """
     Tests if x is much larger than y with tolerance.
 
-    Returns True if x > y and |x-y| > vareps * max(|x|,|y|).
+    Returns True if ``x > y`` and ``abs(x-y) > vareps * max(abs(x), abs(y))``.
 
     :param x: first value
     :type x: ``float``
@@ -212,7 +212,7 @@ def muchSmaller(x, y, vareps=0.):
     """
     Tests if x is much smaller than y with tolerance.
 
-    Returns True if x < y and |x-y| > vareps * max(|x|,|y|).
+    Returns True if ``x < y`` and ``abs(x-y) > vareps * max(abs(x), abs(y))``.
 
     :param x: first value
     :type x: ``float``
@@ -257,29 +257,32 @@ class LineSearchSearchDirectionError(LineSearchTerminationError):
 
 class LineSearch(object):
     """
-    Line search method to minimize F(m+alpha*p)
-    The iteration is terminated when the strong Wolfe conditions is fulfilled.
+    Line search method to minimize F(m+alpha*p).
 
+    The iteration is terminated when the strong Wolfe conditions is fulfilled.
     See Chapter 3 of 'Numerical Optimization' by J. Nocedal for an explanation.
 
-    Note: the line search return a new search direction scale alpha that satisfies the strong Wolfe condition:
-          (W1) sufficient decrease condition:  Phi(alpha) <= Phi(0) + c1 * alpha * phi'(0)
-          (W2) curveture condition abs(Phi'(alpha)) <= c2 * abs(Phi'(0))
+    The line search returns a new search direction scale alpha that satisfies the
+    strong Wolfe condition:
 
-    The first step is to find an alpha_lo and alpha_hi such that the following conditions hold:
-          (Z1) [alpha_lo, alpha_hi] contains an alpha fullfilling (W1)+(W2)
-          (Z2) alpha_lo is giving the smallest value for Phi amongst alphas generated so far and that
-             are satisfying the sufficient decrease condition (W1)
-          (Z3) alpha_hi is chosen so that Phi′(alpha_lo)(alpha_hi − alpha_lo ) < 0
-                that means alpha_hi  > alpha_lo if Phi′(alpha_lo)<0
-                and alpha_hi  < alpha_lo if Phi′(alpha_lo)>0
+    - (W1) sufficient decrease condition: ``Phi(alpha) <= Phi(0) + c1 * alpha * phi'(0)``
+    - (W2) curvature condition: ``abs(Phi'(alpha)) <= c2 * abs(Phi'(0))``
 
-    Condition (Z1) is fullfilled if one of the following conditions is satisfied:
-            (E1) alpha_hi violates the sufficient decrease condition (W1)
-            (E2) Phi(αlpha_hi) ≥ Phi(αlpha_lo)
-            (E3) Phi′(alpha_lo)(alpha_hi − alpha_lo )  < 0.
+    The first step is to find an alpha_lo and alpha_hi such that the following
+    conditions hold:
 
+    - (Z1) [alpha_lo, alpha_hi] contains an alpha fulfilling (W1)+(W2)
+    - (Z2) alpha_lo is giving the smallest value for Phi amongst alphas generated
+      so far and that are satisfying the sufficient decrease condition (W1)
+    - (Z3) alpha_hi is chosen so that ``Phi'(alpha_lo)*(alpha_hi - alpha_lo) < 0``,
+      that means alpha_hi > alpha_lo if Phi'(alpha_lo) < 0 and
+      alpha_hi < alpha_lo if Phi'(alpha_lo) > 0
 
+    Condition (Z1) is fulfilled if one of the following conditions is satisfied:
+
+    - (E1) alpha_hi violates the sufficient decrease condition (W1)
+    - (E2) Phi(alpha_hi) >= Phi(alpha_lo)
+    - (E3) Phi'(alpha_lo)*(alpha_hi - alpha_lo) < 0
     """
     _phiEpsilon = np.sqrt(EPSILON)
     _alphaMin = EPSILON
@@ -321,8 +324,7 @@ class LineSearch(object):
 
     def setOptions(self, **opts):
         """
-        set options for the line search.
-
+        Set options for the line search.
 
         :key alphaMin: minimum search length
         :type alphaMin: float
@@ -484,21 +486,23 @@ class LineSearch(object):
     def zoom(self, phi_lo, phi_hi, phi_0):
         """
         Helper function for `line_search` below which tries to tighten the range
-        phi_lo.alpha...phi_hi.alpha such that phi_lo, phi_hi fulfill one of these conditions
-        (which needs to be fullfilled at entry):
-        
-        (Z1) [alpha_lo, alpha_hi] contains an alpha fullfilling (W1)+(W2). This condition holds if
-            (E1) alpha_hi violates the sufficient decrease condition (W1)
-            (E2) Phi(αlpha_hi) ≥ Phi(αlpha_lo)
-            (E3) Phi′(alpha_lo)(alpha_hi − alpha_lo )  < 0.
-        (Z2) alpha_lo is giving the smallest value for Phi amongst alphas generated so far and that are satisfying
-            the sufficient decrease condition (W1)
-        (Z3) alpha_hi is chosen so that Phi′(alpha_lo)(alpha_hi − alpha_lo ) < 0
-        
-        
-        See Chapter 3 of 'Numerical Optimization' by
-        J. Nocedal for an explanation.
-        interpolation options are linear, quadratic, cubic or Newton interpolation.
+        phi_lo.alpha...phi_hi.alpha such that phi_lo, phi_hi fulfill one of these
+        conditions (which needs to be fulfilled at entry):
+
+        - (Z1) [alpha_lo, alpha_hi] contains an alpha fulfilling (W1)+(W2).
+          This condition holds if:
+
+          - (E1) alpha_hi violates the sufficient decrease condition (W1)
+          - (E2) Phi(alpha_hi) >= Phi(alpha_lo)
+          - (E3) Phi'(alpha_lo)*(alpha_hi - alpha_lo) < 0
+
+        - (Z2) alpha_lo is giving the smallest value for Phi amongst alphas
+          generated so far and that are satisfying the sufficient decrease
+          condition (W1)
+        - (Z3) alpha_hi is chosen so that ``Phi'(alpha_lo)*(alpha_hi - alpha_lo) < 0``
+
+        See Chapter 3 of 'Numerical Optimization' by J. Nocedal for an explanation.
+        Interpolation options are linear, quadratic, cubic or Newton interpolation.
         """
         def addToHistory(phi):
             if self._inter_order > 1:
@@ -866,14 +870,15 @@ class AbstractMinimizer(object):
         :key scaleSearchDirection: if set the search direction is rescaled using an estimation of the norm of the Hessian
         :type scaleSearchDirection: ``bool``
         :default scaleSearchDirection: True
-        
-            Example of usage::
-              cf=DerivedCostFunction()
-              solver=MinimizerLBFGS(J=cf, m_tol = 1e-5, grad_tol = 1e-5, iterMax=300)
-              solver.setOptions(truncation=20)
-              solver.getLineSearch().setOptions(zoom_relChangeMin =1e-7)
-              solver.run(initial_m)
-              result=solver.getResult()
+
+        Example of usage::
+
+            cf = DerivedCostFunction()
+            solver = MinimizerLBFGS(J=cf, m_tol=1e-5, grad_tol=1e-5, iterMax=300)
+            solver.setOptions(truncation=20)
+            solver.getLineSearch().setOptions(zoom_relChangeMin=1e-7)
+            solver.run(initial_m)
+            result = solver.getResult()
         """
         self.logger.debug("Setting options: %s" % (str(opts)))
         for o in opts:
