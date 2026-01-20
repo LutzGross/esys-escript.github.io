@@ -78,7 +78,7 @@ def get_sphinx_template(title, content, current_page=""):
     </div>
 
     <div class="footer" role="contentinfo">
-      <p>&copy; Copyright 2003-2025, esys.escript group.</p>
+      <p>&copy; Copyright 2003-2026, esys.escript group.</p>
       <p>
         Last updated on {date}.
         Created using <a href="https://www.python.org/">Python</a> and

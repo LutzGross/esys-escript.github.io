@@ -53,7 +53,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'esys.escript'
-copyright = u'2003-2025, esys.escript group'
+copyright = u'2003-2026, esys.escript group'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -270,7 +270,7 @@ texinfo_documents = [
 epub_title = u'esys.escript'
 epub_author = u'esys.escript Team'
 epub_publisher = u'esys.escript Team'
-epub_copyright = u'2003-2025, esys.escript Group'
+epub_copyright = u'2003-2026, esys.escript Group'
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.
