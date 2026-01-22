@@ -43,7 +43,7 @@ Table of Contents
    weipa
    trilinos
    symbolic
-   subworlds
+   mpi4py
    appendix
 
 Documentation Resources
@@ -51,9 +51,9 @@ Documentation Resources
 
 * :ref:`genindex` - Complete index of all modules, classes and functions
 * :ref:`modindex` - Module index
-* `← Back to API Documentation <../index.html>`_
-* `Documentation Home <../../index.html>`_
-* `Installation Guide <../../installation.html>`_
+* `← Back to Main Documentation <../index.html>`_
+* `Installation Guide <../installation.html>`_
+* `User Guide (PDF) <../../user/user.pdf>`_
 
 Citation
 ========

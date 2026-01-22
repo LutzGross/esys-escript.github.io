@@ -89,7 +89,13 @@ sphinxstuff=local.Command('stuff', [epy_dir, int_dir, env['pyinstall']],
     env['pythoncmd'] + ' -c "import sys; import esys.escript; print(\'SUCCESS: esys.escript imported from:\', esys.escript.__file__)" && ' +
     'echo "=== Generating Sphinx RST files from Python modules ===" && ' +
     env['pythoncmd'] + ' doc/sphinx_api/genrst.py '+env['prefix']+' esys '+int_dir+
-    ' && echo "=== Copying user guide to build directory ===" && ' +
+    ' && echo "=== Copying static RST files to build directory ===" && ' +
+    'cp doc/sphinx_api/index.rst '+int_dir+'/ && ' +
+    'cp doc/sphinx_api/welcome.rst '+int_dir+'/ && ' +
+    'cp doc/sphinx_api/installation.rst '+int_dir+'/ && ' +
+    'cp doc/sphinx_api/options.rst '+int_dir+'/ && ' +
+    'cp doc/sphinx_api/resources.rst '+int_dir+'/ && ' +
+    'echo "=== Copying user guide to build directory ===" && ' +
     'cp -r doc/sphinx_api/user_guide '+int_dir+'/ && ' +
     'echo "=== Building Sphinx HTML documentation ===" && ' +
     'sphinx-build -v -E --color -b html -d '+int_dir+'/tree -c doc/sphinx_api '+mjpath+' '+int_dir+' '+epy_dir +

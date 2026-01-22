@@ -13,11 +13,33 @@
 
 
 import sys, os
+import subprocess
+from datetime import datetime
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('/home/joel/esys13/esys'))
+
+# Get git version information
+def get_git_version():
+    try:
+        # Get the short hash
+        git_hash = subprocess.check_output(
+            ['git', 'rev-parse', '--short', 'HEAD'],
+            stderr=subprocess.DEVNULL
+        ).decode('utf-8').strip()
+        # Get the branch name
+        git_branch = subprocess.check_output(
+            ['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
+            stderr=subprocess.DEVNULL
+        ).decode('utf-8').strip()
+        return f"{git_branch}@{git_hash}"
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return "unknown"
+
+git_version = get_git_version()
+build_date = datetime.now().strftime('%B %d, %Y')
 
 # -- General configuration -----------------------------------------------------
 
@@ -144,7 +166,13 @@ html_css_files = ['custom.css']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
-#html_last_updated_fmt = '%b %d, %Y'
+html_last_updated_fmt = '%B %d, %Y'
+
+# Pass git version to templates via html_context
+html_context = {
+    'git_version': git_version,
+    'build_date': build_date,
+}
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.

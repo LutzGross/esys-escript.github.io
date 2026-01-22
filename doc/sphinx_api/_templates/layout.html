@@ -1,0 +1,17 @@
+{% extends "!layout.html" %}
+
+{% block footer %}
+<div class="footer" role="contentinfo">
+    <p>
+        &copy; Copyright 2003-2026 by the esys.escript Group.
+        Created: {{ build_date }}.
+        Git version: {{ git_version }}.
+        {% if last_updated %}
+        Last updated: {{ last_updated }}.
+        {% endif %}
+    </p>
+    <p>
+        Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>.
+    </p>
+</div>
+{% endblock %}
