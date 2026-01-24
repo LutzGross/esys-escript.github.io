@@ -44,8 +44,10 @@ GitHub Repository
 Related Projects
 ----------------
 
-* `gambit <https://github.com/AndreaCodd/gambit>`_ - Geophysical inversion extension
-* `fingal <https://github.com/LutzGross/fingal>`_ - Geophysical inversion extension
+* `gambit <https://github.com/AndreaCodd/gambit>`_ - Potential Field Data Inversion
+* `fingal <https://github.com/LutzGross/fingal>`_ - Electrical Resistivity Data Inversion
+* `Yade <https://yade-dem.org/>`_ - Discrete Element Method
+* `MINTpy <https://github.com/insarlab/MintPy>`_ - InSAR Time Series Analysis
 
 
 Third-Party Tools

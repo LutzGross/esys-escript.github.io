@@ -24,4 +24,4 @@ The following modules are available in **esys.escript**:
 * ``esys.speckley`` - Speckley domain module
 * ``esys.weipa`` - Data export module
 
-See the :doc:`user_guide/index` for detailed documentation of each module.
+See the `User Guide (PDF) <user/user.pdf>`_ for detailed documentation of each module.

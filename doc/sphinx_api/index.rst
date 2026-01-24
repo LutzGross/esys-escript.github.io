@@ -14,9 +14,17 @@ implementing mathematical models using the finite element method (FEM).
    welcome
    installation
    options
-   user_guide/index
+   mpi4py
    api_index
    resources
+
+User Guide
+==========
+
+The complete esys-escript User's Guide is available as a PDF document:
+
+* `User Guide (PDF) <../user/user.pdf>`_ - Comprehensive documentation including tutorials,
+  mathematical background, and detailed explanations of all escript modules.
 
 Indices and Tables
 ==================

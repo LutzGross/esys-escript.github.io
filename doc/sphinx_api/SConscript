@@ -95,8 +95,7 @@ sphinxstuff=local.Command('stuff', [epy_dir, int_dir, env['pyinstall']],
     'cp doc/sphinx_api/installation.rst '+int_dir+'/ && ' +
     'cp doc/sphinx_api/options.rst '+int_dir+'/ && ' +
     'cp doc/sphinx_api/resources.rst '+int_dir+'/ && ' +
-    'echo "=== Copying user guide to build directory ===" && ' +
-    'cp -r doc/sphinx_api/user_guide '+int_dir+'/ && ' +
+    'cp doc/sphinx_api/mpi4py.rst '+int_dir+'/ && ' +
     'echo "=== Building Sphinx HTML documentation ===" && ' +
     'sphinx-build -v -E --color -b html -d '+int_dir+'/tree -c doc/sphinx_api '+mjpath+' '+int_dir+' '+epy_dir +
     ' && echo "=== Verifying genindex.html ===" && ' +

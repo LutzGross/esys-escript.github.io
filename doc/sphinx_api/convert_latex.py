@@ -1,368 +1,165 @@
 #!/usr/bin/env python3
 """
-Convert LaTeX user guide chapters to reStructuredText for Sphinx.
+Create stub RST files for user guide chapters that link to the PDF.
 
-This script:
-1. Pre-processes LaTeX to expand escript-specific macros
-2. Converts using pandoc
-3. Post-processes to fix RST formatting
+This script creates simple RST files that provide a brief description
+and link to the full PDF user guide for detailed content.
 """
 
 import os
-import re
-import subprocess
 import sys
 from pathlib import Path
 
-# Macro replacements - simple text substitutions
-MACRO_REPLACEMENTS = {
-    # Software names
-    r'\\escript': '**esys.escript**',
-    r'\\esys': '**esys**',
-    r'\\finley': '**esys.finley**',
-    r'\\ripley': '**esys.ripley**',
-    r'\\speckley': '**esys.speckley**',
-    r'\\oxley': '**esys.oxley**',
-    r'\\weipa': '**esys.weipa**',
-    r'\\linearPDEs': '**esys.escript.linearPDEs**',
-    r'\\pdetools': '**esys.escript.pdetools**',
-    r'\\numpy': '**numpy**',
-    r'\\numpyNDA': '**numpy.ndarray**',
 
-    # Tools and libraries
-    r'\\PYTHON': '*Python*',
-    r'\\pythonthree': '*python3*',
-    r'\\pythontwo': '*python2*',
-    r'\\MPI': '*MPI*',
-    r'\\mpifo': '*mpi4py*',
-    r'\\OPENMP': '*OpenMP*',
-    r'\\CUDA': '*CUDA*',
-    r'\\VTK': '*VTK*',
-    r'\\SILO': '*SILO*',
-    r'\\VisIt': '*VisIt*',
-    r'\\mayavi': '*Mayavi2*',
-    r'\\MATPLOTLIB': '*matplotlib*',
-    r'\\SCIPY': '*SciPy*',
-    r'\\netCDF': '*netCDF*',
-    r'\\HDF': '*HDF5*',
-    r'\\LINUX': '*Linux*',
-    r'\\WINDOWS': '*MS Windows*',
-    r'\\gnuplot': '*gnuplot*',
-    r'\\gmshextern': '*Gmsh*',
-    r'\\GOCAD': '*GOCAD*',
-    r'\\OpenCASCADE': '*OpenCASCADE*',
-
-    # Classes
-    r'\\LinearPDE': '``LinearPDE``',
-    r'\\NLPDE': '``NonlinearPDE``',
-    r'\\Poisson': '``Poisson``',
-    r'\\Helmholtz': '``Helmholtz``',
-    r'\\Lame': '``Lame``',
-    r'\\Data': '``Data``',
-    r'\\Domain': '``Domain``',
-    r'\\FunctionSpace': '``FunctionSpace``',
-    r'\\Operator': '``Operator``',
-    r'\\SolverOptions': '``SolverOptions``',
-    r'\\Point': '``Point``',
-    r'\\PropertySet': '``PropertySet``',
-    r'\\Design': '``Design``',
-    r'\\TagMap': '``TagMap``',
-    r'\\EVALUATOR': '``Evaluator``',
-    r'\\SYMBOL': '``Symbol``',
-
-    # Function spaces
-    r'\\SolutionFS': 'solution ``FunctionSpace``',
-    r'\\ReducedSolutionFS': 'reduced solution ``FunctionSpace``',
-    r'\\FunctionOnBoundary': 'boundary ``FunctionSpace``',
-    r'\\Function': 'general ``FunctionSpace``',
-    r'\\ContinuousFunction': 'continuous ``FunctionSpace``',
-    r'\\DiracDeltaFunctions': 'Dirac delta-function ``FunctionSpace``',
-
-    # Data types
-    r'\\Scalar': 'scalar ``Data`` object',
-    r'\\Scalars': 'scalar ``Data`` objects',
-    r'\\Vector': 'vector ``Data`` object',
-    r'\\Tensor': 'tensor ``Data`` object',
-    r'\\RankOne': 'rank-1 ``Data`` object',
-    r'\\RankTwo': 'rank-2 ``Data`` object',
-    r'\\RankThree': 'rank-3 ``Data`` object',
-    r'\\RankFour': 'rank-4 ``Data`` object',
-    r'\\EmptyData': 'empty ``Data``',
-    r'\\DataSample': 'data sample',
-    r'\\DataSamplePoints': 'data sample points',
-
-    # Solver options
-    r'\\PCG': '``SolverOptions.PCG``',
-    r'\\BiCGStab': '``SolverOptions.BICGSTAB``',
-    r'\\Direct': '``SolverOptions.DIRECT``',
-    r'\\GMRES': '``SolverOptions.GMRES``',
-    r'\\AMG': '``SolverOptions.AMG``',
-    r'\\JACOBI': '``SolverOptions.JACOBI``',
-    r'\\ILU': '``SolverOptions.ILU0``',
-    r'\\ILUT': '``SolverOptions.ILUT``',
-    r'\\RILU': '``SolverOptions.RILU``',
-    r'\\GAUSSSEIDEL': '``SolverOptions.GAUSS_SEIDEL``',
-    r'\\HRZLUMPING': '``SolverOptions.HRZ_LUMPING``',
-    r'\\ROWSUMLUMPING': '``SolverOptions.ROWSUM_LUMPING``',
-
-    # Packages
-    r'\\MKL': '``MKL``',
-    r'\\UMFPACK': '``UMFPACK``',
-    r'\\PASO': '``PASO``',
-
-    # Boolean constants
-    r'\\True': '``True``',
-    r'\\False': '``False``',
-
-    # Other
-    r'\\Shape': 'shape',
-    r'\\Rank': 'rank',
-    r'\\ExampleDirectory': 'example directory',
-    r'\\etal': '*et al.*',
-    r'\\xspace': '',
+# Chapter definitions with descriptions
+CHAPTERS = {
+    'tutorial_pde': {
+        'name': 'Tutorial: Solving PDEs',
+        'description': '''This tutorial introduces the basic concepts of solving partial differential
+equations (PDEs) with esys-escript. It covers installation, first steps with
+the Poisson equation, time-dependent diffusion problems, wave equations,
+elastic deformation, and working with unstructured meshes.'''
+    },
+    'execute': {
+        'name': 'Execution of Scripts',
+        'description': '''This chapter explains how to run escript simulations using the ``run-escript``
+launcher. It covers command-line options, MPI parallelization, OpenMP threading,
+environment variables, and output redirection.'''
+    },
+    'escript': {
+        'name': 'The escript Module',
+        'description': '''The core escript module provides the fundamental data structures and operations
+for finite element computations. This chapter covers Data objects, function spaces,
+mathematical operations, and the symbolic toolbox.'''
+    },
+    'linear_pde': {
+        'name': 'The linearPDEs Module',
+        'description': '''This chapter describes the linearPDEs module for solving linear partial
+differential equations. It covers the LinearPDE class, coefficient specification,
+boundary conditions, solver options, and specialized PDE classes like Poisson,
+Helmholtz, and Lame equations.'''
+    },
+    'finley': {
+        'name': 'The finley Module',
+        'description': '''The finley module provides unstructured finite element meshes. This chapter
+covers mesh generation with Rectangle and Brick, reading mesh files (Gmsh, Fly),
+element types, and the mathematical formulation of PDEs in finley.'''
+    },
+    'ripley': {
+        'name': 'The ripley Module',
+        'description': '''The ripley module provides structured rectangular meshes optimized for
+regular grids. It supports fast assemblers for specific PDE types and
+GPU-based solvers. This chapter covers mesh generation and the ripley
+formulation.'''
+    },
+    'speckley': {
+        'name': 'The speckley Module',
+        'description': '''The speckley module implements spectral element methods on structured grids.
+This chapter covers the spectral element formulation and mesh generation
+with Rectangle and Brick.'''
+    },
+    'weipa': {
+        'name': 'The weipa Module',
+        'description': '''The weipa module handles data export and visualization. It supports VTK and
+SILO file formats, and can interface directly with VisIt for in-situ
+visualization. This chapter covers the EscriptDataset class and export
+functions.'''
+    },
+    'trilinos': {
+        'name': 'Using Trilinos',
+        'description': '''This chapter explains how to use the Trilinos solver library with escript.
+It covers solver configuration, preconditioners, and advanced settings
+using MueLu XML parameter files.'''
+    },
+    'symbolic': {
+        'name': 'Symbolic Toolbox',
+        'description': '''The symbolic toolbox enables symbolic manipulation of PDEs using SymPy.
+This chapter covers the Symbol class, the Evaluator for efficient evaluation,
+and the NonlinearPDE class for solving nonlinear problems.'''
+    },
+    'appendix': {
+        'name': 'Appendix',
+        'description': '''The appendix contains reference material including installation instructions,
+element type specifications, and additional technical details.'''
+    },
+    'mpi4py': {
+        'name': 'Using mpi4py with escript',
+        'description': '''This chapter explains how to use mpi4py to create MPI sub-communicators
+for multi-domain simulations. It covers the MPIDomainArray and DataCoupler
+classes for managing parallel domain decomposition.'''
+    },
 }
 
-# Patterns that need regex replacement
-REGEX_REPLACEMENTS = [
-    # Cross-reference patterns
-    (r'\\Sec\{([^}]+)\}', r'Section :ref:`\1`'),
-    (r'\\Chap\{([^}]+)\}', r'Chapter :ref:`\1`'),
-    (r'\\App\{([^}]+)\}', r'Appendix :ref:`\1`'),
-    (r'\\fig\{([^}]+)\}', r'Figure :numref:`\1`'),
-    (r'\\eqn\{([^}]+)\}', r'Equation :eq:`\1`'),
-    (r'\\tab\{([^}]+)\}', r'Table :numref:`\1`'),
-    (r'\\Refe\{([^}]+)\}', r':cite:`\1`'),
 
-    # Code and module references
-    (r'\\module\{([^}]+)\}', r'``\1``'),
-    (r'\\class\{([^}]+)\}', r'``\1``'),
-    (r'\\member\{([^}]+)\}', r'``\1``'),
-    (r'\\method\{([^}]+)\}', r'``\1()``'),
-    (r'\\function\{([^}]+)\}', r'``\1()``'),
-    (r'\\constant\{([^}]+)\}', r'``\1``'),
-    (r'\\var\{([^}]+)\}', r'``\1``'),
-    (r'\\code\{([^}]+)\}', r'``\1``'),
-    (r'\\file\{([^}]+)\}', r'``\1``'),
-    (r'\\program\{([^}]+)\}', r'``\1``'),
-    (r'\\env\{([^}]+)\}', r'``\1``'),
+def create_stub_content(chapter_name, chapter_key, description):
+    """Create a stub RST file that links to the PDF."""
+    underline = '=' * len(chapter_name)
 
-    # Warning
-    (r'\\warning\{([^}]+)\}', r'\n.. warning::\n\n   \1\n'),
+    return f"""{underline}
+{chapter_name}
+{underline}
 
-    # Partial derivative
-    (r'\\fracp\{([^}]+)\}\{([^}]+)\}', r'∂\1/∂\2'),
+{description}
 
-    # Index entries - remove them
-    (r'\\index\{[^}]+\}', ''),
+.. note::
 
-    # Labels - convert to RST labels
-    (r'\\label\{([^}]+)\}', r'\n.. _\1:\n'),
+   For complete documentation including mathematical derivations, figures,
+   and detailed examples, please see the `User Guide PDF <../user/user.pdf>`_.
 
-    # URL handling
-    (r'\\url\{([^}]+)\}', r'`\1 <\1>`_'),
-
-    # Footnotes - simplify
-    (r'\\footnote\{([^}]+)\}', r' [#]_'),
-]
+"""
 
 
-def preprocess_latex(content):
-    """Pre-process LaTeX content to expand macros before pandoc conversion."""
+def convert_chapter(latex_dir, output_dir, chapter_key, chapter_info, verbose=False):
+    """Create a stub RST file for a chapter."""
+    chapter_name = chapter_info['name']
+    description = chapter_info.get('description', f'This chapter covers {chapter_name.lower()}.')
 
-    # Apply simple macro replacements
-    for macro, replacement in MACRO_REPLACEMENTS.items():
-        content = re.sub(macro + r'(?![a-zA-Z])', replacement, content)
+    if verbose:
+        print(f"Creating stub for {chapter_key}: {chapter_name}")
 
-    # Apply regex replacements
-    for pattern, replacement in REGEX_REPLACEMENTS:
-        content = re.sub(pattern, replacement, content)
-
-    # Handle \input{} commands by noting them
-    content = re.sub(r'\\input\{([^}]+)\}', r'\n\n.. note:: Content from \1.tex would be included here\n\n', content)
-
-    # Convert python environment to code-block
-    content = re.sub(r'\\begin\{python\}', r'\\begin{lstlisting}[language=Python]', content)
-    content = re.sub(r'\\end\{python\}', r'\\end{lstlisting}', content)
-
-    return content
-
-
-def convert_with_pandoc(latex_content, output_file):
-    """Convert LaTeX to RST using pandoc."""
-    try:
-        result = subprocess.run(
-            ['pandoc', '-f', 'latex', '-t', 'rst', '--wrap=none'],
-            input=latex_content,
-            capture_output=True,
-            text=True
-        )
-        if result.returncode != 0:
-            print(f"Pandoc warning: {result.stderr}")
-        return result.stdout
-    except Exception as e:
-        print(f"Error running pandoc: {e}")
-        return None
-
-
-def postprocess_rst(content, chapter_name):
-    """Post-process RST content to fix common issues."""
-
-    # Fix escaped asterisks from bold/italic
-    content = re.sub(r'\\\*\*([^*]+)\*\\\*', r'**\1**', content)
-    content = re.sub(r'\\\*([^*]+)\\\*', r'*\1*', content)
-    content = re.sub(r'\\_', '_', content)
-
-    # Fix double backticks that pandoc sometimes creates
-    content = re.sub(r'````', '``', content)
-
-    # Fix code blocks - ensure proper indentation
-    lines = content.split('\n')
-    fixed_lines = []
-    in_code_block = False
-
-    for line in lines:
-        # Detect code block markers
-        if '.. code::' in line or '.. code-block::' in line:
-            in_code_block = True
-            fixed_lines.append(line)
-            continue
-
-        if in_code_block:
-            if line.strip() == '' and len(fixed_lines) > 0:
-                # Empty line might end code block
-                fixed_lines.append(line)
-            elif line and not line[0].isspace() and line.strip() != '':
-                # Non-indented, non-empty line ends code block
-                in_code_block = False
-                fixed_lines.append(line)
-            else:
-                fixed_lines.append(line)
-        else:
-            fixed_lines.append(line)
-
-    content = '\n'.join(fixed_lines)
-
-    # Add chapter header if not present
-    if not content.strip().startswith('='):
-        header = f"{'=' * len(chapter_name)}\n{chapter_name}\n{'=' * len(chapter_name)}\n\n"
-        content = header + content
-
-    # Fix math blocks - ensure they use proper RST math directive
-    content = re.sub(r'\.\. math::\s*\n\s*\n', '.. math::\n\n   ', content)
-
-    return content
-
-
-def convert_file(tex_file, output_dir, chapter_name=None):
-    """Convert a single LaTeX file to RST."""
-    print(f"Converting {tex_file}...")
-
-    with open(tex_file, 'r', encoding='utf-8', errors='replace') as f:
-        content = f.read()
-
-    # Pre-process
-    content = preprocess_latex(content)
-
-    # Convert with pandoc
-    rst_content = convert_with_pandoc(content, None)
-
-    if rst_content is None:
-        print(f"  Failed to convert {tex_file}")
-        return None
-
-    # Determine chapter name
-    if chapter_name is None:
-        chapter_name = Path(tex_file).stem.replace('_', ' ').title()
-
-    # Post-process
-    rst_content = postprocess_rst(rst_content, chapter_name)
+    # Create stub content
+    rst_content = create_stub_content(chapter_name, chapter_key, description)
 
     # Write output
-    output_file = output_dir / (Path(tex_file).stem + '.rst')
+    output_file = output_dir / f'{chapter_key}.rst'
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(rst_content)
 
-    print(f"  -> {output_file}")
+    if verbose:
+        print(f"  -> {output_file}")
+
     return output_file
 
 
 def main():
-    """Main conversion routine."""
-    # Paths
-    script_dir = Path(__file__).parent
-    latex_dir = script_dir.parent / 'user'
-    output_dir = script_dir / 'user_guide'
+    """Main entry point for command-line usage."""
+    import argparse
 
-    # Ensure output directory exists
-    output_dir.mkdir(exist_ok=True)
+    parser = argparse.ArgumentParser(description='Create stub RST files for user guide chapters')
+    parser.add_argument('--latex-dir', type=Path, default=Path('doc/user'),
+                        help='Directory containing LaTeX source files')
+    parser.add_argument('--output-dir', type=Path, required=True,
+                        help='Directory for output RST files')
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='Print progress messages')
 
-    # Define chapters and their source files
-    chapters = {
-        'tutorial_pde': {
-            'name': 'Tutorial: Solving PDEs',
-            'files': ['TutorialPDE.tex', 'firststep.tex', 'diffusion.tex',
-                     'wave.tex', 'heatedblock.tex', 'dirac.tex', 'unstructured.tex']
-        },
-        'execute': {
-            'name': 'Execution of Scripts',
-            'files': ['execute.tex']
-        },
-        'escript': {
-            'name': 'The escript Module',
-            'files': ['escript.tex']
-        },
-        'linear_pde': {
-            'name': 'The linearPDEs Module',
-            'files': ['linearPDE.tex']
-        },
-        'finley': {
-            'name': 'The finley Module',
-            'files': ['finley.tex', 'finleyelements.tex']
-        },
-        'ripley': {
-            'name': 'The ripley Module',
-            'files': ['ripley.tex']
-        },
-        'speckley': {
-            'name': 'The speckley Module',
-            'files': ['speckley.tex']
-        },
-        'weipa': {
-            'name': 'The weipa Module',
-            'files': ['weipa.tex']
-        },
-        'trilinos': {
-            'name': 'Using Trilinos',
-            'files': ['trilinos.tex']
-        },
-        'symbolic': {
-            'name': 'Symbolic Toolbox',
-            'files': ['symbolic.tex']
-        },
-        'appendix': {
-            'name': 'Appendix',
-            'files': ['appendix.tex', 'notation.tex', 'nonlinearPDE.tex', 'lumping.tex']
-        }
-    }
+    args = parser.parse_args()
 
-    # Convert each chapter
-    for chapter_key, chapter_info in chapters.items():
-        print(f"\n=== Converting chapter: {chapter_info['name']} ===")
+    # Create output directory if needed
+    args.output_dir.mkdir(parents=True, exist_ok=True)
 
-        # For simplicity, convert the main file only (sub-files would need \input handling)
-        main_file = latex_dir / chapter_info['files'][0]
-        if main_file.exists():
-            convert_file(main_file, output_dir, chapter_info['name'])
-        else:
-            print(f"  Warning: {main_file} not found")
+    if args.verbose:
+        print(f"Creating stub RST files in {args.output_dir}")
 
-    print("\n=== Conversion complete ===")
-    print("Note: The converted files may need manual review and fixes.")
-    print("Common issues to check:")
-    print("  - Math equations formatting")
-    print("  - Code block indentation")
-    print("  - Cross-references")
-    print("  - Figure paths")
+    # Process each chapter
+    for chapter_key, chapter_info in CHAPTERS.items():
+        # Skip mpi4py - it has its own manually written RST file
+        if chapter_key == 'mpi4py':
+            continue
+        convert_chapter(args.latex_dir, args.output_dir, chapter_key, chapter_info, args.verbose)
+
+    if args.verbose:
+        print(f"\nCreated {len(CHAPTERS) - 1} stub files")
 
 
 if __name__ == '__main__':

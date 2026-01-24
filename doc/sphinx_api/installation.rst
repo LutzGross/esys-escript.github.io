@@ -623,7 +623,7 @@ To disable symbolic support:
    sympy = False  # Default
 
 The symbolic module provides support for symbolic expressions, automatic differentiation,
-and symbolic PDE formulation. See the :doc:`user guide <user_guide/symbolic>` for details on using the symbolic toolbox.
+and symbolic PDE formulation. See the `User Guide (PDF) <../user/user.pdf>`_ for details on using the symbolic toolbox.
 
 .. important::
 

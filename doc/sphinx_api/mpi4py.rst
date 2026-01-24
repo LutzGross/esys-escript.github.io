@@ -45,7 +45,7 @@ To use mpi4py with escript:
 * mpi4py must be installed and compiled against the same MPI implementation as escript
 * Use ``mpi='auto'`` in the build configuration to automatically detect the correct MPI implementation
 
-See the :doc:`installation guide <../installation>` for detailed instructions.
+See the :doc:`installation guide <installation>` for detailed instructions.
 
 
 MPI Initialization and the pythonMPI Wrapper
