@@ -30,11 +30,8 @@
 // #include <MatrixMarket_Tpetra.hpp>
 #include <MueLu_CreateTpetraPreconditioner.hpp>
 
-#ifdef ESYS_HAVE_TPETRA_DP
-#include <Tpetra_DefaultPlatform.hpp>
-#else
+// Use Tpetra_Core.hpp (Tpetra_DefaultPlatform.hpp is deprecated in Trilinos 16.2+)
 #include <Tpetra_Core.hpp>
-#endif
 
 #include "Tpetra_Vector.hpp"
 #include "TpetraExt_TripleMatrixMultiply_decl.hpp"

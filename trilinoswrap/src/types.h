@@ -23,11 +23,8 @@
 #endif
 #include <Tpetra_CrsGraph.hpp>
 #include <Tpetra_RowMatrix.hpp>
-#ifdef ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKV
-#include <Tpetra_Experimental_BlockVector.hpp>
-#else
+// Use standard BlockVector (experimental version deprecated in Trilinos 16.2+)
 #include <Tpetra_BlockVector.hpp>
-#endif
 
 namespace esys_trilinos {
 
@@ -99,14 +96,9 @@ typedef OpType<real_t>     RealOperator;
 typedef VectorType<cplx_t> ComplexVector;
 typedef OpType<cplx_t>     ComplexOperator;
 
-// experimental block types
-#ifdef ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKV
-template<typename ST> using BlockVectorType =
-                               Tpetra::Experimental::BlockVector<ST,LO,GO,NT>;
-#else
+// Block vector type (Tpetra::BlockVector is standard in Trilinos 16.2+)
 template<typename ST> using BlockVectorType =
                                Tpetra::BlockVector<ST,LO,GO,NT>;
-#endif
 typedef BlockVectorType<real_t> RealBlockVector;
 typedef BlockVectorType<cplx_t> ComplexBlockVector;
 

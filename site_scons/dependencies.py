@@ -531,37 +531,18 @@ def checkForTrilinos(env):
         if not os.path.isfile(os.path.join(trilinos_inc_path,check)):
             print("Could not find the  Trilinos header file %s (tried looking in directory %s)" % (check, trilinos_inc_path))
             env.Exit(1)
-    # .. not relevant for new trilinos versions (REMOVE):
-    if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')):
-        print("Checking for %s... %s" %('Tpetra_DefaultPlatform.hpp', "yes"))
-        env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_DP'])
-    else:
-        print("Checking for %s... %s" %('Tpetra_DefaultPlatform.hpp', "no"))
-
-    # REVISE: remove 'ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRS'     'ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH' ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKV
-    if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix.hpp')):
-        print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix.hpp', "yes") )
-    elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockCrsMatrix.hpp')):
-        print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix.hpp', "yes" ) )
-        env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRS'])
-    else:
-        raise RuntimeError('Could not locate the Trilinos Block CRS Matrix header')
-
-    if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix_Helpers.hpp')):
-        print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix_Helpers.hpp', "yes"))
-    elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp')):
-        print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp'))
-        env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH'])
-    else:
-        raise RuntimeError('Could not locate the Trilinos Block CRS Matrix Helpers header')
-
-    if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockVector.hpp')):
-        print("Checking for %s... %s" % ('Tpetra_BlockVector.hpp', "yes"))
-    elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockVector.hpp')):
-        print("Checking for %s... %s" % ('Tpetra_Experimental_BlockVector.hpp', "yes"))
-        env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKV'])
-    else:
-        raise RuntimeError('Could not locate the Trilinos BlockVector header')
+    # Check for required Tpetra headers (standard versions required for Trilinos 16.2+)
+    required_tpetra_headers = [
+        'Tpetra_BlockCrsMatrix.hpp',
+        'Tpetra_BlockCrsMatrix_Helpers.hpp',
+        'Tpetra_BlockVector.hpp'
+    ]
+    for header in required_tpetra_headers:
+        header_path = os.path.join(trilinos_inc_path, header)
+        if os.path.isfile(header_path):
+            print("Checking for %s... yes" % header)
+        else:
+            raise RuntimeError('Could not locate the Trilinos header %s (required for Trilinos 16.2+)' % header)
 
     library_list=['amesos2', 'amesos', 'anasaziepetra', 'anasazi', 'anasazitpetra', 'aztecoo', \
                   'belosepetra', 'belos', 'belostpetra', 'belosxpetra', 'epetraext', 'epetra', \

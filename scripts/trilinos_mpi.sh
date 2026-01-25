@@ -42,7 +42,6 @@ cmake \
       -D Teuchos_ENABLE_COMPLEX=ON \
       -D Teuchos_ENABLE_THREAD_SAFE=ON \
       -D Tpetra_INST_INT_INT=ON \
-      -D Tpetra_ENABLE_DEPRECATED_CODE=ON \
       -D Trilinos_ENABLE_OpenMP=ON \
       -D TPL_ENABLE_MPI=ON \
       -D Trilinos_ENABLE_EXPLICIT_INSTANTIATION=ON \

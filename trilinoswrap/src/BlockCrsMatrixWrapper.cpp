@@ -36,16 +36,10 @@
 //#include "KokkosCompat_DefaultNode.hpp"
 //#endif
 
-#ifdef ESYS_HAVE_TPETRA_DP
-#include <Tpetra_DefaultPlatform.hpp>
-#else
+// Use Tpetra_Core.hpp (Tpetra_DefaultPlatform.hpp is deprecated in Trilinos 16.2+)
 #include <Tpetra_Core.hpp>
-#endif
-#if defined(ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH) && (TRILINOS_MAJOR_MINOR_VERSION < 121400)
-#include <Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp> // for writing
-#else
-#include <Tpetra_BlockCrsMatrix_Helpers.hpp> // for writing
-#endif
+// Use standard BlockCrsMatrix_Helpers (experimental version deprecated in Trilinos 16.2+)
+#include <Tpetra_BlockCrsMatrix_Helpers.hpp>
 #include <Tpetra_Vector.hpp>
 
 
@@ -295,11 +289,8 @@ void BlockCrsMatrixWrapper<ST>::saveMM(const std::string& filename) const
     // for compatibility with paso, not strictly required.
     params.set("precision", 15);
     std::ofstream os(filename);
-#if defined(ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH)
-    Tpetra::Experimental::blockCrsMatrixWriter<ST,LO,GO,NT>(mat, os, params);
-#else
+    // Use standard blockCrsMatrixWriter (experimental version deprecated in Trilinos 16.2+)
     Tpetra::blockCrsMatrixWriter<ST,LO,GO,NT>(mat, os, params);
-#endif
     os.close();
 }
 
