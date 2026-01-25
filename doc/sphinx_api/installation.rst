@@ -43,6 +43,7 @@ Non-Essential Dependencies
 * boost-numpy (recommended for Jupyter) (``libboost-numpy-dev`` on Debian/Ubuntu)
 * UMFPACK - Direct sparse matrix solver (``libsuitesparse-dev`` on Debian/Ubuntu)
 * MUMPS - MUltifrontal Massively Parallel sparse direct Solver, sequential version (``libmumps-seq-dev`` on Debian/Ubuntu)
+* zlib - Compression library required by p4est for the oxley domain (``zlib1g-dev`` on Debian/Ubuntu)
 
 
 Optional Dependencies
@@ -181,7 +182,7 @@ Install required packages:
    sudo apt-get install python3-dev python3-numpy python3-scipy python3-matplotlib
    sudo apt-get install g++ gfortran scons cmake
    sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
-   sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev liblapacke-dev libmumps-seq-dev
+   sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev liblapacke-dev libmumps-seq-dev zlib1g-dev
 
 For MPI support, additionally install:
 
@@ -219,7 +220,7 @@ Install required packages:
    sudo apt-get install python3-dev python3-numpy python3-scipy python3-matplotlib
    sudo apt-get install g++ gfortran scons cmake
    sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
-   sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev liblapacke-dev libmumps-seq-dev
+   sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev liblapacke-dev libmumps-seq-dev zlib1g-dev
 
 For MPI support, additionally install:
 
@@ -262,7 +263,7 @@ Install required packages:
 
    sudo pacman -Sy python python-numpy python-scipy python-matplotlib
    sudo pacman -Sy gcc scons cmake
-   sudo pacman -Sy boost boost-libs suitesparse hdf5 netcdf lapack mumps
+   sudo pacman -Sy boost boost-libs suitesparse hdf5 netcdf lapack mumps zlib
 
 For MPI support:
 
@@ -300,7 +301,7 @@ Install required packages:
    sudo dnf install python3-devel python3-numpy python3-scipy python3-matplotlib
    sudo dnf install gcc-c++ gcc-gfortran scons cmake
    sudo dnf install boost-devel boost-python3-devel boost-python3 boost-numpy3 boost-iostreams boost-random
-   sudo dnf install hdf5-devel netcdf-devel suitesparse-devel lapack-devel MUMPS-devel
+   sudo dnf install hdf5-devel netcdf-devel suitesparse-devel lapack-devel MUMPS-devel zlib-devel
 
 For MPI support:
 
@@ -338,7 +339,7 @@ Install required packages:
    sudo zypper in python3-devel python3-numpy python3-scipy python3-matplotlib
    sudo zypper in gcc gcc-c++ gcc-fortran scons cmake
    sudo zypper in libboost_python3-devel libboost_numpy3-devel libboost_random-devel libboost_iostreams-devel
-   sudo zypper in hdf5-devel netcdf-devel suitesparse-devel lapack-devel mumps-devel
+   sudo zypper in hdf5-devel netcdf-devel suitesparse-devel lapack-devel mumps-devel zlib-devel
 
 For MPI support:
 
@@ -383,7 +384,7 @@ Install required packages:
    sudo dnf install python3-devel python3-numpy python3-scipy python3-matplotlib
    sudo dnf install gcc gcc-c++ gcc-gfortran scons cmake
    sudo dnf install boost-devel boost-python3 boost-python3-devel
-   sudo dnf install hdf5-devel netcdf-devel suitesparse suitesparse-devel lapack-devel MUMPS-devel
+   sudo dnf install hdf5-devel netcdf-devel suitesparse suitesparse-devel lapack-devel MUMPS-devel zlib-devel
 
 For MPI support:
 

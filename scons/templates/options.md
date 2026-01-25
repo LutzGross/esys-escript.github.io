@@ -218,6 +218,16 @@ Each option is followed by a brief explanation.
 - `p4est = False`:
   Whether to build escript with the p4est library. This library is required by oxley.
 
+- `zlib = False`:
+  Whether to enable zlib compression library support. Required by p4est for the oxley domain.
+  On Debian/Ubuntu, install with: `sudo apt-get install zlib1g-dev`
+
+- `zlib_prefix = '/usr'`:
+  Prefix or paths to zlib headers and libraries.
+
+- `zlib_libs = ['zlib']`:
+  zlib library/libraries to link against.
+
 - `sympy = False`:
   Whether to build escript with sympy symbolic module support, if it is available
   DEFAULT: False

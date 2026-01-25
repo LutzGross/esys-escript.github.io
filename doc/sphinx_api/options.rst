@@ -485,6 +485,26 @@ Build Component Options
 
    Default: ``False``
 
+zlib
+^^^^
+
+``zlib``
+   Whether to enable zlib compression library support. Required by p4est for the oxley domain.
+
+   Default: ``False``
+
+   On Debian/Ubuntu, install with: ``sudo apt-get install zlib1g-dev``
+
+``zlib_prefix``
+   Prefix or paths to zlib headers and libraries.
+
+   Default: ``'/usr'``
+
+``zlib_libs``
+   zlib library/libraries to link against.
+
+   Default: ``['zlib']``
+
 ``sympy``
    Whether to build escript with sympy symbolic module support, if it is available.
 

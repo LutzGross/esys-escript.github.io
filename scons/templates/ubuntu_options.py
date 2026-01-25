@@ -68,3 +68,9 @@ mumps_seq_libs = ['dmumps_seq', 'zmumps_seq', 'mumps_common_seq', 'mpiseq_seq', 
 netcdf = True
 netcdf_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
 netcdf_libs = ['netcdf_c++4', 'netcdf']
+
+# zlib configuration - required by p4est for oxley domain
+# Install with: sudo apt-get install zlib1g-dev
+zlib = True
+zlib_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
+zlib_libs = ['z']
