@@ -992,6 +992,11 @@ build_all_list = ['build_escript']
 install_all_list = ['target_init', 'install_escript']
 
 #p4est
+if "oxley" in env['domains'] and not env['zlib']:
+    print("Error: oxley domain requires zlib. Please set zlib=True in your options file.")
+    print("On Debian/Ubuntu, install with: sudo apt-get install zlib1g-dev")
+    env.Exit(1)
+
 if env['p4est'] and "oxley" in env['domains']  :
     build_all_list += ['build_p4est']
     install_all_list += ['install_p4est']

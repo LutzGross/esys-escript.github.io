@@ -865,7 +865,7 @@ def checkOptionalLibraries(env):
             env.Append(CPPDEFINES = ['ESYS_HAVE_ZLIB'])
             env.AppendUnique(CPPPATH=[zlib_inc_path])
             env.AppendUnique(LIBPATH=[zlib_lib_path])
-            env.AppendUnique(LIBS=env['zlib'])
+            env.AppendUnique(LIBS=env['zlib_libs'])
             env['buildvars']['zlib_inc_path'] = zlib_inc_path
             env['buildvars']['zlib_lib_path'] = zlib_lib_path
         except RuntimeError as e:
