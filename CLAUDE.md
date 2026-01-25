@@ -258,7 +258,6 @@ The project uses Boost.Python for Python bindings:
 
 **Sub-communicators with mpi4py**:
 - You CAN use mpi4py to create sub-communicators and pass them to escript domains
-- This replaces the old SplitWorld functionality
 - Example: `sub_comm = MPI.COMM_WORLD.Split(color, rank); domain = Rectangle(n0=20, n1=10, comm=sub_comm)`
 - See `doc/user/mpi4py.tex` for detailed documentation and examples
 
