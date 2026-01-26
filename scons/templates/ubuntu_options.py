@@ -26,7 +26,17 @@ sympy = True
 cxx_extra= ['-O3', '-fdiagnostics-color=always', '-fstack-protector-strong',  '-Wformat', '-Werror=format-security' ]
 pythoncmd = 'python3'
 
+# METIS configuration - graph partitioning for Trilinos
+# Install with: sudo apt-get install libmetis-dev
+metis = True
+metis_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
+metis_libs = ['metis']
+
+# ParMETIS configuration - parallel graph partitioning (requires MPI)
+# Install with: sudo apt-get install libparmetis-dev
 parmetis = True
+parmetis_prefix = ['/usr/include/parmetis', '/usr/lib/x86_64-linux-gnu']
+parmetis_libs = ['parmetis']
 
 import subprocess
 p=subprocess.run([pythoncmd,'-V'], capture_output=True, text=True)

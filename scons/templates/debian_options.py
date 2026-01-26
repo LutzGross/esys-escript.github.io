@@ -31,8 +31,18 @@ werror=0
 mpi='NO'
 mpi_prefix = ['/usr/include/x86_64-linux-gnu/openmpi', '/usr/lib/x86_64-linux-gnu/openmpi' ]
 mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
-parmetis = True
 
+# METIS configuration - graph partitioning for Trilinos
+# Install with: sudo apt-get install libmetis-dev
+metis = True
+metis_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
+metis_libs = ['metis']
+
+# ParMETIS configuration - parallel graph partitioning (requires MPI)
+# Install with: sudo apt-get install libparmetis-dev
+parmetis = True
+parmetis_prefix = ['/usr/include/parmetis', '/usr/lib/x86_64-linux-gnu']
+parmetis_libs = ['parmetis']
 
 umfpack = True
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']

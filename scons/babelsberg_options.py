@@ -24,16 +24,6 @@ mpi = 'auto'
 # Enable mpi4py support
 mpi4py = True
 
-# Enable METIS
-metis = True
-metis_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
-metis_libs = ['metis']
-
-# Enable parmetis
-parmetis = True
-parmetis_prefix = ['/usr/include/parmetis', '/usr/lib/x86_64-linux-gnu']
-parmetis_libs = ['parmetis']
-
 # Build Trilinos with MPI support
 build_trilinos = 'make'  # Use smart dependency checking
 
