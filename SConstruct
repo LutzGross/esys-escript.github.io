@@ -111,9 +111,12 @@ vars.AddVariables(
     BoolVariable('zlib', 'Enable zLib', False),
     ('zlib_prefix', 'Prefix/Paths to zlib installation', default_prefix),
     ('zlib_libs', 'zlib libraries to link with', ['zlib']),
+    BoolVariable('metis', 'Enable METIS', False),
+  ('metis_prefix', 'Prefix/Paths of METIS installation', default_prefix),
+  ('metis_libs', 'METIS libraries to link with', ['metis']),
     BoolVariable('parmetis', 'Enable ParMETIS (requires MPI)', False),
   ('parmetis_prefix', 'Prefix/Paths of ParMETIS installation', default_prefix),
-  ('parmetis_libs', 'ParMETIS libraries to link with', ['parmetis', 'metis']),
+  ('parmetis_libs', 'ParMETIS libraries to link with', ['parmetis']),
   BoolVariable('mkl', 'Enable the Math Kernel Library', False),
   ('mkl_prefix', 'Prefix/Paths to MKL installation', default_prefix),
   ('mkl_libs', 'MKL libraries to link with', ['mkl_solver','mkl_em64t','guide','pthread']),
@@ -238,7 +241,7 @@ elif env['build_trilinos'] is False:
 # SCons accepts these but True/False is clearer
 bool_options = ['openmp', 'paso', 'weipa', 'sympy', 'hdf5', 'debug', 'verbose',
                 'werror', 'trilinos', 'umfpack', 'mkl', 'mumps_seq', 'silo', 'visit',
-                'parmetis', 'zlib', 'p4est', 'mpi4py', 'longindices',
+                'metis', 'parmetis', 'zlib', 'p4est', 'mpi4py', 'longindices',
                 'compressed_files', 'disable_boost_numpy', 'osx_dependency_fix',
                 'stdlocationisprefix', 'mpi_no_host', 'insane', 'iknowwhatimdoing']
 for opt in bool_options:
@@ -651,7 +654,23 @@ if env['build_trilinos'] != 'never':
             os.environ['CC'] = env['cc']
         if not env['cxx'] == 'default ':
             os.environ['CXX'] = env['cxx']
-        SHARGS = [ env['trilinos_install'], env['CC'],  env['CXX'], OPENMPFLAG, env['trilinos_src'] ]
+        # Prepare METIS and ParMETIS info for Trilinos build
+        # Extract paths from prefix (can be single path or [inc_path, lib_path])
+        def get_inc_lib_paths(prefix):
+            if isinstance(prefix, (list, tuple)) and len(prefix) >= 2:
+                return prefix[0], prefix[1]
+            elif isinstance(prefix, (list, tuple)) and len(prefix) == 1:
+                return prefix[0], prefix[0]
+            else:
+                return str(prefix), str(prefix)
+
+        metis_enable = 'ON' if env['metis'] else 'OFF'
+        metis_inc, metis_lib = get_inc_lib_paths(env['metis_prefix']) if env['metis'] else ('', '')
+        parmetis_enable = 'ON' if env['parmetis'] else 'OFF'
+        parmetis_inc, parmetis_lib = get_inc_lib_paths(env['parmetis_prefix']) if env['parmetis'] else ('', '')
+
+        SHARGS = [ env['trilinos_install'], env['CC'],  env['CXX'], OPENMPFLAG, env['trilinos_src'],
+                   metis_enable, metis_inc, metis_lib, parmetis_enable, parmetis_inc, parmetis_lib ]
 
         print("Initialization of Trilinos build using", SHARGS )
         if env['trilinos_make_sh'] == 'default':
@@ -1151,6 +1170,10 @@ def print_summary():
         print("          mpi4py:  YES")
     else:
         print("          mpi4py:  NO")
+    if env['metis']:
+        print("           METIS:  %s (Version %s)"%(env['metis_prefix'],env['metis_version']))
+    else:
+        d_list.append('metis')
     if env['parmetis']:
         print("        ParMETIS:  %s (Version %s)"%(env['parmetis_prefix'],env['parmetis_version']))
     else:

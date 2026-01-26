@@ -790,6 +790,41 @@ def checkOptionalLibraries(env):
         env['buildvars']['mpi_lib_path']=mpi_lib_path
     env['buildvars']['mpi']=env['mpi']
 
+    ######## METIS
+    metis_inc_path=''
+    metis_lib_path=''
+    if env['metis']:
+        metis_inc_path,metis_lib_path=findLibWithHeader(env, env['metis_libs'], 'metis.h', env['metis_prefix'], lang='c++')
+        env.AppendUnique(CPPPATH = [metis_inc_path])
+        env.AppendUnique(LIBPATH = [metis_lib_path])
+        env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], metis_lib_path)
+
+        # Try to extract the metis version from metis.h
+        header=open(os.path.join(metis_inc_path, 'metis.h')).readlines()
+        major,minor,sub = None,None,None
+        for line in header:
+            ver=re.match(r'#define METIS_VER_MAJOR\s*(\d+)',line)
+            if ver:
+                major = int(ver.group(1))
+                continue
+            ver=re.match(r'#define METIS_VER_MINOR\s*(\d+)',line)
+            if ver:
+                minor = int(ver.group(1))
+                continue
+            ver=re.match(r'#define METIS_VER_SUBMINOR\s*(\d+)',line)
+            if ver:
+                sub = int(ver.group(1))
+                continue
+        if major is not None:
+            env['metis_version'] = "%d.%d.%d"%(major,minor if minor else 0,sub if sub else 0)
+        else:
+            env['metis_version'] = "unknown"
+    else:
+        env['metis_version'] = "N/A"
+    env['buildvars']['metis']=int(env['metis'])
+    env['buildvars']['metis_inc_path']=metis_inc_path
+    env['buildvars']['metis_lib_path']=metis_lib_path
+
     ######## ParMETIS
     if not env['usempi']: env['parmetis'] = False
     parmetis_inc_path=''

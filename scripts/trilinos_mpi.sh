@@ -3,6 +3,37 @@
 rm -f CMakeCache.txt
 
 TRI_INSTALL_PREFIX=$1
+# $2 = C compiler
+# $3 = C++ compiler
+# $4 = OpenMP flag (not used, controlled by Trilinos_ENABLE_OpenMP)
+# $5 = Trilinos source directory
+# $6 = METIS enable (ON/OFF)
+# $7 = METIS include path
+# $8 = METIS library path
+# $9 = ParMETIS enable (ON/OFF)
+# ${10} = ParMETIS include path
+# ${11} = ParMETIS library path
+
+METIS_ENABLE=$6
+METIS_INC=$7
+METIS_LIB=$8
+PARMETIS_ENABLE=$9
+PARMETIS_INC=${10}
+PARMETIS_LIB=${11}
+
+# Build METIS cmake options
+METIS_OPTS="-D TPL_ENABLE_METIS=${METIS_ENABLE}"
+if [ "${METIS_ENABLE}" = "ON" ] && [ -n "${METIS_INC}" ]; then
+    METIS_OPTS="${METIS_OPTS} -D TPL_METIS_INCLUDE_DIRS=${METIS_INC}"
+    METIS_OPTS="${METIS_OPTS} -D TPL_METIS_LIBRARIES=${METIS_LIB}/libmetis.so"
+fi
+
+# Build ParMETIS cmake options
+PARMETIS_OPTS="-D TPL_ENABLE_ParMETIS=${PARMETIS_ENABLE}"
+if [ "${PARMETIS_ENABLE}" = "ON" ] && [ -n "${PARMETIS_INC}" ]; then
+    PARMETIS_OPTS="${PARMETIS_OPTS} -D TPL_ParMETIS_INCLUDE_DIRS=${PARMETIS_INC}"
+    PARMETIS_OPTS="${PARMETIS_OPTS} -D TPL_ParMETIS_LIBRARIES=${PARMETIS_LIB}/libparmetis.so"
+fi
 
 cmake \
       -D CMAKE_INSTALL_PREFIX=$TRI_INSTALL_PREFIX\
@@ -17,9 +48,8 @@ cmake \
       -D TPL_ENABLE_Boost=ON \
       -D TPL_ENABLE_Cholmod=OFF \
       -D TPL_ENABLE_SCALAPACK=OFF \
-      -D TPL_ENABLE_ParMETIS=ON \
-      -D TPL_ParMETIS_INCLUDE_DIRS=/usr/include/parmetis \
-      -D TPL_ParMETIS_LIBRARIES="/usr/lib/x86_64-linux-gnu/libparmetis.so;/usr/lib/x86_64-linux-gnu/libmetis.so.5" \
+      ${METIS_OPTS} \
+      ${PARMETIS_OPTS} \
       -D TPL_ENABLE_MUMPS=OFF \
       -D TPL_ENABLE_SuperLU=OFF \
       -D TPL_ENABLE_UMFPACK=OFF \
@@ -46,4 +76,3 @@ cmake \
       -D Trilinos_ENABLE_TESTS=OFF \
       -D Trilinos_ENABLE_EXAMPLES=OFF \
       $5
-#-D TPL_Cholmod_LIBRARIES='libcholmod.so;libamd.so;libcolamd.so' \
