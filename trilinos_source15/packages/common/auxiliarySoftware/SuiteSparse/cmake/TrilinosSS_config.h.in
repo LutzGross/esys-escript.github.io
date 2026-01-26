@@ -1,9 +1,0 @@
-/* src/TrilinosSS_config.h.in.  Generated from configure.ac by autoheader.  */
-
-#ifndef TrilinosSS_CONFIG_H
-#define TrilinosSS_CONFIG_H
-
-/* define if we want to use OpenMP */
-#cmakedefine TRILINOSSS_HAVE_OMP
-
-#endif

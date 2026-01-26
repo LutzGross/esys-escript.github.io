@@ -1,3 +1,0 @@
-ADD_SUBDIRECTORY(DataCombination)
-ADD_SUBDIRECTORY(StructuredIntegration)
-

@@ -1,3 +1,0 @@
-ADD_SUBDIRECTORY(brinkman)
-ADD_SUBDIRECTORY(darcy)
-ADD_SUBDIRECTORY(filteredDarcy)

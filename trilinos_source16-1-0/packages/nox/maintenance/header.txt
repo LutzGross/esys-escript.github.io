@@ -1,8 +1,0 @@
-*****************************************************************************
-           NOX: An Object-Oriented Nonlinear Solver Package
-Copyright 2002 NTESS and the NOX contributors.
-
-           LOCA: Library of Continuation Algorithms Package
-Copyright 2001-2005 NTESS and the LOCA contributors.
-SPDX-License-Identifier: BSD-3-Clause
-*****************************************************************************

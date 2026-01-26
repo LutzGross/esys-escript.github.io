@@ -1,9 +1,0 @@
-#TRIBITS_ADD_EXECUTABLE(
-#   ConicModel
-#   SOURCES test_01.cpp
-#   ARGS PrintItAll
-#   NUM_MPI_PROCS 1
-#   PASS_REGULAR_EXPRESSION "TEST PASSED"
-#   ADD_DIR_TO_NAME
-#   )
-

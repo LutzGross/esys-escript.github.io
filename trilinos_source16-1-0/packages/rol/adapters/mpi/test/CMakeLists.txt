@@ -1,2 +1,0 @@
-ADD_SUBDIRECTORY(function)
-ADD_SUBDIRECTORY(vector)

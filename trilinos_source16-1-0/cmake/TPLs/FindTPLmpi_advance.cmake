@@ -1,5 +1,0 @@
-
-TRIBITS_TPL_FIND_INCLUDE_DIRS_AND_LIBRARIES( mpi_advance
-  REQUIRED_HEADERS mpi_advance.h
-  REQUIRED_LIBS_NAMES mpi_advance
-  )

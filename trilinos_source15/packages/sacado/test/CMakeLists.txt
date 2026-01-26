@@ -1,6 +1,0 @@
-IF (Sacado_ENABLE_GTest)
-  ADD_SUBDIRECTORY(GTestSuite)
-ENDIF()
-ADD_SUBDIRECTORY(UnitTests)
-ADD_SUBDIRECTORY(tradoptest)
-ADD_SUBDIRECTORY(performance)

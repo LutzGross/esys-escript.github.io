@@ -1,5 +1,0 @@
-
-TRIBITS_TPL_FIND_INCLUDE_DIRS_AND_LIBRARIES( ParMETIS
-  REQUIRED_HEADERS "parmetis.h;metis.h"
-  REQUIRED_LIBS_NAMES "parmetis;metis"
-  )

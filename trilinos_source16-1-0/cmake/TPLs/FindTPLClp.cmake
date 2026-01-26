@@ -1,5 +1,0 @@
-
-TRIBITS_TPL_FIND_INCLUDE_DIRS_AND_LIBRARIES( Clp
-  REQUIRED_HEADERS coin/ClpConfig.h
-  REQUIRED_LIBS_NAMES Clp OsiClp Osi CoinUtils bz2 z m
-  )

@@ -1,1 +1,0 @@
-ADD_SUBDIRECTORY(independent_set)

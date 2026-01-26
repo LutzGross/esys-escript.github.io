@@ -1,8 +1,0 @@
----
-Checks: >
- bugprone-reserved-identifier,
- -clang-analyzer*
-
-WarningsAsErrors: '*'
-FormatStyle: 'file'
-HeaderFilterRegex: '.*Kokkos.*'

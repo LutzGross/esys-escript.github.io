@@ -1,6 +1,0 @@
-
-STK_SUBPACKAGE(TransferUtil)
-
-ADD_SUBDIRECTORY(stk_transfer_util)
-
-STK_SUBPACKAGE_POSTPROCESS()

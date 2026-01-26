@@ -1,7 +1,0 @@
-
-STK_SUBPACKAGE(Middle_mesh)
-
-ADD_SUBDIRECTORY(stk_middle_mesh)
-
-STK_SUBPACKAGE_POSTPROCESS()
-

@@ -1,3 +1,0 @@
-ADD_SUBDIRECTORY(FiniteElementAssembly)
-ADD_SUBDIRECTORY(FiniteElementAssembly_MixedFieldTypes)
-ADD_SUBDIRECTORY(FiniteElementAssembly_DeviceDag)
