@@ -67,7 +67,7 @@ Pages 23-34](doi:10.1016/j.pepi.2007.04.004)
 
 ## License
 
-Copyright (c) 20004-2026 by the esys.escript Group.
+Copyright (c) 2003-2026 by the esys.escript Group.
 The majority of the files contained in this distribution are licensed 
 under the Apache License, version 2.0, http://www.apache.org/licenses/LICENSE-2.0, see [LICENSE](LICENSE).
 
