@@ -36,8 +36,9 @@ For complete documentation including user guide and API reference, see the [main
 - zlib - Compression library required by p4est for the oxley domain (zlib1g-dev on Debian/Ubuntu)
 
 ### Optional Dependencies
+- METIS - Graph partitioning library used by Trilinos for matrix reordering (libmetis-dev on Debian/Ubuntu). Can be used with or without MPI.
 - MPI implementation (OpenMPI or MPICH) with python3-mpi4py for distributed parallelization
-- ParMETIS (for MPI builds)
+- ParMETIS - Parallel graph partitioning for MPI builds (libparmetis-dev on Debian/Ubuntu, requires MPI and METIS)
 - SymPy (python3-sympy) for symbolic mathematics module - **must be present at build time** (requires version 1.2 or later)
 - python3-sphinx and python3-markdown (for building API documentation)
 - LaTeX (texlive-latex-base, texlive-latex-extra) for building user guide PDF
@@ -151,6 +152,7 @@ sudo apt-get install python3-dev python3-numpy python3-scipy python3-matplotlib
 sudo apt-get install g++ gfortran scons cmake
 sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
 sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev liblapacke-dev libmumps-seq-dev zlib1g-dev
+sudo apt-get install libmetis-dev
 ```
 
 For MPI support, additionally install:
@@ -187,6 +189,7 @@ sudo apt-get install python3-dev python3-numpy python3-scipy python3-matplotlib
 sudo apt-get install g++ gfortran scons cmake
 sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
 sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev liblapacke-dev libmumps-seq-dev zlib1g-dev
+sudo apt-get install libmetis-dev
 ```
 
 For MPI support, additionally install:
@@ -225,7 +228,7 @@ Install required packages:
 ```bash
 sudo pacman -Sy python python-numpy python-scipy python-matplotlib
 sudo pacman -Sy gcc scons cmake
-sudo pacman -Sy boost boost-libs suitesparse hdf5 netcdf lapack mumps zlib
+sudo pacman -Sy boost boost-libs suitesparse hdf5 netcdf lapack mumps zlib metis
 ```
 
 For MPI support:
@@ -261,7 +264,7 @@ Install required packages:
 sudo dnf install python3-devel python3-numpy python3-scipy python3-matplotlib
 sudo dnf install gcc-c++ gcc-gfortran scons cmake
 sudo dnf install boost-devel boost-python3-devel boost-python3 boost-numpy3 boost-iostreams boost-random
-sudo dnf install hdf5-devel netcdf-devel suitesparse-devel lapack-devel MUMPS-devel zlib-devel
+sudo dnf install hdf5-devel netcdf-devel suitesparse-devel lapack-devel MUMPS-devel zlib-devel metis-devel
 ```
 
 For MPI support:
@@ -297,7 +300,7 @@ Install required packages:
 sudo zypper in python3-devel python3-numpy python3-scipy python3-matplotlib
 sudo zypper in gcc gcc-c++ gcc-fortran scons cmake
 sudo zypper in libboost_python3-devel libboost_numpy3-devel libboost_random-devel libboost_iostreams-devel
-sudo zypper in hdf5-devel netcdf-devel suitesparse-devel lapack-devel mumps-devel zlib-devel
+sudo zypper in hdf5-devel netcdf-devel suitesparse-devel lapack-devel mumps-devel zlib-devel metis-devel
 ```
 
 For MPI support:
@@ -340,7 +343,7 @@ Install required packages:
 sudo dnf install python3-devel python3-numpy python3-scipy python3-matplotlib
 sudo dnf install gcc gcc-c++ gcc-gfortran scons cmake
 sudo dnf install boost-devel boost-python3 boost-python3-devel
-sudo dnf install hdf5-devel netcdf-devel suitesparse suitesparse-devel lapack-devel MUMPS-devel zlib-devel
+sudo dnf install hdf5-devel netcdf-devel suitesparse suitesparse-devel lapack-devel MUMPS-devel zlib-devel metis-devel
 ```
 
 For MPI support:

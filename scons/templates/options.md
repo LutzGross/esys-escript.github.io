@@ -176,15 +176,30 @@ Each option is followed by a brief explanation.
 - `hdf5_libs = ['hdf5', 'hdf5']`:
   HDF5 library/libraries to link against
 
+- `metis = True`:
+  Whether to use the METIS graph partitioning library (used by Trilinos for matrix reordering).
+  Does not require MPI - can be used with both MPI and non-MPI builds.
+  DEFAULT: False
+
+- `metis_prefix = '/usr/local'`:
+  Prefix or paths to METIS headers and libraries. See note above.
+  Example: `metis_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']`
+
+- `metis_libs = ['metis']`:
+  METIS library/libraries to link against.
+  On Debian/Ubuntu, install with: `sudo apt-get install libmetis-dev`
+
 - `parmetis = True`:
   Whether to use the parMETIS library (only relevant if building
-  finley with MPI). DEFAULT: False
+  finley with MPI, requires METIS). DEFAULT: False
 
 - `parmetis_prefix = '/usr/local'`:
   Prefix or paths to parMETIS headers and libraries. See note above.
+  Example: `parmetis_prefix = ['/usr/include/parmetis', '/usr/lib/x86_64-linux-gnu']`
 
-- `parmetis_libs = ['parmetis', 'metis']`:
-  parMETIS library/libraries to link against
+- `parmetis_libs = ['parmetis']`:
+  parMETIS library/libraries to link against.
+  On Debian/Ubuntu, install with: `sudo apt-get install libparmetis-dev`
 
 - `mkl = False`:
   Whether to add support for the Intel MKL (Math Kernel Library) direct solver
