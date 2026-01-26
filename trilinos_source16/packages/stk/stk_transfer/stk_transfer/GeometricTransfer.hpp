@@ -36,6 +36,7 @@
 #define  STK_GEOMETRICTRANSFER_HPP
 
 #include <algorithm>
+#include <limits>
 #include <memory>
 #include <set>
 #include <string>
@@ -43,7 +44,6 @@
 
 #include <stk_util/util/StaticAssert.hpp>
 #include <stk_util/util/ReportHandler.hpp>
-#include <stk_util/environment/Env.hpp>
 #include <stk_util/parallel/ParallelReduce.hpp>
 
 #include <stk_search/CoarseSearch.hpp>
@@ -136,15 +136,14 @@ protected :
   EntityKeyMap          m_local_range_to_domain;
 };
 
-
-template <class INTERPOLATE> void GeometricTransfer<INTERPOLATE>::coarse_search() {
-
+template <class INTERPOLATE>
+void GeometricTransfer<INTERPOLATE>::coarse_search()
+{
   if (!m_has_parallel_machine)  //in some cases we needed delayed construction since bulk data might not be set at transfer construction
   {
     m_parallel_machine = m_mesha->comm();
     m_has_parallel_machine = true;
   }
-  m_global_range_to_domain.clear();
 
   impl::coarse_search_impl<INTERPOLATE>(m_global_range_to_domain,
                 m_parallel_machine,
@@ -154,20 +153,25 @@ template <class INTERPOLATE> void GeometricTransfer<INTERPOLATE>::coarse_search(
                 m_expansion_factor);
 }
 
-template <class INTERPOLATE> void GeometricTransfer<INTERPOLATE>::communication() {
+template <class INTERPOLATE>
+void GeometricTransfer<INTERPOLATE>::communication()
+{
   const unsigned p_size = parallel_machine_size(m_parallel_machine);
   if (1 < p_size) {
     copy_domain_to_range_processors();
   }
 }
 
-template <class INTERPOLATE> void GeometricTransfer<INTERPOLATE>::local_search() {
+template <class INTERPOLATE>
+void GeometricTransfer<INTERPOLATE>::local_search()
+{
   localize_entity_key_map();
   INTERPOLATE::filter_to_nearest(m_local_range_to_domain, *m_mesha, *m_meshb);
 }
 
-
-template <class INTERPOLATE> void GeometricTransfer<INTERPOLATE>::apply(){
+template <class INTERPOLATE>
+void GeometricTransfer<INTERPOLATE>::apply()
+{
   m_mesha->update_values();
   INTERPOLATE::apply(*m_meshb, *m_mesha, m_local_range_to_domain);
   m_meshb->update_values();

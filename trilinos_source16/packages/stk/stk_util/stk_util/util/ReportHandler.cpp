@@ -109,7 +109,7 @@ void default_handler_exc(const char* expr,
 }
 
 void clean_error_handler(const char* expr,
-                         const std::string& location,
+                         const std::string& /*location*/,
                          std::ostringstream& message)
 {
   std::string error_msg = "";
@@ -268,12 +268,12 @@ std::ostream & output_stacktrace(std::ostream & os)
 
 #ifndef STK_ENABLE_GPU_BUT_NO_RDC
 
-STK_FUNCTION void ThrowMsgDevice(const char * message)
+KOKKOS_FUNCTION void ThrowMsgDevice(const char * message)
 {
   Kokkos::abort(message);
 }
 
-STK_FUNCTION void ThrowErrorMsgDevice(const char * message)
+KOKKOS_FUNCTION void ThrowErrorMsgDevice(const char * message)
 {
   Kokkos::abort(message);
 }

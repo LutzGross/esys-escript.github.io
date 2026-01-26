@@ -1,3 +1,13 @@
+// @HEADER
+// *****************************************************************************
+//           Panzer: A partial differential equation assembly
+//       engine for strongly coupled complex multiphysics systems
+//
+// Copyright 2011 NTESS and the Panzer contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
+// @HEADER
+
 #ifndef MINIEM_HELPERS_HPP
 #define MINIEM_HELPERS_HPP
 
@@ -60,6 +70,7 @@ namespace mini_em {
                                                            std::string &xml,
                                                            int basis_order,
                                                            const bool preferTPLs = false,
+                                                           const bool useBarriers = false,
                                                            const bool truncateMueLuHierarchy = false);
 
   void setClosureParameters(physicsType physics,

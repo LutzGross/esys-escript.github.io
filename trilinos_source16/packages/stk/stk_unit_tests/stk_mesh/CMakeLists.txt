@@ -32,9 +32,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # 
 
-FILE(GLOB SOURCES
+FILE(GLOB SOURCES CONFIGURE_DEPENDS 
    *.cpp
    change_parts/*.cpp
+   custom_ghosting/*.cpp
    entitySorting/*.cpp
    edge_creation/*.cpp
    face_creation/*.cpp
@@ -72,12 +73,22 @@ LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestDeletedEntityCache
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestDeleteEntities.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestDestroyElements.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestDistributedIndexWithBulkData.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestElementFaceConnection.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestElemGraphCoincidentElements.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestElemGraphUpdateGraphEdges.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestEntitiesNodesHaveInCommon.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestEntityProcMapping.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestFEMHelper.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestField.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestFieldAsync.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestFieldDataBucketAccess.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestFieldDataBytesAccess.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestFieldDataEntityAccess.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestLegacyFieldDataBucketAccess.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestLegacyFieldDataBytesAccess.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestLegacyFieldDataEntityAccess.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestFieldQueryFunctions.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestFieldSynchronization.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestForEachEntityLoopAbstractions.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestGenIds.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestGetEntities.cpp")
@@ -95,6 +106,7 @@ LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestParallelGraphInfo.
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestPartAfterCommit.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestPartAlias.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestPartToBucket.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestSelfContainedModCycles.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestSidePolarity.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestSideSet.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTestStkTextMesh.cpp")
@@ -105,6 +117,7 @@ LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTest3Tets3Procs.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/change_parts/CustomGhostEntities.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/entitySorting/UnitTestEntitySorting.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/edge_creation/UnitTestEdgeConnection.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/edge_creation/UnitTestEdgesOnFaces.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/face_creation/FaceCreatorFixture.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/face_creation/TwoHexesTwoProcs.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/face_creation/TwoHexesTwoProcsEGWithPermutations.cpp")
@@ -135,24 +148,28 @@ LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/face_creation/user_created
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ngp/NgpDebugFieldSync_Fixtures.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ngp/NgpParallelSumTest.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ngp/NgpMeshManagerTest.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ngp/NgpMeshTest.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ngp/TestNgpMeshUpdate.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ngp/howToNgp.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ngp/howToNgpMeshMod.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ngp/implNgpMeshMod.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ngp/NgpFieldAsyncTest.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ngp/ngpFieldBLASTest.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ngp/ngpFieldTest.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ngp/UnitTestNgp.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ngp/UnitTestNgpDebugFieldSync.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ngp/UnitTestNgpDebugFieldSync_AccessDuringMeshModification.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ngp/UnitTestNgpDebugFieldSync_MeshModification.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ngp/UnitTestNgpDebugFieldSync_MultiStateRotation.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ngp/UnitTestNgpDebugFieldSync_PartialAllocation.cpp")
 LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ngp/UnitTestNgpDebugFieldSync_PartialSync.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ngp/UnitTestNgpMeshModification.cpp")
 ENDIF()
 
 if(HAVE_STK_Trilinos)
   TRIBITS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
-  TRIBITS_ADD_EXECUTABLE_AND_TEST(stk_mesh_unit_tests
+  TRIBITS_ADD_EXECUTABLE_AND_TEST(stk_mesh_utest
     SOURCES ${SOURCES}
     TESTONLYLIBS stk_unit_main
     ARGS ""
@@ -161,21 +178,31 @@ if(HAVE_STK_Trilinos)
     NOEXEPREFIX
   )
 else()
-  add_executable(stk_mesh_unit_tests ${SOURCES})
-  target_link_libraries(stk_mesh_unit_tests stk_unit_test_utils)
+  add_executable(stk_mesh_utest ${SOURCES})
+  target_link_libraries(stk_mesh_utest stk_unit_test_utils)
 
-  target_include_directories(stk_mesh_unit_tests PUBLIC
+  target_include_directories(stk_mesh_utest PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>
   )
 
   if(${PROJECT_NAME}_ENABLE_STKIO)
-    target_link_libraries(stk_mesh_unit_tests stk_io)
+    target_link_libraries(stk_mesh_utest stk_io)
   endif()
-  target_link_libraries(stk_mesh_unit_tests stk_mesh_fixtures)
-  target_link_libraries(stk_mesh_unit_tests stk_mesh_base)
-  target_link_libraries(stk_mesh_unit_tests stk_unit_main)
+  target_link_libraries(stk_mesh_utest stk_mesh_fixtures)
+  target_link_libraries(stk_mesh_utest stk_mesh_base)
+  target_link_libraries(stk_mesh_utest stk_unit_main)
 
-  add_test(NAME "stk_mesh_unit_tests" COMMAND stk_mesh_unit_tests)
+  INSTALL(TARGETS stk_mesh_utest DESTINATION ${STK_INSTALL_BINDIR})
+
+  FOREACH(NUMPROCS 1 2 3 4)
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/np${NUMPROCS})
+    add_test(NAME "stk_mesh_utest_np${NUMPROCS}"
+             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/np${NUMPROCS}
+             COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${NUMPROCS} ${CMAKE_CURRENT_BINARY_DIR}/stk_mesh_utest 
+             --gtest_filter=-*externalFile)
+    set_property(TEST "stk_mesh_utest_np${NUMPROCS}" PROPERTY PROCESSORS ${NUMPROCS})
+  ENDFOREACH()
+  
 endif()
 

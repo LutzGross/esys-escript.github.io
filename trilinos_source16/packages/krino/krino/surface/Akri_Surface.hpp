@@ -28,6 +28,7 @@ enum Surface_Type
   SPHERE,
   ELLIPSOID,
   CYLINDER,
+  CUBOID,
   COMPOSITE_SURFACE,
   PLANE,
   RANDOM,
@@ -72,6 +73,12 @@ public:
   // for debugging memory usage
   virtual size_t storage_size() const = 0;
 
+  virtual bool has_corners() const { return false; }
+  virtual bool has_edges() const { return false; }
+  bool has_sharp_features() const { return has_edges() || has_corners(); }
+  virtual void fill_triangle_intersection_parametric_coordinates(const std::array<stk::math::Vector3d,3> & /*faceNodes*/, std::vector<stk::math::Vector3d> & /*intersectionParamCoords*/) const {}
+  virtual void fill_tetrahedon_intersection_parametric_coordinates(const std::array<stk::math::Vector3d,4> & /*tetNodes*/, std::vector<stk::math::Vector3d> & /*intersectionParamCoords*/) const {}
+
   // methods related to moving surfaces (transformations)
   virtual void set_transformation(Transformation * trans) { my_transformation = trans; }
   Transformation * get_transformation() { return my_transformation; }
@@ -98,7 +105,7 @@ class SurfaceThatDoesntTakeAdvantageOfNarrowBandAndThereforeHasCorrectSign : pub
 public:
   virtual bool truncated_distance_may_have_wrong_sign() const override { return false; }
   virtual double point_signed_distance(const stk::math::Vector3d &x) const override = 0;
-  virtual double truncated_point_signed_distance(const stk::math::Vector3d &x, const double truncation_length, const double far_field_value) const override
+  virtual double truncated_point_signed_distance(const stk::math::Vector3d &x, const double /*truncation_length*/, const double /*far_field_value*/) const override
   {
     return point_signed_distance(x);
   }

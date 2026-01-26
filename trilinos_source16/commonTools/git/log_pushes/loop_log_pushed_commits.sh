@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-# See options.md file in this directory for usage
+# See README.md file in this directory for usage
 
 _ABS_FILE_PATH=`readlink -f $0`
 _SCRIPT_DIR=`dirname $_ABS_FILE_PATH`

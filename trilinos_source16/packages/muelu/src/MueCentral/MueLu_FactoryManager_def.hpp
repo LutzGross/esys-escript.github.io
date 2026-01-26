@@ -21,7 +21,7 @@
 #include "MueLu_DirectSolver.hpp"
 #include "MueLu_InitialBlockNumberFactory.hpp"
 #include "MueLu_LineDetectionFactory.hpp"
-// #include "MueLu_MultiVectorTransferFactory.hpp"
+#include "MueLu_MultiVectorTransferFactory.hpp"
 #include "MueLu_NoFactory.hpp"
 #include "MueLu_NullspaceFactory.hpp"
 #include "MueLu_PatternFactory.hpp"
@@ -50,6 +50,22 @@ namespace MueLu {
 
 #define MUELU_KOKKOS_FACTORY(varName, oldFactory, newFactory) \
   (!useKokkos_) ? SetAndReturnDefaultFactory(varName, rcp(new oldFactory())) : SetAndReturnDefaultFactory(varName, rcp(new newFactory()));
+
+template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
+FactoryManager<Scalar, LocalOrdinal, GlobalOrdinal, Node>::FactoryManager() {
+  SetIgnoreUserData(false);  // set IgnorUserData flag to false (default behaviour)
+  useKokkos_ = !Node::is_serial;
+}
+
+template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
+FactoryManager<Scalar, LocalOrdinal, GlobalOrdinal, Node>::FactoryManager(const std::map<std::string, RCP<const FactoryBase> >& factoryTable) {
+  factoryTable_ = factoryTable;
+  SetIgnoreUserData(false);  // set IgnorUserData flag to false (default behaviour) //TODO: use parent class constructor instead
+  useKokkos_ = !Node::is_serial;
+}
+
+template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
+FactoryManager<Scalar, LocalOrdinal, GlobalOrdinal, Node>::~FactoryManager() = default;
 
 template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
 void FactoryManager<Scalar, LocalOrdinal, GlobalOrdinal, Node>::SetFactory(const std::string& varName, const RCP<const FactoryBase>& factory) {
@@ -104,7 +120,15 @@ const RCP<const FactoryBase> FactoryManager<Scalar, LocalOrdinal, GlobalOrdinal,
       return SetAndReturnDefaultFactory(varName, factory);
     }
     if (varName == "Scaled Nullspace") return SetAndReturnDefaultFactory(varName, rcp(new ScaledNullspaceFactory()));
-
+    if (varName == "Material") {
+      auto fact = rcp(new MultiVectorTransferFactory());
+      Teuchos::ParameterList pl;
+      pl.set("Vector name", "Material");
+      pl.set("Transfer name", "Aggregates");
+      pl.set("Normalize", true);
+      fact->SetParameterList(pl);
+      return fact;
+    }
     if (varName == "Coordinates") return GetFactory("Ptent");
     if (varName == "Node Comm") return GetFactory("Ptent");
 

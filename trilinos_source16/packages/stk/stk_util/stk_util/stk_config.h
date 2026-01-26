@@ -35,23 +35,31 @@
 #ifndef stk_util_config_h
 #define stk_util_config_h
 
-#ifdef STK_BUILT_IN_SIERRA
+#ifdef STK_BUILT_WITH_BJAM
 
+#define STK_SHOW_DEPRECATED_WARNINGS
+#define STK_HIDE_DEPRECATED_CODE
 #define STK_HAS_MPI
 #define STK_HAS_ARBORX
 #define STK_HAVE_BOOST
+#define STK_HAVE_INTREPID2
 #define STK_HAVE_KOKKOS
 #define STK_HAVE_STKMESH
 #define STK_HAVE_STKIO
+#define STK_HAVE_STKSEARCHUTIL
+#define STK_HAVE_STKTRANSFERUTIL
+#define STK_16BIT_CONNECTIVITY_ORDINAL
 #define STK_HAVE_STKNGP_TEST
 #define STK_HAS_SEACAS_IOSS
 #define STK_HAS_SEACAS_EXODUS
 #define STK_HAS_SEACAS_NEMESIS
+#define STK_HAVE_FP_EXCEPT
+#define STK_HAVE_FP_ERRNO
 
 #else
-// This file gets created by cmake during a Trilinos build
-// and will not be present in a sierra build using bjam or associated wrappers
-#include "STK_Trilinos_config.h"
+// This file gets created by cmake and will not
+// be present in a sierra build using bjam
+#include "STK_cmake_config.h"
 
 #ifndef STK_HAS_MPI
 
@@ -67,7 +75,12 @@
 #define MPI_COMM_SELF 0
 #endif
 
-#endif
+#endif // STK_HAS_MPI
+#endif // STK_BUILT_WITH_BJAM
+
+#if defined(_OPENMP)
+#include <omp.h>
+#define STK_USE_OPENMP  // Guard our pragmas to avoid unknown-pragma warnings-as-errors
 #endif
 
 // GCC address sanitizer
@@ -82,12 +95,17 @@
 #  endif
 #endif
 
+#ifndef NDEBUG
+#define STK_FIELD_BOUNDS_CHECK
+#endif
+
 //----------------------------------------------------------------------
 
 // Use macro below to deprecate:
 //   classes (class STK_DEPRECATED Class;), 
 //   structs (struct STK_DEPRECATED Struct;), 
-//   typedefs (STK_DEPRECATED typedef Type 1 Type2;, using Type1 STK_DEPRECATED = Type2;), 
+//   typedefs (STK_DEPRECATED typedef Type 1 Type2;),
+//   using (using Type1 STK_DEPRECATED = Type2;), 
 //   variables (STK_DEPRECATED int variable;), 
 //   non-static data members (union Union { STK_DEPRECATED int variable; }), 
 //   functions (STK_DEPRECATED void function();),

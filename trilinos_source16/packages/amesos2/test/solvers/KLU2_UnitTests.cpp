@@ -28,6 +28,17 @@
 #include "Amesos2.hpp"
 #include "Amesos2_Meta.hpp"
 
+#if defined(HAVE_AMESOS2_EPETRA)
+#ifdef HAVE_MPI
+#include <Epetra_MpiComm.h>
+#else
+#include <Epetra_SerialComm.h>
+#endif
+#include <Epetra_Map.h>
+#include <Epetra_MultiVector.h>
+#include <Epetra_CrsMatrix.h>
+#endif
+
 namespace {
 
   using std::cout;
@@ -230,7 +241,7 @@ namespace {
 
     if ( rank == 0 ) {
       TEST_ASSERT( solver->getStatus().getNnzLU() != 0 );
-      TEST_ASSERT( solver->getStatus().getNnzLU() == numLocal*static_cast<const size_t>(2*comm->getSize()) );
+      TEST_ASSERT( solver->getStatus().getNnzLU() == numLocal*static_cast<size_t>(2*comm->getSize()) );
       // Good way to check the factors L and U?  Probs not, since they are private members
     }
   }
@@ -306,7 +317,7 @@ namespace {
     A->apply(*X,*B);            // no transpose
 
     Xhat->randomize();
-    Xhat->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
+    Xhat->describe(out, Teuchos::VERB_EXTREME);
 
 
     // Solve A*Xhat = B for Xhat using the KLU2 solver
@@ -318,9 +329,9 @@ namespace {
     solver->numericFactorization();
     solver->solve();
 
-    Xhat->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
-    X->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
-    B->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
+    Xhat->describe(out, Teuchos::VERB_EXTREME);
+    X->describe(out, Teuchos::VERB_EXTREME);
+    B->describe(out, Teuchos::VERB_EXTREME);
 
     // Check result of solve
     Array<Mag> xhatnorms(numVecs), xnorms(numVecs);
@@ -361,7 +372,7 @@ namespace {
     bool verbose = false;
     Xhat->randomize();
     if (verbose) {
-      Xhat->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
+      Xhat->describe(out, Teuchos::VERB_EXTREME);
     }
 
     // Solve A*Xhat = B for Xhat using the KLU2 solver with iterative refinement
@@ -377,9 +388,9 @@ namespace {
     solver->numericFactorization();
     solver->solve();
     if (verbose) {
-      Xhat->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
-      X->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
-      B->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
+      Xhat->describe(out, Teuchos::VERB_EXTREME);
+      X->describe(out, Teuchos::VERB_EXTREME);
+      B->describe(out, Teuchos::VERB_EXTREME);
     }
 
     // Check result of solve
@@ -417,7 +428,7 @@ namespace {
     A->apply(*X,*B,Teuchos::TRANS);
 
     Xhat->randomize();
-    Xhat->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
+    Xhat->describe(out, Teuchos::VERB_EXTREME);
 
     // Solve A*Xhat = B for Xhat using the KLU2 solver
     RCP<Amesos2::Solver<MAT,MV> > solver
@@ -429,14 +440,380 @@ namespace {
     solver->setParameters( rcpFromRef(amesos2_params) );
     solver->symbolicFactorization().numericFactorization().solve();
 
-    Xhat->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
-    X->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
-    B->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
+    Xhat->describe(out, Teuchos::VERB_EXTREME);
+    X->describe(out, Teuchos::VERB_EXTREME);
+    B->describe(out, Teuchos::VERB_EXTREME);
 
     // Check result of solve
     Array<Mag> xhatnorms(numVecs), xnorms(numVecs);
     Xhat->norm2(xhatnorms());
     X->norm2(xnorms());
+    TEST_COMPARE_FLOATING_ARRAYS( xhatnorms, xnorms, 0.005 );
+  }
+
+  //! @test Test for one-base
+  TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL( KLU2, BaseOne, SCALAR, LO, GO )
+  {
+    typedef CrsMatrix<SCALAR,LO,GO,Node> MAT;
+    typedef ScalarTraits<SCALAR> ST;
+    typedef MultiVector<SCALAR,LO,GO,Node> MV;
+    typedef typename ST::magnitudeType Mag;
+
+    using Tpetra::global_size_t;
+    using Teuchos::tuple;
+    using Teuchos::RCP;
+    using Teuchos::rcp;
+
+    RCP<const Comm<int> > comm = Tpetra::getDefaultComm();
+
+    const global_size_t numVectors = 1;
+    const global_size_t nrows = 6;
+    const GO numGlobalEntries = nrows;
+
+    // Create one-base Map
+    const GO indexBase = 1;
+    typedef Tpetra::Map<LO,GO>  map_type;
+    RCP< const map_type > map = rcp( new map_type(numGlobalEntries, indexBase, comm) );
+    const LO numLocalEntries = LO(map->getLocalNumElements());
+
+    // Create a diagobal matrix = diag(1:nrows)
+    RCP<MAT> A = rcp( new MAT(map,1) );
+
+    Teuchos::Array<GO> gblColIndsBuf(1);
+    Teuchos::Array<SCALAR> valsBuf(1);
+    for (LO lclRow = 0; lclRow < numLocalEntries; ++lclRow) {
+      const GO gblRow = map->getGlobalElement(lclRow);
+      const GO gblCol = gblRow;
+      const LO numEnt = 1;
+      valsBuf[0] = SCALAR(gblRow);
+      gblColIndsBuf[0] = gblCol;
+
+      Teuchos::ArrayView<GO> gblColInds = gblColIndsBuf.view(0, numEnt);
+      Teuchos::ArrayView<SCALAR> vals = valsBuf.view(0, numEnt);
+      A->insertGlobalValues(gblRow, gblColInds, vals);
+    }
+    A->fillComplete();
+
+    // Create Xhat = ones(nrows, 1), X, and B
+    RCP<MV> Xhat = rcp(new MV(map,numVectors));
+    RCP<MV> X = rcp(new MV(map,numVectors));
+    RCP<MV> B = rcp(new MV(map,numVectors));
+    Xhat->putScalar(SCALAR(1.0));
+    A->apply(*Xhat, *B);
+
+    // Create solver interface with Amesos2 factory method
+    RCP<Amesos2::Solver<MAT,MV> > solver = Amesos2::create<MAT,MV>("KLU2", A, X, B);
+    solver->symbolicFactorization().numericFactorization().solve();
+
+    A->describe(out, Teuchos::VERB_EXTREME);
+    B->describe(out, Teuchos::VERB_EXTREME);
+    Xhat->describe(out, Teuchos::VERB_EXTREME);
+    X->describe(out, Teuchos::VERB_EXTREME);
+
+    // Check result of solve
+    Array<Mag> xhatnorms(numVectors), xnorms(numVectors);
+    Xhat->norm2(xhatnorms());
+    X->norm2(xnorms());
+    TEST_COMPARE_FLOATING_ARRAYS( xhatnorms, xnorms, 0.005 );
+  }
+
+  //! @test Test for one-base
+  TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL( KLU2, EmptySub, SCALAR, LO, GO )
+  {
+    typedef CrsMatrix<SCALAR,LO,GO,Node> MAT;
+    typedef ScalarTraits<SCALAR> ST;
+    typedef MultiVector<SCALAR,LO,GO,Node> MV;
+    typedef typename ST::magnitudeType Mag;
+
+    using Tpetra::global_size_t;
+    using Teuchos::tuple;
+    using Teuchos::RCP;
+    using Teuchos::rcp;
+
+    RCP<const Comm<int> > comm = Tpetra::getDefaultComm();
+    const global_size_t nProcs = comm->getSize();
+    const global_size_t myRank = comm->getRank();
+
+    const global_size_t numVectors = 1;
+    Array<Mag> xhatnorms(numVectors), xnorms(numVectors);
+    for (global_size_t i=0; i<numVectors; i++) {
+      xhatnorms[i] = Mag(0.0);
+      xnorms[i] = Mag(0.0);
+    }
+    // Unit test created for 2 processes
+    if (nProcs == 2) {
+      const GO nrows = 6;
+      const GO numGlobalEntries = nrows;
+
+      // Create one-base Map
+      const GO indexBase = 0;
+      typedef Tpetra::Map<LO,GO>  map_type;
+      const LO numLocalEntries = LO(myRank == 1 ? nrows : 0);
+      Array<GO> elementList (numLocalEntries);
+      if (myRank == 1) {
+        for (LO i = 0; i < numLocalEntries; i++) {
+          elementList[i] = i;
+        }
+      }
+      RCP< const map_type > map = rcp( new map_type(numGlobalEntries, elementList, indexBase, comm) );
+
+      // Create 2D matrix
+      RCP<MAT> A = rcp( new MAT(map,3) );
+
+      Teuchos::Array<GO> gblColIndsBuf(3);
+      Teuchos::Array<SCALAR> valsBuf(3);
+      for (LO lclRow = 0; lclRow < numLocalEntries; ++lclRow) {
+        const GO gblRow = map->getGlobalElement(lclRow);
+        const GO gblCol = gblRow;
+        LO numEnt = 0;
+        if (gblRow < nrows-1) {
+          valsBuf[numEnt] = SCALAR(-1.0);
+          gblColIndsBuf[numEnt] = gblCol+1;
+          numEnt ++;
+        }
+        valsBuf[numEnt] = SCALAR(2.0);
+        gblColIndsBuf[numEnt] = gblCol;
+        numEnt ++;
+        if (gblRow > 0) {
+          valsBuf[numEnt] = SCALAR(-1.0);
+          gblColIndsBuf[numEnt] = gblCol-1;
+          numEnt ++;
+        }
+
+        Teuchos::ArrayView<GO> gblColInds = gblColIndsBuf.view(0, numEnt);
+        Teuchos::ArrayView<SCALAR> vals = valsBuf.view(0, numEnt);
+        A->insertGlobalValues(gblRow, gblColInds, vals);
+      }
+      A->fillComplete();
+
+      // Create Xhat = ones(nrows, 1), X, and B
+      RCP<MV> Xhat = rcp(new MV(map,numVectors));
+      RCP<MV> X = rcp(new MV(map,numVectors));
+      RCP<MV> B = rcp(new MV(map,numVectors));
+      Xhat->putScalar(SCALAR(1.0));
+      A->apply(*Xhat, *B);
+
+      // Create solver interface with Amesos2 factory method
+      RCP<Amesos2::Solver<MAT,MV> > solver = Amesos2::create<MAT,MV>("KLU2", A, X, B);
+      solver->symbolicFactorization().numericFactorization().solve();
+
+      A->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
+      B->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
+      Xhat->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
+      X->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
+
+      // Check result of solve
+      Xhat->norm2(xhatnorms());
+      X->norm2(xnorms());
+    }
+    TEST_COMPARE_FLOATING_ARRAYS( xhatnorms, xnorms, 0.005 );
+  }
+
+  //! @test Test for extra col
+  TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL( KLU2, ExtraCol, SCALAR, LO, GO )
+  {
+    typedef CrsMatrix<SCALAR,LO,GO,Node> MAT;
+    typedef ScalarTraits<SCALAR> ST;
+    typedef MultiVector<SCALAR,LO,GO,Node> MV;
+    typedef typename ST::magnitudeType Mag;
+
+    using Tpetra::global_size_t;
+    using Teuchos::tuple;
+    using Teuchos::RCP;
+    using Teuchos::rcp;
+
+    RCP<const Comm<int> > comm = Tpetra::getDefaultComm();
+    const global_size_t nProcs = comm->getSize();
+    const global_size_t myRank = comm->getRank();
+
+    const global_size_t numVectors = 1;
+    Array<Mag> xhatnorms(numVectors), xnorms(numVectors);
+    for (global_size_t i=0; i<numVectors; i++) {
+      xhatnorms[i] = Mag(0.0);
+      xnorms[i] = Mag(0.0);
+    }
+    // Unit test created for 2 processes
+    if (nProcs == 2) {
+      const GO nrows = 6;
+      const GO numGlobalEntries = nrows;
+
+      // Create one-base Map (e.g., reindex used to leave not-matched col GIDs to zero < indexBase)
+      const GO indexBase = 1;
+      typedef Tpetra::Map<LO,GO>  map_type;
+      Array<GO> colList (5);
+      if (myRank == 0) {
+        colList[0] = 0+indexBase;
+        colList[1] = 1+indexBase;
+        colList[2] = 2+indexBase;
+        colList[3] = 3+indexBase; // MPI-1
+        colList[4] = 6+indexBase; // Extra
+      } else {
+        colList[0] = 2+indexBase; // MPI-0
+        colList[1] = 3+indexBase;
+        colList[2] = 4+indexBase;
+        colList[3] = 5+indexBase;
+        colList[4] = 6+indexBase; // Extra
+      }
+      RCP< const map_type > rowmap = rcp( new map_type(numGlobalEntries, indexBase, comm) );
+      RCP< const map_type > colmap = rcp( new map_type(numGlobalEntries, colList, indexBase, comm) );
+      rowmap->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
+      colmap->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
+
+      // Create 2D matrix 
+      RCP<MAT> A = rcp( new MAT(rowmap,colmap,3) );
+      const LO numLocalEntries = LO(rowmap->getLocalNumElements());
+
+      Teuchos::Array<GO> gblColIndsBuf(3);
+      Teuchos::Array<SCALAR> valsBuf(3);
+      for (LO lclRow = 0; lclRow < numLocalEntries; ++lclRow) {
+        const GO gblRow = rowmap->getGlobalElement(lclRow);
+        const GO gblCol = gblRow;
+        LO numEnt = 0;
+        if (gblRow < (nrows+indexBase)-1) {
+          valsBuf[numEnt] = SCALAR(-1.0);
+          gblColIndsBuf[numEnt] = (gblCol+1);
+          numEnt ++;
+        }
+        valsBuf[numEnt] = SCALAR(2.0);
+        gblColIndsBuf[numEnt] = gblCol;
+        numEnt ++;
+        if (gblRow > indexBase) {
+          valsBuf[numEnt] = SCALAR(-1.0);
+          gblColIndsBuf[numEnt] = (gblCol-1);
+          numEnt ++;
+        }
+
+        Teuchos::ArrayView<GO> gblColInds = gblColIndsBuf.view(0, numEnt);
+        Teuchos::ArrayView<SCALAR> vals = valsBuf.view(0, numEnt);
+        A->insertGlobalValues(gblRow, gblColInds, vals);
+      }
+      A->fillComplete();
+
+      // Create Xhat = ones(nrows, 1), X, and B
+      RCP<MV> Xhat = rcp(new MV(rowmap,numVectors));
+      RCP<MV> X = rcp(new MV(rowmap,numVectors));
+      RCP<MV> B = rcp(new MV(rowmap,numVectors));
+      Xhat->putScalar(SCALAR(1.0));
+      A->apply(*Xhat, *B);
+
+      // Create solver interface with Amesos2 factory method
+      RCP<Amesos2::Solver<MAT,MV> > solver = Amesos2::create<MAT,MV>("KLU2", A, X, B);
+      {
+        // forcing to be non-contiguous to test reindexing
+        Teuchos::ParameterList amesos2_params("Amesos2");
+        amesos2_params.sublist("KLU2").set("IsContiguous", false, "Are GIDs Contiguous");
+        solver->setParameters( Teuchos::rcpFromRef(amesos2_params) );
+      }
+      solver->symbolicFactorization().numericFactorization().solve();
+
+      A->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
+      B->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
+      Xhat->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
+      X->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
+
+      // Check result of solve
+      Xhat->norm2(xhatnorms());
+      X->norm2(xnorms());
+    }
+    TEST_COMPARE_FLOATING_ARRAYS( xhatnorms, xnorms, 0.005 );
+  }
+
+  //! @test Test for unsorted row/col ids
+  TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL( KLU2, Shuffle, SCALAR, LO, GO )
+  {
+    typedef CrsMatrix<SCALAR,LO,GO,Node> MAT;
+    typedef ScalarTraits<SCALAR> ST;
+    typedef MultiVector<SCALAR,LO,GO,Node> MV;
+    typedef typename ST::magnitudeType Mag;
+
+    using Tpetra::global_size_t;
+    using Teuchos::tuple;
+    using Teuchos::RCP;
+    using Teuchos::rcp;
+
+    RCP<const Comm<int> > comm = Tpetra::getDefaultComm();
+    const global_size_t nProcs = comm->getSize();
+    const global_size_t myRank = comm->getRank();
+
+    const global_size_t numVectors = 1;
+    Array<Mag> xhatnorms(numVectors), xnorms(numVectors);
+    for (global_size_t i=0; i<numVectors; i++) {
+      xhatnorms[i] = Mag(0.0);
+      xnorms[i] = Mag(0.0);
+    }
+    // Unit test created for 2 processes
+    if ( nProcs == 2 ) {
+      const GO nrows = 6;
+      const GO numGlobalEntries = nrows;
+
+      // Create one-base Map (reverse order)
+      const GO indexBase = 0;
+      typedef Tpetra::Map<LO,GO> map_type;
+
+      Array<GO> rowList (3);
+      if (myRank == 0) {
+        // row
+        rowList[0] = 5;
+        rowList[1] = 4;
+        rowList[2] = 3;
+      } else {
+        // row
+        rowList[0] = 2;
+        rowList[1] = 1;
+        rowList[2] = 0;
+      }
+      RCP< const map_type > rowmap = rcp( new map_type(numGlobalEntries, rowList, indexBase, comm) );
+
+      // Create a 2D matrix (not-symmetric)
+      const LO numLocalEntries = LO(rowmap->getLocalNumElements());
+      RCP<MAT> A = rcp( new MAT(rowmap,3) );
+
+      Teuchos::Array<GO> gblColIndsBuf(3);
+      Teuchos::Array<SCALAR> valsBuf(3);
+      for (LO lclRow = numLocalEntries-1; lclRow >= 0; --lclRow) {
+        const GO gblRow = rowmap->getGlobalElement(lclRow);
+        const GO gblCol = gblRow;
+        LO numEnt = 0;
+        if (gblRow < nrows-1) {
+          valsBuf[numEnt] = SCALAR(-1-gblRow);
+          gblColIndsBuf[numEnt] = gblCol+1;
+          numEnt ++;
+        }
+        valsBuf[numEnt] = SCALAR(2+gblRow);
+        gblColIndsBuf[numEnt] = gblCol;
+        numEnt ++;
+        if (gblRow > 0) {
+          valsBuf[numEnt] = SCALAR(-1.0);
+          gblColIndsBuf[numEnt] = gblCol-1;
+          numEnt ++;
+        }
+
+        Teuchos::ArrayView<GO> gblColInds = gblColIndsBuf.view(0, numEnt);
+        Teuchos::ArrayView<SCALAR> vals = valsBuf.view(0, numEnt);
+        A->insertGlobalValues(gblRow, gblColInds, vals);
+      }
+      A->fillComplete();
+
+      // Create Xhat = ones(nrows, 1), X, and B
+      RCP<MV> Xhat = rcp(new MV(rowmap,numVectors));
+      RCP<MV> X = rcp(new MV(rowmap,numVectors));
+      RCP<MV> B = rcp(new MV(rowmap,numVectors));
+      Xhat->randomize();
+      A->apply(*Xhat, *B);
+
+      // Create solver interface with Amesos2 factory method
+      RCP<Amesos2::Solver<MAT,MV> > solver = Amesos2::create<MAT,MV>("KLU2", A, X, B);
+      solver->symbolicFactorization().numericFactorization().solve();
+
+      A->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
+      B->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
+      X->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
+      Xhat->describe(*(getDefaultOStream()), Teuchos::VERB_EXTREME);
+
+      // Check result of solve
+      Xhat->norm2(xhatnorms());
+      X->norm2(xnorms());
+    }
     TEST_COMPARE_FLOATING_ARRAYS( xhatnorms, xnorms, 0.005 );
   }
 
@@ -595,6 +972,142 @@ namespace {
       TEST_COMPARE_FLOATING_ARRAYS( xhatnorms, xnorms, 0.005 );
     } // end if numProcs = 2
   }
+
+#if defined(HAVE_AMESOS2_EPETRA)
+  //! @test Test for Epetra non-contiguous GIDs.
+  TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL( KLU2, NonContigGIDEpetra, SCALAR, LO, GO )
+  {
+    typedef Epetra_CrsMatrix MAT;
+    typedef ScalarTraits<SCALAR> ST;
+    typedef Epetra_MultiVector MV;
+    typedef typename ST::magnitudeType Mag;
+    typedef Epetra_Map map_type;
+
+    using Tpetra::global_size_t;
+    using Teuchos::tuple;
+    using Teuchos::RCP;
+    using Teuchos::rcp;
+    using Scalar = SCALAR;
+
+    RCP<const Comm<int> > t_comm = Tpetra::getDefaultComm();
+    size_t myRank = t_comm->getRank();
+    const global_size_t numProcs = t_comm->getSize();
+
+    // Unit test created for 2 processes
+    if ( numProcs == 2 ) {
+
+      const global_size_t numVectors = 1;
+      const global_size_t nrows = 6;
+
+      const int numGlobalEntries = nrows;
+      const LO numLocalEntries = nrows / numProcs;
+
+      // Create non-contiguous Map
+      // This example: np 2 leads to GIDS: proc0 - 0,2,4  proc 1 - 1,3,5
+      Teuchos::Array<int> elementList(numLocalEntries);
+      for ( LO k = 0; k < numLocalEntries; ++k ) {
+        elementList[k] = myRank + k*numProcs + 4*myRank;
+      }
+
+#ifdef HAVE_MPI
+      const Epetra_MpiComm comm(MPI_COMM_WORLD);
+#else
+      const Epetra_SerialComm comm;
+#endif
+
+      RCP< const map_type > map = rcp( new Epetra_Map( numGlobalEntries, numLocalEntries, elementList.data(), 0, comm ));
+      RCP<MAT> A = rcp( new MAT(Epetra_DataAccess::Copy, *map, numLocalEntries) );
+
+      /*
+       * We will solve a system with a known solution, for which we will be using
+       * the following matrix:
+       *
+       *  GID  0   2   4   5   7   9
+       * [ 0 [ 7,  0, -3,  0, -1,  0 ]
+       *   2 [ 2,  8,  0,  0,  0,  0 ]
+       *   4 [ 0,  0,  1,  0,  0,  0 ]
+       *   5 [-3,  0,  0,  5,  0,  0 ]
+       *   7 [ 0, -1,  0,  0,  4,  0 ]
+       *   9 [ 0,  0,  0, -2,  0,  6 ] ]
+       *
+       */
+
+      // Construct matrix
+      if( myRank == 0 ){
+        A->InsertGlobalValues(0,3,tuple<Scalar>(7,-3,-1).data(),tuple<GO>(0,4,7).data());
+        A->InsertGlobalValues(2,2,tuple<Scalar>(2,8).data(),tuple<GO>(0,2).data());
+        A->InsertGlobalValues(4,1,tuple<Scalar>(1).data(),tuple<GO>(4).data());
+      } else {
+        A->InsertGlobalValues(5,2,tuple<Scalar>(-3,5).data(),tuple<GO>(0,5).data());
+        A->InsertGlobalValues(7,2,tuple<Scalar>(-1,4).data(),tuple<GO>(2,7).data());
+        A->InsertGlobalValues(9,2,tuple<Scalar>(-2,6).data(),tuple<GO>(5,9).data());
+      }
+      A->FillComplete();
+
+      // Create X with random values
+      RCP<MV> X = rcp(new MV(*map, numVectors));
+      X->Random();
+
+      /* Create B, use same GIDs
+       *
+       * Use RHS:
+       *
+       *  [[-7]
+       *   [18]
+       *   [ 3]
+       *   [17]
+       *   [18]
+       *   [28]]
+       */
+      RCP<MV> B = rcp(new MV(*map, numVectors));
+      GO rowids[nrows] = {0,2,4,5,7,9};
+      Scalar data[nrows] = {-7,18,3,17,18,28};
+      for( global_size_t i = 0; i < nrows; ++i ){
+        if( B->Map().MyGID(rowids[i]) ){
+          B->ReplaceGlobalValue(rowids[i],0,data[i]);
+        }
+      }
+
+      // Create solver interface with Amesos2 factory method
+      RCP<Amesos2::Solver<MAT,MV> > solver = Amesos2::create<MAT,MV>("KLU2", A, X, B);
+
+      // Create a Teuchos::ParameterList to hold solver parameters
+      Teuchos::ParameterList amesos2_params("Amesos2");
+      amesos2_params.sublist("KLU2").set("IsContiguous", false, "Are GIDs Contiguous");
+
+      solver->setParameters( Teuchos::rcpFromRef(amesos2_params) );
+
+      solver->symbolicFactorization().numericFactorization().solve();
+
+      /* Check the solution
+       *
+       * Should be:
+       *
+       *  [[1]
+       *   [2]
+       *   [3]
+       *   [4]
+       *   [5]
+       *   [6]]
+       */
+      // Solution Vector for later comparison
+      RCP<MV> Xhat = rcp(new MV(*map, numVectors));
+      GO rowids_soln[nrows] = {0,2,4,5,7,9};
+      Scalar data_soln[nrows] = {1,2,3,4,5,6};
+      for( global_size_t i = 0; i < nrows; ++i ){
+        if( Xhat->Map().MyGID(rowids_soln[i]) ){
+          Xhat->ReplaceGlobalValue(rowids_soln[i],0,data_soln[i]);
+        }
+      }
+
+      // Check result of solve
+      Array<Mag> xhatnorms(numVectors), xnorms(numVectors);
+      Xhat->Norm2(xhatnorms().data());
+      X->Norm2(xnorms().data());
+      TEST_COMPARE_FLOATING_ARRAYS( xhatnorms, xnorms, 0.005 );
+    } // end if numProcs = 2
+  }
+#endif
 
   /*
    * Unit Tests for Complex data types
@@ -822,7 +1335,16 @@ namespace {
   TEUCHOS_UNIT_TEST_TEMPLATE_3_INSTANT( KLU2, Solve, SCALAR, LO, GO ) \
   TEUCHOS_UNIT_TEST_TEMPLATE_3_INSTANT( KLU2, SolveIR, SCALAR, LO, GO ) \
   TEUCHOS_UNIT_TEST_TEMPLATE_3_INSTANT( KLU2, SolveTrans, SCALAR, LO, GO ) \
-  TEUCHOS_UNIT_TEST_TEMPLATE_3_INSTANT( KLU2, NonContigGID, SCALAR, LO, GO )
+  TEUCHOS_UNIT_TEST_TEMPLATE_3_INSTANT( KLU2, NonContigGID, SCALAR, LO, GO ) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_3_INSTANT( KLU2, BaseOne, SCALAR, LO, GO ) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_3_INSTANT( KLU2, EmptySub, SCALAR, LO, GO ) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_3_INSTANT( KLU2, ExtraCol, SCALAR, LO, GO ) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_3_INSTANT( KLU2, Shuffle, SCALAR, LO, GO )
+
+#ifdef HAVE_AMESOS2_EPETRA
+#define UNIT_TEST_GROUP_EPETRA( LO, GO, SCALAR)  \
+  TEUCHOS_UNIT_TEST_TEMPLATE_3_INSTANT( KLU2, NonContigGIDEpetra, SCALAR, LO, GO )
+#endif
 
 #define UNIT_TEST_GROUP_ORDINAL( ORDINAL )              \
   UNIT_TEST_GROUP_ORDINAL_ORDINAL( ORDINAL, ORDINAL )

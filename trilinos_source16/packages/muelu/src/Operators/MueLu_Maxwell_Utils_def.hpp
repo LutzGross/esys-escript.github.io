@@ -15,7 +15,7 @@
 #include "MueLu_ConfigDefs.hpp"
 
 #include "Xpetra_Map.hpp"
-#include "Xpetra_CrsMatrixUtils.hpp"
+#include "MueLu_CrsMatrixUtils.hpp"
 #include "Xpetra_MatrixUtils.hpp"
 
 #include "MueLu_Maxwell_Utils_decl.hpp"
@@ -216,10 +216,18 @@ template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
 void Maxwell_Utils<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
     thresholdedAbs(const RCP<Matrix>& A,
                    const magnitudeType threshold) {
-  using ATS         = Kokkos::ArithTraits<Scalar>;
+#if KOKKOS_VERSION >= 40799
+  using ATS = KokkosKernels::ArithTraits<Scalar>;
+#else
+  using ATS      = Kokkos::ArithTraits<Scalar>;
+#endif
   using impl_Scalar = typename ATS::val_type;
-  using impl_ATS    = Kokkos::ArithTraits<impl_Scalar>;
-  using range_type  = Kokkos::RangePolicy<LO, typename NO::execution_space>;
+#if KOKKOS_VERSION >= 40799
+  using impl_ATS = KokkosKernels::ArithTraits<impl_Scalar>;
+#else
+  using impl_ATS = Kokkos::ArithTraits<impl_Scalar>;
+#endif
+  using range_type = Kokkos::RangePolicy<LO, typename NO::execution_space>;
 
   const impl_Scalar impl_SC_ONE  = impl_ATS::one();
   const impl_Scalar impl_SC_ZERO = impl_ATS::zero();
@@ -252,7 +260,7 @@ void Maxwell_Utils<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
 template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
 RCP<Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> >
 Maxwell_Utils<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
-    PtAPWrapper(const RCP<Matrix>& A, const RCP<Matrix>& P, ParameterList& params, std::string& label) {
+    PtAPWrapper(const RCP<Matrix>& A, const RCP<Matrix>& P, ParameterList& params, const std::string& label) {
   Level fineLevel, coarseLevel;
   fineLevel.SetFactoryManager(null);
   coarseLevel.SetFactoryManager(null);

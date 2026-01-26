@@ -349,12 +349,13 @@ namespace Intrepid2 {
   template<typename DT, typename OT, typename PT>
   Basis_HGRAD_TET_COMP12_FEM<DT,OT,PT>::
   Basis_HGRAD_TET_COMP12_FEM() {
-    this->basisCardinality_  = 10;
-    this->basisDegree_       = 1;
-    this->basisCellTopology_ = shards::CellTopology(shards::getCellTopologyData<shards::Tetrahedron<11> >() );
-    this->basisType_         = BASIS_FEM_DEFAULT;
-    this->basisCoordinates_  = COORDINATES_CARTESIAN;
-    this->functionSpace_     = FUNCTION_SPACE_HGRAD;
+    const ordinal_type spaceDim = 3;
+    this->basisCardinality_     = 10;
+    this->basisDegree_          = 1;
+    this->basisCellTopologyKey_ = shards::Tetrahedron<4>::key;
+    this->basisType_            = BASIS_FEM_DEFAULT;
+    this->basisCoordinates_     = COORDINATES_CARTESIAN;
+    this->functionSpace_        = FUNCTION_SPACE_HGRAD;
 
     {
       // Basis-dependent intializations
@@ -391,7 +392,7 @@ namespace Intrepid2 {
 
     // dofCoords on host and create its mirror view to device
     Kokkos::DynRankView<typename ScalarViewType::value_type,typename DT::execution_space::array_layout,Kokkos::HostSpace>
-      dofCoords("dofCoordsHost", this->basisCardinality_, this->basisCellTopology_.getDimension());
+      dofCoords("dofCoordsHost", this->basisCardinality_, spaceDim);
 
     dofCoords(0,0) = 0.0;   dofCoords(0,1) = 0.0; dofCoords(0,2) = 0.0;
     dofCoords(1,0) = 1.0;   dofCoords(1,1) = 0.0; dofCoords(1,2) = 0.0;
@@ -407,6 +408,55 @@ namespace Intrepid2 {
     this->dofCoords_ = Kokkos::create_mirror_view(typename DT::memory_space(), dofCoords);
     Kokkos::deep_copy(this->dofCoords_, dofCoords);
   }
-}
 
+  template<typename DT, typename OT, typename PT>
+  void 
+  Basis_HGRAD_TET_COMP12_FEM<DT,OT,PT>::getScratchSpaceSize(       
+                                    ordinal_type& perTeamSpaceSize,
+                                    ordinal_type& perThreadSpaceSize,
+                              const PointViewType inputPoints,
+                              const EOperator operatorType) const {
+    perTeamSpaceSize = 0;
+    perThreadSpaceSize = 0;
+  }
+
+  template<typename DT, typename OT, typename PT>
+  KOKKOS_INLINE_FUNCTION
+  void 
+  Basis_HGRAD_TET_COMP12_FEM<DT,OT,PT>::getValues(       
+          OutputViewType outputValues,
+      const PointViewType  inputPoints,
+      const EOperator operatorType,
+      const typename Kokkos::TeamPolicy<typename DT::execution_space>::member_type& team_member,
+      const typename DT::execution_space::scratch_memory_space & scratchStorage, 
+      const ordinal_type subcellDim,
+      const ordinal_type subcellOrdinal) const {
+
+      INTREPID2_TEST_FOR_ABORT( !((subcellDim <= 0) && (subcellOrdinal == -1)),
+        ">>> ERROR: (Intrepid2::Basis_HGRAD_TET_COMP12_FEM::getValues), The capability of selecting subsets of basis functions has not been implemented yet.");
+
+      (void) scratchStorage; //avoid unused variable warning
+
+      const int numPoints = inputPoints.extent(0);
+
+      switch(operatorType) {
+        case OPERATOR_VALUE:
+          Kokkos::parallel_for (Kokkos::TeamThreadRange (team_member, numPoints), [=] (ordinal_type& pt) {
+            auto       output = Kokkos::subview( outputValues, Kokkos::ALL(), pt, Kokkos::ALL() );
+            const auto input  = Kokkos::subview( inputPoints,                 pt, Kokkos::ALL() );
+            Impl::Basis_HGRAD_TET_COMP12_FEM::Serial<OPERATOR_VALUE>::getValues( output, input);
+          });
+          break;
+        case OPERATOR_GRAD:
+          Kokkos::parallel_for (Kokkos::TeamThreadRange (team_member, numPoints), [=] (ordinal_type& pt) {
+            auto       output = Kokkos::subview( outputValues, Kokkos::ALL(), pt, Kokkos::ALL() );
+            const auto input  = Kokkos::subview( inputPoints,                 pt, Kokkos::ALL() );
+            Impl::Basis_HGRAD_TET_COMP12_FEM::Serial<OPERATOR_GRAD>::getValues( output, input);
+          });
+          break;
+        default: {}
+    }
+  }
+  
+}// namespace Intrepid2
 #endif

@@ -1,5 +1,5 @@
 # Trilinos
-![Trilinos Logo](https://trilinos.github.io/images/trilinos.jpg)
+![Trilinos Logo](https://github.com/trilinos/Logos/blob/master/current/RGB/Horizontal/Navy/Trilinos_Logo_RGB_Horizontal_Navy.png)
 
 [Website](https://trilinos.github.io) |
 [Documentation](https://trilinos.github.io/documentation.html) |
@@ -8,7 +8,10 @@
 
 
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/trilinos/Trilinos/badge)](https://securityscorecards.dev/viewer/?uri=github.com/trilinos/Trilinos)
-
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9452/badge)](https://www.bestpractices.dev/projects/9452)
+[![CodeFactor](https://www.codefactor.io/repository/github/trilinos/trilinos/badge)](https://www.codefactor.io/repository/github/trilinos/trilinos)
+![GitHub contributors](https://img.shields.io/github/contributors/trilinos/Trilinos)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/w/trilinos/Trilinos)
 
 
 The Trilinos Project is an effort to develop algorithms and enabling
@@ -34,6 +37,15 @@ unique design feature of Trilinos is its focus on packages.
 - For help with a particular package, see the website and accompanying
   documentation for that package. Links to these can be found down the
   right side of any page on the website and at [the package website](https://trilinos.github.io/packages.html).
+
+- Sample build scripts for various platforms can be found in the
+  sampleScripts directory.  Please note that these sample scripts are
+  only a starting point for you to develop a script that works for
+  your own platform.
+
+- If you have questions, please submit an issue on the Trilinos repo 
+  [GitHub Issues page](https://github.com/trilinos/Trilinos/issues).
+
 
 ### License
 

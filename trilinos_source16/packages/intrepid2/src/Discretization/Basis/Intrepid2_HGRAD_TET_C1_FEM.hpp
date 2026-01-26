@@ -164,6 +164,23 @@ namespace Intrepid2 {
                               operatorType);
     }
 
+    virtual void 
+    getScratchSpaceSize(      ordinal_type& perTeamSpaceSize,
+                              ordinal_type& perThreadSpaceSize,
+                        const PointViewType inputPointsconst,
+                        const EOperator operatorType = OPERATOR_VALUE) const override;
+
+    KOKKOS_INLINE_FUNCTION
+    virtual void 
+    getValues(       
+          OutputViewType outputValues,
+      const PointViewType  inputPoints,
+      const EOperator operatorType,
+      const typename Kokkos::TeamPolicy<typename DeviceType::execution_space>::member_type& team_member,
+      const typename DeviceType::execution_space::scratch_memory_space & scratchStorage, 
+      const ordinal_type subcellDim = -1,
+      const ordinal_type subcellOrdinal = -1) const override;
+
     virtual
     void
     getDofCoords( ScalarViewType dofCoords ) const override {
@@ -214,7 +231,7 @@ namespace Intrepid2 {
       if(subCellDim == 1) {
         return Teuchos::rcp(new
           Basis_HGRAD_LINE_C1_FEM<DeviceType, outputValueType, pointValueType>());
-      } else if(subCellDim == 1) {
+      } else if(subCellDim == 2) {
         return Teuchos::rcp(new
           Basis_HGRAD_TRI_C1_FEM<DeviceType, outputValueType, pointValueType>());
       }

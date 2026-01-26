@@ -17,6 +17,35 @@ macro(STK_CONFIGURE_FILE filename)
   endif()
 endmacro()
 
+function(stk_check_fp_handling)
+#
+# The following try_run commands use syntax that is supposed to work for
+# cmake versions older than 3.25, as stated in cmake documentation
+# here: https://cmake.org/cmake/help/latest/command/try_run.html
+# As of Nov 8, 2024, trilinos and stk require cmake 3.23
+#
+  message("calling try_run with bindir=${CMAKE_CURRENT_BINARY_DIR}/fpexcept, srcfile=${${PACKAGE_NAME}_SOURCE_DIR}/cmake/fpexcept/fpexcept_test.cpp")
+  try_run(RUN_RESULT COMPILE_RESULT
+          ${CMAKE_CURRENT_BINARY_DIR}/fpexcept
+          ${${PACKAGE_NAME}_SOURCE_DIR}/cmake/fpexcept/fpexcept_test.cpp
+          RUN_OUTPUT_VARIABLE FP_RESULT)
+  
+  message("FP-EXCEPT-CHECK COMPILE_RESULT: ${COMPILE_RESULT}")
+  message("FP-EXCEPT-CHECK RUN_RESULT: ${RUN_RESULT}")
+  set(STK_HAVE_FP_EXCEPT ${FP_RESULT} CACHE BOOL "")
+  message("STK_HAVE_FP_EXCEPT: ${STK_HAVE_FP_EXCEPT}")
+
+  try_run(RUN_RESULT COMPILE_RESULT
+          ${CMAKE_CURRENT_BINARY_DIR}/fperrno
+          ${${PACKAGE_NAME}_SOURCE_DIR}/cmake/fperrno/fperrno_test.cpp
+          RUN_OUTPUT_VARIABLE FP_RESULT)
+  
+  message("FP-ERRNO-CHECK COMPILE_RESULT: ${COMPILE_RESULT}")
+  message("FP-ERRNO-CHECK RUN_RESULT: ${RUN_RESULT}")
+  set(STK_HAVE_FP_ERRNO ${FP_RESULT} CACHE BOOL "")
+  message("STK_HAVE_FP_ERRNO: ${STK_HAVE_FP_ERRNO}")
+endfunction()
+
 function(stk_process_enables)
   message("******** Begin stk_process_enables ******")
   if(STK_ENABLE_ALL)
@@ -155,6 +184,8 @@ function(stk_process_enables)
   if(STK_ENABLE_TESTS)
     set(STK_ENABLE_STKUnit_tests ON CACHE BOOL "")
     set(STK_ENABLE_STKDoc_tests ON CACHE BOOL "")
+    set(STK_ENABLE_STKIntegration_tests ON CACHE BOOL "")
+    set(STK_ENABLE_STKPerformance_tests ON CACHE BOOL "")
   endif()
   message("******** End stk_process_enables ******")
 endfunction()
@@ -196,7 +227,7 @@ macro(STK_SUBPACKAGES)
       message("STKTopology is enabled.")
     endif()
 
-    if(STK_ENABLE_STKEmend)
+    if(STK_ENABLE_STKEmend AND STK_HAS_MPI)
       add_subdirectory(stk_emend)
       message("STKEmend is enabled.")
     endif()
@@ -251,15 +282,39 @@ macro(STK_SUBPACKAGES)
       add_subdirectory(stk_balance)
     endif()
 
-    if(STK_ENABLE_TESTS)
+    if(STK_ENABLE_STKUnit_Test_Utils)
       add_subdirectory(stk_unit_test_utils)
       message("STKUnit_test_utils is enabled.")
+    endif()  
+
+    if(STK_ENABLE_TESTS)
+ 
+      if (NOT STK_ENABLE_STKUnit_Test_Utils)
+        message("Adding STKUnit_Test_Utils because STK tests are enabled.")
+        add_subdirectory(stk_unit_test_utils)
+      endif()  
+
+      find_package(GTest REQUIRED)
 
       add_subdirectory(stk_unit_tests)
       message("STKUnit_tests is enabled.")
 
       add_subdirectory(stk_doc_tests)
       message("STKDoc_tests is enabled.")
+
+      if (STK_ENABLE_STKIO)
+        add_subdirectory(stk_integration_tests)
+        message("STKIntegration_tests is enabled.")
+      else()
+        message("STKIntegration_tests not enabled because STKIO not enabled.")
+      endif()
+
+      if (STK_ENABLE_STKIO)
+        add_subdirectory(stk_performance_tests)
+        message("STKPerformance_tests is enabled.")
+      else()
+        message("STKPerformance_tests not enabled because STKIO not enabled.")
+      endif()
     endif()
   endif()
 endmacro()

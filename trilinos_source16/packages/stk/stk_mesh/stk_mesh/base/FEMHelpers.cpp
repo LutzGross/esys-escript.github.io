@@ -41,18 +41,15 @@
 #include "stk_util/util/ReportHandler.hpp"  // for ThrowErrorMsgIf, etc
 #include <stk_mesh/baseImpl/MeshImplUtils.hpp>
 #include <stk_mesh/baseImpl/Partition.hpp>
-#include <stk_mesh/baseImpl/elementGraph/ElemElemGraph.hpp>
 #include <sstream>                      // for operator<<, etc
 #include <string>                       // for char_traits, operator<<
+#include <numeric>
 #include <iterator>
 #include <type_traits>
+#include <algorithm>
 
-namespace stk::mesh
-{
-
-namespace
-{
-
+namespace stk::mesh {
+namespace {
 
 void verify_declare_element_edge(
         const BulkData & mesh,
@@ -71,7 +68,7 @@ void verify_declare_element_edge(
             ? elem_top.edge_topology(local_edge_id) : invalid;
 
     STK_ThrowErrorMsgIf( elem_top!=stk::topology::INVALID_TOPOLOGY && local_edge_id >= elem_top.num_edges(),
-            "For elem " << mesh.identifier(elem) << ", local_edge_id " << local_edge_id << ", " <<
+            "For elem " << mesh.identifier(elem) << " ("<<elem_top<<"), local_edge_id " << local_edge_id << ", " <<
             "local_edge_id exceeds " << elem_top.name() << ".edge_count = " << elem_top.num_edges());
 
     STK_ThrowErrorMsgIf( edge_top == stk::topology::INVALID_TOPOLOGY,
@@ -80,8 +77,6 @@ void verify_declare_element_edge(
 }
 
 } // unnamed namespace
-
-
 
 Entity declare_element(BulkData & mesh,
         PartVector & parts,
@@ -119,7 +114,7 @@ Entity declare_element(BulkData & mesh,
 Entity connect_side_to_element_with_ordinal( BulkData & mesh ,
                                Entity elem ,
                                Entity side ,
-                               const unsigned local_side_id ,
+                               const unsigned sideOrdinal ,
                                stk::mesh::Part* part)
 {
     stk::mesh::PartVector parts;
@@ -128,8 +123,25 @@ Entity connect_side_to_element_with_ordinal( BulkData & mesh ,
         parts.push_back(part);
     }
     stk::topology elem_top = mesh.bucket(elem).topology();
-    stk::topology side_top = elem_top.side_topology(local_side_id);
-    return impl::connect_element_to_entity(mesh, elem, side, local_side_id, parts, side_top);
+    stk::topology side_top = elem_top.side_topology(sideOrdinal);
+    return impl::connect_element_to_side(mesh, elem, side, sideOrdinal, parts, side_top);
+}
+
+Entity connect_side_to_element_with_ordinal( BulkData & mesh ,
+                               Entity elem ,
+                               Entity side ,
+                               const unsigned sideOrdinal ,
+                               const std::vector<Entity> & side_nodes,
+                               stk::mesh::Part* part)
+{
+    stk::mesh::PartVector parts;
+    if(part!=NULL)
+    {
+        parts.push_back(part);
+    }
+    stk::topology elem_top = mesh.bucket(elem).topology();
+    stk::topology side_top = elem_top.side_topology(sideOrdinal);
+    return impl::connect_element_to_side(mesh, elem, side, sideOrdinal, parts, side_top, side_nodes);
 }
 
 Entity declare_element_edge(
@@ -204,8 +216,11 @@ public:
     {
         stk::EquivalentPermutation result = sub_topology.is_equivalent(nodes_of_sub_rank.data(), nodes_of_sub_topology);
 
-        if(m_filterForShell)
+        constexpr unsigned numLegacyShellSidesTo_TEMPORARILY_PreservePreviousBehavior = 2;
+        if(m_filterForShell &&
+           ordinal < numLegacyShellSidesTo_TEMPORARILY_PreservePreviousBehavior) {
             mark_if_negative_permutation(result, sub_topology);
+        }
 
         set_ordinal_and_permutation_if_equivalent(result, ordinal, ordinalAndPermutation);
         return result.is_equivalent;
@@ -332,12 +347,18 @@ stk::EquivalentPermutation side_equivalent(const stk::mesh::BulkData& mesh,
                                           unsigned sideOrdinal,
                                           const stk::mesh::Entity* candidateSideNodes)
 {
-    return sub_rank_equivalent(mesh, element, sideOrdinal, mesh.mesh_meta_data().side_rank(), candidateSideNodes);
+    unsigned rankedOrdinal;
+    stk::topology::rank_t sideRank;
+
+    auto elemTopo = mesh.bucket(element).topology();
+    elemTopo.ranked_side_ordinal(sideOrdinal, rankedOrdinal, sideRank);
+
+    return sub_rank_equivalent(mesh, element, rankedOrdinal, sideRank, candidateSideNodes);
 }
 
 bool is_side_equivalent(const stk::mesh::BulkData& mesh, stk::mesh::Entity element, unsigned sideOrdinal, const stk::mesh::Entity* candidateSideNodes)
 {
-    return sub_rank_equivalent(mesh, element, sideOrdinal, mesh.mesh_meta_data().side_rank(), candidateSideNodes).is_equivalent;
+    return side_equivalent(mesh, element, sideOrdinal, candidateSideNodes).is_equivalent;
 }
 
 bool is_edge_equivalent(const stk::mesh::BulkData& mesh, stk::mesh::Entity element, unsigned edgeOrdinal, const stk::mesh::Entity* candidateEdgeNodes)
@@ -357,8 +378,7 @@ inline void sub_topology_check(const stk::mesh::EntityVector& candidateSideNodes
                                << ", expected: " << subTopology.num_nodes());
 }
 
-inline void sub_topology_check(const stk::mesh::Entity* candidateSideNodes,
-                               size_t numCandidateSideNodes,
+inline void sub_topology_check(size_t numCandidateSideNodes,
                                stk::topology elemTopology,
                                stk::topology subTopology)
 {
@@ -373,7 +393,7 @@ inline void sub_topology_check(const stk::mesh::Entity* candidateSideNodes,
 
 EquivAndPositive is_shell_edge_equivalent_and_positive(const stk::mesh::BulkData& mesh,
                                                        stk::mesh::Entity element,
-                                                       unsigned sideOrdinal,
+                                                       unsigned /*sideOrdinal*/,
                                                        const stk::mesh::EntityVector& candidateSideNodes)
 {
     EquivAndPositive result = {false, false};
@@ -445,7 +465,7 @@ EquivAndPositive is_side_equivalent_and_positive(const stk::mesh::BulkData& mesh
     }
 
     stk::topology subTopology = elemTopology.sub_topology(mesh.mesh_meta_data().side_rank(), sideOrdinal);
-    sub_topology_check(candidateSideNodes, numCandidateSideNodes, elemTopology, subTopology);
+    sub_topology_check(numCandidateSideNodes, elemTopology, subTopology);
 
     return is_equivalent_and_positive(mesh, element, sideOrdinal, mesh.mesh_meta_data().side_rank(), candidateSideNodes);
 }
@@ -465,63 +485,53 @@ EquivAndPositive is_equivalent_and_positive(const stk::mesh::BulkData& mesh,
 
 stk::topology get_subcell_nodes(const BulkData& mesh, const Entity entity,
         EntityRank subcell_rank,
-        unsigned subcell_identifier,
+        unsigned subcell_ordinal,
         EntityVector & subcell_nodes)
 {
     STK_ThrowAssert(subcell_rank <= stk::topology::ELEMENT_RANK);
 
     subcell_nodes.clear();
 
-    // get cell topology
     stk::topology celltopology = mesh.bucket(entity).topology();
 
     //error checking
     {
-//no celltopology defined
+        //no celltopology defined
         if(celltopology == stk::topology::INVALID_TOPOLOGY)
         {
             return celltopology;
         }
 
-// valid ranks fall within the dimension of the cell topology
+        // valid ranks fall within the dimension of the cell topology
         const bool bad_rank = static_cast<unsigned>(subcell_rank) >= celltopology.dimension();
         STK_ThrowInvalidArgMsgIf( bad_rank, "subcell_rank is >= celltopology dimension\n");
 
-// subcell_identifier must be less than the subcell count
-        bool bad_id = subcell_identifier >= celltopology.num_sub_topology(subcell_rank);
+        // subcell_ordinal must be less than the subcell count
+        bool bad_id = subcell_ordinal >= celltopology.num_sub_topology(subcell_rank);
 
-        // FIXME SHELL_SIDE_TOPO
-        if (celltopology.is_shell_with_face_sides() && subcell_rank == stk::topology::FACE_RANK) {
-          bad_id = (subcell_identifier >= celltopology.num_sides());
+        // FIXME SHELL_SIDE_TOPOLOGY
+        if (celltopology.is_shell() && celltopology.dimension() == 3 && subcell_rank == stk::topology::FACE_RANK) {
+          bad_id = (subcell_ordinal >= celltopology.num_sides());
         }
+
         STK_ThrowInvalidArgMsgIf( bad_id, "subcell_id is >= subcell_count\n");
     }
 
-    // Get the cell topology of the subcell
     stk::topology subcell_topology =
-            celltopology.sub_topology(subcell_rank, subcell_identifier);
+            celltopology.sub_topology(subcell_rank, subcell_ordinal);
 
-    const int num_nodes_in_subcell = subcell_topology.num_nodes();
-
-    // For the subcell, get it's local nodes ids
-    std::vector<unsigned> subcell_node_local_ids(num_nodes_in_subcell);
-    celltopology.sub_topology_node_ordinals(subcell_rank, subcell_identifier, subcell_node_local_ids.data());
+    subcell_nodes.resize(subcell_topology.num_nodes());
 
     Entity const *node_relations = mesh.begin_nodes(entity);
-    subcell_nodes.reserve(num_nodes_in_subcell);
-
-    for(int i = 0; i < num_nodes_in_subcell; ++i)
-    {
-        subcell_nodes.push_back(node_relations[subcell_node_local_ids[i]]);
-    }
+    celltopology.sub_topology_nodes(node_relations, subcell_rank, subcell_ordinal, subcell_nodes.data());
 
     return subcell_topology;
 }
 
 int get_entity_subcell_id(const BulkData& mesh,
         const Entity entity,
-        const EntityRank subcell_rank,
-        stk::topology subcell_topology,
+        [[maybe_unused]] const EntityRank subcell_rank,
+        stk::topology /*subcell_topology*/,
         const std::vector<Entity>& subcell_nodes)
 {
     STK_ThrowAssert(subcell_rank <= stk::topology::ELEMENT_RANK);
@@ -557,13 +567,172 @@ stk::mesh::Entity get_side_entity_for_elem_side_pair_of_rank(const stk::mesh::Bu
 
 stk::mesh::Entity get_side_entity_for_elem_side_pair(const stk::mesh::BulkData &bulk, Entity elem, int sideOrdinal)
 {
-    return get_side_entity_for_elem_side_pair_of_rank(bulk, elem, sideOrdinal, bulk.mesh_meta_data().side_rank());
+    unsigned rankedSideOrdinal;
+    stk::mesh::EntityRank sideRank;
+
+    bulk.bucket(elem).topology().ranked_side_ordinal(sideOrdinal, rankedSideOrdinal, sideRank);
+    return get_side_entity_for_elem_side_pair_of_rank(bulk, elem, rankedSideOrdinal, sideRank);
+}
+
+stk::mesh::Entity get_side_entity_for_elem_id_side_pair(const stk::mesh::BulkData &bulk, int64_t elemId, int sideOrdinal)
+{
+  stk::mesh::Entity const elem = bulk.get_entity(stk::topology::ELEM_RANK, elemId);
+  return get_side_entity_for_elem_side_pair(bulk, elem, sideOrdinal);
 }
 
 stk::mesh::Entity get_side_entity_for_elem_id_side_pair_of_rank(const stk::mesh::BulkData &bulk, int64_t elemId, int sideOrdinal, stk::mesh::EntityRank sideRank)
 {
     stk::mesh::Entity const elem = bulk.get_entity(stk::topology::ELEM_RANK, elemId);
     return get_side_entity_for_elem_side_pair_of_rank(bulk, elem, sideOrdinal, sideRank);
+}
+
+size_t num_sides(const BulkData& mesh, Entity entity)
+{
+  stk::topology topo = mesh.bucket(entity).topology();
+  if (!topo.has_mixed_rank_sides()) {
+    return mesh.num_connectivity(entity, mesh.mesh_meta_data().side_rank());
+  }
+
+  STK_ThrowRequireMsg(mesh.mesh_meta_data().spatial_dimension() == 3,
+    "ERROR, topo="<<topo<<" has mixed-rank-sides, but spatial-dim="<<mesh.mesh_meta_data().spatial_dimension());
+
+  const size_t numSides = mesh.num_connectivity(entity, stk::topology::FACE_RANK)
+                        + mesh.num_connectivity(entity, stk::topology::EDGE_RANK);
+  return numSides;
+}
+
+void fill_sides(const BulkData& mesh, Entity entity, stk::mesh::EntityVector& sides)
+{
+  sides.clear();
+
+  stk::topology topo = mesh.bucket(entity).topology();
+  if (!topo.has_mixed_rank_sides()) {
+    sides.insert(sides.begin(), mesh.begin(entity, mesh.mesh_meta_data().side_rank()),
+                                mesh.end(entity, mesh.mesh_meta_data().side_rank()));
+    return;
+  }
+
+  STK_ThrowRequireMsg(mesh.mesh_meta_data().spatial_dimension() == 3,
+    "ERROR, topo="<<topo<<" has mixed-rank-sides, but spatial-dim="<<mesh.mesh_meta_data().spatial_dimension());
+
+  sides.insert(sides.begin(), mesh.begin(entity, mesh.mesh_meta_data().side_rank()),
+                              mesh.end(entity, mesh.mesh_meta_data().side_rank()));
+  sides.insert(sides.end(), mesh.begin(entity, stk::topology::EDGE_RANK),
+                            mesh.end(entity, stk::topology::EDGE_RANK));
+}
+
+stk::mesh::EntityVector get_sides(const BulkData& mesh, Entity entity)
+{
+  stk::mesh::EntityVector sides;
+  fill_sides(mesh, entity, sides);
+  return sides;
+}
+
+template<typename T>
+void resize_side_info_vector(const BulkData & mesh, Entity elem,
+                             const std::vector<EntityRank>& allSideRanks,
+                             T& sideInfoVector)
+{
+  size_t numConn = 0;
+
+  for(EntityRank rank : allSideRanks) {
+    numConn += mesh.num_connectivity(elem, rank);
+  }
+
+  sideInfoVector.resize(numConn);
+}
+
+void fill_side_ordinals(const BulkData & mesh, Entity elem, bool sortOrdinals, std::vector<ConnectivityOrdinal>& connectedOrdinals)
+{
+  auto elemTopology = mesh.bucket(elem).topology();
+  auto& meta = mesh.mesh_meta_data();
+
+  connectedOrdinals.clear();
+
+  if (!elemTopology.has_mixed_rank_sides()) {
+    connectedOrdinals.insert(connectedOrdinals.begin(), mesh.begin_ordinals(elem, meta.side_rank()),
+                                                        mesh.end_ordinals(elem, meta.side_rank()));
+  } else {
+    STK_ThrowRequireMsg(meta.spatial_dimension() == 3,
+      "ERROR, topo="<<elemTopology<<" has mixed-rank-sides, but spatial-dim="<<meta.spatial_dimension());
+
+    std::vector<EntityRank> allSideRanks(elemTopology.num_side_ranks());
+    elemTopology.side_ranks(allSideRanks.data());
+
+    resize_side_info_vector(mesh, elem, allSideRanks, connectedOrdinals);
+
+    unsigned numConnOfRank = 0;
+    for(EntityRank rank : allSideRanks) {
+      std::transform(mesh.begin_ordinals(elem, rank), mesh.end_ordinals(elem, rank), &connectedOrdinals[numConnOfRank],
+                     [&elemTopology, &rank](ConnectivityOrdinal localRankedOrdinal) {
+                       return elemTopology.side_ordinal(localRankedOrdinal, rank);
+                     });
+
+      numConnOfRank += mesh.num_connectivity(elem, rank);
+    }
+  }
+
+  if(sortOrdinals) {
+    std::sort(connectedOrdinals.begin(), connectedOrdinals.end());
+  }
+}
+
+std::vector<ConnectivityOrdinal> get_side_ordinals(const BulkData & mesh, Entity elem, bool sortOrdinals)
+{
+  std::vector<ConnectivityOrdinal> connectedOrdinals;
+  fill_side_ordinals(mesh, elem, sortOrdinals, connectedOrdinals);
+  return connectedOrdinals;
+}
+
+void fill_element_side_entries(const BulkData & mesh, Entity elem, bool sortEntries, std::vector<ElemSideOrdinal>& connectedElementSide)
+{
+  connectedElementSide.clear();
+
+  auto elemTopology = mesh.bucket(elem).topology();
+  auto& meta = mesh.mesh_meta_data();
+
+  if (!elemTopology.has_mixed_rank_sides()) {
+    auto ordinals = mesh.begin_ordinals(elem, meta.side_rank());
+    auto sides = mesh.begin(elem, meta.side_rank());
+    unsigned numConn = mesh.num_connectivity(elem, meta.side_rank());
+    connectedElementSide.reserve(numConn);
+
+    for(unsigned i=0; i<numConn; i++) {
+      connectedElementSide.emplace_back(elem, sides[i], ordinals[i]);
+    }
+  } else {
+    STK_ThrowRequireMsg(meta.spatial_dimension() == 3,
+      "ERROR, topo="<<elemTopology<<" has mixed-rank-sides, but spatial-dim="<<meta.spatial_dimension());
+
+    std::vector<EntityRank> allSideRanks(elemTopology.num_side_ranks());
+    elemTopology.side_ranks(allSideRanks.data());
+
+    resize_side_info_vector(mesh, elem, allSideRanks, connectedElementSide);
+
+    unsigned numConnOfRank = 0;
+    for(EntityRank rank : allSideRanks) {
+      unsigned count = 0;
+      auto sides = mesh.begin(elem, rank);
+      std::transform(mesh.begin_ordinals(elem, rank), mesh.end_ordinals(elem, rank), &connectedElementSide[numConnOfRank],
+                     [&elemTopology, &rank, &elem, &count, sides](ConnectivityOrdinal localRankedOrdinal) {
+                       unsigned sideOrdinal = elemTopology.side_ordinal(localRankedOrdinal, rank);
+                       return ElemSideOrdinal{elem, sides[count++], static_cast<ConnectivityOrdinal>(sideOrdinal)};
+                     });
+
+      numConnOfRank += mesh.num_connectivity(elem, rank);
+    }
+  }
+
+  if(sortEntries) {
+    std::sort(connectedElementSide.begin(), connectedElementSide.end());
+  }
+}
+
+std::vector<ElemSideOrdinal> get_element_side_entries(const BulkData & mesh, Entity elem, bool sortEntries)
+{
+  std::vector<ElemSideOrdinal> connectedElementSide;
+  fill_element_side_entries(mesh, elem, sortEntries, connectedElementSide);
+  return connectedElementSide;
 }
 
 template<class IterType>

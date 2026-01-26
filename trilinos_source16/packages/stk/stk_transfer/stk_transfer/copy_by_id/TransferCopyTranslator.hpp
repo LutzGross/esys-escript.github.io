@@ -111,6 +111,7 @@ class TranslatorBase
   TranslatorBase() {}
 
   virtual void translate(const void* srcAddr, unsigned srcDataByteSize, DataTypeKey::data_t destType, void* destAddr, unsigned destDataByteSize) const = 0;
+  virtual ~TranslatorBase() = default;
 };
 
 struct TranslatorInfo
@@ -135,7 +136,7 @@ class DataTypeTranslator : public TranslatorBase
     m_translators.push_back({assign_src_type_to_dest_type<TYPE, double>, sizeof(double)});
   }
   
-  void translate(const void* srcAddr, unsigned srcDataByteSize, DataTypeKey::data_t destType, void* destAddr, unsigned destDataByteSize) const {
+  void translate(const void* srcAddr, unsigned srcDataByteSize, DataTypeKey::data_t destType, void* destAddr, unsigned destDataByteSize) const override {
     STK_ThrowRequire(DataTypeKey::is_valid_data_type(destType));
     STK_ThrowRequire(srcDataByteSize % sizeof(TYPE) == 0);
     unsigned srcCount = srcDataByteSize / sizeof(TYPE);

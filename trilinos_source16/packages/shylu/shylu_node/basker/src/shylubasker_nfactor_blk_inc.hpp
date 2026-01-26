@@ -1,3 +1,12 @@
+// @HEADER
+// *****************************************************************************
+//               ShyLU: Scalable Hybrid LU Preconditioner and Solver
+//
+// Copyright 2011 NTESS and the ShyLU contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
+// @HEADER
+
 #ifndef SHYLUBASKER_NFACTOR_BLK_INC_HPP
 #define SHYLUBASKER_NFACTOR_BLK_INC_HPP
 
@@ -367,14 +376,14 @@ namespace BaskerNS
     if((maxindex == BASKER_MAX_IDX) || (pivot == (Entry)(0)) )
             {
 	      if(Options.verbose == BASKER_TRUE)
-		{
-	      cout << endl << endl;
-	      cout << "---------------------------"<<endl;
-              cout << "Error: Matrix is singular, blk" << endl;
-              cout << "MaxIndex: " << maxindex << " pivot " 
-                   << pivot << endl;
-              cout << "lcnt: " << lcnt << endl;
-		}
+              {
+                std::cout << std::endl << std::endl;
+	        std::cout << "---------------------------"<< std::endl;
+                std::cout << "Error: Matrix is singular, blk" << std::endl;
+                std::cout << "MaxIndex: " << maxindex << " pivot " 
+                          << pivot << std::endl;
+                std::cout << "lcnt: " << lcnt << std::endl;
+              }
 	      thread_array(kid).error_type =
 		BASKER_ERROR_SINGULAR;
 	      thread_array(kid).error_blk  = b;
@@ -792,7 +801,7 @@ namespace BaskerNS
 		      {
 		
 			INC_LVL_TEMP(i+brow) =
-			  min(inc_lvl+L.inc_lvl(i1)+1,
+			  std::min(inc_lvl+L.inc_lvl(i1)+1,
 			      INC_LVL_TEMP(i+brow));
 		
 		      
@@ -842,7 +851,7 @@ namespace BaskerNS
 		    else
 		      {
 			INC_LVL_TEMP(i+brow) =
-			  min(inc_lvl+L.inc_lvl(i1)+1,
+			  std::min(inc_lvl+L.inc_lvl(i1)+1,
 			      INC_LVL_TEMP(i+brow));
 			//printf("kid: %d settwo: %d \n",
 			       //kid, INC_LVL_TEMP(i+brow));
@@ -870,7 +879,7 @@ namespace BaskerNS
 	    else
 	      {
 		INC_LVL_TEMP(j+brow) =
-		  min(inc_lvl, INC_LVL_TEMP(j+brow));
+		  std::min(inc_lvl, INC_LVL_TEMP(j+brow));
 		//printf("kid: %d j: %d set four: %d \n",
 		//   kid, j+brow, INC_LVL_TEMP(j+brow));
 	      }
@@ -1308,7 +1317,7 @@ namespace BaskerNS
 	    else
 	      {
 		INC_LVL_TEMP(j+brow) =
-		  min(inc_lvl, INC_LVL_TEMP(j+brow));
+		  std::min(inc_lvl, INC_LVL_TEMP(j+brow));
 	      }
 	    
 	    #ifdef BASKER_DEBUG_NFACTOR_BLK_INC
@@ -1546,7 +1555,7 @@ namespace BaskerNS
    BASKER_BOOL A_option
    )
   {
-    BASKER_MATRIX &L     = LL(blkcol)(blkrow);
+    BASKER_MATRIX &L     =  LL(blkcol)(blkrow);
     BASKER_MATRIX &B     = ALM(blkcol)(blkrow);
 
     INT_1DARRAY   ws     = LL(X_col)(X_row).iws;
@@ -1708,7 +1717,7 @@ namespace BaskerNS
    BASKER_BOOL A_option
    )
   {
-    BASKER_MATRIX &L     = LL(blkcol)(blkrow);
+    BASKER_MATRIX &L     =  LL(blkcol)(blkrow);
     BASKER_MATRIX &B     = ALM(blkcol)(blkrow);
 
     INT_1DARRAY   ws     = LL(X_col)(X_row).iws;
@@ -1837,7 +1846,7 @@ namespace BaskerNS
 	   nnz, kid, X_col, X_row);
     printf("kid %d Ending nnz: %d \n",kid, nnz);
     #endif
-    LL[X_col][X_row].p_size = nnz;
+    LL(X_col)(X_row).p_size = nnz;
     #endif
 
      return 0;
@@ -1860,7 +1869,7 @@ namespace BaskerNS
    BASKER_BOOL A_option
    )
   {
-    BASKER_MATRIX &L     = LL(blkcol)(blkrow);
+    BASKER_MATRIX &L     =  LL(blkcol)(blkrow);
     BASKER_MATRIX &B     = ALM(blkcol)(blkrow);
 
     INT_1DARRAY   ws     = LL(X_col)(X_row).iws;
@@ -1987,7 +1996,7 @@ namespace BaskerNS
 	      }
 	    else
 	      {
-		stack[jj] = min(temp_cal, stack[jj]);
+		stack[jj] = std::min(temp_cal, stack[jj]);
 	      }
 
 
@@ -2037,7 +2046,7 @@ namespace BaskerNS
 	   nnz, kid, X_col, X_row);
     printf("kid %d Ending nnz: %d \n",kid, nnz);
     #endif
-    LL[X_col][X_row].p_size = nnz;
+    LL(X_col)(X_row).p_size = nnz;
     #endif
 
      return 0;
@@ -2167,18 +2176,18 @@ namespace BaskerNS
   BASKER_INLINE
   int Basker<Int,Entry,Exe_Space>::t_nfactor_blk_old(Int kid)
   {
-    Int b = S[0][kid]; //Which blk from schedule
-    BASKER_MATRIX &L   = LL[b][0];
-    BASKER_MATRIX &U   = LU[b][LU_size[b]-1];
+    Int b = S(0)(kid); //Which blk from schedule
+    BASKER_MATRIX &L   = LL(b)(0);
+    BASKER_MATRIX &U   = LU(b)(LU_size[b]-1);
     #ifdef BASKER_2DL
     printf("Accessing blk: %d \n", b);
-    INT_1DARRAY   ws   = LL[b][0].iws;
-    ENTRY_1DARRAY X    = LL[b][0].ews;
-    Int        ws_size = LL[b][0].iws_size;
+    INT_1DARRAY   ws   = LL(b)(0).iws;
+    ENTRY_1DARRAY X    = LL(b)(0).ews;
+    Int        ws_size = LL(b)(0).iws_size;
     #else  //else if BASKER_2DL
-    INT_1DARRAY   ws   = thread_array[kid].iws;
-    ENTRY_1DARRAY X    = thread_array[kid].ews;
-    Int       ws_size  = thread_array[kid].iws_size;
+    INT_1DARRAY   ws   = thread_array(kid).iws;
+    ENTRY_1DARRAY X    = thread_array(kid).ews;
+    Int       ws_size  = thread_array(kid).iws_size;
     #endif
    
     Int          bcol  = L.scol;  //begining col
@@ -2350,17 +2359,17 @@ namespace BaskerNS
             {
 
 	      if(Options.verbose == BASKER_TRUE)
-		{
-	      cout << endl << endl;
-	      cout << "---------------------------"
-		   <<endl;
+              {
+	        std::cout << std::endl << std::endl;
+	        std::cout << "---------------------------"
+		          << std::endl;
 	     
-              cout << "Error: Matrix is singular, blk" 
-		   << endl;
-              cout << "MaxIndex: " 
-		   << maxindex << " pivot " 
-                   << pivot << endl;
-		}
+                std::cout << "Error: Matrix is singular, blk" 
+		          << std::endl;
+                std::cout << "MaxIndex: " 
+		          << maxindex << " pivot " 
+                          << pivot << std::endl;
+              }
               return 2;
             }          
 
@@ -2567,15 +2576,15 @@ namespace BaskerNS
   {
 
     //Setup variables
-    const Int      b   = S[lvl][kid];
-    const Int     wsb  = S[0][kid];
-    BASKER_MATRIX  &L  = LL[b][0];
+    const Int      b   = S(lvl)(kid);
+    const Int     wsb  = S(0)(kid);
+    BASKER_MATRIX  &L  = LL(b)(0);
     #ifdef BASKER_2DL
-    INT_1DARRAY    ws  = LL[wsb][l].iws;
-    Int        ws_size = LL[wsb][l].iws_size;
+    INT_1DARRAY    ws  = LL(wsb)(l).iws;
+    Int        ws_size = LL(wsb)(l).iws_size;
     #else
-    INT_1DARRAY    ws  = thread_array[kid].iws;
-    Int        ws_size = thread_array[kid].iws_size;
+    INT_1DARRAY    ws  = thread_array(kid).iws;
+    Int        ws_size = thread_array(kid).iws_size;
     #endif
 
     const Int brow    = L.srow;
@@ -2720,8 +2729,8 @@ namespace BaskerNS
    BASKER_BOOL A_option
      )
   {
-    BASKER_MATRIX &L            = LL(blkcol)(blkrow);
-    BASKER_MATRIX &B            = ALM(blkcol)(blkrow);
+    BASKER_MATRIX &L    =  LL(blkcol)(blkrow);
+    BASKER_MATRIX &B    = ALM(blkcol)(blkrow);
 
 
     /*
@@ -2747,11 +2756,10 @@ namespace BaskerNS
     
 
 
-    INT_1DARRAY   ws            = LL(X_col)(X_row).iws;
-    ENTRY_1DARRAY X             = LL(X_col)(X_row).ews;
-    Int         ws_size         = LL(X_col)(X_row).iws_size;
-    
-    Int    nnz            = LL(X_col)(X_row).p_size;
+    INT_1DARRAY   ws    = LL(X_col)(X_row).iws;
+    ENTRY_1DARRAY X     = LL(X_col)(X_row).ews;
+    Int  ws_size        = LL(X_col)(X_row).iws_size;
+    Int  nnz            = LL(X_col)(X_row).p_size;
  
 
    
@@ -2960,7 +2968,7 @@ namespace BaskerNS
    Int x_size, Int x_offset,
    BASKER_BOOL A_option)
   {
-    BASKER_MATRIX &L            = LL(blkcol)(blkrow);
+    BASKER_MATRIX &L            =  LL(blkcol)(blkrow);
     BASKER_MATRIX &B            = ALM(blkcol)(blkrow);
 
     INT_1DARRAY   ws            = LL(X_col)(X_row).iws;
@@ -3116,7 +3124,7 @@ namespace BaskerNS
 	       
 	    if(stack[jj] != BASKER_MAX_IDX)
 	      {
-	    stack[jj] = min(stack[jj], temp);
+	    stack[jj] = std::min(stack[jj], temp);
 	      }
 	    else
 	      {
@@ -3237,7 +3245,7 @@ namespace BaskerNS
       {
 	printf("no enough memory in dense \n");
 //	printf("kid: %ld llnnz: %ld lnnz: %ld \n",kid, llnnz, lnnz);
-  std::cout << "kid: " << kid
+        std::cout << "kid: " << kid
             << " llnz: " << llnnz
             << " lnz: " << lnnz << std::endl;
 
@@ -3306,7 +3314,7 @@ namespace BaskerNS
    const BASKER_BOOL A_option
    )
   {
-    BASKER_MATRIX &L     = LL(blkcol)(blkrow);
+    BASKER_MATRIX &L     =  LL(blkcol)(blkrow);
     BASKER_MATRIX &B     = ALM(blkcol)(blkrow);
 
     INT_1DARRAY   ws     = LL(X_col)(X_row).iws;
@@ -3399,7 +3407,7 @@ namespace BaskerNS
 	      }
 	    else
 	      {
-		stack[jj] = min(temp_cal, stack[jj]);
+		stack[jj] = std::min(temp_cal, stack[jj]);
 	      }
 
 
@@ -3527,7 +3535,7 @@ namespace BaskerNS
 	      }
 	    else
 	      {
-		stack[jj] = min(nflvl, stack[jj]);
+		stack[jj] = std::min(nflvl, stack[jj]);
 	      }
 
             //if((kid==2)||(kid==3))
@@ -3679,7 +3687,7 @@ namespace BaskerNS
 	      }
 	    else
 	      {
-		stack[jj] = min(nflvl, stack[jj]);
+		stack[jj] = std::min(nflvl, stack[jj]);
 	      }
 	    
 	    /*
@@ -3883,7 +3891,7 @@ namespace BaskerNS
                     //	   stack[jj], stackL[jj], kid);
 		    
                     // }
-		    stackL[jj] = min(stackL[jj], stack[jj]);
+		    stackL[jj] = std::min(stackL[jj], stack[jj]);
 		    stack[jj]  = stackL[jj];
 		    
 		  }//if stack(j) != BASKER_MAX_IDX

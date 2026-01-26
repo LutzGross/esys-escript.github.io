@@ -1,48 +1,12 @@
 // @HEADER
-//
-// ***********************************************************************
-//
+// *****************************************************************************
 //             Xpetra: A linear algebra interface package
-//                  Copyright 2012 Sandia Corporation
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
-// the U.S. Government retains certain rights in this software.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact
-//                    Jonathan Hu       (jhu@sandia.gov)
-//                    Andrey Prokopenko (aprokop@sandia.gov)
-//                    Ray Tuminaro      (rstumin@sandia.gov)
-//
-// ***********************************************************************
-//
+// Copyright 2012 NTESS and the Xpetra contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
 // @HEADER
+
 #ifndef XPETRA_EPETRACRSMATRIX_HPP
 #define XPETRA_EPETRACRSMATRIX_HPP
 
@@ -71,7 +35,9 @@
 
 #if defined(XPETRA_ENABLE_DEPRECATED_CODE)
 #ifdef __GNUC__
+#if defined(Xpetra_SHOW_DEPRECATED_WARNINGS)
 #warning "The header file Trilinos/packages/xpetra/src/CrsMatrix/Xpetra_EpetraCrsMatrix.hpp is deprecated."
+#endif
 #endif
 #else
 #error "The header file Trilinos/packages/xpetra/src/CrsMatrix/Xpetra_EpetraCrsMatrix.hpp is deprecated."
@@ -88,9 +54,21 @@ class XPETRA_DEPRECATED EpetraCrsMatrixT
   typedef typename CrsMatrix<double, int, GlobalOrdinal, Node>::local_ordinal_type LocalOrdinal;
 
 #ifdef HAVE_XPETRA_TPETRA
-  typedef typename Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_matrix_type local_matrix_type;
+ public:
+  using local_matrix_type        = typename Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_matrix_type;
+  using local_matrix_device_type = typename Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_matrix_device_type;
+  using local_matrix_host_type   = typename Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_matrix_host_type;
   typedef typename Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::node_type node_type;
+
+ private:
 #endif
+
+#if KOKKOS_VERSION >= 40799
+  using ATS = KokkosKernels::ArithTraits<Scalar>;
+#else
+  using ATS = Kokkos::ArithTraits<Scalar>;
+#endif
+  using impl_scalar_type = typename ATS::val_type;
 
  public:
   EpetraCrsMatrixT(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rowMap, size_t maxNumEntriesPerRow, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
@@ -245,19 +223,24 @@ class XPETRA_DEPRECATED EpetraCrsMatrixT
     TEUCHOS_TEST_FOR_EXCEPTION(true, Xpetra::Exceptions::RuntimeError,
                                "Xpetra::EpetraCrsMatrix only available for GO=int or GO=long long with EpetraNode (Serial or OpenMP depending on configuration)");
   }
+#if KOKKOS_VERSION >= 40799
+  typename local_matrix_type::host_mirror_type getLocalMatrixHost() const {
+#else
   typename local_matrix_type::HostMirror getLocalMatrixHost() const {
-    TEUCHOS_TEST_FOR_EXCEPTION(true, Xpetra::Exceptions::RuntimeError,
-                               "Xpetra::EpetraCrsMatrix only available for GO=int or GO=long long with EpetraNode (Serial or OpenMP depending on configuration)");
-  }
+#endif
+      TEUCHOS_TEST_FOR_EXCEPTION(true, Xpetra::Exceptions::RuntimeError,
+                                 "Xpetra::EpetraCrsMatrix only available for GO=int or GO=long long with EpetraNode (Serial or OpenMP depending on configuration)");
+}
 
-  void setAllValues(const typename local_matrix_type::row_map_type &ptr,
-                    const typename local_matrix_type::StaticCrsGraphType::entries_type::non_const_type &ind,
-                    const typename local_matrix_type::values_type &val) {
-    TEUCHOS_TEST_FOR_EXCEPTION(true, Xpetra::Exceptions::RuntimeError,
-                               "Xpetra::EpetraCrsMatrix only available for GO=int or GO=long long with EpetraNode (Serial or OpenMP depending on configuration)");
-  }
+void
+setAllValues(const typename local_matrix_type::row_map_type &ptr,
+             const typename local_matrix_type::StaticCrsGraphType::entries_type::non_const_type &ind,
+             const typename local_matrix_type::values_type &val) {
+  TEUCHOS_TEST_FOR_EXCEPTION(true, Xpetra::Exceptions::RuntimeError,
+                             "Xpetra::EpetraCrsMatrix only available for GO=int or GO=long long with EpetraNode (Serial or OpenMP depending on configuration)");
+}
 
-  LocalOrdinal GetStorageBlockSize() const { return 1; }
+LocalOrdinal GetStorageBlockSize() const { return 1; }
 
 #else
 #ifdef __GNUC__
@@ -265,15 +248,15 @@ class XPETRA_DEPRECATED EpetraCrsMatrixT
 #endif
 #endif
 
-  void residual(const MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node> &X,
-                const MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node> &B,
-                MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node> &R) const {
-    Scalar one = Teuchos::ScalarTraits<Scalar>::one(), negone = -one;
-    apply(X, R);
-    R.update(one, B, negone);
-  }
+void residual(const MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node> &X,
+              const MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node> &B,
+              MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node> &R) const {
+  Scalar one = Teuchos::ScalarTraits<Scalar>::one(), negone = -one;
+  apply(X, R);
+  R.update(one, B, negone);
+}
 
-};  // EpetraCrsMatrixT class (specialization on GO=long, empty stub implementation)
+};  // namespace Xpetra
 
 #ifndef XPETRA_EPETRA_NO_32BIT_GLOBAL_INDICES
 template <>
@@ -286,8 +269,13 @@ class EpetraCrsMatrixT<int, EpetraNode>
 
   // The following typedefs are used by the Kokkos interface
 #ifdef HAVE_XPETRA_TPETRA
+ public:
   typedef typename Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_matrix_type local_matrix_type;
+  using local_matrix_device_type = typename Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_matrix_device_type;
+  using local_matrix_host_type   = typename Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_matrix_host_type;
   typedef typename Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::node_type node_type;
+
+ private:
 #endif
 
  public:
@@ -1297,7 +1285,11 @@ class EpetraCrsMatrixT<int, EpetraNode>
     return getLocalMatrixHost();
   }
 
+#if KOKKOS_VERSION >= 40799
+  typename local_matrix_type::host_mirror_type getLocalMatrixHost() const {
+#else
   typename local_matrix_type::HostMirror getLocalMatrixHost() const {
+#endif
     RCP<Epetra_CrsMatrix> matrix = getEpetra_CrsMatrixNonConst();
 
     const int numRows = matrix->NumMyRows();
@@ -1398,8 +1390,13 @@ class EpetraCrsMatrixT<long long, EpetraNode>
 
   // The following typedefs are used by the Kokkos interface
 #ifdef HAVE_XPETRA_TPETRA
+ public:
   typedef typename Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_matrix_type local_matrix_type;
+  using local_matrix_device_type = typename Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_matrix_device_type;
+  using local_matrix_host_type   = typename Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_matrix_host_type;
   typedef typename Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::node_type node_type;
+
+ private:
 #endif
 
  public:

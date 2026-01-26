@@ -22,7 +22,7 @@
 #include <MueLu_TestHelpers.hpp>
 #include <MueLu_Version.hpp>
 #include <MueLu_Utilities.hpp>
-#include "Xpetra_Access.hpp"
+#include "Tpetra_Access.hpp"
 
 // This file is intended to house all the tests for MueLu_Utilities.hpp.
 
@@ -70,8 +70,8 @@ TEUCHOS_UNIT_TEST_TEMPLATE_4_DECL(Utilities, MatMatMult_EpetraVsTpetra, Scalar, 
   result                    = MultiVectorFactory::Build(OpOp->getRangeMap(), 1);
   RCP<MultiVector> X_tpetra = MultiVectorFactory::Build(OpOp->getDomainMap(), 1);
   {
-    auto lcl_X_epetra = X_epetra->getHostLocalView(Xpetra::Access::ReadOnly);
-    auto lcl_X_tpetra = X_tpetra->getHostLocalView(Xpetra::Access::OverwriteAll);
+    auto lcl_X_epetra = X_epetra->getLocalViewHost(Tpetra::Access::ReadOnly);
+    auto lcl_X_tpetra = X_tpetra->getLocalViewHost(Tpetra::Access::OverwriteAll);
     Kokkos::deep_copy(lcl_X_tpetra, lcl_X_epetra);
   }
   X_tpetra->norm2(xnorm);
@@ -143,6 +143,47 @@ TEUCHOS_UNIT_TEST_TEMPLATE_4_DECL(Utilities, DetectDirichletRows, Scalar, LocalO
   TEST_EQUALITY(drows[localRowToZero - 1], false);
 
 }  // DetectDirichletRows
+
+TEUCHOS_UNIT_TEST_TEMPLATE_4_DECL(Utilities, EnforceInitialCondition, Scalar, LocalOrdinal, GlobalOrdinal, Node) {
+#include <MueLu_UseShortNames.hpp>
+  MUELU_TESTING_SET_OSTREAM;
+  MUELU_TESTING_LIMIT_SCOPE(Scalar, GlobalOrdinal, Node);
+
+  typedef typename Teuchos::ScalarTraits<Scalar> TST;
+
+  RCP<Matrix> A = TestHelpers::TestFactory<Scalar, LocalOrdinal, GlobalOrdinal, Node>::Build1DPoisson(100);
+  Teuchos::ArrayView<const LocalOrdinal> indices;
+  Teuchos::ArrayView<const Scalar> values;
+
+  LocalOrdinal localRowToZero = 5;
+  A->resumeFill();
+  A->getLocalRowView(localRowToZero, indices, values);
+  Array<Scalar> newvalues(values.size(), TST::zero());
+  for (int j = 0; j < indices.size(); j++)
+    // keep diagonal
+    if (indices[j] == localRowToZero) newvalues[j] = values[j];
+  A->replaceLocalValues(localRowToZero, indices, newvalues);
+
+  A->fillComplete();
+
+  auto RHS = MultiVectorFactory::Build(A->getRangeMap(), 1);
+  RHS->randomize();
+  auto X = MultiVectorFactory::Build(A->getDomainMap(), 1);
+  X->putScalar(666. * TST::one());
+  Utilities::EnforceInitialCondition(*A, *RHS, *X, TST::magnitude(0.26));
+
+  auto lclRHS = RHS->getLocalViewHost(Tpetra::Access::ReadOnly);
+  auto lclX   = X->getLocalViewHost(Tpetra::Access::ReadOnly);
+
+  // row 5 is Dirichlet
+  for (size_t row = 0; row < A->getLocalNumRows(); ++row) {
+    if (row == 5) {
+      TEST_EQUALITY(lclRHS(row, 0), lclX(row, 0));
+    } else {
+      TEST_EQUALITY(666. * TST::one(), lclX(row, 0));
+    }
+  }
+}  // EnforceInitialCondition
 
 TEUCHOS_UNIT_TEST_TEMPLATE_4_DECL(Utilities, GetDiagonalInverse, Scalar, LocalOrdinal, GlobalOrdinal, Node) {
 #include <MueLu_UseShortNames.hpp>
@@ -683,6 +724,7 @@ TEUCHOS_UNIT_TEST_TEMPLATE_4_DECL(Utilities, TransposeNonsymmetricConstMatrix, S
 #define MUELU_ETI_GROUP(Scalar, LO, GO, Node)                                                      \
   TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT(Utilities, MatMatMult_EpetraVsTpetra, Scalar, LO, GO, Node) \
   TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT(Utilities, DetectDirichletRows, Scalar, LO, GO, Node)       \
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT(Utilities, EnforceInitialCondition, Scalar, LO, GO, Node)   \
   TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT(Utilities, GetDiagonalInverse, Scalar, LO, GO, Node)        \
   TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT(Utilities, GetLumpedDiagonal, Scalar, LO, GO, Node)         \
   TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT(Utilities, GetInverse, Scalar, LO, GO, Node)                \

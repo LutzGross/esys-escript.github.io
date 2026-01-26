@@ -33,7 +33,7 @@
 //
 
 #include "MeshFixtureRebalance.hpp"
-#include <stk_util/environment/EnvData.hpp>
+#include <stk_util/parallel/OutputStreams.hpp>
 #include <stk_mesh/base/Comm.hpp>
 #include <stk_balance/rebalance.hpp>
 #include <vector>
@@ -53,9 +53,9 @@ public:
     m_balanceSettings.set_num_output_processors(numFinalProcs);
     m_balanceSettings.setDecompMethod(decompMethod);
 
-    stk::EnvData::instance().m_outputP0 = &stk::EnvData::instance().m_outputNull;
+    stk::set_outputP0(&stk::outputNull());
     stk::balance::rebalance(m_ioBroker, m_balanceSettings);
-    stk::EnvData::instance().m_outputP0 = &std::cout;
+    stk::reset_default_output_streams();
   }
 };
 
@@ -111,6 +111,18 @@ TEST_F(RebalanceFileOutput, CheckSharingInformation)
                                     nodeSharingInfo);
 
   verify_node_sharing_info(nodeSharingInfo, outputFilename);
+
+  clean_up_temporary_files();
+    
+  if (get_parallel_rank() == 0) {
+    for (int i = 0; i < get_parallel_size(); ++i) {
+      std::string suffix = "." + std::to_string(get_parallel_size()) + "." + std::to_string(i);
+      std::string filename = outputFilename + suffix;
+      std::string inputFilename = get_input_file_name() + suffix;
+      unlink(filename.c_str());
+      unlink(inputFilename.c_str());
+    }
+  }
 }
 
 }

@@ -1,44 +1,10 @@
 // @HEADER
-// ************************************************************************
-//
+// *****************************************************************************
 //               Rapid Optimization Library (ROL) Package
-//                 Copyright (2014) Sandia Corporation
 //
-// Under terms of Contract DE-AC04-94AL85000, there is a non-exclusive
-// license for use of this work by or on behalf of the U.S. Government.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact lead developers:
-//              Drew Kouri   (dpkouri@sandia.gov) and
-//              Denis Ridzal (dridzal@sandia.gov)
-//
-// ************************************************************************
+// Copyright 2014 NTESS and the ROL contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
 // @HEADER
 
 #ifndef ROL_PROBLEM_HPP
@@ -65,6 +31,7 @@ private:
   bool hasInequality_;
   bool hasLinearEquality_;
   bool hasLinearInequality_;
+  bool hasProximableObjective_; 
   unsigned cnt_econ_;
   unsigned cnt_icon_;
   unsigned cnt_linear_econ_;
@@ -73,6 +40,7 @@ private:
   ParameterList ppa_list_;
 
   Ptr<Objective<Real>>            obj_;
+  Ptr<Objective<Real>>            nobj_; 
   Ptr<Vector<Real>>               xprim_;
   Ptr<Vector<Real>>               xdual_;
   Ptr<BoundConstraint<Real>>      bnd_;
@@ -89,6 +57,7 @@ private:
 protected:
 
   Ptr<Objective<Real>>                                 INPUT_obj_;
+  Ptr<Objective<Real>>                                 INPUT_nobj_; 
   Ptr<Vector<Real>>                                    INPUT_xprim_;
   Ptr<Vector<Real>>                                    INPUT_xdual_;
   Ptr<BoundConstraint<Real>>                           INPUT_bnd_;
@@ -119,12 +88,14 @@ public:
        hasInequality_(problem.hasInequality_),
        hasLinearEquality_(problem.hasLinearEquality_),
        hasLinearInequality_(problem.hasLinearInequality_),
+       hasProximableObjective_(problem.hasProximableObjective_), 
        cnt_econ_(problem.cnt_econ_),
        cnt_icon_(problem.cnt_icon_),
        cnt_linear_econ_(problem.cnt_linear_econ_),
        cnt_linear_icon_(problem.cnt_linear_icon_),
        ppa_list_(problem.ppa_list_),
        INPUT_obj_(problem.INPUT_obj_),
+       INPUT_nobj_(problem.INPUT_nobj_),
        INPUT_xprim_(problem.INPUT_xprim_),
        INPUT_xdual_(problem.INPUT_xdual_),
        INPUT_bnd_(problem.INPUT_bnd_),
@@ -222,6 +193,15 @@ public:
       @param[in] ppa  polyhedral projection algorithm
   */
   void setProjectionAlgorithm(ParameterList &parlist);
+  
+  /** Set Proximable objective function
+  */
+  void addProximableObjective(const Ptr<Objective<Real>> &nobj); 
+  
+  /** Remove Proximable objective function
+  */
+  void removeProximableObjective(); 
+
 
   /***************************************************************************/
   /*** Accessor methods ******************************************************/
@@ -230,6 +210,10 @@ public:
   /** \brief Get the objective function.
   */
   const Ptr<Objective<Real>>&            getObjective();
+  
+  /** \brief Get proximable objective
+  */
+  const Ptr<Objective<Real>>&            getProximableObjective();   
 
   /** \brief Get the primal optimization space vector.
   */
@@ -260,7 +244,7 @@ public:
   */
   const Ptr<PolyhedralProjection<Real>>& getPolyhedralProjection();
 
-  /** \brief Get the optimization problem type (U, B, E, or G).
+  /** \brief Get the optimization problem type (U, B, E, G, or P).
   */
   EProblem                              getProblemType();
 

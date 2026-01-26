@@ -1,3 +1,12 @@
+// @HEADER
+// *****************************************************************************
+//               ShyLU: Scalable Hybrid LU Preconditioner and Solver
+//
+// Copyright 2011 NTESS and the ShyLU contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
+// @HEADER
+
 #ifndef SHYLUBASKER_ORDER_SCOTCH_HPP
 #define SHYLUBASKER_ORDER_SCOTCH_HPP
 
@@ -226,7 +235,10 @@ namespace BaskerNS
 
         // id of the first leaf node (BF order, post_order maps from BF to ND)
         Int leaves_id = pow(2.0, (double)(num_levels)) - 1;
-        //printf( " num_levels = %d, num_doms = %d, leves_id = %d\n",num_levels,num_doms,leaves_id );
+        if (Options.verbose == BASKER_TRUE) {
+          printf( " num_domains = %d: num_levels = %d, num_doms = %d, leves_id = %d\n",
+                  int(num_domains),int(num_levels),int(num_doms),int(leaves_id) );
+        }
 
         // > insert root
         Int num_queued = 0;
@@ -288,11 +300,14 @@ namespace BaskerNS
           // level goes to num_leaves so that we can call ND on the final leaf nodes
           last_level = num_levels;
         }
-        if (Options.verbose == BASKER_TRUE) {
-          if (run_nd_on_leaves) {
+        if (run_nd_on_leaves) {
+          if (Options.verbose == BASKER_TRUE) {
             std::cout << std::endl << " + Using ND on leaves + " << std::endl;
-          } else if (run_amd_on_leaves) {
-            std::cout << std::endl << " + Using AMD on leaves + " << std::endl;
+          }
+        } else if (run_amd_on_leaves) {
+          MALLOC_INT_1DARRAY(BT.leaf_nnz, num_doms);
+          if (Options.verbose == BASKER_TRUE) {
+            std::cout << std::endl << " + Using AMD on leaves (# doms = " << num_doms << ") + " << std::endl;
           }
         }
         // -------------------------------------------------- //
@@ -542,11 +557,16 @@ namespace BaskerNS
                     for(Int i = 0; i < metis_size_k; i++) {
                       metis_iperm_k(metis_perm_k(i)) = i;
                     }
+                    if (Options.verbose == BASKER_TRUE) {
+                      std::cout << std::endl << " > Basker AMD on leaf : estimated nnz(L(" << leaf_id << ") = " << l_nnz
+                                << " <" << std::endl << std::endl;
+                    }
                     info = METIS_OK;
                   } else {
                     std::cout << std::endl << " > Basker AMD failed < " << std::endl << std::endl;
                     return BASKER_ERROR; // TODO: what to do here?
                   }
+                  BT.leaf_nnz(leaf_id) = l_nnz;
                 }
 
                 // update perm/
@@ -879,7 +899,7 @@ namespace BaskerNS
         sg.nz = sg.Ap[sg.m];
 
         //printf("num self_edge: %d sg.m: %d \n",
-        //	   self_edge, sg.m);
+        //        self_edge, sg.m);
         if(self_edge != (sg.m))
         {
           BASKER_ASSERT(self_edge == (sg.m-1), 
@@ -981,11 +1001,11 @@ namespace BaskerNS
     #ifdef BASKER_DEBUG_ORDER_SCOTCH
      printf("FIX SCOTCH PRINT OUT\n");
      printf("SCOTCH: NUM_LEVELS ASKED = %d,  NUM DOMS GOT = %d, NUM TREES = %d \n",
-	    num_levels, sg.cblk, num_trees);
+         num_levels, sg.cblk, num_trees);
      printf("\n");
      printf("%d %d should blks: %f \n",
-	    2, ((Int)num_levels+1),
-	    pow(2.0,((double)num_levels+1))-1);
+         2, ((Int)num_levels+1),
+         pow(2.0,((double)num_levels+1))-1);
     #endif
      
      if(((sg.cblk) != pow(2.0,((double)num_levels+1))-1) || (num_trees != 1))
@@ -1019,7 +1039,7 @@ namespace BaskerNS
        #ifdef BASKER_DEBUG_ORDER_SCOTCH
        printf("\n\n Starting DEBUG COMPLETE OUT \n\n");
        printf("Tree: ");
-       `	for(Int i = 0; i < iblks+1; i++)
+       for(Int i = 0; i < iblks+1; i++)
        {
          printf("%d, ", ttree(i));
        }
@@ -1208,11 +1228,11 @@ namespace BaskerNS
     Int mynum = iblks-1;
     otree(iblks) = -1;
     rec_build_tree(lvl, 
-		   lpos,rpos, 
-		   mynum,
-		   otree);
+             lpos,rpos, 
+             mynum,
+             otree);
 
-		 
+           
     INT_1DARRAY ws;
     BASKER_ASSERT((iblks+1)>0, "scotch iblks 2");
     MALLOC_INT_1DARRAY(ws, iblks+1);
@@ -1325,7 +1345,7 @@ namespace BaskerNS
       if(ws(m_tree_p) == 0)
       {
         //Not assigned yet
-        if((_tree(s_tree_p) == otree(m_tree_p)))
+        if(_tree(s_tree_p) == otree(m_tree_p))
         {
         #ifdef BASKER_DEBUG_ORDER_SCOTCH
           printf("same case\n");
@@ -1477,7 +1497,7 @@ namespace BaskerNS
   )
   {
     //printf("assign, lpos: %d rpos: %d  number: %d\n",
-    //	   lpos, rpos, mynum);
+    //        lpos, rpos, mynum);
     
     if(lvl > 0)
     {

@@ -1,3 +1,12 @@
+// @HEADER
+// *****************************************************************************
+//               ShyLU: Scalable Hybrid LU Preconditioner and Solver
+//
+// Copyright 2011 NTESS and the ShyLU contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
+// @HEADER
+
 #ifndef SHYLUBASKER_NFACTOR_COL2_HPP
 #define SHYLUBASKER_NFACTOR_COL2_HPP
 
@@ -143,7 +152,7 @@ namespace BaskerNS
     #ifdef BASKER_DEBUG_NFACTOR_COL2
     printf("\n\n  LVL=%d  ----- kid: %d -----\n\n", lvl, kid);
     #endif
-    // > Apply lower-triangular solve with L(1,1)
+    // > Apply lower-triangular solve with leaf L(1,1)
     //   to compute the first block U(1)(U_row) in the upper-triangular part
     int info = BASKER_SUCCESS;
     for(Int k = 0; k < ncol && info == BASKER_SUCCESS; ++k)
@@ -158,7 +167,7 @@ namespace BaskerNS
     }//over all columns / domains / old sublevel 0
 
     #ifdef BASKER_TIMER
-    printf("Time Upper-Col1(%d): %lf \n", (int)kid, timer.seconds()); fflush(stdout);
+    printf("Time Upper-Col1(%d): %lf (ncol=%d)\n", (int)kid, timer.seconds(), ncol); fflush(stdout);
     timer.reset();
     #endif
     //------Need because extend does not 
@@ -183,7 +192,7 @@ namespace BaskerNS
 
 
     //----------------Sep level upper tri-------------
-    for(Int l = 1; l < (lvl) && info == BASKER_SUCCESS; ++l)
+    for(Int l = 1; l < lvl && info == BASKER_SUCCESS; ++l)
     {
       for(Int k = 0; k < ncol; ++k)
       {
@@ -207,7 +216,7 @@ namespace BaskerNS
                  kid);
           #endif
 
-          // > Apply lower-triangular solve with next diagonal L(l,l)
+          // > Apply lower-triangular solve with next separator diagonal L(l,l)
           //   to compute next U(l)(U_row) in upper-triangular part
           info = t_upper_col_factor(kid, team_leader, 
                                     lvl, l, 
@@ -223,8 +232,8 @@ namespace BaskerNS
 
     }//for - over all sublevel 1...lvl-2
     #ifdef BASKER_TIMER
-    printf("Time Upper-Col(%d): %lf \n", (int)kid, timer.seconds());
-    timer.reset();
+    printf("Time Upper-Col(%d): %lf (ncol=%d, l=1:%d)\n", (int)kid, timer.seconds(), ncol,lvl-1);
+    fflush(stdout); timer.reset();
     #endif
 
     //---------Lower Factor (old sublevel lvl-1)-------
@@ -248,9 +257,9 @@ namespace BaskerNS
     #endif
     #ifdef BASKER_DEBUG_NFACTOR_COL2
     printf("\n done with UPPER, kid: %d \n\n", kid);
+    printf("\n\n======= LOWER, KID: %d ======= \n\n", kid);
+    fflush(stdout);
     #endif
-
-    //printf("\n\n======= LOWER, KID: %d ======= \n\n", kid);
     //return;
     // > accumulate the last update
     // > factor the diagonal block LU(U_col)(U_row)
@@ -275,7 +284,8 @@ namespace BaskerNS
         if (info == BASKER_SUCCESS)
         {
           #ifdef BASKER_DEBUG_NFACTOR_COL2
-          printf( " kid=%d: calling t_add_extend(k=%d/%d)\n",kid,k,ncol ); fflush(stdout);
+          printf( " kid=%d: calling t_add_extend(k=%d/%d) with LU(%d,%d).nnz = %d\n",
+                  kid,k,ncol,U_col,U_row,LU(U_col)(U_row).nnz ); fflush(stdout);
           #endif
           t_add_extend(thread, kid,lvl,lvl-1, k,
                        LU(U_col)(U_row).scol,
@@ -307,12 +317,12 @@ namespace BaskerNS
           }
         }
         #ifdef BASKER_DEBUG_NFACTOR_COL2
-        printf(" > done calling lower factor, kid: %d k: %d info=%d\n", kid, k, info); fflush(stdout);
-        #endif
-        #ifdef BASKER_DEBUG_NFACTOR_COL2
         else {
           printf(" + skipping lower factor, kid: %d k: %d \n", kid, k); fflush(stdout);
         }
+        #endif
+        #ifdef BASKER_DEBUG_NFACTOR_COL2
+        printf(" > done calling lower factor, kid: %d k: %d info=%d\n", kid, k, info); fflush(stdout);
         #endif
         //need barrier if multiple thread uppdate
         #ifdef USE_TEAM_BARRIER_NFACTOR_COL2
@@ -342,17 +352,17 @@ namespace BaskerNS
 
         // ------------------------------------------------------- //
         // > factor the k-th column of the off-diagonal blocks
+        #ifdef BASKER_TIMER
+        timer_facoff.reset();
+        #endif
         if (info == BASKER_SUCCESS) {
-          #ifdef BASKER_TIMER
-          timer_facoff.reset();
-          #endif
           #ifdef BASKER_DEBUG_NFACTOR_COL2
-          printf(" calling lower diag factor, kid: %d k: %d \n",
+          printf(" calling lower offdiag factor, kid: %d k: %d \n",
                  kid, k); fflush(stdout);
           #endif
           t_lower_col_factor_offdiag2(kid, lvl, lvl-1, k, pivot);
           #ifdef BASKER_DEBUG_NFACTOR_COL2
-          printf(" done lower diag factor, kid: %d k: %d \n",
+          printf(" done lower offdiag factor, kid: %d k: %d \n",
                  kid, k); fflush(stdout);
           #endif
         }
@@ -877,7 +887,7 @@ namespace BaskerNS
 
     Int col_idx_offset    = 0;  //can get rid of?
    
-    BASKER_MATRIX        &U = LU(U_col)(U_row); 
+    BASKER_MATRIX        &U = LU(U_col)(U_row);
     pivot = U.tpivot;
     
     //BASKER_MATRIX        &L = LL(L_col)(L_row); //NDE - warning: unused L
@@ -897,7 +907,10 @@ namespace BaskerNS
          L_row < LL_size(L_col);
          X_row+=(lteam_size), L_row+=(lteam_size))
     {
-      //printf("OFF_DIAG_LOWER. kid: %d k: %d  U: %d %d L: %d %d X: %d %d pivot: %f \n", kid, k, U_col, U_row, L_col, L_row, X_col, X_row, pivot);
+      #ifdef BASKER_DEBUG_NFACTOR_COL2
+      printf("OFF_DIAG_LOWER. kid: %d k: %d  U(%d, %d).nnz = %d  L(%d, %d) X(%d, %d) pivot: %f \n", 
+             kid, k, U_col, U_row, LU(U_col)(U_row).nnz, L_col, L_row, X_col, X_row, pivot);
+      #endif
       /*old
        t_back_solve_offdiag(leader_id,
                             L_col, L_row,

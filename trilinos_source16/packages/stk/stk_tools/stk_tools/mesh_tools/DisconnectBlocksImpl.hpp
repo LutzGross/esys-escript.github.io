@@ -49,8 +49,6 @@
 #include <utility>
 #include <vector>
 
-namespace stk { namespace mesh { class BulkData; } }
-
 namespace stk {
 namespace tools {
 namespace impl {
@@ -131,7 +129,7 @@ typedef std::map<ReconnectMapKey, ReconnectNodeInfo> ReconnectMap;
 class NullStream : public std::ostream {
   class NullBuffer : public std::streambuf {
   public:
-    int overflow( int c ) { return c; }
+    int overflow( int c ) override { return c; }
   } m_nb;
 public:
   NullStream() : std::ostream( &m_nb ) {}
@@ -176,34 +174,47 @@ struct InternalFaceInfo
   , internalFace(internalFace_)
   , isInBlockPairSideset(isInBlockPairSideset_) {}
 
+  InternalFaceInfo(const InternalFaceInfo&) = default;
+
   operator stk::mesh::Entity() const { return internalFace; }
 
-  bool operator<(const InternalFaceInfo &rhs)
+  bool operator<(const InternalFaceInfo &rhs) const
   {
     return internalFace < rhs.internalFace;
   };
 
-  bool operator<(const stk::mesh::Entity &rhs)
+  bool operator<(const stk::mesh::Entity &rhs) const
   {
     return internalFace < rhs;
   };
+  
+  void operator=(const InternalFaceInfo &info)
+  {
+    blockPair = info.blockPair;
+    elemInFirstBlock = info.elemInFirstBlock;
+    faceOrdinalInFirstBlock = info.faceOrdinalInFirstBlock;
+    elemInSecondBlock = info.elemInSecondBlock;
+    faceOrdinalInSecondBlock = info.faceOrdinalInSecondBlock;
+    internalFace = info.internalFace;
+    isInBlockPairSideset = info.isInBlockPairSideset;
+  };
 
-  bool operator==(const InternalFaceInfo &rhs)
+  bool operator==(const InternalFaceInfo &rhs) const
   {
     return internalFace == rhs.internalFace;
   };
 
-  bool operator==(const stk::mesh::Entity &rhs)
+  bool operator==(const stk::mesh::Entity &rhs) const
   {
     return internalFace == rhs;
   };
 
-  bool operator!=(const InternalFaceInfo &rhs)
+  bool operator!=(const InternalFaceInfo &rhs) const
   {
     return internalFace != rhs.internalFace;
   };
 
-  bool operator!=(const stk::mesh::Entity &rhs)
+  bool operator!=(const stk::mesh::Entity &rhs) const
   {
     return internalFace != rhs;
   };

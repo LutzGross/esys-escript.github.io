@@ -26,14 +26,12 @@
 #include "AnasaziFactory.hpp"
 #include "Teuchos_CommandLineProcessor.hpp"
 
-#ifdef HAVE_MPI
+#ifdef HAVE_ANASAZI_MPI
 #include <mpi.h>
 #endif
 
 // I/O for Harwell-Boeing files
-#ifdef HAVE_ANASAZI_TRIUTILS
-#include "Trilinos_Util_iohb.h"
-#endif
+#include "Tpetra_Util_iohb.h"
 
 // templated multivector and sparse matrix classes
 #include "MyMultiVec.hpp"
@@ -50,7 +48,7 @@ int main(int argc, char *argv[])
   bool boolret;
   int MyPID;
 
-#ifdef HAVE_MPI
+#ifdef HAVE_ANASAZI_MPI
   // Initialize MPI
   MPI_Init(&argc,&argv);
   MPI_Comm_rank( MPI_COMM_WORLD, &MyPID );
@@ -72,22 +70,11 @@ int main(int argc, char *argv[])
   cmdp.setOption("filename",&filename,"Filename for Harwell-Boeing test matrix.");
   cmdp.setOption("sort",&which,"Targetted eigenvalues (SR or LR).");
   if (cmdp.parse(argc,argv) != CommandLineProcessor::PARSE_SUCCESSFUL) {
-#ifdef HAVE_MPI
+#ifdef HAVE_ANASAZI_MPI
     MPI_Finalize();
 #endif
     return -1;
   }
-
-#ifndef HAVE_ANASAZI_TRIUTILS
-  cout << "This test requires Triutils. Please configure with --enable-triutils." << endl;
-#ifdef HAVE_MPI
-  MPI_Finalize() ;
-#endif
-  if (verbose && MyPID == 0) {
-    cout << "End Result: TEST FAILED" << endl;	
-  }
-  return -1;
-#endif
 
   typedef std::complex<double>                ScalarType;
   typedef ScalarTraits<ScalarType>                   SCT;
@@ -114,7 +101,7 @@ int main(int argc, char *argv[])
       cout << "Error reading '" << filename << "'" << endl
            << "End Result: TEST FAILED" << endl;
     }
-#ifdef HAVE_MPI
+#ifdef HAVE_ANASAZI_MPI
     MPI_Finalize();
 #endif
     return -1;
@@ -151,7 +138,7 @@ int main(int argc, char *argv[])
       cout << "Anasazi::BasicEigenproblem::SetProblem() returned with error." << endl
            << "End Result: TEST FAILED" << endl;
     }
-#ifdef HAVE_MPI
+#ifdef HAVE_ANASAZI_MPI
     MPI_Finalize() ;
 #endif
     return -1;
@@ -236,7 +223,7 @@ int main(int argc, char *argv[])
     }
   }
 
-#ifdef HAVE_MPI
+#ifdef HAVE_ANASAZI_MPI
   MPI_Finalize() ;
 #endif
 

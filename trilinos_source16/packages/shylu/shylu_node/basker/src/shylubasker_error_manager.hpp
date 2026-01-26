@@ -1,3 +1,12 @@
+// @HEADER
+// *****************************************************************************
+//               ShyLU: Scalable Hybrid LU Preconditioner and Solver
+//
+// Copyright 2011 NTESS and the ShyLU contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
+// @HEADER
+
 #ifndef SHYLUBASKER_ERROR_MANAGER
 #define SHYLUBASKER_ERROR_MANAGER
 
@@ -68,7 +77,7 @@ namespace BaskerNS
             << " DOMBLK MALLOC : blk=" << thread_array(ti).error_blk
             << " subblk=" << thread_array(ti).error_subblk
             << " newsize=" << thread_array(ti).error_info
-            << std::endl;
+            << std::endl << std::flush;
         }
 
         //If on diagonal, want to compare L and U
@@ -86,7 +95,7 @@ namespace BaskerNS
             Int blkcol = thread_array(ti).error_blk;
             Int blkUrow = LU_size(blkcol)-1;
             if(LL(blkcol)(0).nnz >=
-                LU(blkcol)(blkUrow).nnz)
+               LU(blkcol)(blkUrow).nnz)
             {
               resize_U = thread_array(ti).error_info;
             }
@@ -104,7 +113,7 @@ namespace BaskerNS
         {
           if(Options.verbose == BASKER_TRUE)
           {
-            std::cout << " ++ resize L( tid = " << ti << " ): new size = " << resize_L << std::endl;
+            std::cout << " ++ resize L( tid = " << ti << " ): new size = " << resize_L << std::endl << std::flush;
           }
           BASKER_MATRIX &L =
             LL(thread_array(ti).error_blk)(thread_array(ti).error_subblk);
@@ -130,7 +139,7 @@ namespace BaskerNS
         {
           if(Options.verbose == BASKER_TRUE)
           {
-            std::cout << " ++ resize U( tid = " << ti << " ): new size = " << resize_U << std::endl;
+            std::cout << " ++ resize U( tid = " << ti << " ): new size = " << resize_U << std::endl << std::flush;
           }
           BASKER_MATRIX &U = 
             LU(thread_array(ti).error_blk)(0);

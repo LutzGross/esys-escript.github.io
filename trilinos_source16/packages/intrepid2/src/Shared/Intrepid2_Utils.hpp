@@ -25,6 +25,7 @@
 #include "Kokkos_Random.hpp"
 
 #ifdef HAVE_INTREPID2_SACADO
+#include "Kokkos_View_Fad_Fwd.hpp"
 #include "Kokkos_LayoutNatural.hpp"
 #endif
 
@@ -281,13 +282,13 @@ namespace Intrepid2 {
   template<typename T>
   KOKKOS_FORCEINLINE_FUNCTION
   constexpr typename
-  std::enable_if< !std::is_pod<T>::value, typename ScalarTraits<T>::scalar_type >::type
+  std::enable_if< !(std::is_standard_layout<T>::value && std::is_trivial<T>::value), typename ScalarTraits<T>::scalar_type >::type
   get_scalar_value(const T& obj) {return obj.val();}
 
   template<typename T>
   KOKKOS_FORCEINLINE_FUNCTION
   constexpr typename
-  std::enable_if< std::is_pod<T>::value, typename ScalarTraits<T>::scalar_type >::type
+  std::enable_if< std::is_standard_layout<T>::value && std::is_trivial<T>::value, typename ScalarTraits<T>::scalar_type >::type
   get_scalar_value(const T& obj){return obj;}
 
 
@@ -300,13 +301,13 @@ namespace Intrepid2 {
   template<typename T, typename ...P>
   KOKKOS_INLINE_FUNCTION
   constexpr typename
-  std::enable_if< std::is_pod<T>::value, unsigned >::type
+  std::enable_if< std::is_standard_layout<T>::value && std::is_trivial<T>::value, unsigned >::type
   dimension_scalar(const Kokkos::DynRankView<T, P...> /* view */) {return 1;}
 
   template<typename T, typename ...P>
   KOKKOS_INLINE_FUNCTION
   constexpr typename
-  std::enable_if< std::is_pod< typename Kokkos::View<T, P...>::value_type >::value, unsigned >::type
+  std::enable_if< std::is_standard_layout<typename Kokkos::View<T, P...>::value_type>::value && std::is_trivial<typename Kokkos::View<T, P...>::value_type>::value, unsigned >::type
   dimension_scalar(const Kokkos::View<T, P...> /*view*/) {return 1;}
 
   template<typename T, typename ...P>
@@ -339,7 +340,7 @@ namespace Intrepid2 {
     using DeviceType         = typename ViewType::device_type;
     using ViewTypeWithLayout = Kokkos::DynRankView<ValueType, ResultLayout, DeviceType >;
     
-    const bool allocateFadStorage = !std::is_pod<ValueType>::value;
+    const bool allocateFadStorage = !(std::is_standard_layout<ValueType>::value && std::is_trivial<ValueType>::value);
     if (!allocateFadStorage)
     {
       return ViewTypeWithLayout(label,dims...);
@@ -762,11 +763,11 @@ namespace Intrepid2 {
   /**
    \brief Define layout that will allow us to wrap Sacado Scalar objects in Views without copying
    */
-#ifdef HAVE_INTREPID2_SACADO
+#if defined(HAVE_INTREPID2_SACADO) && !defined(SACADO_HAS_NEW_KOKKOS_VIEW_IMPL)
   template <typename ValueType>
   struct NaturalLayoutForType {
     using layout  =
-    typename std::conditional<std::is_pod<ValueType>::value,
+    typename std::conditional<(std::is_standard_layout<ValueType>::value && std::is_trivial<ValueType>::value),
       Kokkos::LayoutLeft, // for POD types, use LayoutLeft
       Kokkos::LayoutNatural<Kokkos::LayoutLeft> >::type; // For FAD types, use LayoutNatural
   };
@@ -791,7 +792,7 @@ namespace Intrepid2 {
   template<typename Scalar>
   constexpr int getVectorSizeForHierarchicalParallelism()
   {
-    return std::is_pod<Scalar>::value ? VECTOR_SIZE : FAD_VECTOR_SIZE;
+    return (std::is_standard_layout<Scalar>::value && std::is_trivial<Scalar>::value) ? VECTOR_SIZE : FAD_VECTOR_SIZE;
   }
   
   /**
@@ -803,7 +804,33 @@ namespace Intrepid2 {
   KOKKOS_INLINE_FUNCTION
   constexpr unsigned getScalarDimensionForView(const ViewType &view)
   {
-    return (std::is_pod<typename ViewType::value_type>::value) ? 0 : get_dimension_scalar(view);
+    return (std::is_standard_layout<typename ViewType::value_type>::value && std::is_trivial<typename ViewType::value_type>::value) ? 0 : get_dimension_scalar(view);
+  }
+
+  /// Struct for deleting device instantiation
+  template<typename Device>
+  struct DeviceDeleter {
+    template<typename T>
+    void operator()(T* ptr) {
+      Kokkos::parallel_for(Kokkos::RangePolicy<typename Device::execution_space>(0,1),
+                           KOKKOS_LAMBDA (const int i) { ptr->~T(); });
+      typename Device::execution_space().fence();
+      Kokkos::kokkos_free<typename Device::memory_space>(ptr);
+    }
+  };
+
+  /// Function for creating a vtable on device (requires copy ctor for
+  /// derived object). Allocates device memory and must be called from
+  /// host.
+  template<typename Device,typename Derived>
+  std::unique_ptr<Derived,DeviceDeleter<Device>>
+  copy_virtual_class_to_device(const Derived& host_source)
+  {
+    auto* p = static_cast<Derived*>(Kokkos::kokkos_malloc<typename Device::memory_space>(sizeof(Derived)));
+    Kokkos::parallel_for(Kokkos::RangePolicy<typename Device::execution_space>(0,1),
+                         KOKKOS_LAMBDA (const int i) {new (p) Derived(host_source); });
+    typename Device::execution_space().fence();
+    return std::unique_ptr<Derived,DeviceDeleter<Device>>(p);
   }
 } // end namespace Intrepid2
 

@@ -21,7 +21,7 @@
 #include "Teuchos_oblackholestream.hpp"
 #include "Teuchos_ParameterListAcceptorDefaultBase.hpp"
 #include "Teuchos_TypeNameTraits.hpp"
-#include "Trilinos_Util_iohb.h"
+#include "Tpetra_Util_iohb.h"
 
 namespace Belos {
   namespace Tpetra {
@@ -155,7 +155,7 @@ namespace Belos {
           }
 
           // Clean up.
-          free( svals );
+          delete[] svals;
           free( dvals );
           free( colptr );
           free( rowind );

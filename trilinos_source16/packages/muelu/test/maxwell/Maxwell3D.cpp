@@ -29,6 +29,7 @@
 // MueLu
 #include <MueLu_RefMaxwell.hpp>
 #include <MueLu_Maxwell1.hpp>
+#include <MueLu_Maxwell_Utils.hpp>
 #include <MueLu_TestHelpers_Common.hpp>
 #include <MueLu_Exceptions.hpp>
 
@@ -253,10 +254,10 @@ bool SetupSolve(std::map<std::string, void*> inputs) {
     RCP<Operator> preconditioner;
     if (precType == "MueLu-RefMaxwell") {
       preconditioner = rcp(new MueLu::RefMaxwell<SC, LO, GO, NO>(SM_Matrix, D0_Matrix, Ms_Matrix, M0inv_Matrix,
-                                                                 M1_Matrix, nullspace, coords, params));
+                                                                 M1_Matrix, nullspace, coords, material, params));
     } else if (precType == "MueLu-Maxwell1" || precType == "MueLu-Reitzinger") {
       if (GmhdA_Matrix.is_null())  // are we doing MHD as opposed to GMHD?
-        preconditioner = rcp(new MueLu::Maxwell1<SC, LO, GO, NO>(SM_Matrix, D0_Matrix, Kn_Matrix, nullspace, coords, params));
+        preconditioner = rcp(new MueLu::Maxwell1<SC, LO, GO, NO>(SM_Matrix, D0_Matrix, Kn_Matrix, nullspace, coords, material, params));
       else
         preconditioner = rcp(new MueLu::Maxwell1<SC, LO, GO, NO>(SM_Matrix, D0_Matrix, Kn_Matrix, nullspace, coords, params, GmhdA_Matrix));
 
@@ -325,8 +326,10 @@ bool SetupSolve(std::map<std::string, void*> inputs) {
       Belos::ReturnType status = solver->solve();
       int iters                = solver->getNumIters();
       success                  = (iters < 50 && status == Belos::Converged);
+      if (status == Belos::Converged)
+        *out << "Belos converged in " << iters << " iterations." << std::endl;
       if (success)
-        *out << "SUCCESS! Belos converged in " << iters << " iterations." << std::endl;
+        *out << "SUCCESS!" << std::endl;
       else
         *out << "FAILURE! Belos did not converge fast enough." << std::endl;
     }
@@ -348,8 +351,10 @@ bool SetupSolve(std::map<std::string, void*> inputs) {
         Belos::ReturnType status = solver->solve();
         int iters                = solver->getNumIters();
         success                  = (iters < 50 && status == Belos::Converged);
+        if (status == Belos::Converged)
+          *out << "Belos converged in " << iters << " iterations." << std::endl;
         if (success)
-          *out << "SUCCESS! Belos converged in " << iters << " iterations." << std::endl;
+          *out << "SUCCESS!" << std::endl;
         else
           *out << "FAILURE! Belos did not converge fast enough." << std::endl;
       }
@@ -403,10 +408,10 @@ bool SetupSolve(std::map<std::string, void*> inputs) {
           sublist->set(*key_it, Teuchos::rcp_dynamic_cast<Xpetra::EpetraMultiVectorT<GlobalOrdinal, Node> >(coords, true)->getEpetra_MultiVector());
 #endif
         else if (value == "tD0") {
-          auto tD0 = Teuchos::rcp_dynamic_cast<TpetraCrsMatrix>(Teuchos::rcp_dynamic_cast<CrsMatrixWrap>(D0_Matrix, true)->getCrsMatrix(), true)->getTpetra_CrsMatrix();
+          auto tD0 = toTpetra(D0_Matrix);
           sublist->set(*key_it, tD0);
         } else if (value == "tCoordinates") {
-          sublist->set(*key_it, Teuchos::rcp_dynamic_cast<TpetraMultiVector>(coords, true)->getTpetra_MultiVector());
+          sublist->set(*key_it, toTpetra(coords));
         }
       }
     }
@@ -494,7 +499,7 @@ int main_(Teuchos::CommandLineProcessor& clp, Xpetra::UnderlyingLib lib, int arg
   std::string belosSolverType = "Block CG";
   clp.setOption("belosSolverType", &belosSolverType, "Name of the Belos linear solver");
   std::string precType = "MueLu-RefMaxwell";
-  clp.setOption("precType", &precType, "preconditioner to use (MueLu-RefMaxwell|ML-RefMaxwell|none)");
+  clp.setOption("precType", &precType, "preconditioner to use (MueLu-RefMaxwell|MueLu-Maxwell1|ML-RefMaxwell|none)");
   std::string xml = "";
   clp.setOption("xml", &xml, "xml file with solver parameters (default: \"Maxwell.xml\")");
   std::string belos_xml = "Belos.xml";
@@ -512,6 +517,9 @@ int main_(Teuchos::CommandLineProcessor& clp, Xpetra::UnderlyingLib lib, int arg
   bool use_stacked_timer = false;
   clp.setOption("stacked-timer",
                 "no-stacked-timer", &use_stacked_timer, "use stacked timer");
+  bool ensure_kn = false;
+  clp.setOption("ensure-kn",
+                "no-ensure-kn", &ensure_kn, "generate a kn matrix if the user doesn't provide one");
 
   std::string S_file, D0_file, M1_file, M0_file;
   if (!Teuchos::ScalarTraits<Scalar>::isComplex) {
@@ -645,8 +653,17 @@ int main_(Teuchos::CommandLineProcessor& clp, Xpetra::UnderlyingLib lib, int arg
     Ms_Matrix = Xpetra::IO<SC, LO, GO, NO>::Read(Ms_file, edge_map);
   else
     Ms_Matrix = M1_Matrix;
-  if (Kn_file != "")
+  if (Kn_file != "") {
+    *out << "User provided Kn matrix" << std::endl;
     Kn_Matrix = Xpetra::IO<SC, LO, GO, NO>::Read(Kn_file, node_map);
+  } else if (ensure_kn) {
+    // The user requested we generate Kn_Matrix with an SpGEMM
+    Teuchos::ParameterList params;
+    *out << "Making Kn Matrix as requested by yser" << std::endl;
+    Kn_Matrix = MueLu::Maxwell_Utils<SC, LO, GO, NO>::PtAPWrapper(SM_Matrix, D0_Matrix, params, "User Kn");
+  } else {
+    *out << "NOT using a Kn matrix" << std::endl;
+  }
 
   if ((M0inv_file == "") && (M0_file != "")) {
     // nodal mass matrix

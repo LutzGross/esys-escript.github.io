@@ -13,6 +13,7 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
   NUM_MPI_PROCS 1
   PASS_REGULAR_EXPRESSION "TEST PASSED"
   ADD_DIR_TO_NAME
+  RUN_SERIAL
   )
 
 # add single-group tests; allows for easier targeted builds and debugging (especially useful under CUDA)
@@ -52,6 +53,12 @@ ENDIF()
 TRIBITS_ADD_EXECUTABLE( DataTests NOEXESUFFIX SOURCES DataTests.cpp UnitTestMain.cpp )
 IF (TARGET Intrepid2_DataTests)
   SET_TARGET_PROPERTIES( Intrepid2_DataTests PROPERTIES EXCLUDE_FROM_ALL TRUE)
+ENDIF()
+
+# StructuredIntegrationTests_QuadratureSynthetic.cpp
+TRIBITS_ADD_EXECUTABLE( StructuredQuadratureSynthetic NOEXESUFFIX SOURCES StructuredIntegrationTests_QuadratureSynthetic.cpp UnitTestMain.cpp )
+IF (TARGET Intrepid2_StructuredQuadratureSynthetic )
+  SET_TARGET_PROPERTIES( Intrepid2_StructuredQuadratureSynthetic PROPERTIES EXCLUDE_FROM_ALL TRUE)
 ENDIF()
 
 # StructuredVersusStandard integration

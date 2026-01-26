@@ -2,7 +2,7 @@
 
 #
 # This script only runs tests and it requires that the env to already to be
-# set!  See options.md for detals.
+# set!  See README.md for detals.
 #
 
 set +x

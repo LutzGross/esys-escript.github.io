@@ -56,103 +56,32 @@ Teuchos::RCP<Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>
 removeSmallEntries(Teuchos::RCP<Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>& A,
                    const typename Teuchos::ScalarTraits<Scalar>::magnitudeType threshold,
                    const bool keepDiagonal) {
-  using crs_matrix      = Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>;
-  using row_ptr_type    = typename crs_matrix::local_graph_type::row_map_type::non_const_type;
-  using col_idx_type    = typename crs_matrix::local_graph_type::entries_type::non_const_type;
-  using vals_type       = typename crs_matrix::local_matrix_type::values_type;
-  using execution_space = typename crs_matrix::local_matrix_type::execution_space;
-
+#if KOKKOS_VERSION >= 40799
+  using ATS      = KokkosKernels::ArithTraits<Scalar>;
+  using impl_SC  = typename ATS::val_type;
+  using impl_ATS = KokkosKernels::ArithTraits<impl_SC>;
+#else
   using ATS      = Kokkos::ArithTraits<Scalar>;
   using impl_SC  = typename ATS::val_type;
   using impl_ATS = Kokkos::ArithTraits<impl_SC>;
+#endif
 
-  auto lclA = A->getLocalMatrixDevice();
-
-  auto rowptr = row_ptr_type("rowptr", lclA.numRows() + 1);
-  col_idx_type idx;
-  vals_type vals;
-  LocalOrdinal nnz;
-
+  RCP<Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> crsA;
   if (keepDiagonal) {
-    auto lclRowMap = A->getRowMap()->getLocalMap();
-    auto lclColMap = A->getColMap()->getLocalMap();
-    Kokkos::parallel_scan(
-        "removeSmallEntries::rowptr",
-        Kokkos::RangePolicy<LocalOrdinal, execution_space>(0, lclA.numRows()),
-        KOKKOS_LAMBDA(const LocalOrdinal rlid, LocalOrdinal& partial_nnz, bool is_final) {
-          auto row      = lclA.row(rlid);
-          auto rowInCol = lclColMap.getLocalElement(lclRowMap.getGlobalElement(rlid));
-          for (LocalOrdinal k = 0; k < row.length; ++k) {
-            if ((impl_ATS::magnitude(row.value(k)) > threshold) || (row.colidx(k) == rowInCol)) {
-              partial_nnz += 1;
-            }
-          }
-          if (is_final)
-            rowptr(rlid + 1) = partial_nnz;
-        },
-        nnz);
-
-    idx  = col_idx_type("idx", nnz);
-    vals = vals_type("vals", nnz);
-
-    Kokkos::parallel_for(
-        "removeSmallEntries::indicesValues",
-        Kokkos::RangePolicy<LocalOrdinal, execution_space>(0, lclA.numRows()),
-        KOKKOS_LAMBDA(const LocalOrdinal rlid) {
-          auto row      = lclA.row(rlid);
-          auto rowInCol = lclColMap.getLocalElement(lclRowMap.getGlobalElement(rlid));
-          auto I        = rowptr(rlid);
-          for (LocalOrdinal k = 0; k < row.length; ++k) {
-            if ((impl_ATS::magnitude(row.value(k)) > threshold) || (row.colidx(k) == rowInCol)) {
-              idx(I)  = row.colidx(k);
-              vals(I) = row.value(k);
-              I += 1;
-            }
-          }
+    crsA = applyFilter_GID(
+        A, KOKKOS_LAMBDA(GlobalOrdinal rgid,
+                         GlobalOrdinal cgid,
+                         impl_SC val) {
+          return ((impl_ATS::magnitude(val) > threshold) || (rgid == cgid));
         });
 
-    Kokkos::fence();
   } else {
-    Kokkos::parallel_scan(
-        "removeSmallEntries::rowptr",
-        Kokkos::RangePolicy<LocalOrdinal, execution_space>(0, lclA.numRows()),
-        KOKKOS_LAMBDA(const LocalOrdinal rlid, LocalOrdinal& partial_nnz, bool is_final) {
-          auto row = lclA.row(rlid);
-          for (LocalOrdinal k = 0; k < row.length; ++k) {
-            if (impl_ATS::magnitude(row.value(k)) > threshold) {
-              partial_nnz += 1;
-            }
-          }
-          if (is_final)
-            rowptr(rlid + 1) = partial_nnz;
-        },
-        nnz);
-
-    idx  = col_idx_type("idx", nnz);
-    vals = vals_type("vals", nnz);
-
-    Kokkos::parallel_for(
-        "removeSmallEntries::indicesValues",
-        Kokkos::RangePolicy<LocalOrdinal, execution_space>(0, lclA.numRows()),
-        KOKKOS_LAMBDA(const LocalOrdinal rlid) {
-          auto row = lclA.row(rlid);
-          auto I   = rowptr(rlid);
-          for (LocalOrdinal k = 0; k < row.length; ++k) {
-            if (impl_ATS::magnitude(row.value(k)) > threshold) {
-              idx(I)  = row.colidx(k);
-              vals(I) = row.value(k);
-              I += 1;
-            }
-          }
+    crsA = applyFilter_vals(
+        A, KOKKOS_LAMBDA(impl_SC val) {
+          return (impl_ATS::magnitude(val) > threshold);
         });
-
-    Kokkos::fence();
   }
-
-  auto lclNewA = typename crs_matrix::local_matrix_type("thresholdedMatrix", lclA.numRows(), lclA.numCols(), nnz, vals, rowptr, idx);
-  auto newA    = Xpetra::MatrixFactory<Scalar, LocalOrdinal, GlobalOrdinal, Node>::Build(lclNewA, A->getRowMap(), A->getColMap(), A->getDomainMap(), A->getRangeMap());
-
-  return newA;
+  return rcp(new Xpetra::CrsMatrixWrap<Scalar, LocalOrdinal, GlobalOrdinal, Node>(crsA));
 }
 
 template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
@@ -278,8 +207,7 @@ UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
 
   const CrsMatrixWrap* crsOp = dynamic_cast<const CrsMatrixWrap*>(&A);
   if ((crsOp != NULL) && (rowMap->lib() == Xpetra::UseTpetra)) {
-    using local_vector_type = typename Vector::dual_view_type::t_dev_um;
-    using device_type       = typename CrsGraph::device_type;
+    using device_type = typename CrsGraph::device_type;
     Kokkos::View<size_t*, device_type> offsets("offsets", rowMap->getLocalNumElements());
     crsOp->getCrsGraph()->getLocalDiagOffsets(offsets);
     crsOp->getCrsMatrix()->getLocalDiagCopy(*diag, offsets);
@@ -325,7 +253,7 @@ UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
   }
 
   // Some useful type definitions
-  using local_matrix_type = typename Matrix::local_matrix_type;
+  using local_matrix_type = typename Matrix::local_matrix_device_type;
   // using local_graph_type  = typename local_matrix_type::staticcrsgraph_type;
   using value_type      = typename local_matrix_type::value_type;
   using values_type     = typename local_matrix_type::values_type;
@@ -333,12 +261,16 @@ UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
   using ordinal_type    = typename local_matrix_type::ordinal_type;
   using execution_space = typename local_matrix_type::execution_space;
   // using memory_space      = typename local_matrix_type::memory_space;
-  // Be careful with this one, if using Kokkos::ArithTraits<Scalar>
+  // Be careful with this one, if using KokkosKernels::ArithTraits<Scalar>
   // you are likely to run into errors when handling std::complex<>
   // a good way to work around that is to use the following:
-  // using KAT = Kokkos::ArithTraits<Kokkos::ArithTraits<Scalar>::val_type> >
-  // here we have: value_type = Kokkos::ArithTraits<Scalar>::val_type
-  using KAT = Kokkos::ArithTraits<value_type>;
+  // using KAT = KokkosKernels::ArithTraits<KokkosKernels::ArithTraits<Scalar>::val_type> >
+  // here we have: value_type = KokkosKernels::ArithTraits<Scalar>::val_type
+#if KOKKOS_VERSION >= 40799
+  using KAT = KokkosKernels::ArithTraits<value_type>;
+#else
+  using KAT      = Kokkos::ArithTraits<value_type>;
+#endif
 
   // Get/Create distributed objects
   RCP<const Map> rowMap = A.getRowMap();
@@ -346,7 +278,7 @@ UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
 
   // Now generate local objects
   local_matrix_type localMatrix = A.getLocalMatrixDevice();
-  auto diagVals                 = diag->getDeviceLocalView(Xpetra::Access::ReadWrite);
+  auto diagVals                 = diag->getLocalViewDevice(Tpetra::Access::ReadWrite);
 
   ordinal_type numRows = localMatrix.graph.numRows();
 
@@ -424,18 +356,30 @@ UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
       Teuchos::TimeMonitor MM = *Teuchos::TimeMonitor::getNewTimer("UtilitiesBase::GetLumpedMatrixDiagonal (Kokkos implementation)");
       // Implement using Kokkos
       using local_vector_type = typename Vector::dual_view_type::t_dev_um;
-      using local_matrix_type = typename Matrix::local_matrix_type;
+      using local_matrix_type = typename Matrix::local_matrix_device_type;
       using execution_space   = typename local_vector_type::execution_space;
       // using rowmap_type       = typename local_matrix_type::row_map_type;
       // using entries_type      = typename local_matrix_type::index_type;
       using values_type = typename local_matrix_type::values_type;
       using scalar_type = typename values_type::non_const_value_type;
-      using mag_type    = typename Kokkos::ArithTraits<scalar_type>::mag_type;
-      using KAT_S       = typename Kokkos::ArithTraits<scalar_type>;
-      using KAT_M       = typename Kokkos::ArithTraits<mag_type>;
-      using size_type   = typename local_matrix_type::non_const_size_type;
+#if KOKKOS_VERSION >= 40799
+      using mag_type = typename KokkosKernels::ArithTraits<scalar_type>::mag_type;
+#else
+      using mag_type = typename Kokkos::ArithTraits<scalar_type>::mag_type;
+#endif
+#if KOKKOS_VERSION >= 40799
+      using KAT_S = typename KokkosKernels::ArithTraits<scalar_type>;
+#else
+      using KAT_S    = typename Kokkos::ArithTraits<scalar_type>;
+#endif
+#if KOKKOS_VERSION >= 40799
+      using KAT_M = typename KokkosKernels::ArithTraits<mag_type>;
+#else
+      using KAT_M    = typename Kokkos::ArithTraits<mag_type>;
+#endif
+      using size_type = typename local_matrix_type::non_const_size_type;
 
-      local_vector_type diag_dev      = diag->getDeviceLocalView(Xpetra::Access::OverwriteAll);
+      local_vector_type diag_dev      = diag->getLocalViewDevice(Tpetra::Access::OverwriteAll);
       local_matrix_type local_mat_dev = rcpA->getLocalMatrixDevice();
       Kokkos::RangePolicy<execution_space, int> my_policy(0, static_cast<int>(diag_dev.extent(0)));
       scalar_type valReplacement_dev = valReplacement;
@@ -471,8 +415,8 @@ UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
               });
         }
         if (useAverageAbsDiagVal) {
-          Teuchos::TimeMonitor MMM                                                   = *Teuchos::TimeMonitor::getNewTimer("GetLumpedMatrixDiagonal: useAverageAbsDiagVal");
-          typename Kokkos::View<mag_type, execution_space>::HostMirror avgAbsDiagVal = Kokkos::create_mirror_view(avgAbsDiagVal_dev);
+          Teuchos::TimeMonitor MMM                                                         = *Teuchos::TimeMonitor::getNewTimer("GetLumpedMatrixDiagonal: useAverageAbsDiagVal");
+          typename Kokkos::View<mag_type, execution_space>::host_mirror_type avgAbsDiagVal = Kokkos::create_mirror_view(avgAbsDiagVal_dev);
           Kokkos::deep_copy(avgAbsDiagVal, avgAbsDiagVal_dev);
           int numDiagsEqualToOne;
           Kokkos::deep_copy(numDiagsEqualToOne, numDiagsEqualToOne_dev);
@@ -585,53 +529,88 @@ UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
 }
 
 template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
-Teuchos::ArrayRCP<typename Teuchos::ScalarTraits<Scalar>::magnitudeType>
+Teuchos::RCP<Xpetra::Vector<Scalar, LocalOrdinal, GlobalOrdinal, Node>>
 UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
     GetMatrixMaxMinusOffDiagonal(const Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& A) {
-  size_t numRows = A.getRowMap()->getLocalNumElements();
-  Magnitude ZERO = Teuchos::ScalarTraits<Magnitude>::zero();
-  Teuchos::ArrayRCP<Magnitude> maxvec(numRows);
-  Teuchos::ArrayView<const LocalOrdinal> cols;
-  Teuchos::ArrayView<const Scalar> vals;
-  for (size_t i = 0; i < numRows; ++i) {
-    A.getLocalRowView(i, cols, vals);
-    Magnitude mymax = ZERO;
-    for (LocalOrdinal j = 0; j < cols.size(); ++j) {
-      if (Teuchos::as<size_t>(cols[j]) != i) {
-        mymax = std::max(mymax, -Teuchos::ScalarTraits<Scalar>::real(vals[j]));
-      }
-    }
-    maxvec[i] = mymax;
-  }
-  return maxvec;
+  // Get/Create distributed objects
+  RCP<const Map> rowMap = A.getRowMap();
+  auto diag             = Xpetra::VectorFactory<Scalar, LocalOrdinal, GlobalOrdinal, Node>::Build(rowMap, false);
+
+  // Implement using Kokkos
+  using local_vector_type = typename Vector::dual_view_type::t_dev_um;
+  using local_matrix_type = typename Matrix::local_matrix_device_type;
+  using execution_space   = typename local_vector_type::execution_space;
+  using values_type       = typename local_matrix_type::values_type;
+  using scalar_type       = typename values_type::non_const_value_type;
+#if KOKKOS_VERSION >= 40799
+  using KAT_S = typename KokkosKernels::ArithTraits<scalar_type>;
+#else
+  using KAT_S = typename Kokkos::ArithTraits<scalar_type>;
+#endif
+
+  auto diag_dev      = diag->getLocalViewDevice(Tpetra::Access::OverwriteAll);
+  auto local_mat_dev = A.getLocalMatrixDevice();
+  Kokkos::RangePolicy<execution_space, int> my_policy(0, static_cast<int>(diag_dev.extent(0)));
+
+  Kokkos::parallel_for(
+      "GetMatrixMaxMinusOffDiagonal", my_policy,
+      KOKKOS_LAMBDA(const LocalOrdinal rowIdx) {
+        auto mymax = KAT_S::zero();
+        auto row   = local_mat_dev.rowConst(rowIdx);
+        for (LocalOrdinal entryIdx = 0; entryIdx < row.length; ++entryIdx) {
+          if (rowIdx != row.colidx(entryIdx)) {
+            if (KAT_S::real(mymax) < -KAT_S::real(row.value(entryIdx)))
+              mymax = -KAT_S::real(row.value(entryIdx));
+          }
+        }
+        diag_dev(rowIdx, 0) = mymax;
+      });
+
+  return diag;
 }
 
 template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
-Teuchos::ArrayRCP<typename Teuchos::ScalarTraits<Scalar>::magnitudeType>
+Teuchos::RCP<Xpetra::Vector<Scalar, LocalOrdinal, GlobalOrdinal, Node>>
 UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
     GetMatrixMaxMinusOffDiagonal(const Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& A, const Xpetra::Vector<LocalOrdinal, LocalOrdinal, GlobalOrdinal, Node>& BlockNumber) {
   TEUCHOS_TEST_FOR_EXCEPTION(!A.getColMap()->isSameAs(*BlockNumber.getMap()), std::runtime_error, "GetMatrixMaxMinusOffDiagonal: BlockNumber must match's A's column map.");
 
-  Teuchos::ArrayRCP<const LocalOrdinal> block_id = BlockNumber.getData(0);
+  // Get/Create distributed objects
+  RCP<const Map> rowMap = A.getRowMap();
+  auto diag             = Xpetra::VectorFactory<Scalar, LocalOrdinal, GlobalOrdinal, Node>::Build(rowMap, false);
 
-  size_t numRows = A.getRowMap()->getLocalNumElements();
-  Magnitude ZERO = Teuchos::ScalarTraits<Magnitude>::zero();
-  Teuchos::ArrayRCP<Magnitude> maxvec(numRows);
-  Teuchos::ArrayView<const LocalOrdinal> cols;
-  Teuchos::ArrayView<const Scalar> vals;
-  for (size_t i = 0; i < numRows; ++i) {
-    A.getLocalRowView(i, cols, vals);
-    Magnitude mymax = ZERO;
-    for (LocalOrdinal j = 0; j < cols.size(); ++j) {
-      if (Teuchos::as<size_t>(cols[j]) != i && block_id[i] == block_id[cols[j]]) {
-        mymax = std::max(mymax, -Teuchos::ScalarTraits<Scalar>::real(vals[j]));
-      }
-    }
-    //        printf("A(%d,:) row_scale(block) = %6.4e\n",(int)i,mymax);
+  // Implement using Kokkos
+  using local_vector_type = typename Vector::dual_view_type::t_dev_um;
+  using local_matrix_type = typename Matrix::local_matrix_device_type;
+  using execution_space   = typename local_vector_type::execution_space;
+  using values_type       = typename local_matrix_type::values_type;
+  using scalar_type       = typename values_type::non_const_value_type;
+#if KOKKOS_VERSION >= 40799
+  using KAT_S = typename KokkosKernels::ArithTraits<scalar_type>;
+#else
+  using KAT_S = typename Kokkos::ArithTraits<scalar_type>;
+#endif
 
-    maxvec[i] = mymax;
-  }
-  return maxvec;
+  auto diag_dev        = diag->getLocalViewDevice(Tpetra::Access::OverwriteAll);
+  auto local_mat_dev   = A.getLocalMatrixDevice();
+  auto local_block_dev = BlockNumber.getLocalViewDevice(Tpetra::Access::ReadOnly);
+  Kokkos::RangePolicy<execution_space, int> my_policy(0, static_cast<int>(diag_dev.extent(0)));
+
+  Kokkos::parallel_for(
+      "GetMatrixMaxMinusOffDiagonal", my_policy,
+      KOKKOS_LAMBDA(const LocalOrdinal rowIdx) {
+        auto mymax = KAT_S::zero();
+        auto row   = local_mat_dev.row(rowIdx);
+        for (LocalOrdinal entryIdx = 0; entryIdx < row.length; ++entryIdx) {
+          if ((rowIdx != row.colidx(entryIdx)) && (local_block_dev(rowIdx, 0) == local_block_dev(row.colidx(entryIdx), 0))) {
+            if (KAT_S::real(mymax) < -KAT_S::real(row.value(entryIdx)))
+              mymax = -KAT_S::real(row.value(entryIdx));
+          }
+        }
+        diag_dev(rowIdx, 0) = mymax;
+      });
+
+  return diag;
 }
 
 template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
@@ -711,14 +690,16 @@ UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
     GetMatrixOverlappedDiagonal(const Matrix& A) {
   RCP<const Map> rowMap = A.getRowMap(), colMap = A.getColMap();
   RCP<Vector> localDiag      = GetMatrixDiagonal(A);
-  RCP<Vector> diagonal       = VectorFactory::Build(colMap);
   RCP<const Import> importer = A.getCrsGraph()->getImporter();
-  if (importer == Teuchos::null) {
+  if (importer.is_null() && !rowMap->isSameAs(*colMap)) {
     importer = ImportFactory::Build(rowMap, colMap);
   }
-  diagonal->doImport(*localDiag, *(importer), Xpetra::INSERT);
-
-  return diagonal;
+  if (!importer.is_null()) {
+    RCP<Vector> diagonal = VectorFactory::Build(colMap);
+    diagonal->doImport(*localDiag, *(importer), Xpetra::INSERT);
+    return diagonal;
+  } else
+    return localDiag;
 }
 
 template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
@@ -802,6 +783,37 @@ UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
   }
   ghosted->doImport(*local, *(importer), Xpetra::INSERT);
   return ghosted;
+}
+
+template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
+GlobalOrdinal
+UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
+    CountNegativeDiagonalEntries(const Matrix& A) {
+  using local_matrix_type = typename Matrix::local_matrix_device_type;
+  using execution_space   = typename local_matrix_type::execution_space;
+#if KOKKOS_VERSION >= 40799
+  using KAT_S = typename KokkosKernels::ArithTraits<typename local_matrix_type::value_type>;
+#else
+  using KAT_S = typename Kokkos::ArithTraits<typename local_matrix_type::value_type>;
+#endif
+
+  auto local_mat_dev = A.getLocalMatrixDevice();
+  Kokkos::RangePolicy<execution_space, int> my_policy(0, static_cast<int>(local_mat_dev.numRows()));
+  GlobalOrdinal count_l = 0, count_g = 0;
+
+  Kokkos::parallel_reduce(
+      "CountNegativeDiagonalEntries", my_policy,
+      KOKKOS_LAMBDA(const LocalOrdinal rowIdx, GlobalOrdinal& sum) {
+        auto row = local_mat_dev.row(rowIdx);
+        for (LocalOrdinal entryIdx = 0; entryIdx < row.length; ++entryIdx) {
+          if (rowIdx == row.colidx(entryIdx) && KAT_S::real(row.value(entryIdx)) < 0)
+            sum++;
+        }
+      },
+      count_l);
+
+  MueLu_sumAll(A.getRowMap()->getComm(), count_l, count_g);
+  return count_g;
 }
 
 template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
@@ -994,20 +1006,70 @@ UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
   return boundaryNodes;
 }
 
+template <class CrsMatrix>
+KOKKOS_FORCEINLINE_FUNCTION bool isDirichletRow(typename CrsMatrix::ordinal_type rowId,
+                                                KokkosSparse::SparseRowViewConst<CrsMatrix>& row,
+#if KOKKOS_VERSION >= 40799
+                                                const typename KokkosKernels::ArithTraits<typename CrsMatrix::value_type>::magnitudeType& tol,
+#else
+                                                const typename Kokkos::ArithTraits<typename CrsMatrix::value_type>::magnitudeType& tol,
+#endif
+                                                const bool count_twos_as_dirichlet) {
+#if KOKKOS_VERSION >= 40799
+  using ATS = KokkosKernels::ArithTraits<typename CrsMatrix::value_type>;
+#else
+  using ATS = Kokkos::ArithTraits<typename CrsMatrix::value_type>;
+#endif
+
+  auto length       = row.length;
+  bool boundaryNode = true;
+
+  if (count_twos_as_dirichlet) {
+    if (length > 2) {
+      decltype(length) colID = 0;
+      for (; colID < length; colID++)
+        if ((row.colidx(colID) != rowId) &&
+            (ATS::magnitude(row.value(colID)) > tol)) {
+          if (!boundaryNode)
+            break;
+          boundaryNode = false;
+        }
+      if (colID == length)
+        boundaryNode = true;
+    }
+  } else {
+    for (decltype(length) colID = 0; colID < length; colID++)
+      if ((row.colidx(colID) != rowId) &&
+          (ATS::magnitude(row.value(colID)) > tol)) {
+        boundaryNode = false;
+        break;
+      }
+  }
+  return boundaryNode;
+}
+
 template <class SC, class LO, class GO, class NO, class memory_space>
 Kokkos::View<bool*, memory_space>
 DetectDirichletRows_kokkos(const Xpetra::Matrix<SC, LO, GO, NO>& A,
                            const typename Teuchos::ScalarTraits<SC>::magnitudeType& tol,
                            const bool count_twos_as_dirichlet) {
+#if KOKKOS_VERSION >= 40799
+  using impl_scalar_type = typename KokkosKernels::ArithTraits<SC>::val_type;
+#else
   using impl_scalar_type = typename Kokkos::ArithTraits<SC>::val_type;
-  using ATS              = Kokkos::ArithTraits<impl_scalar_type>;
-  using range_type       = Kokkos::RangePolicy<LO, typename NO::execution_space>;
-  using helpers          = Xpetra::Helpers<SC, LO, GO, NO>;
+#endif
+#if KOKKOS_VERSION >= 40799
+  using ATS = KokkosKernels::ArithTraits<impl_scalar_type>;
+#else
+  using ATS = Kokkos::ArithTraits<impl_scalar_type>;
+#endif
+  using range_type = Kokkos::RangePolicy<LO, typename NO::execution_space>;
+  using helpers    = Xpetra::Helpers<SC, LO, GO, NO>;
 
   Kokkos::View<bool*, typename NO::device_type::memory_space> boundaryNodes;
 
   if (helpers::isTpetraBlockCrs(A)) {
-    const Tpetra::BlockCrsMatrix<SC, LO, GO, NO>& Am = helpers::Op2TpetraBlockCrs(A);
+    const Tpetra::BlockCrsMatrix<SC, LO, GO, NO>& Am = toTpetraBlock(A);
     auto b_graph                                     = Am.getCrsGraph().getLocalGraphDevice();
     auto b_rowptr                                    = Am.getCrsGraph().getLocalRowPtrsDevice();
     auto values                                      = Am.getValuesDevice();
@@ -1047,42 +1109,12 @@ DetectDirichletRows_kokkos(const Xpetra::Matrix<SC, LO, GO, NO>& A,
     LO numRows       = A.getLocalNumRows();
     boundaryNodes    = Kokkos::View<bool*, typename NO::device_type::memory_space>(Kokkos::ViewAllocateWithoutInitializing("boundaryNodes"), numRows);
 
-    if (count_twos_as_dirichlet)
-      Kokkos::parallel_for(
-          "MueLu:Utils::DetectDirichletRows_Twos_As_Dirichlet", range_type(0, numRows),
-          KOKKOS_LAMBDA(const LO row) {
-            auto rowView = localMatrix.row(row);
-            auto length  = rowView.length;
-
-            boundaryNodes(row) = true;
-            if (length > 2) {
-              decltype(length) colID = 0;
-              for (; colID < length; colID++)
-                if ((rowView.colidx(colID) != row) &&
-                    (ATS::magnitude(rowView.value(colID)) > tol)) {
-                  if (!boundaryNodes(row))
-                    break;
-                  boundaryNodes(row) = false;
-                }
-              if (colID == length)
-                boundaryNodes(row) = true;
-            }
-          });
-    else
-      Kokkos::parallel_for(
-          "MueLu:Utils::DetectDirichletRows", range_type(0, numRows),
-          KOKKOS_LAMBDA(const LO row) {
-            auto rowView = localMatrix.row(row);
-            auto length  = rowView.length;
-
-            boundaryNodes(row) = true;
-            for (decltype(length) colID = 0; colID < length; colID++)
-              if ((rowView.colidx(colID) != row) &&
-                  (ATS::magnitude(rowView.value(colID)) > tol)) {
-                boundaryNodes(row) = false;
-                break;
-              }
-          });
+    Kokkos::parallel_for(
+        "MueLu:Utils::DetectDirichletRows", range_type(0, numRows),
+        KOKKOS_LAMBDA(const LO row) {
+          auto rowView       = localMatrix.rowConst(row);
+          boundaryNodes(row) = isDirichletRow(row, rowView, tol, count_twos_as_dirichlet);
+        });
   }
   if constexpr (std::is_same<memory_space, typename NO::device_type::memory_space>::value)
     return boundaryNodes;
@@ -1152,6 +1184,37 @@ UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
 
 template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
 void UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
+    EnforceInitialCondition(const Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& A,
+                            const Xpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>& RHS,
+                            Xpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>& InitialGuess,
+                            const typename Teuchos::ScalarTraits<SC>::magnitudeType& tol,
+                            const bool count_twos_as_dirichlet) {
+  using range_type = Kokkos::RangePolicy<LO, typename Node::execution_space>;
+
+  LocalOrdinal numRows    = A.getLocalNumRows();
+  LocalOrdinal numVectors = RHS.getNumVectors();
+  TEUCHOS_ASSERT_EQUALITY(numVectors, Teuchos::as<LocalOrdinal>(InitialGuess.getNumVectors()));
+#ifdef MUELU_DEBUG
+  TEUCHOS_ASSERT(RHS.getMap()->isCompatible(InitialGuess.getMap()));
+#endif
+
+  auto lclRHS          = RHS.getLocalViewDevice(Tpetra::Access::ReadOnly);
+  auto lclInitialGuess = InitialGuess.getLocalViewDevice(Tpetra::Access::ReadWrite);
+  auto lclA            = A.getLocalMatrixDevice();
+
+  Kokkos::parallel_for(
+      "MueLu:Utils::EnforceInitialCondition", range_type(0, numRows),
+      KOKKOS_LAMBDA(const LO i) {
+        auto row = lclA.rowConst(i);
+        if (isDirichletRow(i, row, tol, count_twos_as_dirichlet)) {
+          for (LocalOrdinal j = 0; j < numVectors; ++j)
+            lclInitialGuess(i, j) = lclRHS(i, j);
+        }
+      });
+}
+
+template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
+void UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
     FindNonZeros(const Teuchos::ArrayRCP<const Scalar> vals,
                  Teuchos::ArrayRCP<bool> nonzeros) {
   TEUCHOS_ASSERT(vals.size() == nonzeros.size());
@@ -1167,8 +1230,16 @@ template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
 void UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
     FindNonZeros(const typename Xpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>::dual_view_type::t_dev_const_um vals,
                  Kokkos::View<bool*, typename Node::device_type> nonzeros) {
-  using ATS        = Kokkos::ArithTraits<Scalar>;
-  using impl_ATS   = Kokkos::ArithTraits<typename ATS::val_type>;
+#if KOKKOS_VERSION >= 40799
+  using ATS = KokkosKernels::ArithTraits<Scalar>;
+#else
+  using ATS = Kokkos::ArithTraits<Scalar>;
+#endif
+#if KOKKOS_VERSION >= 40799
+  using impl_ATS = KokkosKernels::ArithTraits<typename ATS::val_type>;
+#else
+  using impl_ATS = Kokkos::ArithTraits<typename ATS::val_type>;
+#endif
   using range_type = Kokkos::RangePolicy<LocalOrdinal, typename Node::execution_space>;
   TEUCHOS_ASSERT(vals.extent(0) == nonzeros.extent(0));
   const typename ATS::magnitudeType eps = 2.0 * impl_ATS::eps();
@@ -1226,8 +1297,16 @@ void UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
                                   const Kokkos::View<bool*, typename Node::device_type>& dirichletRows,
                                   Kokkos::View<bool*, typename Node::device_type> dirichletCols,
                                   Kokkos::View<bool*, typename Node::device_type> dirichletDomain) {
-  using ATS                                                        = Kokkos::ArithTraits<Scalar>;
-  using impl_ATS                                                   = Kokkos::ArithTraits<typename ATS::val_type>;
+#if KOKKOS_VERSION >= 40799
+  using ATS = KokkosKernels::ArithTraits<Scalar>;
+#else
+  using ATS = Kokkos::ArithTraits<Scalar>;
+#endif
+#if KOKKOS_VERSION >= 40799
+  using impl_ATS = KokkosKernels::ArithTraits<typename ATS::val_type>;
+#else
+  using impl_ATS = Kokkos::ArithTraits<typename ATS::val_type>;
+#endif
   using range_type                                                 = Kokkos::RangePolicy<LocalOrdinal, typename Node::execution_space>;
   RCP<const Xpetra::Map<LocalOrdinal, GlobalOrdinal, Node>> domMap = A.getDomainMap();
   RCP<const Xpetra::Map<LocalOrdinal, GlobalOrdinal, Node>> rowMap = A.getRowMap();
@@ -1237,7 +1316,7 @@ void UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
   TEUCHOS_ASSERT(dirichletDomain.extent(0) == domMap->getLocalNumElements());
   RCP<Xpetra::Vector<Scalar, LocalOrdinal, GlobalOrdinal, Node>> myColsToZero = Xpetra::VectorFactory<Scalar, LocalOrdinal, GlobalOrdinal, Node>::Build(colMap, /*zeroOut=*/true);
   // Find all local column indices that are in Dirichlet rows, record in myColsToZero as 1.0
-  auto myColsToZeroView = myColsToZero->getDeviceLocalView(Xpetra::Access::ReadWrite);
+  auto myColsToZeroView = myColsToZero->getLocalViewDevice(Tpetra::Access::ReadWrite);
   auto localMatrix      = A.getLocalMatrixDevice();
   Kokkos::parallel_for(
       "MueLu:Maxwell1::DetectDirichletCols", range_type(0, rowMap->getLocalNumElements()),
@@ -1261,8 +1340,8 @@ void UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
     myColsToZero->doImport(*globalColsToZero, *importer, Xpetra::INSERT);
   } else
     globalColsToZero = myColsToZero;
-  UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::FindNonZeros(globalColsToZero->getDeviceLocalView(Xpetra::Access::ReadOnly), dirichletDomain);
-  UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::FindNonZeros(myColsToZero->getDeviceLocalView(Xpetra::Access::ReadOnly), dirichletCols);
+  UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::FindNonZeros(globalColsToZero->getLocalViewDevice(Tpetra::Access::ReadOnly), dirichletDomain);
+  UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::FindNonZeros(myColsToZero->getLocalViewDevice(Tpetra::Access::ReadOnly), dirichletCols);
 }
 
 template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
@@ -1476,8 +1555,16 @@ Kokkos::View<bool*, typename NO::device_type>
 UtilitiesBase<SC, LO, GO, NO>::
     DetectDirichletCols(const Xpetra::Matrix<SC, LO, GO, NO>& A,
                         const Kokkos::View<const bool*, typename NO::device_type>& dirichletRows) {
-  using ATS        = Kokkos::ArithTraits<SC>;
-  using impl_ATS   = Kokkos::ArithTraits<typename ATS::val_type>;
+#if KOKKOS_VERSION >= 40799
+  using ATS = KokkosKernels::ArithTraits<SC>;
+#else
+  using ATS = Kokkos::ArithTraits<SC>;
+#endif
+#if KOKKOS_VERSION >= 40799
+  using impl_ATS = KokkosKernels::ArithTraits<typename ATS::val_type>;
+#else
+  using impl_ATS = Kokkos::ArithTraits<typename ATS::val_type>;
+#endif
   using range_type = Kokkos::RangePolicy<LO, typename NO::execution_space>;
 
   SC zero = ATS::zero();
@@ -1489,7 +1576,7 @@ UtilitiesBase<SC, LO, GO, NO>::
   Teuchos::RCP<const Xpetra::Map<LO, GO, NO>> colMap             = A.getColMap();
   Teuchos::RCP<Xpetra::MultiVector<SC, LO, GO, NO>> myColsToZero = Xpetra::MultiVectorFactory<SC, LO, GO, NO>::Build(colMap, 1);
   myColsToZero->putScalar(zero);
-  auto myColsToZeroView = myColsToZero->getDeviceLocalView(Xpetra::Access::ReadWrite);
+  auto myColsToZeroView = myColsToZero->getLocalViewDevice(Tpetra::Access::ReadWrite);
   // Find all local column indices that are in Dirichlet rows, record in myColsToZero as 1.0
   Kokkos::parallel_for(
       "MueLu:Utils::DetectDirichletCols1", range_type(0, numRows),
@@ -1511,7 +1598,7 @@ UtilitiesBase<SC, LO, GO, NO>::
   // import to column map
   myColsToZero->doImport(*globalColsToZero, *exporter, Xpetra::INSERT);
 
-  auto myCols          = myColsToZero->getDeviceLocalView(Xpetra::Access::ReadOnly);
+  auto myCols          = myColsToZero->getLocalViewDevice(Tpetra::Access::ReadOnly);
   size_t numColEntries = colMap->getLocalNumElements();
   Kokkos::View<bool*, typename NO::device_type> dirichletCols(Kokkos::ViewAllocateWithoutInitializing("dirichletCols"), numColEntries);
   const typename ATS::magnitudeType eps = 2.0 * ATS::eps();
@@ -1696,8 +1783,16 @@ void UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
     ApplyOAZToMatrixRows(Teuchos::RCP<Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>& A,
                          const Kokkos::View<const bool*, typename Node::device_type>& dirichletRows) {
   TEUCHOS_ASSERT(A->isFillComplete());
-  using ATS        = Kokkos::ArithTraits<Scalar>;
-  using impl_ATS   = Kokkos::ArithTraits<typename ATS::val_type>;
+#if KOKKOS_VERSION >= 40799
+  using ATS = KokkosKernels::ArithTraits<Scalar>;
+#else
+  using ATS = Kokkos::ArithTraits<Scalar>;
+#endif
+#if KOKKOS_VERSION >= 40799
+  using impl_ATS = KokkosKernels::ArithTraits<typename ATS::val_type>;
+#else
+  using impl_ATS = Kokkos::ArithTraits<typename ATS::val_type>;
+#endif
   using range_type = Kokkos::RangePolicy<LocalOrdinal, typename Node::execution_space>;
 
   RCP<const Xpetra::Map<LocalOrdinal, GlobalOrdinal, Node>> domMap = A->getDomainMap();
@@ -1783,7 +1878,11 @@ void UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
     ZeroDirichletRows(RCP<Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>& A,
                       const Kokkos::View<const bool*, typename Node::device_type>& dirichletRows,
                       Scalar replaceWith) {
-  using ATS        = Kokkos::ArithTraits<Scalar>;
+#if KOKKOS_VERSION >= 40799
+  using ATS = KokkosKernels::ArithTraits<Scalar>;
+#else
+  using ATS = Kokkos::ArithTraits<Scalar>;
+#endif
   using range_type = Kokkos::RangePolicy<LocalOrdinal, typename Node::execution_space>;
 
   typename ATS::val_type impl_replaceWith = replaceWith;
@@ -1808,12 +1907,16 @@ void UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
     ZeroDirichletRows(RCP<Xpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>>& X,
                       const Kokkos::View<const bool*, typename Node::device_type>& dirichletRows,
                       Scalar replaceWith) {
-  using ATS        = Kokkos::ArithTraits<Scalar>;
+#if KOKKOS_VERSION >= 40799
+  using ATS = KokkosKernels::ArithTraits<Scalar>;
+#else
+  using ATS = Kokkos::ArithTraits<Scalar>;
+#endif
   using range_type = Kokkos::RangePolicy<LocalOrdinal, typename Node::execution_space>;
 
   typename ATS::val_type impl_replaceWith = replaceWith;
 
-  auto myCols    = X->getDeviceLocalView(Xpetra::Access::ReadWrite);
+  auto myCols    = X->getLocalViewDevice(Tpetra::Access::ReadWrite);
   size_t numVecs = X->getNumVectors();
   Kokkos::parallel_for(
       "MueLu:Utils::ZeroDirichletRows_MV", range_type(0, dirichletRows.size()),
@@ -1848,7 +1951,11 @@ void UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
     ZeroDirichletCols(RCP<Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>& A,
                       const Kokkos::View<const bool*, typename Node::device_type>& dirichletCols,
                       Scalar replaceWith) {
-  using ATS        = Kokkos::ArithTraits<Scalar>;
+#if KOKKOS_VERSION >= 40799
+  using ATS = KokkosKernels::ArithTraits<Scalar>;
+#else
+  using ATS = Kokkos::ArithTraits<Scalar>;
+#endif
   using range_type = Kokkos::RangePolicy<LocalOrdinal, typename Node::execution_space>;
 
   typename ATS::val_type impl_replaceWith = replaceWith;
@@ -1914,13 +2021,25 @@ template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
 RCP<Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>
 UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
     ReplaceNonZerosWithOnes(const RCP<Matrix>& original) {
-  using ISC               = typename Kokkos::ArithTraits<Scalar>::val_type;
+#if KOKKOS_VERSION >= 40799
+  using ISC = typename KokkosKernels::ArithTraits<Scalar>::val_type;
+#else
+  using ISC = typename Kokkos::ArithTraits<Scalar>::val_type;
+#endif
   using range_type        = Kokkos::RangePolicy<LocalOrdinal, typename Node::execution_space>;
-  using local_matrix_type = typename CrsMatrix::local_matrix_type;
+  using local_matrix_type = typename CrsMatrix::local_matrix_device_type;
   using values_type       = typename local_matrix_type::values_type;
 
-  const ISC ONE  = Kokkos::ArithTraits<ISC>::one();
+#if KOKKOS_VERSION >= 40799
+  const ISC ONE = KokkosKernels::ArithTraits<ISC>::one();
+#else
+  const ISC ONE = Kokkos::ArithTraits<ISC>::one();
+#endif
+#if KOKKOS_VERSION >= 40799
+  const ISC ZERO = KokkosKernels::ArithTraits<ISC>::zero();
+#else
   const ISC ZERO = Kokkos::ArithTraits<ISC>::zero();
+#endif
 
   // Copy the values array of the old matrix to a new array, replacing all the non-zeros with one
   auto localMatrix = original->getLocalMatrixDevice();
@@ -1998,6 +2117,12 @@ UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
 template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
 bool UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
     MapsAreNested(const Xpetra::Map<LocalOrdinal, GlobalOrdinal, Node>& rowMap, const Xpetra::Map<LocalOrdinal, GlobalOrdinal, Node>& colMap) {
+  if ((rowMap.lib() == Xpetra::UseTpetra) && (colMap.lib() == Xpetra::UseTpetra)) {
+    auto tpRowMap = toTpetra(rowMap);
+    auto tpColMap = toTpetra(colMap);
+    return tpColMap.isLocallyFitted(tpRowMap);
+  }
+
   ArrayView<const GlobalOrdinal> rowElements = rowMap.getLocalElementList();
   ArrayView<const GlobalOrdinal> colElements = colMap.getLocalElementList();
 
@@ -2020,7 +2145,7 @@ template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
 Teuchos::RCP<Xpetra::Vector<LocalOrdinal, LocalOrdinal, GlobalOrdinal, Node>>
 UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
     ReverseCuthillMcKee(const Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Op) {
-  using local_matrix_type = typename Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_matrix_type;
+  using local_matrix_type = typename Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_matrix_device_type;
   using local_graph_type  = typename local_matrix_type::staticcrsgraph_type;
   using lno_nnz_view_t    = typename local_graph_type::entries_type::non_const_type;
   using device            = typename local_graph_type::device_type;
@@ -2035,7 +2160,7 @@ UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
       Xpetra::VectorFactory<LocalOrdinal, LocalOrdinal, GlobalOrdinal, Node>::Build(Op.getRowMap());
 
   // Copy out and reorder data
-  auto view1D = Kokkos::subview(retval->getDeviceLocalView(Xpetra::Access::ReadWrite), Kokkos::ALL(), 0);
+  auto view1D = Kokkos::subview(retval->getLocalViewDevice(Tpetra::Access::ReadWrite), Kokkos::ALL(), 0);
   Kokkos::parallel_for(
       "Utilities::ReverseCuthillMcKee",
       Kokkos::RangePolicy<ordinal_type, execution_space>(0, localGraph.numRows()),
@@ -2049,7 +2174,7 @@ template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
 Teuchos::RCP<Xpetra::Vector<LocalOrdinal, LocalOrdinal, GlobalOrdinal, Node>>
 UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
     CuthillMcKee(const Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Op) {
-  using local_matrix_type = typename Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_matrix_type;
+  using local_matrix_type = typename Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_matrix_device_type;
   using local_graph_type  = typename local_matrix_type::staticcrsgraph_type;
   using lno_nnz_view_t    = typename local_graph_type::entries_type::non_const_type;
   using device            = typename local_graph_type::device_type;
@@ -2065,7 +2190,7 @@ UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
       Xpetra::VectorFactory<LocalOrdinal, LocalOrdinal, GlobalOrdinal, Node>::Build(Op.getRowMap());
 
   // Copy out data
-  auto view1D = Kokkos::subview(retval->getDeviceLocalView(Xpetra::Access::ReadWrite), Kokkos::ALL(), 0);
+  auto view1D = Kokkos::subview(retval->getLocalViewDevice(Tpetra::Access::ReadWrite), Kokkos::ALL(), 0);
   // Since KokkosKernels produced RCM, also reverse the order of the view to get CM
   Kokkos::parallel_for(
       "Utilities::ReverseCuthillMcKee",

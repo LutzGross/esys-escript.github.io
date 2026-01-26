@@ -39,7 +39,6 @@
 #include <stk_search/CoarseSearch.hpp>
 #include <stk_search/BoundingBox.hpp>
 #include <stk_search/IdentProc.hpp>
-#include <stk_mesh/base/GetBuckets.hpp>
 #include <stk_mesh/base/GetEntities.hpp>
 #include <stk_mesh/base/FieldParallel.hpp>
 #include <stk_util/parallel/ParallelReduce.hpp>
@@ -617,7 +616,7 @@ private:
 
   void rotate_coordinates(
       SphereIdVector & side_1_vector,
-      SphereIdVector & side_2_vector,
+      SphereIdVector & /*side_2_vector*/,
       const matrix3x3 & rotation) const
   {
     for (auto && side_1 : side_1_vector)
@@ -630,7 +629,7 @@ private:
 
   void apply_affine_to_coordinates(
       SphereIdVector & side_1_vector,
-      SphereIdVector & side_2_vector,
+      SphereIdVector & /*side_2_vector*/,
       const matrix3x3 & rotation,
       const std::vector<double> & translation) const
   {
@@ -670,12 +669,6 @@ struct GetCoordinates
 };
 
 }} //namespace stk::mesh
-
-namespace impl_hack {
-
-void really_dumb_func();
-
-} //namespace impl_hack
 
 #endif /*STK_SEARCH_UTIL_STK_MESH_PERIODIC_BOUNDARY_SEARCH_HPP*/
 

@@ -91,10 +91,10 @@ namespace {
     return ret;
   }
 
-  RCP<FancyOStream> getDefaultOStream()
-  {
-    return( VerboseObjectBase::getDefaultOStream() );
-  }
+  //RCP<FancyOStream> getDefaultOStream()
+  //{
+  //  return( VerboseObjectBase::getDefaultOStream() );
+  //}
 
   TEUCHOS_STATIC_SETUP()
   {
@@ -104,15 +104,6 @@ namespace {
     clp.setOption("test-mpi", "test-serial", &testMpi,
                   "Test MPI by default or force serial test.  In a serial build,"
                   " this option is ignored and a serial comm is always used." );
-
-    auto out = getDefaultOStream();
-    auto comm = getDefaultComm();
-    auto numRanks = comm->getSize();
-    auto myRank = comm->getRank();
-    if (myRank == 0) {
-      using std::endl;
-      *out << endl << "TEUCHOS_STATIC_SETUP with " << numRanks << " MPI processes" << endl << endl;
-    }
   }
 
 
@@ -136,6 +127,12 @@ namespace {
     const global_size_t INVALID = OrdinalTraits<global_size_t>::invalid();
     RCP<const Comm<int> > comm = getDefaultComm();
     const size_t rank = comm->getRank();
+    if (rank==0) {
+      std::cout << std::endl
+                << " >> UnitTest for ShyLUBasker::Initialization with Scalar = "
+                << ST::name() << " <<" << std::endl << std::endl;
+    }
+
     // create a Map
     const size_t numLocal = 10;
     RCP<Map<LO,GO,Node> > map = rcp( new Map<LO,GO,Node>(INVALID,numLocal,0,comm) );
@@ -183,6 +180,11 @@ namespace {
     const global_size_t INVALID = OrdinalTraits<global_size_t>::invalid();
     RCP<const Comm<int> > comm = getDefaultComm();
     const size_t rank = comm->getRank();
+    if (rank==0) {
+      std::cout << std::endl
+                << " >> UnitTest for ShyLUBasker::SymbolicFactorization with Scalar = "
+                << ST::name() << " <<" << std::endl << std::endl;
+    }
     // create a Map
     const size_t numLocal = 10;
     RCP<Map<LO,GO,Node> > map = rcp( new Map<LO,GO,Node>(INVALID,numLocal,0,comm) );
@@ -217,6 +219,11 @@ namespace {
     const global_size_t INVALID = OrdinalTraits<global_size_t>::invalid();
     RCP<const Comm<int> > comm = getDefaultComm();
     const size_t rank = comm->getRank();
+    if (rank==0) {
+      std::cout << std::endl
+                << " >> UnitTest for ShyLUBasker::NumericFactorization with Scalar = "
+                << ST::name() << " <<" << std::endl << std::endl;
+    }
     // create a Map
     const size_t numLocal = 10;
     RCP<Map<LO,GO,Node> > map = rcp( new Map<LO,GO,Node>(INVALID,numLocal,0,comm) );
@@ -237,7 +244,13 @@ namespace {
 
     // Constructor from Factory
     RCP<Amesos2::Solver<MAT,MV> > solver = Amesos2::create<MAT,MV>("ShyLUBasker",eye,X,B);
-
+    {
+      Teuchos::ParameterList amesos2_paramlist;
+      amesos2_paramlist.setName("Amesos2");
+      Teuchos::ParameterList & shylubasker_paramlist = amesos2_paramlist.sublist("ShyLUBasker");
+      shylubasker_paramlist.set("num_threads", 4, "Number of threads");
+      solver->setParameters(Teuchos::rcpFromRef(amesos2_paramlist));
+    }
     solver->symbolicFactorization().numericFactorization();
 
     if ( rank == 0 ) {
@@ -257,6 +270,12 @@ namespace {
     const size_t numVecs = 1;
 
     RCP<const Comm<int> > comm = Tpetra::getDefaultComm();
+    const size_t rank = comm->getRank();
+    if (rank==0) {
+      std::cout << std::endl
+                << " >> UnitTest for ShyLUBasker::Solve with Scalar = "
+                << ST::name() << " <<" << std::endl << std::endl;
+    }
 
     // NDE: Beginning changes towards passing parameter list to shylu basker
     // for controlling various parameters per test, matrix, etc.
@@ -265,7 +284,7 @@ namespace {
     amesos2_paramlist.setName("Amesos2");
     Teuchos::ParameterList & shylubasker_paramlist = amesos2_paramlist.sublist("ShyLUBasker");
 
-      shylubasker_paramlist.set("num_threads", 1,
+      shylubasker_paramlist.set("num_threads", 4,
         "Number of threads");
       shylubasker_paramlist.set("pivot", false,
         "Should not pivot");
@@ -325,6 +344,11 @@ namespace {
     Array<Mag> xhatnorms(numVecs), xnorms(numVecs);
     Xhat->norm2(xhatnorms());
     X->norm2(xnorms());
+    if (rank==0) {
+      for (int i=0; i<xnorms.size(); i++)
+        std::cout << "err[" << i << "]  = " << xnorms[i] << " - " << xhatnorms[i]
+                  << " = " << xnorms[i]-xhatnorms[i] << std::endl;
+    }
     TEST_COMPARE_FLOATING_ARRAYS( xhatnorms, xnorms, 0.005 );
   }
 
@@ -338,6 +362,12 @@ namespace {
     const size_t numVecs = 1;
 
     RCP<const Comm<int> > comm = Tpetra::getDefaultComm();
+    const size_t rank = comm->getRank();
+    if (rank==0) {
+      std::cout << std::endl
+                << " >> UnitTest for ShyLUBasker::SolveTrans with Scalar = "
+                << ST::name() << " <<" << std::endl << std::endl;
+    }
 
     // NDE: Beginning changes towards passing parameter list to shylu basker
     // for controlling various parameters per test, matrix, etc.
@@ -346,7 +376,7 @@ namespace {
     amesos2_paramlist.setName("Amesos2");
     Teuchos::ParameterList & shylubasker_paramlist = amesos2_paramlist.sublist("ShyLUBasker");
 
-      shylubasker_paramlist.set("num_threads", 1,
+      shylubasker_paramlist.set("num_threads", 4,
         "Number of threads");
       shylubasker_paramlist.set("pivot", false,
         "Should not pivot");
@@ -405,6 +435,11 @@ namespace {
     Array<Mag> xhatnorms(numVecs), xnorms(numVecs);
     Xhat->norm2(xhatnorms());
     X->norm2(xnorms());
+    if (rank==0) {
+      for (int i=0; i<xnorms.size(); i++)
+        std::cout << "err[" << i << "]  = " << xnorms[i] << " - " << xhatnorms[i]
+                  << " = " << xnorms[i]-xhatnorms[i] << std::endl;
+    }
     TEST_COMPARE_FLOATING_ARRAYS( xhatnorms, xnorms, 0.005 );
   }
 
@@ -479,9 +514,13 @@ namespace {
     using Scalar = SCALAR;
 
     RCP<const Comm<int> > comm = Tpetra::getDefaultComm();
-
     size_t myRank = comm->getRank();
     const global_size_t numProcs = comm->getSize();
+    if (myRank==0) {
+      std::cout << std::endl
+                << " >> UnitTest for ShyLUBasker::NonContigGID with Scalar = "
+                << ST::name() << " <<" << std::endl << std::endl;
+    }
 
     // Unit test created for 2 processes
     if ( numProcs == 2 ) {
@@ -575,13 +614,15 @@ namespace {
 
       // Create solver interface with Amesos2 factory method
       RCP<Amesos2::Solver<MAT,MV> > solver = Amesos2::create<MAT,MV>("ShyLUBasker", A, X, B);
-
-      // Create a Teuchos::ParameterList to hold solver parameters
-      Teuchos::ParameterList amesos2_params("Amesos2");
-      amesos2_params.sublist("ShyLUBasker").set("IsContiguous", false, "Are GIDs Contiguous");
-
-      solver->setParameters( Teuchos::rcpFromRef(amesos2_params) );
-
+      {
+        // Create a Teuchos::ParameterList to hold solver parameters
+        Teuchos::ParameterList amesos2_paramlist;
+        amesos2_paramlist.setName("Amesos2");
+        Teuchos::ParameterList & shylubasker_paramlist = amesos2_paramlist.sublist("ShyLUBasker");
+        shylubasker_paramlist.set("num_threads", 4, "Number of threads");
+        shylubasker_paramlist.set("IsContiguous", false, "Are GIDs Contiguous");
+        solver->setParameters(Teuchos::rcpFromRef(amesos2_paramlist));
+      }
       solver->symbolicFactorization().numericFactorization().solve();
 
 
@@ -621,6 +662,11 @@ namespace {
       Array<Mag> xhatnorms(numVectors), xnorms(numVectors);
       Xhat->norm2(xhatnorms());
       X->norm2(xnorms());
+      if (myRank==0) {
+        for (int i=0; i<xnorms.size(); i++)
+          std::cout << "err[" << i << "]  = " << xnorms[i] << " - " << xhatnorms[i]
+                    << " = " << xnorms[i]-xhatnorms[i] << std::endl;
+      }
       TEST_COMPARE_FLOATING_ARRAYS( xhatnorms, xnorms, 0.005 );
     } // end if numProcs = 2
   }
@@ -636,6 +682,12 @@ namespace {
     //typedef ScalarTraits<Mag> MT;
 
     RCP<const Comm<int> > comm = Tpetra::getDefaultComm();
+    size_t myRank = comm->getRank();
+    if (myRank==0) {
+      std::cout << std::endl
+                << " >> UnitTest for ShyLUBasker::ComplexSolve with Scalar = "
+                << ST::name() << " <<" << std::endl << std::endl;
+    }
 
     RCP<MAT> A =
       Tpetra::MatrixMarket::Reader<MAT>::readSparseFile("../matrices/amesos2_test_mat4.mtx",comm);
@@ -682,6 +734,13 @@ namespace {
 
     // Create solver interface to ShyLUBasker through Amesos2 factory method
     RCP<Amesos2::Solver<MAT,MV> > solver = Amesos2::create<MAT,MV>("ShyLUBasker",A,Xhat,B);
+    {
+      Teuchos::ParameterList amesos2_paramlist;
+      amesos2_paramlist.setName("Amesos2");
+      Teuchos::ParameterList & shylubasker_paramlist = amesos2_paramlist.sublist("ShyLUBasker");
+      shylubasker_paramlist.set("num_threads", 4, "Number of threads");
+      solver->setParameters(Teuchos::rcpFromRef(amesos2_paramlist));
+    }
 
     solver->symbolicFactorization().numericFactorization().solve();
 
@@ -692,6 +751,11 @@ namespace {
     Array<Mag> xhatnorms(1), xnorms(1);
     Xhat->norm2(xhatnorms());
     X->norm2(xnorms());
+    if (myRank==0) {
+      for (int i=0; i<xnorms.size(); i++)
+        std::cout << "err[" << i << "]  = " << xnorms[i] << " - " << xhatnorms[i]
+                  << " = " << xnorms[i]-xhatnorms[i] << std::endl;
+    }
     TEST_COMPARE_FLOATING_ARRAYS( xhatnorms, xnorms, 0.005 );
   }
 
@@ -706,6 +770,12 @@ namespace {
     const size_t numVecs = 7;
 
     RCP<const Comm<int> > comm = Tpetra::getDefaultComm();
+    size_t myRank = comm->getRank();
+    if (myRank==0) {
+      std::cout << std::endl
+                << " >> UnitTest for ShyLUBasker::ComplexSolve2 with Scalar = "
+                << ST::name() << " <<" << std::endl << std::endl;
+    }
 
     RCP<MAT> A =
       Tpetra::MatrixMarket::Reader<MAT>::readSparseFile("../matrices/amesos2_test_mat2.mtx",comm);
@@ -728,6 +798,13 @@ namespace {
     // Solve A*Xhat = B for Xhat using the ShyLUBasker solver
     RCP<Amesos2::Solver<MAT,MV> > solver
       = Amesos2::create<MAT,MV>("ShyLUBasker", A, Xhat, B);
+    {
+      Teuchos::ParameterList amesos2_paramlist;
+      amesos2_paramlist.setName("Amesos2");
+      Teuchos::ParameterList & shylubasker_paramlist = amesos2_paramlist.sublist("ShyLUBasker");
+      shylubasker_paramlist.set("num_threads", 4, "Number of threads");
+      solver->setParameters(Teuchos::rcpFromRef(amesos2_paramlist));
+    }
 
     solver->symbolicFactorization().numericFactorization().solve();
 
@@ -738,6 +815,11 @@ namespace {
     Array<Mag> xhatnorms(numVecs), xnorms(numVecs);
     Xhat->norm2(xhatnorms());
     X->norm2(xnorms());
+    if (myRank==0) {
+      for (int i=0; i<xnorms.size(); i++)
+        std::cout << "err[" << i << "]  = " << xnorms[i] << " - " << xhatnorms[i]
+                  << " = " <<xnorms[i]-xhatnorms[i] << std::endl;
+    }
     TEST_COMPARE_FLOATING_ARRAYS( xhatnorms, xnorms, 0.005 );
   }
 
@@ -752,6 +834,12 @@ namespace {
     const size_t numVecs = 7;
 
     RCP<const Comm<int> > comm = Tpetra::getDefaultComm();
+    size_t myRank = comm->getRank();
+    if (myRank==0) {
+      std::cout << std::endl
+                << " >> UnitTest for ShyLUBasker::ComplexSolve2Trans with Scalar = "
+                << ST::name() << " <<" << std::endl << std::endl;
+    }
 
     RCP<MAT> A =
       Tpetra::MatrixMarket::Reader<MAT>::readSparseFile("../matrices/amesos2_test_mat3.mtx",comm);
@@ -774,11 +862,14 @@ namespace {
     // Solve A*Xhat = B for Xhat using the ShyLUBasker solver
     RCP<Amesos2::Solver<MAT,MV> > solver
       = Amesos2::create<MAT,MV>("ShyLUBasker", A, Xhat, B);
-
-    Teuchos::ParameterList amesos2_params("Amesos2");
-    amesos2_params.sublist("ShyLUBasker").set("Trans","CONJ","Solve with conjugate-transpose");
-
-    solver->setParameters( rcpFromRef(amesos2_params) );
+    {
+      Teuchos::ParameterList amesos2_paramlist;
+      amesos2_paramlist.setName("Amesos2");
+      Teuchos::ParameterList & shylubasker_paramlist = amesos2_paramlist.sublist("ShyLUBasker");
+      shylubasker_paramlist.set("num_threads", 4, "Number of threads");
+      shylubasker_paramlist.set("transpose",true,"Solve with conjugate-transpose");
+      solver->setParameters(Teuchos::rcpFromRef(amesos2_paramlist));
+    }
     solver->symbolicFactorization().numericFactorization().solve();
 
     Xhat->describe(out, Teuchos::VERB_EXTREME);
@@ -788,6 +879,11 @@ namespace {
     Array<Mag> xhatnorms(numVecs), xnorms(numVecs);
     Xhat->norm2(xhatnorms());
     X->norm2(xnorms());
+    if (myRank==0) {
+      for (int i=0; i<xnorms.size(); i++)
+        std::cout << "err[" << i << "]  = " << xnorms[i] << " - " << xhatnorms[i]
+                  << " = " << xnorms[i]-xhatnorms[i] << std::endl;
+    }
     TEST_COMPARE_FLOATING_ARRAYS( xhatnorms, xnorms, 0.005 );
   }
 
@@ -795,9 +891,23 @@ namespace {
   /*
    * Instantiations
    */
+#ifdef HAVE_TPETRA_INST_COMPLEX_FLOAT
+#  define UNIT_TEST_GROUP_ORDINAL_COMPLEX_FLOAT(LO, GO) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_3_INSTANT( ShyLUBasker, ComplexSolve,       float, LO, GO ) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_3_INSTANT( ShyLUBasker, ComplexSolve2,      float, LO, GO ) \
+  /*TEUCHOS_UNIT_TEST_TEMPLATE_3_INSTANT( ShyLUBasker, ComplexSolve2Trans, float, LO, GO ) */
+#else
 #  define UNIT_TEST_GROUP_ORDINAL_COMPLEX_FLOAT(LO, GO)
+#endif
+
+#ifdef HAVE_TPETRA_INST_COMPLEX_DOUBLE
+#  define UNIT_TEST_GROUP_ORDINAL_COMPLEX_DOUBLE(LO, GO) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_3_INSTANT( ShyLUBasker, ComplexSolve,       double, LO, GO ) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_3_INSTANT( ShyLUBasker, ComplexSolve2,      double, LO, GO ) \
+  /*TEUCHOS_UNIT_TEST_TEMPLATE_3_INSTANT( ShyLUBasker, ComplexSolve2Trans, double, LO, GO ) */
+#else
 #  define UNIT_TEST_GROUP_ORDINAL_COMPLEX_DOUBLE(LO, GO)
-  //#endif
+#endif
 
 #ifdef HAVE_TPETRA_INST_FLOAT
 #  define UNIT_TEST_GROUP_ORDINAL_FLOAT( LO, GO )       \
@@ -818,11 +928,12 @@ namespace {
   TEUCHOS_UNIT_TEST_TEMPLATE_3_INSTANT( ShyLUBasker, SolveTrans, SCALAR, LO, GO )
 
 #define UNIT_TEST_GROUP_ORDINAL_ORDINAL( LO, GO )     \
-  UNIT_TEST_GROUP_ORDINAL_FLOAT(LO, GO)                 \
-  UNIT_TEST_GROUP_ORDINAL_DOUBLE(LO, GO)                \
-  UNIT_TEST_GROUP_ORDINAL_COMPLEX_DOUBLE(LO,GO)
+  UNIT_TEST_GROUP_ORDINAL_FLOAT(LO, GO)               \
+  UNIT_TEST_GROUP_ORDINAL_DOUBLE(LO, GO)              \
+  UNIT_TEST_GROUP_ORDINAL_COMPLEX_DOUBLE(LO,GO)       \
+  UNIT_TEST_GROUP_ORDINAL_COMPLEX_FLOAT(LO,GO)
 
-#define UNIT_TEST_GROUP_ORDINAL( ORDINAL )              \
+#define UNIT_TEST_GROUP_ORDINAL( ORDINAL )            \
   UNIT_TEST_GROUP_ORDINAL_ORDINAL( ORDINAL, ORDINAL )
 
   //Add JDB (10-19-215)

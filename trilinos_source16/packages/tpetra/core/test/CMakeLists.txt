@@ -18,10 +18,12 @@ ADD_SUBDIRECTORIES(
   FECrsGraph
   FECrsMatrix
   FEMultiVector
+  Filter
   HashTable
   ImportExport
   ImportExport2
   inout
+  LinearProblem
   Map
   MatrixMatrix
   Merge
@@ -35,6 +37,9 @@ ADD_SUBDIRECTORIES(
   Utils
   RowMatrixTransposer
   Tsqr
+  ReindexTransform
+  SolverMapTransform
+  SingletonFiltering
   )
 
 IF (Tpetra_ENABLE_DEPRECATED_CODE AND ${PACKAGE_NAME}_ENABLE_Epetra)

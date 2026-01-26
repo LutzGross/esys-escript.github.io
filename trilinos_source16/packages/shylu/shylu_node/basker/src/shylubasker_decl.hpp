@@ -1,3 +1,12 @@
+// @HEADER
+// *****************************************************************************
+//               ShyLU: Scalable Hybrid LU Preconditioner and Solver
+//
+// Copyright 2011 NTESS and the ShyLU contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
+// @HEADER
+
 #ifndef SHYLUBASKER_DECL_HPP
 #define SHYLUBASKER_DECL_HPP
 
@@ -28,9 +37,12 @@ namespace BaskerNS
   class Basker
   {
   public:
+    static_assert(std::is_same_v<Exe_Space, Kokkos::DefaultHostExecutionSpace>,
+                  "ShyLU-Basker: invalid device execution space provided as template parameter - only the host backend is supported");
 
     #ifdef BASKER_KOKKOS
     typedef Kokkos::TeamPolicy<Exe_Space>    TeamPolicy;
+    typedef Kokkos::RangePolicy<Exe_Space>   RangePolicy;
     typedef typename TeamPolicy::member_type TeamMember;
     #endif
 
@@ -47,7 +59,7 @@ namespace BaskerNS
     ~Basker();
 
     BASKER_INLINE
-    int InitMatrix(string filename);
+    int InitMatrix(std::string filename);
 
     BASKER_INLINE
     int InitMatrix(Int nrow, Int ncol, Int nnz, Int *col_ptr, Int *row_idx, Entry *val);
@@ -126,7 +138,7 @@ namespace BaskerNS
 
  
     BASKER_INLINE
-    int t_nfactor_blk(Int kid);
+    int t_nfactor_blk(const TeamMember &thread);
 
     BASKER_INLINE
     int t_nfactor_blk_inc_lvl(Int kid);
@@ -455,7 +467,7 @@ namespace BaskerNS
     int sfactor_copy();
 
     BASKER_INLINE
-    int sfactor_copy2(bool alloc_BTFA = false, bool copy_BTFA = true);
+    int sfactor_copy2(bool doSymbolic = true, bool alloc_BTFA = false, bool copy_BTFA = true);
 
 
     //old
@@ -517,25 +529,6 @@ namespace BaskerNS
      INT_1DARRAY gcol,
      INT_1DARRAY grow, 
      Int off_diag
-    );
-
-    BASKER_INLINE
-    void L_blk_sfactor
-    (
-     BASKER_MATRIX &MV,
-     BASKER_SYMBOLIC_TREE &ST, 
-     INT_1DARRAY gcol, 
-     INT_1DARRAY grow
-    );
-
-    //old
-    BASKER_INLINE
-    void L_blk_sfactor
-    (
-     BASKER_MATRIX_VIEW &MV,
-     BASKER_SYMBOLIC_TREE &ST, 
-     INT_1DARRAY gcol, 
-     INT_1DARRAY grow
     );
 
     BASKER_INLINE
@@ -868,7 +861,7 @@ namespace BaskerNS
     int t_back_solve_offdiag(Int kid,
                              Int blkcol, Int blkrow,
                              Int X_col, Int X_row,
-                             Int k, Int &view_offset,
+                             Int k,
                              ENTRY_1DARRAY x,
                              INT_1DARRAY x_indx,
                              Int x_size, Int x_offset,
@@ -1067,7 +1060,7 @@ namespace BaskerNS
     BASKER_INLINE
     int t_blk_nfactor(Int kid, Int c);
 
-    BASKER_FINLINE
+    BASKER_INLINE
     void t_local_reach_short_btf(const Int, const Int, Int &);
 
     BASKER_INLINE
@@ -1151,8 +1144,6 @@ namespace BaskerNS
     void printMTX(std::string fname, BASKER_MATRIX &M);
     void printMTX(std::string fname, BASKER_MATRIX &M, BASKER_BOOL  off);
     void readMTX(std::string fname, BASKER_MATRIX &M);
-    int printRHS();
-    int printSOL();
     void printTree();
 
     BASKER_INLINE
@@ -1237,7 +1228,13 @@ namespace BaskerNS
     int serial_forward_solve(ENTRY_1DARRAY &, ENTRY_1DARRAY &);
 
     BASKER_INLINE
+    int parallel_forward_solve(ENTRY_1DARRAY &, ENTRY_1DARRAY &);
+
+    BASKER_INLINE
     int serial_backward_solve(ENTRY_1DARRAY &, ENTRY_1DARRAY &);
+
+    BASKER_INLINE
+    int parallel_backward_solve(ENTRY_1DARRAY &, ENTRY_1DARRAY &);
 
     BASKER_INLINE
     int serial_btf_solve(ENTRY_1DARRAY &, ENTRY_1DARRAY &);
@@ -1326,7 +1323,8 @@ namespace BaskerNS
                  ENTRY_1DARRAY &y,
                  bool full = true);
 
-
+    BASKER_INLINE
+    int compute_post2downtop_map(INT_1DARRAY & post2downtop);
 
     //basker_stats.hpp
     BASKER_INLINE
@@ -1485,13 +1483,6 @@ namespace BaskerNS
 
     //end NDE
 
-
-    //RHS and solutions (These are not used anymore)
-    ENTRY_2DARRAY rhs;
-    ENTRY_2DARRAY sol;
-    Int nrhs;
-
-    
     BASKER_TREE   part_tree;
     BASKER_TREE   tree;
     BASKER_SYMBOLIC_TREE stree;

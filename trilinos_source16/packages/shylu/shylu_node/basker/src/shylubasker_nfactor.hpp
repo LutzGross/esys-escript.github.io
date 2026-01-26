@@ -1,3 +1,12 @@
+// @HEADER
+// *****************************************************************************
+//               ShyLU: Scalable Hybrid LU Preconditioner and Solver
+//
+// Copyright 2011 NTESS and the ShyLU contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
+// @HEADER
+
 #ifndef SHYLUBASKER_NFACTOR_HPP
 #define SHYLUBASKER_NFACTOR_HPP
 
@@ -89,7 +98,6 @@ namespace BaskerNS
 #ifdef BASKER_KOKKOS
     Kokkos::Timer timer;
 
-    typedef Kokkos::TeamPolicy<Exe_Space>        TeamPolicy;
     // --------------------------------------------------------------- //
     // ----------------------- Big A block --------------------------- //
     if(btf_tabs_offset != 0)
@@ -98,9 +106,10 @@ namespace BaskerNS
 
       // -------------------------------------------------------- //
       // -----------------------Domain--------------------------- //
+      Int nworker_threads = (Options.worker_threads ? 2 : 1);
       if(Options.verbose == BASKER_TRUE)
       {
-        printf("Factoring Dom num_threads: %ld \n", (long)num_threads);
+        printf("Factoring Dom num_threads: %ld with %ld worker threads\n", (long)num_threads,(long)nworker_threads);
         //for (int tid = 0; tid < num_threads; tid ++) {
         //  printf( " error[%d] = %d\n",tid,thread_array(tid).error_type );
         //}
@@ -111,7 +120,7 @@ namespace BaskerNS
       Int domain_restart = 0;
       kokkos_nfactor_domain <Int,Entry,Exe_Space>
         domain_nfactor(this);
-      Kokkos::parallel_for(TeamPolicy(num_threads,1), 
+      Kokkos::parallel_for(TeamPolicy(num_threads,nworker_threads),
           domain_nfactor);
       Kokkos::fence();
 
@@ -162,13 +171,9 @@ namespace BaskerNS
       }//end while
       if(Options.verbose == BASKER_TRUE)
       {
-        printf("Time DOMAIN: %lf \n", timer.seconds());
+        printf("Time DOMAIN: %lf \n\n", timer.seconds());
         timer.reset();
       }
-      #ifdef BASKER_TIMER
-      printf("Time DOMAIN: %lf \n", timer.seconds());
-      timer.reset();
-      #endif
 
 #else// else basker_kokkos
       #pragma omp parallel
@@ -273,13 +278,9 @@ namespace BaskerNS
       //printf( " End Sep: info = %d (%d, %d)\n",info,BASKER_SUCCESS,BASKER_ERROR );
       if(Options.verbose == BASKER_TRUE)
       {
-        printf("Time SEP: %lf \n", timer.seconds());
+        printf("Time SEP: %lf \n\n", timer.seconds());
         timer.reset();
       }
-      #ifdef BASKER_TIMER
-      printf("Time SEP: %lf \n", timer.seconds());
-      timer.reset();
-      #endif
     }
 
     // ---------------------------------------------------------------------------------------- //
@@ -354,11 +355,8 @@ namespace BaskerNS
 
       if(Options.verbose == BASKER_TRUE)
       {
-        printf("Time BTF: %lf \n", timer.seconds());
+        printf("Time BTF: %lf \n\n", timer.seconds());
       }
-      #ifdef BASKER_TIMER
-      printf("Time BTF: %lf \n", timer.seconds());
-      #endif
     }//end btf call
 
     Kokkos::Timer tzback;

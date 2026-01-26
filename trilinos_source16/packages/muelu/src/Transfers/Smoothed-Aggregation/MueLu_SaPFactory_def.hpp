@@ -10,11 +10,14 @@
 #ifndef MUELU_SAPFACTORY_DEF_HPP
 #define MUELU_SAPFACTORY_DEF_HPP
 
+#if KOKKOS_VERSION >= 40799
+#include "KokkosKernels_ArithTraits.hpp"
+#else
 #include "Kokkos_ArithTraits.hpp"
+#endif
 #include "MueLu_SaPFactory_decl.hpp"
 
 #include <Xpetra_Matrix.hpp>
-#include <Xpetra_IteratorOps.hpp>
 
 #include "MueLu_FactoryManagerBase.hpp"
 #include "MueLu_Level.hpp"
@@ -22,11 +25,18 @@
 #include "MueLu_Monitor.hpp"
 #include "MueLu_PerfUtils.hpp"
 #include "MueLu_TentativePFactory.hpp"
+#include "MueLu_IteratorOps.hpp"
 #include "MueLu_Utilities.hpp"
 
 #include <sstream>
 
 namespace MueLu {
+
+template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
+SaPFactory<Scalar, LocalOrdinal, GlobalOrdinal, Node>::SaPFactory() = default;
+
+template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
+SaPFactory<Scalar, LocalOrdinal, GlobalOrdinal, Node>::~SaPFactory() = default;
 
 template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
 RCP<const ParameterList> SaPFactory<Scalar, LocalOrdinal, GlobalOrdinal, Node>::GetValidParameterList() const {
@@ -200,9 +210,9 @@ void SaPFactory<Scalar, LocalOrdinal, GlobalOrdinal, Node>::BuildP(Level& fineLe
       TEUCHOS_TEST_FOR_EXCEPTION(!std::isfinite(Teuchos::ScalarTraits<SC>::magnitude(omega)), Exceptions::RuntimeError, "Prolongator damping factor needs to be finite.");
 
       {
-        SubFactoryMonitor m3(*this, "Xpetra::IteratorOps::Jacobi", coarseLevel);
+        SubFactoryMonitor m3(*this, "MueLu::IteratorOps::Jacobi", coarseLevel);
         // finalP = Ptent + (I - \omega D^{-1}A) Ptent
-        finalP = Xpetra::IteratorOps<Scalar, LocalOrdinal, GlobalOrdinal, Node>::Jacobi(omega, *invDiag, *A, *Ptent, finalP, GetOStream(Statistics2), std::string("MueLu::SaP-") + toString(coarseLevel.GetLevelID()), APparams);
+        finalP = MueLu::IteratorOps<SC, LO, GO, NO>::Jacobi(omega, *invDiag, *A, *Ptent, finalP, GetOStream(Statistics2), std::string("MueLu::SaP-") + toString(coarseLevel.GetLevelID()), APparams);
         if (enforceConstraints) {
           if (!pL.get<bool>("use kokkos refactor")) {
             if (A->GetFixedBlockSize() == 1)
@@ -686,11 +696,15 @@ bool SaPFactory<Scalar, LocalOrdinal, GlobalOrdinal, Node>::constrainRow(Scalar*
 
 template <typename local_matrix_type>
 struct constraintKernel {
-  using Scalar      = typename local_matrix_type::non_const_value_type;
-  using SC          = Scalar;
-  using LO          = typename local_matrix_type::non_const_ordinal_type;
-  using Device      = typename local_matrix_type::device_type;
-  using KAT         = Kokkos::ArithTraits<SC>;
+  using Scalar = typename local_matrix_type::non_const_value_type;
+  using SC     = Scalar;
+  using LO     = typename local_matrix_type::non_const_ordinal_type;
+  using Device = typename local_matrix_type::device_type;
+#if KOKKOS_VERSION >= 40799
+  using KAT = KokkosKernels::ArithTraits<SC>;
+#else
+  using KAT = Kokkos::ArithTraits<SC>;
+#endif
   const Scalar zero = KAT::zero();
   const Scalar one  = KAT::one();
   LO nPDEs;
@@ -770,11 +784,15 @@ struct constraintKernel {
 
 template <typename local_matrix_type>
 struct optimalSatisfyConstraintsForScalarPDEsKernel {
-  using Scalar      = typename local_matrix_type::non_const_value_type;
-  using SC          = Scalar;
-  using LO          = typename local_matrix_type::non_const_ordinal_type;
-  using Device      = typename local_matrix_type::device_type;
-  using KAT         = Kokkos::ArithTraits<SC>;
+  using Scalar = typename local_matrix_type::non_const_value_type;
+  using SC     = Scalar;
+  using LO     = typename local_matrix_type::non_const_ordinal_type;
+  using Device = typename local_matrix_type::device_type;
+#if KOKKOS_VERSION >= 40799
+  using KAT = KokkosKernels::ArithTraits<SC>;
+#else
+  using KAT = Kokkos::ArithTraits<SC>;
+#endif
   const Scalar zero = KAT::zero();
   const Scalar one  = KAT::one();
   LO nPDEs;
@@ -976,10 +994,10 @@ struct optimalSatisfyConstraintsForScalarPDEsKernel {
 
 template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
 void SaPFactory<Scalar, LocalOrdinal, GlobalOrdinal, Node>::SatisfyPConstraints(const RCP<Matrix> A, RCP<Matrix>& P) const {
-  using Device = typename Matrix::local_matrix_type::device_type;
+  using Device = typename Matrix::local_matrix_device_type::device_type;
   LO nPDEs     = A->GetFixedBlockSize();
 
-  using local_mat_type = typename Matrix::local_matrix_type;
+  using local_mat_type = typename Matrix::local_matrix_device_type;
   constraintKernel<local_mat_type> myKernel(nPDEs, P->getLocalMatrixDevice());
   Kokkos::parallel_for("enforce constraint", Kokkos::RangePolicy<typename Device::execution_space>(0, P->getRowMap()->getLocalNumElements()),
                        myKernel);
@@ -988,10 +1006,10 @@ void SaPFactory<Scalar, LocalOrdinal, GlobalOrdinal, Node>::SatisfyPConstraints(
 
 template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
 void SaPFactory<Scalar, LocalOrdinal, GlobalOrdinal, Node>::optimalSatisfyPConstraintsForScalarPDEs(RCP<Matrix>& P) const {
-  using Device = typename Matrix::local_matrix_type::device_type;
+  using Device = typename Matrix::local_matrix_device_type::device_type;
   LO nPDEs     = 1;  // A->GetFixedBlockSize();
 
-  using local_mat_type = typename Matrix::local_matrix_type;
+  using local_mat_type = typename Matrix::local_matrix_device_type;
   optimalSatisfyConstraintsForScalarPDEsKernel<local_mat_type> myKernel(nPDEs, P->getLocalMaxNumRowEntries(), P->getLocalMatrixDevice());
   Kokkos::parallel_for("enforce constraint", Kokkos::RangePolicy<typename Device::execution_space>(0, P->getLocalNumRows()),
                        myKernel);

@@ -44,6 +44,14 @@
 #ifndef EPETRA_BASICROWMATRIX_H
 #define EPETRA_BASICROWMATRIX_H
 
+#if defined(Epetra_SHOW_DEPRECATED_WARNINGS)
+#ifdef __GNUC__
+#warning "The Epetra package is deprecated"
+#endif
+#endif
+
+
+
 #include "Epetra_ConfigDefs.h"
 #include "Epetra_RowMatrix.h"
 #include "Epetra_Object.h"
@@ -315,7 +323,7 @@ class EPETRA_LIB_DLL_EXPORT Epetra_BasicRowMatrix: public Epetra_CompObject, pub
     /*! @brief Returns the infinity norm of the global matrix.
 
        Returns the quantity \f$ \| A \|_\infty\f$ such that
-       \f[\| A \|_\infty = \max_{1\lei\lem} \sum_{j=1}^n |a_{ij}| \f].
+       \f[\| A \|_\infty = \max_{1\leq i\leq m} \sum_{j=1}^n |a_{ij}| \f].
 
      @warning This method is supported if and only if the Epetra_RowMatrix Object that was used to create this supports this method.
 
@@ -325,7 +333,7 @@ class EPETRA_LIB_DLL_EXPORT Epetra_BasicRowMatrix: public Epetra_CompObject, pub
     /*! @brief Returns the one norm of the global matrix.
 
        Returns the quantity \f$ \| A \|_1\f$ such that
-       \f[\| A \|_1= \max_{1\lej\len} \sum_{i=1}^m |a_{ij}| \f].
+       \f[\| A \|_1= \max_{1\leq j\leq n} \sum_{i=1}^m |a_{ij}| \f].
 
      @warning This method is supported if and only if the Epetra_RowMatrix Object that was used to create this supports this method.
 
@@ -563,10 +571,3 @@ class EPETRA_LIB_DLL_EXPORT Epetra_BasicRowMatrix: public Epetra_CompObject, pub
 
 };
 #endif /* EPETRA_BASICROWMATRIX_H */
-
-#if defined(Epetra_SHOW_DEPRECATED_WARNINGS)
-#ifdef __GNUC__
-#warning "The Epetra package is deprecated"
-#endif
-#endif
-

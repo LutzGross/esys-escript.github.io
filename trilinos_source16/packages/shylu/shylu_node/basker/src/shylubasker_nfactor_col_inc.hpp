@@ -1,3 +1,12 @@
+// @HEADER
+// *****************************************************************************
+//               ShyLU: Scalable Hybrid LU Preconditioner and Solver
+//
+// Copyright 2011 NTESS and the ShyLU contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
+// @HEADER
+
 #ifndef SHYLUBASKER_NFACTOR_COL_INC_HPP
 #define SHYLUBASKER_NFACTOR_COL_INC_HPP
 
@@ -645,7 +654,7 @@ namespace BaskerNS
     //end get needed variables//
 
     //BASKER_MATRIX        &L = LL(L_col)(L_row); //NDE - warning: unused L
-    BASKER_MATRIX        &U = LU(U_col)(U_row); 
+    BASKER_MATRIX        &U = LU(U_col)(U_row);
     
     //Ask C++ guru if this is ok
     BASKER_MATRIX        *Bp;
@@ -655,7 +664,7 @@ namespace BaskerNS
       }
     else
       {
-	Bp = &(thread_array[kid].C);
+	Bp = &(thread_array(kid).C);
       }
     BASKER_MATRIX    &B = *Bp;
     //if(kid ==0)
@@ -894,9 +903,9 @@ namespace BaskerNS
        {
 	 
 	 if(Options.verbose == BASKER_TRUE)
-	   {
+	 {
 //	 printf("kid: %ld col: %ld need to realloc, unnz: %ld ucnt: %ld uunnz: %ld U_col: %ld U_row: %ld \n", kid, k, unnz, ucnt, uunnz, U_col, U_row);
-   std::cout << "kid: "  << kid
+         std::cout << "kid: "  << kid
              << " col: " << k
              << " need to realloc, unnz: " << unnz
              << " ucnt: " << ucnt
@@ -2165,9 +2174,9 @@ namespace BaskerNS
    //if((maxindex == L.max_idx) || (pivot == 0)
    if((maxindex == BASKER_MAX_IDX) || (pivot == (Entry)(0)) )
      {
-       cout << "Error: Matrix is singular, col, lvl: " << l <<endl;
-       cout << "MaxIndex: " << maxindex << " pivot " 
-	    << pivot << endl;
+       std::cout << "Error: Matrix is singular, col, lvl: " << l << std::endl;
+       std::cout << "MaxIndex: " << maxindex << " pivot " 
+	    << pivot << std::endl;
        return 2;
      }          
   
@@ -2185,9 +2194,9 @@ namespace BaskerNS
      
        if(Options.verbose == BASKER_TRUE)
 	 {
-       cout << "Lower Col Reallocing L oldsize: " 
+           std::cout << "Lower Col Reallocing L oldsize: " 
 	    << llnnz 
-	    << " newsize: " << newsize << endl;
+	    << " newsize: " << newsize << std::endl;
 	 }
       
        if(Options.realloc == BASKER_FALSE)
@@ -2213,9 +2222,9 @@ namespace BaskerNS
 
        if(Options.verbose == BASKER_TRUE)
 	 {
-       cout << "Lower Col Reallocing U oldsize: " 
+           std::cout << "Lower Col Reallocing U oldsize: " 
 	    << uunnz 
-	    << " newsize " << newsize << endl;
+	    << " newsize " << newsize << std::endl;
 	 }
 
        if(Options.realloc == BASKER_FALSE)
@@ -2462,7 +2471,7 @@ namespace BaskerNS
     Int col_idx_offset    = 0;  //can get rid of?
    
     //BASKER_MATRIX        &L = LL(L_col)(L_row); //NDE - warning: unused L
-    BASKER_MATRIX        &U = LU(U_col)(U_row); 
+    BASKER_MATRIX        &U = LU(U_col)(U_row);
     
     INT_1DARRAY     ws = LL(X_col)(X_row).iws;
     //const Int  ws_size = LL(X_col)(X_row).iws_size;
@@ -2583,7 +2592,7 @@ namespace BaskerNS
     //Int col_idx_offset    = 0;  //can get rid of?//NDE - warning: unused 
    
     //BASKER_MATRIX        &L = LL(L_col)(L_row); //NDE - warning: unused
-    BASKER_MATRIX        &U = LU(U_col)(U_row); 
+    BASKER_MATRIX        &U = LU(U_col)(U_row);
     
     INT_1DARRAY     ws = LL(X_col)(X_row).iws;
     //const Int  ws_size = LL(X_col)(X_row).iws_size; 

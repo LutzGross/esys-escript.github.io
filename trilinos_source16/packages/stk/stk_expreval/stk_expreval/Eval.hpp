@@ -57,6 +57,13 @@ class Eval
 public:
   typedef std::set<std::string> UndefinedFunctionSet;
 
+  enum class FPErrorBehavior {
+    Ignore,
+    Warn,
+    WarnOnce,
+    Error
+  };
+
   Eval(VariableMap::Resolver &resolver = VariableMap::getDefaultResolver(),
        const std::string &expr = "",
        const Variable::ArrayOffset arrayOffsetType = Variable::ZERO_BASED_INDEX);
@@ -112,6 +119,14 @@ public:
   int get_num_variables() const { return m_variableMap.size(); }
 
   UndefinedFunctionSet &getUndefinedFunctionSet() { return m_undefinedFunctionSet; }
+
+  void set_fp_error_behavior(FPErrorBehavior flag);
+
+  FPErrorBehavior get_fp_error_behavior() const { return m_fpErrorBehavior; }
+  
+  void set_fp_warning_issued() { m_fpWarningIssued = true; }
+  
+  bool get_fp_warning_issued() const { return m_fpWarningIssued; }
 
   bool getSyntaxStatus() const { return m_syntaxStatus; }
 
@@ -186,6 +201,8 @@ public:
   double& get_result_buffer_value(const int idx) { return m_resultBuffer[idx];}
 
 private:
+  void print_expression_if_fp_warning(bool fpWarningPreviouslyIssued) const;
+  
   friend void check_node_order(const std::string & expression);
   friend void check_evaluation_node_order(const std::string & expression);
 
@@ -198,6 +215,8 @@ private:
   std::string m_expression;
   bool m_syntaxStatus;
   bool m_parseStatus;
+  FPErrorBehavior m_fpErrorBehavior;
+  mutable bool m_fpWarningIssued;
 
   Node* m_headNode;
   std::vector<std::shared_ptr<Node>> m_nodes;
@@ -207,6 +226,8 @@ private:
 
   ParsedEvalBase * m_parsedEval;
 };
+
+Eval::FPErrorBehavior fp_error_behavior_string_to_enum(const std::string& str);
 
 }
 }

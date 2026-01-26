@@ -5,6 +5,12 @@
 #include "stk_util/ngp/NgpSpaces.hpp"
 #include "NgpTestDeviceMacros.hpp"
 
+// RDC is required for HIP build since registering a static global variable
+// on an inline variable is not functional as of rocm 6.2.7
+#if defined(KOKKOS_ENABLE_HIP) && !defined(KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE)
+#error "Kokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE is required for HIP build"
+#endif
+
 namespace ngp_testing {
 
 template <typename DeviceType>
@@ -16,7 +22,7 @@ using HostReporter = Reporter<Kokkos::DefaultHostExecutionSpace::device_type>;
 void initialize_reporters();
 void finalize_reporters();
 
-NGP_TEST_FUNCTION HostReporter*  get_host_reporter();
+inline HostReporter*  get_host_reporter();
 NGP_TEST_FUNCTION DeviceReporter* get_device_reporter();
 DeviceReporter* get_device_reporter_on_host();
 

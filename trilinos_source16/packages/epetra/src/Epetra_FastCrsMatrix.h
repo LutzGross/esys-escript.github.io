@@ -44,6 +44,14 @@
 #ifndef EPETRA_FASTCRSMATRIX_H
 #define EPETRA_FASTCRSMATRIX_H
 
+#if defined(Epetra_SHOW_DEPRECATED_WARNINGS)
+#ifdef __GNUC__
+#warning "The Epetra package is deprecated"
+#endif
+#endif
+
+
+
 #include "Epetra_Operator.h"
 #include "Epetra_CrsMatrix.h"
 class Epetra_Vector;
@@ -98,7 +106,7 @@ class Epetra_FastCrsOperator: public Epetra_CompObject, public virtual Epetra_Op
 
   //! Returns the infinity norm of the global matrix.
   /* Returns the quantity \f$ \| A \|_\infty\f$ such that
-     \f[\| A \|_\infty = \max_{1\lei\lem} \sum_{j=1}^n |a_{ij}| \f].
+     \f[\| A \|_\infty = \max_{1\leq i\leq m} \sum_{j=1}^n |a_{ij}| \f].
   */
   double NormInf() const {return(CrsMatrix_.NormInf());};
 
@@ -159,10 +167,3 @@ class Epetra_FastCrsOperator: public Epetra_CompObject, public virtual Epetra_Op
 
 };
 #endif /* EPETRA_FASTCRSMATRIX_H */
-
-#if defined(Epetra_SHOW_DEPRECATED_WARNINGS)
-#ifdef __GNUC__
-#warning "The Epetra package is deprecated"
-#endif
-#endif
-

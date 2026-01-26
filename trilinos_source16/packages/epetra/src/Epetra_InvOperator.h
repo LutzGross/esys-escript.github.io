@@ -44,6 +44,14 @@
 #ifndef EPETRA_INVOPERATOR_H
 #define EPETRA_INVOPERATOR_H
 
+#if defined(Epetra_SHOW_DEPRECATED_WARNINGS)
+#ifdef __GNUC__
+#warning "The Epetra package is deprecated"
+#endif
+#endif
+
+
+
 class Epetra_MultiVector;
 class Epetra_BlockMap;
 class Epetra_Comm;
@@ -118,7 +126,7 @@ class Epetra_InvOperator: public virtual Epetra_Operator {
 
   //! Returns the infinity norm of the global matrix.
   /* Returns the quantity \f$ \| A \|_\infty\f$ such that
-     \f[\| A \|_\infty = \max_{1\lei\lem} \sum_{j=1}^n |a_{ij}| \f].
+     \f[\| A \|_\infty = \max_{1\leq i\leq m} \sum_{j=1}^n |a_{ij}| \f].
 
      \warning This method must not be called unless HasNormInf() returns true.
   */
@@ -165,11 +173,3 @@ class Epetra_InvOperator: public virtual Epetra_Operator {
 };
 
 #endif /* EPETRA_INVOPERATOR_H */
-
-
-#if defined(Epetra_SHOW_DEPRECATED_WARNINGS)
-#ifdef __GNUC__
-#warning "The Epetra package is deprecated"
-#endif
-#endif
-

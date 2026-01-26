@@ -1,20 +1,12 @@
 // clang-format off
-/* =====================================================================================
-Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
-Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
-certain rights in this software.
-
-SCR#:2790.0
-
-This file is part of Tacho. Tacho is open source software: you can redistribute it
-and/or modify it under the terms of BSD 2-Clause License
-(https://opensource.org/licenses/BSD-2-Clause). A copy of the licese is also
-provided under the main directory
-
-Questions? Kyungjoo Kim at <kyukim@sandia.gov,https://github.com/kyungjoo-kim>
-
-Sandia National Laboratories, Albuquerque, NM, USA
-===================================================================================== */
+// @HEADER
+// *****************************************************************************
+//                            Tacho package
+//
+// Copyright 2022 NTESS and the Tacho contributors.
+// SPDX-License-Identifier: BSD-2-Clause
+// *****************************************************************************
+// @HEADER
 // clang-format on
 #ifndef __TACHO_NUMERIC_TOOLS_LEVELSET_HPP__
 #define __TACHO_NUMERIC_TOOLS_LEVELSET_HPP__
@@ -46,12 +38,15 @@ Sandia National Laboratories, Albuquerque, NM, USA
 #include "Tacho_Scale2x2_BlockInverseDiagonals_OnDevice.hpp"
 
 #include "Tacho_Chol_OnDevice.hpp"
+#include "Tacho_NonPivLDL_OnDevice.hpp"
+#include "Tacho_LDL_OnDevice.hpp"
+#include "Tacho_LU_OnDevice.hpp"
+
 #include "Tacho_GemmTriangular_OnDevice.hpp"
 #include "Tacho_Gemm_OnDevice.hpp"
 #include "Tacho_Gemv_OnDevice.hpp"
 #include "Tacho_Herk_OnDevice.hpp"
-#include "Tacho_LDL_OnDevice.hpp"
-#include "Tacho_LU_OnDevice.hpp"
+#include "Tacho_Trmv_OnDevice.hpp"
 #include "Tacho_Trsm_OnDevice.hpp"
 #include "Tacho_Trsv_OnDevice.hpp"
 
@@ -86,7 +81,16 @@ Sandia National Laboratories, Albuquerque, NM, USA
   #else
     #define TACHO_CUSPARSE_SPMM_ALG CUSPARSE_MM_ALG_DEFAULT
   #endif
+#elif defined(KOKKOS_ENABLE_HIP)
+  #if (ROCM_VERSION >= 60000)
+    #define tacho_rocsparse_spmv rocsparse_spmv
+  #elif (ROCM_VERSION >= 50400)
+    #define tacho_rocsparse_spmv rocsparse_spmv_ex
+  #else
+    #define tacho_rocsparse_spmv rocsparse_spmv
+  #endif
 #endif
+
 
 namespace Tacho {
 
@@ -112,6 +116,8 @@ public:
   using typename base_type::supernode_info_type;
   using typename base_type::supernode_type_array_host;
   using typename base_type::value_type;
+  using typename base_type::mag_type;
+  using typename base_type::int_type_array;
   using typename base_type::value_type_array;
   using typename base_type::value_type_matrix;
 
@@ -137,6 +143,10 @@ private:
   using base_type::stat;
   using base_type::track_alloc;
   using base_type::track_free;
+
+  using rowptr_view = Kokkos::View<int *, device_type>;
+  using colind_view = Kokkos::View<int *, device_type>;
+  using nzvals_view = Kokkos::View<value_type *, device_type>;
 
   // supernode host information for level kernels launching
   supernode_type_array_host _h_supernodes;
@@ -168,12 +178,26 @@ private:
   size_type_array _buf_factor_ptr;
 
   // workspace meta data for solve
+  ordinal_type _nrhs;
   size_type_array_host _h_buf_solve_ptr, _h_buf_solve_nrhs_ptr;
   size_type_array _buf_solve_ptr, _buf_solve_nrhs_ptr;
 
   // workspace
   size_type _bufsize_factorize, _bufsize_solve;
+  size_type _worksize;
   value_type_array _buf;
+  value_type_array _work;
+
+  // for using SpMV
+  rowptr_view rowptrU;
+  colind_view colindU;
+  nzvals_view nzvalsU;
+
+  rowptr_view rowptrL;
+  colind_view colindL;
+  nzvals_view nzvalsL;
+
+  nzvals_view nzvalsD;
 
   // common for host and cuda
   int _status;
@@ -182,6 +206,7 @@ private:
   int _nstreams;
 
   // workspace for SpMV
+  bool _is_spmv_extracted;
   value_type_matrix _w_vec;
   value_type_array  buffer_U;
   value_type_array  buffer_L;
@@ -191,8 +216,10 @@ private:
   cusolverDnHandle_t _handle_lapack;
   #if defined(TACHO_HAVE_CUSPARSE)
   // workspace for SpMV
-  cusparseDnMatDescr_t matT, matW;
-  cusparseDnVecDescr_t vecT, vecW;
+  // (separte for U and L, so that we can "destroy" without waiting for the other)
+  cusparseDnMatDescr_t matL, matU, matW;
+  cusparseDnVecDescr_t vecL, vecU, vecW;
+  cusparseHandle_t cusparseHandle;
   #endif
 
   using blas_handle_type = cublasHandle_t;
@@ -206,8 +233,9 @@ private:
   rocblas_handle _handle_lapack;
   std::vector<rocblas_handle> _handles;
   // workspace for SpMV
-  rocsparse_dnmat_descr matT, matW;
-  rocsparse_dnvec_descr vecT, vecW;
+  rocsparse_dnmat_descr matL, matU, matW;
+  rocsparse_dnvec_descr vecL, vecU, vecW;
+  rocsparse_handle rocsparseHandle;
 
   using blas_handle_type = rocblas_handle;
   using lapack_handle_type = rocblas_handle;
@@ -311,7 +339,8 @@ private:
     base_type::print_stat_factor();
     double flop = 0;
     switch (this->getSolutionMethod()) {
-    case 1: {
+    case 0:   /// LDL no-pivot
+    case 1: { /// Cholesky
       for (ordinal_type sid = 0; sid < _nsupernodes; ++sid) {
         auto &s = _h_supernodes(sid);
         const ordinal_type m = s.m, n = s.n - s.m;
@@ -360,7 +389,7 @@ private:
       break;
     }
     default: {
-      TACHO_TEST_FOR_EXCEPTION(false, std::logic_error, "The solution method is not supported");
+      TACHO_TEST_FOR_EXCEPTION(true, std::logic_error, "The solution method is not supported");
     }
     }
     const double kilo(1024);
@@ -387,7 +416,7 @@ public:
   /// initialization / release
   ///
   inline void initialize(const ordinal_type device_level_cut, const ordinal_type device_factorize_thres,
-                         const ordinal_type device_solve_thres, const ordinal_type verbose = 0) {
+                         const ordinal_type device_solve_thres, const int nstreams_in = 1, const ordinal_type verbose = 0) {
     stat_level.n_device_factorize = 0;
     stat_level.n_device_solve = 0;
     stat_level.n_team_factorize = 0;
@@ -396,6 +425,8 @@ public:
     Kokkos::Timer timer;
 
     timer.reset();
+    // # of streams needs to be at least 1
+    const int nstreams = max(1, nstreams_in);
 
     ///
     /// level data structure
@@ -458,6 +489,7 @@ public:
     _h_buf_factor_ptr = size_type_array_host(do_not_initialize_tag("h_buf_factor_ptr"), _h_buf_level_ptr(_nlevel));
     _h_buf_solve_ptr = size_type_array_host(do_not_initialize_tag("h_buf_solve_ptr"), _h_buf_level_ptr(_nlevel));
     {
+      const ordinal_type method_id = this->getSolutionMethod();
       for (ordinal_type i = 0; i < _nlevel; ++i) {
         const ordinal_type lbeg = _h_buf_level_ptr(i);
         const ordinal_type pbeg = _h_level_ptr(i), pend = _h_level_ptr(i + 1);
@@ -469,10 +501,11 @@ public:
           const auto s = _h_supernodes(sid);
           const ordinal_type m = s.m, n = s.n, n_m = n - m;
           const ordinal_type schur_work_size = n_m * (n_m + max_factor_team_size);
-          const ordinal_type chol_factor_work_size_variants[4] = {schur_work_size, max(m * m, schur_work_size),
+          const ordinal_type chol_factor_work_size_variants[4] = {schur_work_size,
+                                                                  max(m * m, schur_work_size),
                                                                   m * m + schur_work_size,
                                                                   m * m + schur_work_size};
-          const ordinal_type chol_factor_work_size = chol_factor_work_size_variants[variant];
+          const ordinal_type chol_factor_work_size = chol_factor_work_size_variants[variant] + (method_id == 0 ? m*n_m : 0);
           const ordinal_type ldl_factor_work_size_variant_0 = chol_factor_work_size_variants[0] + max(32 * m, m * n);
           const ordinal_type ldl_factor_work_size_variants[4] = {ldl_factor_work_size_variant_0,
                                                                  max(m * m, ldl_factor_work_size_variant_0 + m * n_m),
@@ -494,7 +527,7 @@ public:
                                                             lu_solve_work_size,
                                                             lu_solve_work_size};
 
-          const ordinal_type index_work_size = this->getSolutionMethod() - 1;
+          const ordinal_type index_work_size = (method_id-1 < 0 ? 0 : method_id-1);
           const ordinal_type factor_work_size = factor_work_size_variants[index_work_size];
           const ordinal_type solve_work_size = solve_work_size_variants[index_work_size];
 
@@ -515,7 +548,8 @@ public:
 
     _h_buf_solve_nrhs_ptr =
         size_type_array_host(do_not_initialize_tag("h_buf_solve_nrhs_ptr"), _h_buf_solve_ptr.extent(0));
-    _buf_solve_nrhs_ptr = Kokkos::create_mirror_view(exec_memory_space(), _h_buf_solve_nrhs_ptr);
+    Kokkos::deep_copy(_h_buf_solve_nrhs_ptr, _h_buf_solve_ptr);
+    _buf_solve_nrhs_ptr = Kokkos::create_mirror_view_and_copy(exec_memory_space(), _h_buf_solve_nrhs_ptr);
     track_alloc(_buf_solve_nrhs_ptr.span() * sizeof(size_type));
 
     ///
@@ -541,6 +575,48 @@ public:
       _handle_lapack = _handle_blas;
     }
 #endif
+    // pre-allocate buf
+    _nrhs = 1;
+    Kokkos::resize(_buf, max(_bufsize_factorize, _bufsize_solve));
+    track_alloc(_buf.span() * sizeof(value_type));
+    // pre-allocate work
+    _worksize = 0;
+    switch (this->getSolutionMethod()) {
+    case 0:   /// LDL no-pivot
+    case 1: { /// Cholesky
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+      value_type_matrix T(NULL, _info.max_supernode_size, _info.max_supernode_size);
+      _worksize = Chol<Uplo::Upper, Algo::OnDevice>::invoke(_handle_lapack, T, _work);
+#endif
+      break;
+    }
+    case 2: { /// LDL
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+      value_type_matrix T(NULL, _info.max_supernode_size, _info.max_supernode_size);
+      ordinal_type_array P(NULL, _info.max_supernode_size);
+      _worksize = LDL<Uplo::Lower, Algo::OnDevice>::invoke(_handle_lapack, T, P, _work);
+#else
+      _worksize = 32 * _info.max_supernode_size;
+#endif
+      break;
+    }
+    case 3: { /// LU
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+      value_type_matrix T(NULL, _info.max_supernode_size, _info.max_num_cols);
+      ordinal_type_array P(NULL, std::min(_info.max_supernode_size, _info.max_num_cols));
+      _worksize = LU<Algo::OnDevice>::invoke(_handle_lapack, T, P, _work);
+#endif
+      break;
+    }
+    }
+    if (this->getSolutionMethod() == 0) {
+      // worksize for on-device non-pivot LDL
+      // the blocksize 128 is used in Tacho_NonPivLDL_OnDevice
+      _worksize += (128*_info.max_supernode_size);
+    }
+    size_type worksize = _worksize * (nstreams + 1);
+    Kokkos::resize(_work, worksize);
+    track_alloc(_work.span() * sizeof(value_type));
     stat.t_init = timer.seconds();
 
     ///
@@ -579,14 +655,14 @@ public:
           const ordinal_type sid = _h_level_sids(p);
           const auto s = _h_supernodes(sid);
           const ordinal_type m = s.m;    //, n_m = s.n-s.m;
-          if (m > _device_solve_thres) { // || n > _device_solve_thres) {
+          if (m > _device_solve_thres) { // || n > _device_solve_thres)
             _h_solve_mode(sid) = 0;
             ++stat_level.n_device_solve;
           } else {
             _h_solve_mode(sid) = 1;
             ++stat_level.n_team_solve;
           }
-          if (m > _device_factorize_thres) { // || n_m > _device_factorize_thres) {
+          if (m > _device_factorize_thres) { // || n_m > _device_factorize_thres)
             _h_factorize_mode(sid) = 0;
             ++stat_level.n_device_factorize;
           } else {
@@ -603,9 +679,15 @@ public:
     _solve_mode = Kokkos::create_mirror_view_and_copy(exec_memory_space(), _h_solve_mode);
     track_alloc(_solve_mode.span() * sizeof(ordinal_type));
 
+    createStream(nstreams, verbose);
     stat.t_mode_classification = timer.seconds();
     if (verbose) {
       switch (this->getSolutionMethod()) {
+      case 0: {
+        printf("Summary: LevelSetTools-Variant-%d (InitializeLDL (no pivot))\n", variant);
+        printf("============================================================\n");
+        break;
+      }
       case 1: {
         printf("Summary: LevelSetTools-Variant-%d (InitializeCholesky)\n", variant);
         printf("======================================================\n");
@@ -623,22 +705,32 @@ public:
       }
       }
       print_stat_init();
+      fflush(stdout);
     }
   }
 
   inline void release(const ordinal_type verbose = 0) override {
     base_type::release(false);
+    if (variant == 3) {
+      this->releaseCRS(true);
+    }
     track_free(_buf_factor_ptr.span() * sizeof(size_type));
     track_free(_buf_solve_ptr.span() * sizeof(size_type));
     track_free(_buf_solve_nrhs_ptr.span() * sizeof(size_type));
-    track_free(_buf.span() * sizeof(value_type));
     track_free(_factorize_mode.span() * sizeof(ordinal_type));
     track_free(_solve_mode.span() * sizeof(ordinal_type));
     track_free(_level_sids.span() * sizeof(ordinal_type));
+
+    track_free(_buf.span() * sizeof(value_type));
+    track_free(_work.span() * sizeof(value_type));
+    Kokkos::resize(_buf, 0);
+    Kokkos::resize(_work, 0);
+
     if (verbose) {
       printf("Summary: LevelSetTools-Variant-%d (Release)\n", variant);
       printf("===========================================\n");
       print_stat_memory();
+      fflush(stdout);
     }
   }
 
@@ -666,6 +758,7 @@ public:
       : base_type(method, m, ap, aj, perm, peri, nsupernodes, supernodes, gid_ptr, gid_colidx, sid_ptr, sid_colidx,
                   blk_colidx, stree_parent, stree_ptr, stree_children, stree_level, stree_roots) {
     _nstreams = 0;
+    _is_spmv_extracted = 0;
 #if defined(KOKKOS_ENABLE_CUDA)
     _is_cublas_created = 0;
     _is_cusolver_dn_created = 0;
@@ -720,14 +813,17 @@ public:
   }
 
   inline void createStream(const ordinal_type nstreams, const ordinal_type verbose = 0) {
+    // # of streams needs to be at least 1
+    if (nstreams <= 0) return;
 #if defined(KOKKOS_ENABLE_CUDA)
+    _nstreams = nstreams;
+    if (_streams.size() == size_t(nstreams)) return;
     // destroy previously created streams
-    for (ordinal_type i = 0; i < _nstreams; ++i) {
+    for (size_t i = 0; i < _streams.size(); ++i) {
       _status = cudaStreamDestroy(_streams[i]);
       checkDeviceStatus("cudaStreamDestroy");
     }
     // new streams
-    _nstreams = nstreams;
     _streams.clear();
     _streams.resize(_nstreams);
     for (ordinal_type i = 0; i < _nstreams; ++i) {
@@ -736,8 +832,10 @@ public:
     }
 #endif
 #if defined(KOKKOS_ENABLE_HIP)
+    _nstreams = nstreams;
+    if (_streams.size() == size_t(nstreams)) return;
     // destroy previously created streams
-    for (ordinal_type i = 0; i < _nstreams; ++i) {
+    for (size_t i = 0; i < _streams.size(); ++i) {
       _status = rocblas_destroy_handle(_handles[i]);
       checkDeviceLapackStatus("rocblasDestroy");
 
@@ -745,7 +843,6 @@ public:
       checkDeviceStatus("hipStreamDestroy");
     }
     // new streams
-    _nstreams = nstreams;
     _streams.clear();
     _streams.resize(_nstreams);
     _handles.resize(_nstreams);
@@ -766,6 +863,7 @@ public:
     if (verbose) {
       printf("Summary: CreateStream : %3d\n", _nstreams);
       printf("===========================\n");
+      fflush(stdout);
     }
 #endif
   }
@@ -792,6 +890,286 @@ public:
 
   ///
   /// Device level functions
+  ///
+
+  ///
+  /// Non-pivot LDL
+  ///
+  inline void factorizeNoPivotLDLOnDeviceVar0(const ordinal_type pbeg, const ordinal_type pend,
+                                              const size_type_array_host &h_buf_factor_ptr,
+                                              const value_type_array &work) {
+    const value_type one(1), minus_one(-1), zero(0);
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+    ordinal_type q(0);
+#endif
+    exec_space exec_instance;
+    for (ordinal_type p = pbeg; p < pend; ++p) {
+      const ordinal_type sid = _h_level_sids(p);
+      if (_h_factorize_mode(sid) == 0) {
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+        const ordinal_type qid = q % _nstreams;
+        blas_handle_type handle_blas = getBlasHandle(qid);
+
+        setStreamOnHandle(qid);
+        exec_instance = _exec_instances[qid];
+
+        const size_type worksize = work.extent(0) / _nstreams;
+        value_type_array W(work.data() + worksize * qid, worksize);
+        ++q;
+#else
+        blas_handle_type handle_blas = getBlasHandle();
+        value_type_array W = work;
+#endif
+
+        const auto &s = _h_supernodes(sid);
+        {
+          const ordinal_type m = s.m, n = s.n, n_m = n - m;
+          if (m > 0) {
+            value_type *aptr = s.u_buf;
+            UnmanagedViewType<value_type_matrix> ATL(aptr, m, m);
+            aptr += m * m;
+            // Calling fall-back default LDL_nopiv<Algo::OnDevice>::invoke with memeber = exec_instance
+            _status = LDL_nopiv<Uplo::Upper, Algo::OnDevice>::invoke(handle_blas, exec_instance, ATL, W);
+            checkDeviceLapackStatus("chol");
+
+            if (n_m > 0) {
+              UnmanagedViewType<value_type_matrix> ABR(_buf.data() + h_buf_factor_ptr(p - pbeg), n_m, n_m);
+              UnmanagedViewType<value_type_matrix> ATR(aptr, m, n_m); // aptr += m*n_m;
+
+              // Apply L^{-1} on off-diagonal
+              _status = Trsm<Side::Left, Uplo::Upper, Trans::ConjTranspose, Algo::OnDevice>::invoke(
+                  handle_blas, Diag::Unit(), one, ATL, ATR);
+              checkDeviceBlasStatus("trsm");
+
+              // Save ATR in workspace
+              UnmanagedViewType<value_type_matrix> T(_buf.data() + h_buf_factor_ptr(p - pbeg) + (n_m * n_m), m, n_m);
+              _status = Copy<Algo::OnDevice>::invoke(exec_instance, T, ATR);
+
+              // Apply D^{-1} on off-diagonal
+              _status = Scale_BlockInverseDiagonals<Side::Left, Algo::OnDevice>::invoke(exec_instance, ATL, ATR);
+
+              // ABR = -ATR*W
+              _status = GemmTriangular<Trans::Transpose, Trans::NoTranspose, Uplo::Upper, Algo::OnDevice>::invoke(
+                  handle_blas, minus_one, ATR, T, zero, ABR);
+              checkDeviceBlasStatus("gemm");
+            }
+          }
+        }
+      }
+    }
+  }
+
+  inline void factorizeNoPivotLDLOnDeviceVar1(const ordinal_type pbeg, const ordinal_type pend,
+                                              const size_type_array_host &h_buf_factor_ptr,
+                                              const value_type_array &work) {
+    const value_type one(1), minus_one(-1), zero(0);
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+    ordinal_type q(0);
+#endif
+    exec_space exec_instance;
+    for (ordinal_type p = pbeg; p < pend; ++p) {
+      const ordinal_type sid = _h_level_sids(p);
+      if (_h_factorize_mode(sid) == 0) {
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+        const ordinal_type qid = q % _nstreams;
+        blas_handle_type   handle_blas   = getBlasHandle(qid);
+
+        setStreamOnHandle(qid);
+        exec_instance = _exec_instances[qid];
+
+        const size_type worksize = work.extent(0) / _nstreams;
+        value_type_array W(work.data() + worksize * qid, worksize);
+        ++q;
+#else
+        blas_handle_type   handle_blas   = getBlasHandle();
+        value_type_array W = work;
+#endif
+
+        const auto &s = _h_supernodes(sid);
+        {
+          const ordinal_type m = s.m, n = s.n, n_m = n - m;
+          if (m > 0) {
+            // Factor the diagonal block
+            value_type *aptr = s.u_buf;
+            UnmanagedViewType<value_type_matrix> ATL(aptr, m, m);
+            aptr += m * m;
+
+            // Calling fall-back default LDL_nopiv<Algo::OnDevice>::invoke with memeber = exec_instance
+            _status = LDL_nopiv<Uplo::Upper, Algo::OnDevice>::invoke(handle_blas, exec_instance, ATL, W);
+            checkDeviceLapackStatus("chol");
+
+            // Compute inverse of diagonal block (in T)
+            value_type *bptr = _buf.data() + h_buf_factor_ptr(p - pbeg);
+            UnmanagedViewType<value_type_matrix> T(bptr, m, m); // shared with ABR
+            _status = SetIdentity<Algo::OnDevice>::invoke(exec_instance, T, one);
+            checkDeviceBlasStatus("SetIdentity");
+
+            _status = Trsm<Side::Left, Uplo::Upper, Trans::NoTranspose, Algo::OnDevice>::invoke(
+                handle_blas, Diag::Unit(), one, ATL, T);
+
+            // Copy original diagonal into T
+            using policy_type = Kokkos::RangePolicy<exec_space>;
+            const auto policy = policy_type(exec_instance, 0, m);
+            Kokkos::parallel_for(policy, KOKKOS_LAMBDA(const ordinal_type &i) {
+              T(i,i) = ATL(i,i);
+            });
+            checkDeviceBlasStatus("trsm");
+            if (n_m > 0) {
+              UnmanagedViewType<value_type_matrix> ATR(aptr, m, n_m); // aptr += m*n_m;
+              UnmanagedViewType<value_type_matrix> ABR(bptr, n_m, n_m); // shared with T
+              UnmanagedViewType<value_type_matrix> K(bptr+(n_m * n_m), m, n_m);
+
+              _status = Trsm<Side::Left, Uplo::Upper, Trans::ConjTranspose, Algo::OnDevice>::invoke(
+                  handle_blas, Diag::Unit(), one, ATL, ATR);
+              checkDeviceBlasStatus("trsm");
+
+              // Copy T back to ATL (inverse)
+              _status = Copy<Algo::OnDevice>::invoke(exec_instance, ATL, T);
+              checkDeviceBlasStatus("Copy");
+
+              // Save ATR in workspace
+              _status = Copy<Algo::OnDevice>::invoke(exec_instance, K, ATR);
+
+              // Apply D^{-1} on off-diagonal
+              _status = Scale_BlockInverseDiagonals<Side::Left, Algo::OnDevice>::invoke(exec_instance, ATL, ATR);
+
+              // ABR = -ATR*K
+              _status = GemmTriangular<Trans::Transpose, Trans::NoTranspose, Uplo::Upper, Algo::OnDevice>::invoke(
+                  handle_blas, minus_one, ATR, K, zero, ABR);
+              checkDeviceBlasStatus("gemm");
+            } else {
+              _status = Copy<Algo::OnDevice>::invoke(exec_instance, ATL, T);
+              checkDeviceBlasStatus("Copy");
+            }
+          }
+        }
+      }
+    }
+  }
+
+  inline void factorizeNoPivotLDLOnDeviceVar2(const ordinal_type pbeg, const ordinal_type pend,
+                                              const size_type_array_host &h_buf_factor_ptr,
+                                              const value_type_array &work) {
+    const value_type one(1), minus_one(-1), zero(0);
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+    ordinal_type q(0);
+#endif
+    exec_space exec_instance;
+    for (ordinal_type p = pbeg; p < pend; ++p) {
+      const ordinal_type sid = _h_level_sids(p);
+      if (_h_factorize_mode(sid) == 0) {
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+        const ordinal_type qid = q % _nstreams;
+        blas_handle_type   handle_blas   = getBlasHandle(qid);
+
+        setStreamOnHandle(qid);
+        exec_instance = _exec_instances[qid];
+
+        const size_type worksize = work.extent(0) / _nstreams;
+        value_type_array W(work.data() + worksize * qid, worksize);
+        ++q;
+#else
+        blas_handle_type   handle_blas   = getBlasHandle();
+        value_type_array W = work;
+#endif
+
+        const auto &s = _h_supernodes(sid);
+        {
+          const ordinal_type m = s.m, n = s.n, n_m = n - m;
+          if (m > 0) {
+            value_type *aptr = s.u_buf;
+            UnmanagedViewType<value_type_matrix> ATL(aptr, m, m);
+            aptr += m * m;
+
+            // Calling fall-back default LDL_nopiv<Algo::OnDevice>::invoke with memeber = exec_instance
+            _status = LDL_nopiv<Uplo::Upper, Algo::OnDevice>::invoke(handle_blas, exec_instance, ATL, W);
+            checkDeviceLapackStatus("chol");
+
+            value_type *bptr = _buf.data() + h_buf_factor_ptr(p - pbeg);
+            if (n_m > 0) {
+              UnmanagedViewType<value_type_matrix> ABR(bptr, n_m, n_m);
+              bptr += ABR.span();
+              UnmanagedViewType<value_type_matrix> ATR(aptr, m, n_m); // aptr += m*n_m;
+              {
+                _status = Trsm<Side::Left, Uplo::Upper, Trans::ConjTranspose, Algo::OnDevice>::invoke(
+                    handle_blas, Diag::Unit(), one, ATL, ATR);
+                checkDeviceBlasStatus("trsm");
+
+                // Save ATR in workspace
+                UnmanagedViewType<value_type_matrix> T(bptr, m, n_m); // bptr has been shifted
+                _status = Copy<Algo::OnDevice>::invoke(exec_instance, T, ATR);
+
+                // Apply D^{-1} on off-diagonal
+                _status = Scale_BlockInverseDiagonals<Side::Left, Algo::OnDevice>::invoke(exec_instance, ATL, ATR);
+
+                // ABR = -ATR*W
+                _status = GemmTriangular<Trans::Transpose, Trans::NoTranspose, Uplo::Upper, Algo::OnDevice>::invoke(
+                    handle_blas, minus_one, ATR, T, zero, ABR);
+                checkDeviceBlasStatus("gemm");
+              }
+              {
+                // additional things
+                UnmanagedViewType<value_type_matrix> D(bptr, m, m);
+                _status = Copy<Algo::OnDevice>::invoke(exec_instance, D, ATL);
+                checkDeviceBlasStatus("Copy");
+
+                _status = SetIdentity<Algo::OnDevice>::invoke(exec_instance, ATL, minus_one);
+                checkDeviceBlasStatus("SetIdentity");
+
+                UnmanagedViewType<value_type_matrix> AT(ATL.data(), m, n);
+                _status = Trsm<Side::Left, Uplo::Upper, Trans::NoTranspose, Algo::OnDevice>::invoke(
+                    handle_blas, Diag::Unit(), minus_one, D, AT);
+                checkDeviceBlasStatus("trsm");
+
+                // Copy original diagonal into T
+                using policy_type = Kokkos::RangePolicy<exec_space>;
+                const auto policy = policy_type(exec_instance, 0, m);
+                Kokkos::parallel_for(policy, KOKKOS_LAMBDA(const ordinal_type &i) {
+                  ATL(i,i) = D(i,i);
+                });
+              }
+            } else {
+              /// additional things
+              UnmanagedViewType<value_type_matrix> T(bptr, m, m);
+              _status = Copy<Algo::OnDevice>::invoke(exec_instance, T, ATL);
+              checkDeviceBlasStatus("Copy");
+
+              _status = SetIdentity<Algo::OnDevice>::invoke(exec_instance, ATL, one);
+              checkDeviceBlasStatus("SetIdentity");
+
+              _status = Trsm<Side::Left, Uplo::Upper, Trans::NoTranspose, Algo::OnDevice>::invoke(
+                  handle_blas, Diag::Unit(), one, T, ATL);
+
+              // Copy original diagonal into T
+              using policy_type = Kokkos::RangePolicy<exec_space>;
+              const auto policy = policy_type(exec_instance, 0, m);
+              Kokkos::parallel_for(policy, KOKKOS_LAMBDA(const ordinal_type &i) {
+                ATL(i,i) = T(i,i);
+              });
+              checkDeviceBlasStatus("trsm");
+            }
+          }
+        }
+      }
+    }
+  }
+
+  inline void factorizeNoPivotLDLOnDevice(const ordinal_type pbeg, const ordinal_type pend,
+                                          const size_type_array_host &h_buf_factor_ptr, const value_type_array &work) {
+    if (variant == 0)
+      factorizeNoPivotLDLOnDeviceVar0(pbeg, pend, h_buf_factor_ptr, work);
+    else if (variant == 1)
+      factorizeNoPivotLDLOnDeviceVar1(pbeg, pend, h_buf_factor_ptr, work);
+    else if (variant == 2 || variant == 3)
+      factorizeNoPivotLDLOnDeviceVar2(pbeg, pend, h_buf_factor_ptr, work);
+    else {
+      TACHO_TEST_FOR_EXCEPTION(true, std::logic_error,
+                               "LevelSetTools::factorizeNoPivotLDLOnDevice, algorithm variant is not supported");
+    }
+  }
+
+  ///
+  /// Cholesky
   ///
   inline void factorizeCholeskyOnDeviceVar0(const ordinal_type pbeg, const ordinal_type pend,
                                             const size_type_array_host &h_buf_factor_ptr,
@@ -828,12 +1206,15 @@ public:
             value_type *aptr = s.u_buf;
             UnmanagedViewType<value_type_matrix> ATL(aptr, m, m);
             aptr += m * m;
+
+            // On NVIDIA/AMD, calling Chol<ArgUplo, Algo::OnDevice>::invoke with member = handle.
             _status = Chol<Uplo::Upper, Algo::OnDevice>::invoke(handle_lapack, ATL, W);
             checkDeviceLapackStatus("chol");
 
             if (n_m > 0) {
               UnmanagedViewType<value_type_matrix> ABR(_buf.data() + h_buf_factor_ptr(p - pbeg), n_m, n_m);
               UnmanagedViewType<value_type_matrix> ATR(aptr, m, n_m); // aptr += m*n_m;
+
               _status = Trsm<Side::Left, Uplo::Upper, Trans::ConjTranspose, Algo::OnDevice>::invoke(
                   handle_blas, Diag::NonUnit(), one, ATL, ATR);
               checkDeviceBlasStatus("trsm");
@@ -879,14 +1260,18 @@ public:
         {
           const ordinal_type m = s.m, n = s.n, n_m = n - m;
           if (m > 0) {
+            // Factor the diagonal block
             value_type *aptr = s.u_buf;
             UnmanagedViewType<value_type_matrix> ATL(aptr, m, m);
             aptr += m * m;
+
+            // On NVIDIA/AMD, calling Chol<ArgUplo, Algo::OnDevice>::invoke with member = handle.
             _status = Chol<Uplo::Upper, Algo::OnDevice>::invoke(handle_lapack, ATL, W);
             checkDeviceLapackStatus("chol");
 
+            // Compute inverse of diagonal block (in T)
             value_type *bptr = _buf.data() + h_buf_factor_ptr(p - pbeg);
-            UnmanagedViewType<value_type_matrix> T(bptr, m, m);
+            UnmanagedViewType<value_type_matrix> T(bptr, m, m); // shared with ABR
             _status = SetIdentity<Algo::OnDevice>::invoke(exec_instance, T, one);
             checkDeviceBlasStatus("SetIdentity");
 
@@ -895,15 +1280,18 @@ public:
             checkDeviceBlasStatus("trsm");
 
             if (n_m > 0) {
-              UnmanagedViewType<value_type_matrix> ABR(bptr, n_m, n_m);
               UnmanagedViewType<value_type_matrix> ATR(aptr, m, n_m); // aptr += m*n_m;
+              UnmanagedViewType<value_type_matrix> ABR(bptr, n_m, n_m); // shared with T
+
               _status = Trsm<Side::Left, Uplo::Upper, Trans::ConjTranspose, Algo::OnDevice>::invoke(
                   handle_blas, Diag::NonUnit(), one, ATL, ATR);
               checkDeviceBlasStatus("trsm");
 
+              // Copy T back to ATL (inverse)
               _status = Copy<Algo::OnDevice>::invoke(exec_instance, ATL, T);
               checkDeviceBlasStatus("Copy");
 
+              // ABR = -ATR'*ATR
               _status = Herk<Uplo::Upper, Trans::ConjTranspose, Algo::OnDevice>::invoke(handle_blas, minus_one, ATR,
                                                                                         zero, ABR);
             } else {
@@ -951,6 +1339,8 @@ public:
             value_type *aptr = s.u_buf;
             UnmanagedViewType<value_type_matrix> ATL(aptr, m, m);
             aptr += m * m;
+
+            // On NVIDIA/AMD, calling Chol<ArgUplo, Algo::OnDevice>::invoke with member = handle.
             _status = Chol<Uplo::Upper, Algo::OnDevice>::invoke(handle_lapack, ATL, W);
             checkDeviceLapackStatus("chol");
 
@@ -1012,6 +1402,9 @@ public:
     }
   }
 
+  /// 
+  /// LDL
+  ///
   inline void factorizeLDL_OnDeviceVar0(const ordinal_type pbeg, const ordinal_type pend,
                                         const size_type_array_host &h_buf_factor_ptr, const value_type_array &work) {
     const value_type one(1), minus_one(-1), zero(0);
@@ -1283,6 +1676,9 @@ public:
     }
   }
 
+  /// 
+  /// LU
+  ///
   inline void factorizeLU_OnDeviceVar0(const ordinal_type pbeg, const ordinal_type pend,
                                        const size_type_array_host &h_buf_factor_ptr, const value_type_array &work) {
     const value_type one(1), minus_one(-1), zero(0);
@@ -1550,18 +1946,31 @@ public:
     }
   }
 
-  inline void extractCRS(bool lu) {
-#if (defined(KOKKOS_ENABLE_CUDA) && defined(TACHO_HAVE_CUSPARSE)) || \
-     defined(KOKKOS_ENABLE_HIP)
+  ///
+  /// Extract CRS for SpMV
+  ///
+  inline void extractCRS(bool lu, bool store_transpose) {
 
-    const ordinal_type nrhs = 1;
-    const ordinal_type m = _m;
-    const value_type one(1);
-    const value_type zero(0);
+    // ========================
+    // free CRS, 
+    // if it has been extracted
+#if defined(KOKKOS_ENABLE_HIP)
+    this->releaseCRS(!lu);
+#else
+    this->releaseCRS(true);
+#endif
 
     // ========================
     // workspace
+    const ordinal_type m = _m;
+    const ordinal_type nrhs = 1;
     Kokkos::resize(_w_vec, m, nrhs);
+
+    const value_type one(1);
+#if (defined(KOKKOS_ENABLE_CUDA) && defined(TACHO_HAVE_CUSPARSE)) || \
+     defined(KOKKOS_ENABLE_HIP)
+    const value_type zero(0);
+
     int ldw = _w_vec.stride(1);
 #if defined(KOKKOS_ENABLE_CUDA)
     cudaDataType computeType;
@@ -1573,9 +1982,16 @@ public:
       TACHO_TEST_FOR_EXCEPTION(true, std::logic_error,
                                "LevelSetTools::solveCholeskyLowerOnDevice: ComputeSPMV only supported double or float");
     }
-    // attach to Cusparse/Rocsparse data struct
+    // create cusparse handle
+    cusparseCreate(&cusparseHandle);
+    // attach to Cusparse data struct
     cusparseCreateDnMat(&matW, m, nrhs, ldw, (void*)(_w_vec.data()), computeType, CUSPARSE_ORDER_COL);
     cusparseCreateDnVec(&vecW, m, (void*)(_w_vec.data()), computeType);
+    // also to T, to be destroyed before each SpMV call
+    cusparseCreateDnMat(&matL, m, nrhs, ldw, (void*)(_w_vec.data()), computeType, CUSPARSE_ORDER_COL);
+    cusparseCreateDnVec(&vecL, m, (void*)(_w_vec.data()), computeType);
+    cusparseCreateDnMat(&matU, m, nrhs, ldw, (void*)(_w_vec.data()), computeType, CUSPARSE_ORDER_COL);
+    cusparseCreateDnVec(&vecU, m, (void*)(_w_vec.data()), computeType);
     // vectors used for preprocessing
 #ifdef USE_SPMM_FOR_WORKSPACE_SIZE
     cusparseDnMatDescr_t vecX, vecY;
@@ -1592,20 +2008,39 @@ public:
     if (std::is_same<value_type, float>::value) {
       rocsparse_compute_type = rocsparse_datatype_f32_r;
     }
-    // attach to Cusparse/Rocsparse data struct
+    // create rocsparse handle
+    rocsparse_create_handle(&rocsparseHandle);
+    // attach to Rocsparse data struct
     rocsparse_create_dnmat_descr(&matW, m, nrhs, ldw, (void*)(_w_vec.data()), rocsparse_compute_type, rocsparse_order_column);
     rocsparse_create_dnvec_descr(&vecW, m, (void*)(_w_vec.data()), rocsparse_compute_type);
+    // also to T, to be destroyed before each SpMV call
+    rocsparse_create_dnmat_descr(&matL, m, nrhs, ldw, (void*)(_w_vec.data()), rocsparse_compute_type, rocsparse_order_column);
+    rocsparse_create_dnvec_descr(&vecL, m, (void*)(_w_vec.data()), rocsparse_compute_type);
+    rocsparse_create_dnmat_descr(&matU, m, nrhs, ldw, (void*)(_w_vec.data()), rocsparse_compute_type, rocsparse_order_column);
+    rocsparse_create_dnvec_descr(&vecU, m, (void*)(_w_vec.data()), rocsparse_compute_type);
     // vectors used for preprocessing
     rocsparse_dnvec_descr vecX, vecY;
     rocsparse_create_dnvec_descr(&vecX, m, (void*)_w_vec.data(), rocsparse_compute_type);
     rocsparse_create_dnvec_descr(&vecY, m, (void*)_w_vec.data(), rocsparse_compute_type);
 #endif
+#endif
 
+    // allocate rowptrs
+    Kokkos::resize(rowptrU, _team_serial_level_cut*(1+m));
+    Kokkos::resize(rowptrL, _team_serial_level_cut*(1+m));
+    Kokkos::deep_copy(rowptrL, 0);
+    // counting nnz, first, so that we can allocate in NumericalTool
+    size_t ptr = 0;
+    size_t nnzU = 0;
+    size_t nnzL = 0;
+    typedef TeamFunctor_ExtractCrs<supernode_info_type> functor_type;
+    bool unit_diag = (this->getSolutionMethod() == 0 ? true : false);
     for (ordinal_type lvl = 0; lvl < _team_serial_level_cut; ++lvl) {
       const ordinal_type pbeg = _h_level_ptr(lvl), pend = _h_level_ptr(lvl + 1);
 
       // the first supernode in this lvl (where the CRS matrix is stored)
       auto &s0 = _h_supernodes(_h_level_sids(pbeg));
+      s0.spmv_explicit_transpose = store_transpose;
 
       #define TACHO_INSERT_DIAGONALS
       // NOTE: this needs extra vector-entry copy for the non-active rows at each level for solve (copy t to w, and w back to t)
@@ -1613,8 +2048,8 @@ public:
       #define TACHO_INSERT_DIAGONALS
       // ========================
       // count nnz / row
-      Kokkos::resize(s0.rowptrU, 1+m);
-      typedef TeamFunctor_ExtractCrs<supernode_info_type> functor_type;
+      auto d_rowptrU = Kokkos::subview(rowptrU, range_type(ptr, ptr+m+1));
+      s0.rowptrU = d_rowptrU.data();
 
       functor_type extractor_crs(_info, _solve_mode, _level_sids);
       extractor_crs.setGlobalSize(m);
@@ -1631,58 +2066,21 @@ public:
 
       // ========================
       // shift to generate rowptr
-      using range_type = Kokkos::pair<int, int>;
-      ordinal_type nnz = 0;
       {
         using range_policy_type = Kokkos::RangePolicy<exec_space>;
         Kokkos::parallel_scan("shiftRowptr", range_policy_type(0, m+1), rowptr_sum(s0.rowptrU));
         exec_space().fence();
         // get nnz
-        auto d_nnz = Kokkos::subview(s0.rowptrU, range_type(m, m+1));
+        auto d_nnz = Kokkos::subview(d_rowptrU, range_type(m, m+1));
         auto h_nnz = Kokkos::create_mirror_view_and_copy(host_memory_space(), d_nnz);
-        nnz = h_nnz(0);
+        s0.nnzU = h_nnz(0);
+        nnzU += s0.nnzU;
       }
 
-      // ========================
-      // allocate (TODO: move to symbolic)
-      Kokkos::resize(s0.colindU, nnz);
-      Kokkos::resize(s0.nzvalsU, nnz);
-
-      // ========================
-      // extract nonzero element
-      extractor_crs.setCrsView(s0.colindU, s0.nzvalsU);
-      {
-        using team_policy_type = Kokkos::TeamPolicy<Kokkos::Schedule<Kokkos::Static>, exec_space,
-                                                    typename functor_type::ExtractValTag>;
-        team_policy_type team_policy((pend-pbeg)+1, Kokkos::AUTO());
-
-        // >> launch functor to extract nonzero entries
-        Kokkos::parallel_for("extract nzvals", team_policy, extractor_crs);
-        exec_space().fence();
-      }
-
-      {
-        // ========================
-        // shift back (TODO: shift first to avoid this)
-        //  copy to CPU, for now
-        auto h_rowptr = Kokkos::create_mirror_view_and_copy(host_memory_space(), s0.rowptrU);
-        for (ordinal_type i = m; i > 0 ; i--) h_rowptr(i) = h_rowptr(i-1);
-        h_rowptr(0) = 0;
-        Kokkos::deep_copy(s0.rowptrU, h_rowptr);
-      }
-
-#if defined(KOKKOS_ENABLE_HIP)
-      s0.spmv_explicit_transpose = true;
-#else
-      s0.spmv_explicit_transpose = false; // okay for SpMV, though may not for SpMM
-#endif
       if (lu) {
-        s0.spmv_explicit_transpose = true;
-
         // get nnz per row (L is stored by column)
-        Kokkos::resize(s0.rowptrL, 1+m);
-        Kokkos::deep_copy(s0.rowptrL, 0);
-        ordinal_type nnz = 0;
+        auto d_rowptrL = Kokkos::subview(rowptrL, range_type(ptr, ptr+m+1));
+        s0.rowptrL = d_rowptrL.data();
         {
           using team_policy_type = Kokkos::TeamPolicy<Kokkos::Schedule<Kokkos::Static>, exec_space,
                                                       typename functor_type::ExtractPtrColTag>;
@@ -1693,21 +2091,106 @@ public:
           exec_space().fence();
         }
         {
-          // convert to offset (on CPU for now)
+          // convert to offset
           using range_policy_type = Kokkos::RangePolicy<exec_space>;
           Kokkos::parallel_scan("shiftRowptr L", range_policy_type(0, m+1), rowptr_sum(s0.rowptrL));
           exec_space().fence();
-          // get nnz
-          auto d_nnz = Kokkos::subview(s0.rowptrL, range_type(m, m+1));
+          // get nnz (on CPU for now)
+          auto d_nnz = Kokkos::subview(d_rowptrL, range_type(m, m+1));
           auto h_nnz = Kokkos::create_mirror_view_and_copy(host_memory_space(), d_nnz);
-          nnz = h_nnz(0);
+          s0.nnzL = h_nnz(0);
+          nnzL += s0.nnzL;
         }
+        s0.spmv_explicit_transpose = true;
+      } else if (s0.spmv_explicit_transpose) {
+        // ========================
+        // explicitly form transpose
+        s0.nnzL = s0.nnzU;
+        auto d_rowptrL = Kokkos::subview(rowptrL, range_type(ptr, ptr+m+1));
+        s0.rowptrL = d_rowptrL.data();
+        nnzL += s0.nnzL;
+      }
+      ptr += (1+m);
+    }
 
-        // allocate (TODO: move to symbolic)
-        Kokkos::resize(s0.colindL, nnz);
-        Kokkos::resize(s0.nzvalsL, nnz);
+    // allocate (TODO: move to symbolic)
+    if (nnzU) {
+      Kokkos::resize(colindU, nnzU);
+      Kokkos::resize(nzvalsU, nnzU);
+    } 
+    if (nnzL) {
+      Kokkos::resize(colindL, nnzL);
+      Kokkos::resize(nzvalsL, nnzL);
+    }
+    if (unit_diag) {
+      // Initialized to be I, then updated with diagonal values during numeric
+      //  The location of the updated values should be the same / symbolic
+      Kokkos::resize(nzvalsD, _team_serial_level_cut*m);
+      Kokkos::deep_copy(nzvalsD, one);
+    }
 
+    // load nonzero val/ind
+    ptr = 0;
+    nnzU = 0;
+    nnzL = 0;
+    for (ordinal_type lvl = 0; lvl < _team_serial_level_cut; ++lvl) {
+      const ordinal_type pbeg = _h_level_ptr(lvl), pend = _h_level_ptr(lvl + 1);
+
+      // the first supernode in this lvl (where the CRS matrix is stored)
+      auto &s0 = _h_supernodes(_h_level_sids(pbeg));
+
+      // ========================
+      // assign memory
+      auto d_rowptrU = Kokkos::subview(rowptrU, range_type(ptr, ptr+m+1));
+      auto d_colindU = Kokkos::subview(colindU, range_type(nnzU, nnzU+s0.nnzU));
+      auto d_nzvalsU = Kokkos::subview(nzvalsU, range_type(nnzU, nnzU+s0.nnzU));
+      s0.colindU = d_colindU.data();
+      s0.nzvalsU = d_nzvalsU.data();
+      nnzU += s0.nnzU;
+
+      // ========================
+      // extract nonzero element
+      functor_type extractor_crs(_info, _solve_mode, _level_sids);
+      extractor_crs.setGlobalSize(m);
+      extractor_crs.setRange(pbeg, pend);
+      extractor_crs.setRowPtr(s0.rowptrU);
+      extractor_crs.setCrsView(s0.colindU, s0.nzvalsU);
+      if (unit_diag) {
+        auto d_nzvalsD = Kokkos::subview(nzvalsD, range_type(lvl*m, (lvl+1)*m));
+        s0.nzvalsD = d_nzvalsD.data();
+        extractor_crs.withUnitDiag(s0.nzvalsD);
+      }
+      {
+        using team_policy_type = Kokkos::TeamPolicy<Kokkos::Schedule<Kokkos::Static>, exec_space,
+                                                    typename functor_type::ExtractValTag>;
+        team_policy_type team_policy((pend-pbeg)+1, Kokkos::AUTO());
+
+        // >> launch functor to extract nonzero entries
+        Kokkos::parallel_for("extract nzvals", team_policy, extractor_crs);
+        exec_space().fence();
+      }
+
+      // ========================
+      // shift back (TODO: shift first to avoid this)
+      {
+        //  copy to CPU, for now
+        auto h_rowptr = Kokkos::create_mirror_view_and_copy(host_memory_space(), d_rowptrU);
+        for (ordinal_type i = m; i > 0 ; i--) h_rowptr(i) = h_rowptr(i-1);
+        h_rowptr(0) = 0;
+        Kokkos::deep_copy(d_rowptrU, h_rowptr);
+      }
+
+      if (lu) {
+        auto d_rowptrL = Kokkos::subview(rowptrL, range_type(ptr, ptr+m+1));
+        auto d_colindL = Kokkos::subview(colindL, range_type(nnzL, nnzL+s0.nnzL));
+        auto d_nzvalsL = Kokkos::subview(nzvalsL, range_type(nnzL, nnzL+s0.nnzL));
+        s0.colindL = d_colindL.data();
+        s0.nzvalsL = d_nzvalsL.data();
+        nnzL += s0.nnzL;
+
+        // ========================
         // insert nonzeros
+        extractor_crs.setRowPtr(s0.rowptrL);
         extractor_crs.setCrsView(s0.colindL, s0.nzvalsL);
         extractor_crs.setPivPtr(_piv);
         {
@@ -1719,25 +2202,21 @@ public:
           Kokkos::parallel_for("extract nzvals L", team_policy, extractor_crs);
           exec_space().fence();
         }
+        // ========================
+        // shift back
+        // (TODO: shift first to avoid this)
         {
-          // ========================
-          // shift back (TODO: shift first to avoid this)
           //  copy to CPU, for now
-          auto h_rowptr = Kokkos::create_mirror_view_and_copy(host_memory_space(), s0.rowptrL);
+          auto h_rowptr = Kokkos::create_mirror_view_and_copy(host_memory_space(), d_rowptrL);
           for (ordinal_type i = m; i > 0 ; i--) h_rowptr(i) = h_rowptr(i-1);
           h_rowptr(0) = 0;
-          Kokkos::deep_copy(s0.rowptrL, h_rowptr);
+          Kokkos::deep_copy(d_rowptrL, h_rowptr);
         }
       } else if (s0.spmv_explicit_transpose) {
         // ========================
         // transpose
-        // >> allocate
-        Kokkos::resize(s0.rowptrL, 1+m);
-        Kokkos::resize(s0.colindL, nnz);
-        Kokkos::resize(s0.nzvalsL, nnz);
-
-        Kokkos::deep_copy(s0.rowptrL, 0);
-         extractor_crs.setRowPtrT(s0.rowptrL);
+        // >> generate rowptr
+        extractor_crs.setRowPtrT(s0.rowptrL);
         {
           // >> count nnz / row (transpose)
           using team_policy_type = Kokkos::RangePolicy<typename functor_type::TransPtrTag, exec_space>;
@@ -1750,26 +2229,44 @@ public:
           Kokkos::parallel_scan("shiftRowptrT", range_policy_type(0, m+1), rowptr_sum(s0.rowptrL));
           exec_space().fence();
         }
+
+        s0.nnzL = s0.nnzU;
+        auto d_colindL = Kokkos::subview(colindL, range_type(nnzL, nnzL+s0.nnzL));
+        auto d_nzvalsL = Kokkos::subview(nzvalsL, range_type(nnzL, nnzL+s0.nnzL));
+        s0.colindL = d_colindL.data();
+        s0.nzvalsL = d_nzvalsL.data();
+        nnzL += s0.nnzL;
+ 
+        // ========================
+        // >> copy into transpose-matrix
+        extractor_crs.setRowPtrT(s0.rowptrL);
         extractor_crs.setCrsViewT(s0.colindL, s0.nzvalsL);
         {
-          // >> copy into transpose-matrix
           using team_policy_type = Kokkos::RangePolicy<typename functor_type::TransMatTag, exec_space>;
           team_policy_type team_policy(0, m);
           Kokkos::parallel_for("transpose pointer", team_policy, extractor_crs);
+          exec_space().fence();
         }
+        // ========================
+        // shift back
+        // (TODO: shift first to avoid this)
         {
-          // ========================
           // copy to CPU, for now
-          auto h_rowptr = Kokkos::create_mirror_view_and_copy(host_memory_space(), s0.rowptrL);
+          auto d_rowptrL = Kokkos::subview(rowptrL, range_type(ptr, ptr+m+1));
+          auto h_rowptr = Kokkos::create_mirror_view_and_copy(host_memory_space(), d_rowptrL);
           for (ordinal_type i = m; i > 0 ; i--) h_rowptr(i) = h_rowptr(i-1);
           h_rowptr(0) = 0;
-          Kokkos::deep_copy(s0.rowptrL, h_rowptr);
+          Kokkos::deep_copy(d_rowptrL, h_rowptr);
         }
       }
+      ptr += (1+m);
 
+#if (defined(KOKKOS_ENABLE_CUDA) && defined(TACHO_HAVE_CUSPARSE)) || \
+     defined(KOKKOS_ENABLE_HIP)
+      // ========================
+      // create NVIDIA/AMD data structures for SpMV
       size_t buffer_size_L = 0;
       size_t buffer_size_U = 0;
-      nnz = s0.colindU.extent(0);
       value_type alpha = one;
       #ifdef TACHO_INSERT_DIAGONALS
       value_type beta = zero;
@@ -1777,50 +2274,49 @@ public:
       value_type beta = one;
       #endif
 #if defined(KOKKOS_ENABLE_CUDA)
-      cusparseCreate(&s0.cusparseHandle);
       // create matrix
-      cusparseCreateCsr(&s0.U_cusparse, m, m, nnz,
-                        s0.rowptrU.data(), s0.colindU.data(), s0.nzvalsU.data(),
+      cusparseCreateCsr(&s0.U_cusparse, m, m, s0.nnzU,
+                        s0.rowptrU, s0.colindU, s0.nzvalsU,
                         CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
                         CUSPARSE_INDEX_BASE_ZERO, computeType);
 
 #ifdef USE_SPMM_FOR_WORKSPACE_SIZE
-      cusparseSpMM_bufferSize(s0.cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE,
+      cusparseSpMM_bufferSize(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE,
                               &alpha, s0.U_cusparse, vecX, &beta, vecY,
                               computeType, TACHO_CUSPARSE_SPMM_ALG, &buffer_size_U);
 #else
-      cusparseSpMV_bufferSize(s0.cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, &alpha, s0.U_cusparse, vecX, &beta, vecY,
+      cusparseSpMV_bufferSize(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, &alpha, s0.U_cusparse, vecX, &beta, vecY,
                               computeType, TACHO_CUSPARSE_SPMV_ALG, &buffer_size_U);
 #endif
       if (s0.spmv_explicit_transpose) {
-        // create matrix (transpose or L)
-        nnz = s0.colindL.extent(0);
-        cusparseCreateCsr(&s0.L_cusparse, m, m, nnz,
-                          s0.rowptrL.data(), s0.colindL.data(), s0.nzvalsL.data(),
+        // create matrix (transpose(U) or L)
+        cusparseCreateCsr(&s0.L_cusparse, m, m, s0.nnzL,
+                          s0.rowptrL, s0.colindL, s0.nzvalsL,
                           CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
                           CUSPARSE_INDEX_BASE_ZERO, computeType);
         // workspace size
 #ifdef USE_SPMM_FOR_WORKSPACE_SIZE
-        cusparseSpMM_bufferSize(s0.cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE,
+        cusparseSpMM_bufferSize(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE,
                                 &alpha, s0.L_cusparse, vecX, &beta, vecY,
                                 computeType, TACHO_CUSPARSE_SPMM_ALG, &buffer_size_L);
 #else
-        cusparseSpMV_bufferSize(s0.cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, &alpha, s0.L_cusparse, vecX, &beta, vecY,
+        cusparseSpMV_bufferSize(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, &alpha, s0.L_cusparse, vecX, &beta, vecY,
                                 computeType, TACHO_CUSPARSE_SPMV_ALG, &buffer_size_L);
 #endif
       } else {
         // create matrix (L_cusparse stores the same ptrs as descrU, but optimized for trans)
-        cusparseCreateCsr(&s0.L_cusparse, m, m, nnz,
-                          s0.rowptrU.data(), s0.colindU.data(), s0.nzvalsU.data(),
+        s0.nnzL = s0.nnzU;
+        cusparseCreateCsr(&s0.L_cusparse, m, m, s0.nnzL,
+                          s0.rowptrU, s0.colindU, s0.nzvalsU,
                           CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
                           CUSPARSE_INDEX_BASE_ZERO, computeType);
         // workspace size for transpose SpMV
 #ifdef USE_SPMM_FOR_WORKSPACE_SIZE
-        cusparseSpMM_bufferSize(s0.cusparseHandle, CUSPARSE_OPERATION_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE,
+        cusparseSpMM_bufferSize(cusparseHandle, CUSPARSE_OPERATION_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE,
                                 &alpha, s0.L_cusparse, vecX, &beta, vecY,
                                 computeType, TACHO_CUSPARSE_SPMM_ALG, &buffer_size_L);
 #else
-        cusparseSpMV_bufferSize(s0.cusparseHandle, CUSPARSE_OPERATION_TRANSPOSE, &alpha, s0.L_cusparse, vecX, &beta, vecY,
+        cusparseSpMV_bufferSize(cusparseHandle, CUSPARSE_OPERATION_TRANSPOSE, &alpha, s0.L_cusparse, vecX, &beta, vecY,
                                 computeType, TACHO_CUSPARSE_SPMV_ALG, &buffer_size_L);
 #endif
       }
@@ -1832,18 +2328,13 @@ public:
         Kokkos::resize(buffer_L, buffer_size_L);
       }
 #elif defined(KOKKOS_ENABLE_HIP)
-      rocsparse_create_handle(&s0.rocsparseHandle);
       // create matrix
-      rocsparse_create_csr_descr(&(s0.descrU), m, m, nnz,
-                                 s0.rowptrU.data(), s0.colindU.data(), s0.nzvalsU.data(),
+      rocsparse_create_csr_descr(&(s0.descrU), m, m, s0.nnzU,
+                                 s0.rowptrU, s0.colindU, s0.nzvalsU,
                                  rocsparse_indextype_i32, rocsparse_indextype_i32, rocsparse_index_base_zero, rocsparse_compute_type);
       // workspace
-      #if ROCM_VERSION >= 50400
-      rocsparse_spmv_ex
-      #else
-      rocsparse_spmv
-      #endif
-          (s0.rocsparseHandle, rocsparse_operation_none,
+      tacho_rocsparse_spmv
+          (rocsparseHandle, rocsparse_operation_none,
            &alpha, s0.descrU, vecX, &beta, vecY,
            rocsparse_compute_type, rocsparse_spmv_alg_default,
            #if ROCM_VERSION >= 50400
@@ -1857,8 +2348,8 @@ public:
       #if ROCM_VERSION >= 50400
       // preprocess
       buffer_size_U = buffer_U.extent(0);
-      rocsparse_spmv_ex
-          (s0.rocsparseHandle, rocsparse_operation_none,
+      tacho_rocsparse_spmv
+          (rocsparseHandle, rocsparse_operation_none,
            &alpha, s0.descrU, vecX, &beta, vecY,
            rocsparse_compute_type, rocsparse_spmv_alg_default,
            rocsparse_spmv_stage_preprocess,
@@ -1866,17 +2357,12 @@ public:
       #endif
       if (s0.spmv_explicit_transpose) {
         // create matrix (transpose)
-        nnz = s0.colindL.extent(0);
-        rocsparse_create_csr_descr(&(s0.descrL), m, m, nnz,
-                                   s0.rowptrL.data(), s0.colindL.data(), s0.nzvalsL.data(),
+        rocsparse_create_csr_descr(&(s0.descrL), m, m, s0.nnzL,
+                                   s0.rowptrL, s0.colindL, s0.nzvalsL,
                                    rocsparse_indextype_i32, rocsparse_indextype_i32, rocsparse_index_base_zero, rocsparse_compute_type);
         // workspace
-        #if ROCM_VERSION >= 50400
-        rocsparse_spmv_ex
-        #else
-        rocsparse_spmv
-        #endif
-          (s0.rocsparseHandle, rocsparse_operation_none,
+        tacho_rocsparse_spmv
+          (rocsparseHandle, rocsparse_operation_none,
            &alpha, s0.descrL, vecX, &beta, vecY,
            rocsparse_compute_type, rocsparse_spmv_alg_default,
            #if ROCM_VERSION >= 50400
@@ -1890,8 +2376,8 @@ public:
         #if ROCM_VERSION >= 50400
         // preprocess
         buffer_size_L = buffer_L.extent(0);
-        rocsparse_spmv_ex
-          (s0.rocsparseHandle, rocsparse_operation_none,
+        tacho_rocsparse_spmv
+          (rocsparseHandle, rocsparse_operation_none,
            &alpha, s0.descrL, vecX, &beta, vecY,
            rocsparse_compute_type, rocsparse_spmv_alg_default,
             rocsparse_spmv_stage_preprocess,
@@ -1899,17 +2385,12 @@ public:
         #endif
       } else {
         // create matrix, transpose (L_cusparse stores the same ptrs as descrU, but optimized for trans)
-        nnz = s0.colindL.extent(0);
-        rocsparse_create_csr_descr(&(s0.descrL), m, m, nnz,
-                                   s0.rowptrU.data(), s0.colindU.data(), s0.nzvalsU.data(),
+        rocsparse_create_csr_descr(&(s0.descrL), m, m, s0.nnzL,
+                                   s0.rowptrU, s0.colindU, s0.nzvalsU,
                                    rocsparse_indextype_i32, rocsparse_indextype_i32, rocsparse_index_base_zero, rocsparse_compute_type);
         // workspace (transpose)
-        #if ROCM_VERSION >= 50400
-        rocsparse_spmv_ex
-        #else
-        rocsparse_spmv
-        #endif
-          (s0.rocsparseHandle, rocsparse_operation_transpose,
+        tacho_rocsparse_spmv
+          (rocsparseHandle, rocsparse_operation_transpose,
            &alpha, s0.descrL, vecX, &beta, vecY,
            rocsparse_compute_type, rocsparse_spmv_alg_default,
            #if ROCM_VERSION >= 50400
@@ -1923,16 +2404,20 @@ public:
         #if ROCM_VERSION >= 50400
         // preprocess
         buffer_size_L = buffer_L.extent(0);
-        rocsparse_spmv_ex
-          (s0.rocsparseHandle, rocsparse_operation_transpose,
+        tacho_rocsparse_spmv
+          (rocsparseHandle, rocsparse_operation_transpose,
            &alpha, s0.descrL, vecX, &beta, vecY,
            rocsparse_compute_type, rocsparse_spmv_alg_default,
             rocsparse_spmv_stage_preprocess,
            &buffer_size_L, (void*)buffer_L.data());
         #endif
-      } 
+      }
+#endif
 #endif
     }
+
+#if (defined(KOKKOS_ENABLE_CUDA) && defined(TACHO_HAVE_CUSPARSE)) || \
+     defined(KOKKOS_ENABLE_HIP)
 #if defined(KOKKOS_ENABLE_CUDA)
 #ifdef USE_SPMM_FOR_WORKSPACE_SIZE
     cusparseDestroyDnMat(vecX);
@@ -1945,168 +2430,580 @@ public:
     rocsparse_destroy_dnvec_descr(vecX);
     rocsparse_destroy_dnvec_descr(vecY);
 #endif
+    _is_spmv_extracted = 1;
 #endif
   }
 
+  /// 
+  /// Release CRS extracted for SpMV
   ///
-  /// Level set factorize
-  ///
-  inline void factorizeCholesky(const value_type_array &ax, const ordinal_type verbose) {
-    constexpr bool is_host = std::is_same<exec_memory_space, Kokkos::HostSpace>::value;
-    Kokkos::Timer timer;
-    Kokkos::Timer tick;
-    double time_parallel = 0.0;
-    double time_device = 0.0;
-    double time_update = 0.0;
-
-    timer.reset();
-    value_type_array work;
-    {
-      _buf = value_type_array(do_not_initialize_tag("buf"), _bufsize_factorize);
-      track_alloc(_buf.span() * sizeof(value_type));
-
+  inline void releaseCRS(bool release_all) {
+    if(_is_spmv_extracted) {
+      Kokkos::fence();
+      if (release_all) {
+        for (ordinal_type lvl = 0; lvl < _team_serial_level_cut; ++lvl) {
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
-      value_type_matrix T(NULL, _info.max_supernode_size, _info.max_supernode_size);
-      const size_type worksize = Chol<Uplo::Upper, Algo::OnDevice>::invoke(_handle_lapack, T, work);
+          const ordinal_type pbeg = _h_level_ptr(lvl);
+#endif
+          // the first supernode in this lvl (where the CRS matrix is stored)
+#if defined(KOKKOS_ENABLE_CUDA)
+          auto &s0 = _h_supernodes(_h_level_sids(pbeg));
+          cusparseDestroySpMat(s0.U_cusparse);
+          cusparseDestroySpMat(s0.L_cusparse);
+#elif defined(KOKKOS_ENABLE_HIP)
+          auto &s0 = _h_supernodes(_h_level_sids(pbeg));
+          rocsparse_destroy_spmat_descr(s0.descrU);
+          rocsparse_destroy_spmat_descr(s0.descrL);
+#endif
+        }
+      }
+#if defined(TACHO_HAVE_CUSPARSE) && defined(KOKKOS_ENABLE_CUDA)
+      cusparseDestroy(cusparseHandle);
+      cusparseDestroyDnMat(matL);
+      cusparseDestroyDnVec(vecL);
+      cusparseDestroyDnMat(matU);
+      cusparseDestroyDnVec(vecU);
+      cusparseDestroyDnMat(matW);
+      cusparseDestroyDnVec(vecW); 
+#elif defined(KOKKOS_ENABLE_HIP)
+      rocsparse_destroy_handle(rocsparseHandle);
+      rocsparse_destroy_dnmat_descr(matL);
+      rocsparse_destroy_dnvec_descr(vecL);
+      rocsparse_destroy_dnmat_descr(matU);
+      rocsparse_destroy_dnvec_descr(vecU);
+      rocsparse_destroy_dnmat_descr(matW);
+      rocsparse_destroy_dnvec_descr(vecW); 
+#endif
+      _is_spmv_extracted = 0;
+    }
+  }
 
-      work = value_type_array(do_not_initialize_tag("work"), worksize * (_nstreams + 1));
-      track_alloc(work.span() * sizeof(value_type));
+
+  /// 
+  /// Functions for Solve
+  ///
+  inline void allocateWorkspaceSolve(const ordinal_type nrhs) {
+    if (variant == 3) {
+    } else {
+      const size_type buf_extent = _bufsize_solve * nrhs;
+      const size_type buf_span = _buf.span();
+
+      if (buf_extent > buf_span) {
+        if (_buf.span() > 0) track_free(buf_span * sizeof(value_type));
+        Kokkos::resize(_buf, buf_extent);
+        track_alloc(_buf.span() * sizeof(value_type));
+      }
+      if (nrhs > _nrhs) {
+        // update pointer to solver-workspace with differet nrhs
+        const Kokkos::RangePolicy<exec_space> policy(0, _buf_solve_ptr.extent(0));
+        const auto buf_solve_nrhs_ptr = _buf_solve_nrhs_ptr;
+        const auto buf_solve_ptr = _buf_solve_ptr;
+        Kokkos::parallel_for(
+            policy, KOKKOS_LAMBDA(const ordinal_type &i) { buf_solve_nrhs_ptr(i) = nrhs * buf_solve_ptr(i); });
+        Kokkos::deep_copy(_h_buf_solve_nrhs_ptr, _buf_solve_nrhs_ptr);
+        _nrhs = nrhs;
+      }
+    }
+  }
+
+  inline void solveGenericLowerOnDeviceVar2_SpMV(const ordinal_type lvl, const ordinal_type nlvls,
+                                                 const ordinal_type pbeg, const ordinal_type pend,
+                                                 const value_type_matrix &t) {
+    const ordinal_type m = t.extent(0);
+    const ordinal_type nrhs = t.extent(1);
+    const ordinal_type old_nrhs = _w_vec.extent(1);
+
+    auto &s0 = _h_supernodes(_h_level_sids(pbeg));
+    if (old_nrhs != nrhs) {
+      // expand workspace
+      Kokkos::resize(_w_vec, m, nrhs);
+    }
+#if (defined(KOKKOS_ENABLE_CUDA) && defined(TACHO_HAVE_CUSPARSE)) || \
+     defined(KOKKOS_ENABLE_HIP)
+    const ordinal_type ldt = t.stride(1);
+
+#if defined(KOKKOS_ENABLE_CUDA)
+    cudaDataType computeType = CUDA_R_64F;
+    if (std::is_same<value_type, float>::value) {
+      computeType = CUDA_R_32F;
+    } else if (!std::is_same<value_type, double>::value) {
+      TACHO_TEST_FOR_EXCEPTION(true, std::logic_error,
+                               "LevelSetTools::solveCholeskyLowerOnDevice: ComputeSPMV only supported double or float");
+    }
+#elif defined(KOKKOS_ENABLE_HIP)
+    rocsparse_datatype rocsparse_compute_type = rocsparse_datatype_f64_r;
+    if (std::is_same<value_type, float>::value) {
+      rocsparse_compute_type = rocsparse_datatype_f32_r;
+    } else if (!std::is_same<value_type, double>::value) {
+      TACHO_TEST_FOR_EXCEPTION(true, std::logic_error,
+                               "LevelSetTools::solveCholeskyLowerOnDevice: ComputeSPMV only supported double or float");
+    }
+#endif
+    #ifdef TACHO_INSERT_DIAGONALS
+    // compute t = L^{-1}*w
+    const value_type alpha (1);
+    const value_type beta  (0);
+    if (old_nrhs != nrhs) {
+      // attach to Cusparse/Rocsparse data struct
+      int ldw = _w_vec.stride(1);
+#if defined(KOKKOS_ENABLE_CUDA)
+      // destroy previous
+      cusparseDestroyDnMat(matW);
+      cusparseDestroyDnVec(vecW);
+      // create new
+      cusparseCreateDnMat(&matW, m, nrhs, ldw, (void*)(_w_vec.data()), computeType, CUSPARSE_ORDER_COL);
+      cusparseCreateDnVec(&vecW, m, (void*)(_w_vec.data()), computeType);
+#elif defined(KOKKOS_ENABLE_HIP)
+      // destroy previous
+      rocsparse_destroy_dnmat_descr(matW);
+      rocsparse_destroy_dnvec_descr(vecW);
+      // create new
+      rocsparse_create_dnmat_descr(&matW, m, nrhs, ldw, (void*)(_w_vec.data()), rocsparse_compute_type, rocsparse_order_column);
+      rocsparse_create_dnvec_descr(&vecW, m, (void*)(_w_vec.data()), rocsparse_compute_type);
 #endif
     }
-    stat.t_extra = timer.seconds();
-
-    timer.reset();
-    {
-      _ax = ax; // matrix values
-      constexpr bool copy_to_l_buf(false);
-      _info.copySparseToSuperpanels(copy_to_l_buf, _ap, _aj, _ax, _perm, _peri);
+    #else
+    exit(0);
+    #endif
+#if defined(KOKKOS_ENABLE_CUDA)
+    // Desctory old CSR
+    cusparseDestroySpMat(s0.L_cusparse);
+    // Re-create CuSparse CSR
+    if (s0.spmv_explicit_transpose) {
+      cusparseCreateCsr(&s0.L_cusparse, m, m, s0.nnzL,
+                        s0.rowptrL, s0.colindL, s0.nzvalsL,
+                        CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                        CUSPARSE_INDEX_BASE_ZERO, computeType);
+    } else {
+      cusparseCreateCsr(&s0.L_cusparse, m, m, s0.nnzU,
+                        s0.rowptrU, s0.colindU, s0.nzvalsU,
+                        CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                        CUSPARSE_INDEX_BASE_ZERO, computeType);
     }
-    if (_nstreams > 1) {
-      exec_space().fence(); // wait for copy
+    // Call SpMV/SPMM
+    cusparseStatus_t status;
+    cusparseOperation_t opL = (s0.spmv_explicit_transpose ? CUSPARSE_OPERATION_NON_TRANSPOSE : CUSPARSE_OPERATION_TRANSPOSE);
+    if (nrhs > 1) {
+      if (lvl == nlvls-1) {
+        // start : destroy previous
+        cusparseDestroyDnMat(matL);
+        // start : create DnMat for T
+        cusparseCreateDnMat(&matL, m, nrhs, ldt, (void*)(t.data()), computeType, CUSPARSE_ORDER_COL);
+      }
+      // create vectors
+      auto matX = ((nlvls-1-lvl)%2 == 0 ? matL : matW);
+      auto matY = ((nlvls-1-lvl)%2 == 0 ? matW : matL);
+      // SpMM
+      status = cusparseSpMM(cusparseHandle, opL, CUSPARSE_OPERATION_NON_TRANSPOSE,
+                            &alpha, s0.L_cusparse, 
+                                    matX,
+                            &beta,  matY,
+                            computeType, TACHO_CUSPARSE_SPMM_ALG, (void*)buffer_L.data());
+    } else {
+      if (lvl == nlvls-1) {
+        // start : destroy previous
+        cusparseDestroyDnVec(vecL);
+        // start : create DnMat for T
+        cusparseCreateDnVec(&vecL, m, (void*)(t.data()), computeType);
+      }
+      // create vectors
+      auto vecX = ((nlvls-1-lvl)%2 == 0 ? vecL : vecW);
+      auto vecY = ((nlvls-1-lvl)%2 == 0 ? vecW : vecL);
+      // SpMV
+      status = cusparseSpMV(cusparseHandle, opL,
+                            &alpha, s0.L_cusparse, 
+                                    vecX,
+                            &beta,  vecY,
+                            computeType, TACHO_CUSPARSE_SPMV_ALG, (void*)buffer_L.data());
     }
-    stat.t_copy = timer.seconds();
-
-    stat_level.n_kernel_launching = 0;
-    timer.reset();
-    {
-      // this should be considered with average problem sizes in levels
-      const ordinal_type half_level = _nlevel / 2;
-      // const ordinal_type team_size_factor[2] = { 64, 16 }, vector_size_factor[2] = { 8, 8};
-      // const ordinal_type team_size_factor[2] = { 16, 16 }, vector_size_factor[2] = { 32, 32};
-      const ordinal_type team_size_factor[2] = {64, 64}, vector_size_factor[2] = {8, 4};
-      const ordinal_type team_size_update[2] = {16, 8}, vector_size_update[2] = {32, 32};
-      {
-        typedef TeamFunctor_FactorizeChol<supernode_info_type> functor_type;
-#if defined(TACHO_TEST_LEVELSET_TOOLS_KERNEL_OVERHEAD)
-        typedef Kokkos::TeamPolicy<Kokkos::Schedule<Kokkos::Static>, exec_space, typename functor_type::DummyTag>
-            team_policy_factorize;
-        typedef Kokkos::TeamPolicy<Kokkos::Schedule<Kokkos::Static>, exec_space, typename functor_type::DummyTag>
-            team_policy_update;
+    if (CUSPARSE_STATUS_SUCCESS != status) {
+      printf( " Failed cusparseSpMV for SpMV (lower)\n" );
+    }
+#elif defined(KOKKOS_ENABLE_HIP)
+    rocsparse_status status;
+    if (nrhs > 1) {
+      if (lvl == nlvls-1) {
+        // start : destroy previous
+        rocsparse_destroy_dnmat_descr(matL);
+        // start : create DnMat for T
+        rocsparse_create_dnmat_descr(&matL, m, nrhs, ldt, (void*)(t.data()), rocsparse_compute_type, rocsparse_order_column);
+      }
+      // create vectors
+      auto vecX = ((nlvls-1-lvl)%2 == 0 ? matL : matW);
+      auto vecY = ((nlvls-1-lvl)%2 == 0 ? matW : matL);
+      if (s0.spmv_explicit_transpose) {
+        size_t buffer_size_L = buffer_L.extent(0);
+        status = rocsparse_spmm(rocsparseHandle, rocsparse_operation_none, rocsparse_operation_none,
+                                &alpha, s0.descrL, vecX, &beta, vecY,
+                                rocsparse_compute_type, rocsparse_spmm_alg_default,
+                                rocsparse_spmm_stage_compute,
+                                &buffer_size_L, (void*)buffer_L.data());
+      } else {
+        size_t buffer_size_L = buffer_L.extent(0);
+        status = rocsparse_spmm(rocsparseHandle, rocsparse_operation_transpose, rocsparse_operation_none,
+                                &alpha, s0.descrL, vecX, &beta, vecY, // dscrL stores the same ptrs as descrU, but optimized for trans
+                                rocsparse_compute_type, rocsparse_spmm_alg_default,
+                                rocsparse_spmm_stage_compute,
+                                &buffer_size_L, (void*)buffer_L.data());
+      }
+    } else {
+      if (lvl == nlvls-1) {
+        // start : destroy previous
+        rocsparse_destroy_dnvec_descr(vecL);
+        // start : create DnVec for T
+        rocsparse_create_dnvec_descr(&vecL, m, (void*)(t.data()), rocsparse_compute_type);
+      }
+      size_t buffer_size_L = buffer_L.extent(0);
+      auto vecX = ((nlvls-1-lvl)%2 == 0 ? vecL : vecW);
+      auto vecY = ((nlvls-1-lvl)%2 == 0 ? vecW : vecL);
+      if (s0.spmv_explicit_transpose) {
+        status = tacho_rocsparse_spmv
+          (rocsparseHandle, rocsparse_operation_none,
+           &alpha, s0.descrL, vecX, &beta, vecY,
+           rocsparse_compute_type, rocsparse_spmv_alg_default,
+           #if ROCM_VERSION >= 50400
+           rocsparse_spmv_stage_compute,
+           #endif
+           &buffer_size_L, (void*)buffer_L.data());
+      } else {
+        status = tacho_rocsparse_spmv
+          (rocsparseHandle, rocsparse_operation_transpose,
+           &alpha, s0.descrL, vecX, &beta, vecY, // dscrL stores the same ptrs as descrU, but optimized for trans
+           rocsparse_compute_type, rocsparse_spmv_alg_default,
+           #if ROCM_VERSION >= 50400
+           rocsparse_spmv_stage_compute,
+           #endif
+           &buffer_size_L, (void*)buffer_L.data());
+      }
+    }
+    if (rocsparse_status_success != status) {
+      printf( " Failed rocsparse_spmv for L\n" );
+    }
+#endif
 #else
-        typedef Kokkos::TeamPolicy<Kokkos::Schedule<Kokkos::Static>, exec_space,
-                                   typename functor_type::template FactorizeTag<variant>>
-            team_policy_factor;
-        typedef Kokkos::TeamPolicy<Kokkos::Schedule<Kokkos::Static>, exec_space, typename functor_type::UpdateTag>
-            team_policy_update;
-#endif
+    const value_type zero(0);
+    auto h_w = Kokkos::create_mirror_view_and_copy(host_memory_space(), ((nlvls-1-lvl)%2 == 0 ? t : _w_vec));
+    auto h_t = Kokkos::create_mirror_view(host_memory_space(), ((nlvls-1-lvl)%2 == 0 ? _w_vec : t));
+    Kokkos::deep_copy(h_t, zero);
 
-        int rval = 0;
-        team_policy_factor policy_factor(1, 1, 1);
-        team_policy_update policy_update(1, 1, 1);
-        functor_type functor(_info, _factorize_mode, _level_sids, _buf, &rval);
-
-        // get max vector size
-        const ordinal_type vmax = policy_factor.vector_length_max();
-        {
-          for (ordinal_type lvl = (_team_serial_level_cut - 1); lvl >= 0; --lvl) {
-            const ordinal_type pbeg = _h_level_ptr(lvl), pend = _h_level_ptr(lvl + 1), pcnt = pend - pbeg;
-
-            const range_type range_buf_factor_ptr(_h_buf_level_ptr(lvl), _h_buf_level_ptr(lvl + 1));
-
-            const auto buf_factor_ptr = Kokkos::subview(_buf_factor_ptr, range_buf_factor_ptr);
-            functor.setRange(pbeg, pend);
-            functor.setBufferPtr(buf_factor_ptr);
-            if (is_host) {
-              policy_factor = team_policy_factor(pcnt, 1, 1);
-              policy_update = team_policy_update(pcnt, 1, 1);
-            } else {
-              const ordinal_type idx = lvl > half_level;
-              // get max teamm size
-              policy_factor = team_policy_factor(pcnt, 1, std::min(vector_size_factor[idx],vmax));
-              policy_update = team_policy_update(pcnt, 1, std::min(vector_size_update[idx],vmax));
-              const ordinal_type factor_tmax = policy_factor.team_size_max(functor, Kokkos::ParallelForTag());
-              const ordinal_type update_tmax = policy_update.team_size_max(functor, Kokkos::ParallelForTag());;
-
-              // create policies
-              policy_factor = team_policy_factor(pcnt, std::min(team_size_factor[idx],factor_tmax), std::min(vector_size_factor[idx],vmax));
-              policy_update = team_policy_update(pcnt, std::min(team_size_update[idx],update_tmax), std::min(vector_size_update[idx],vmax));
-            }
-            if (lvl < _device_level_cut) {
-              // do nothing
-              // Kokkos::parallel_for("factor lower", policy_factor, functor);
-            } else {
-              if (verbose) {
-                Kokkos::fence(); tick.reset();
-              }
-              Kokkos::parallel_for("factor", policy_factor, functor);
-              if (verbose) {
-                Kokkos::fence(); time_parallel += tick.seconds();
-              }
-              ++stat_level.n_kernel_launching;
-            }
-
-            const auto h_buf_factor_ptr = Kokkos::subview(_h_buf_factor_ptr, range_buf_factor_ptr);
-            if (verbose) {
-              Kokkos::fence(); tick.reset();
-            }
-            factorizeCholeskyOnDevice(pbeg, pend, h_buf_factor_ptr, work);
-            if (verbose) {
-              Kokkos::fence(); time_device += tick.seconds();
-              tick.reset();
-            }
-            Kokkos::fence();
-            if (rval != 0) {
-              TACHO_TEST_FOR_EXCEPTION(rval, std::runtime_error, "POTRF (team) returns non-zero error code.");
-            }
-
-            Kokkos::parallel_for("update factor", policy_update, functor);
-            if (verbose) {
-              Kokkos::fence(); time_update += tick.seconds();
-            }
-            ++stat_level.n_kernel_launching;
-            exec_space().fence(); // Kokkos::fence();
+    if (s0.spmv_explicit_transpose) {
+      UnmanagedViewType<int_type_array>    d_rowptrL(s0.rowptrL, m+1);
+      UnmanagedViewType<int_type_array>    d_colindL(s0.colindL, s0.nnzL);
+      UnmanagedViewType<value_type_array>  d_nzvalsL(s0.nzvalsL, s0.nnzL);
+      auto h_rowptr = Kokkos::create_mirror_view_and_copy(host_memory_space(), d_rowptrL);
+      auto h_colind = Kokkos::create_mirror_view_and_copy(host_memory_space(), d_colindL);
+      auto h_nzvals = Kokkos::create_mirror_view_and_copy(host_memory_space(), d_nzvalsL);
+      for (ordinal_type i = 0; i < m ; i++) {
+        for (int k = h_rowptr(i); k < h_rowptr(i+1); k++) {
+          for (int j = 0; j < nrhs; j++) {
+            h_t(i, j) += h_nzvals(k) * h_w(h_colind(k), j);
           }
         }
       }
-    } // end of Cholesky
-    stat.t_factor = timer.seconds();
-    timer.reset();
-    if (variant == 3) {
-      // compress each partitioned inverse at each level into CRS matrix
-      bool lu = false;
-      extractCRS(lu);
+    } else {
+      UnmanagedViewType<int_type_array>    d_rowptrU(s0.rowptrU, m+1);
+      UnmanagedViewType<int_type_array>    d_colindU(s0.colindU, s0.nnzU);
+      UnmanagedViewType<value_type_array>  d_nzvalsU(s0.nzvalsU, s0.nnzU);
+      auto h_rowptr = Kokkos::create_mirror_view_and_copy(host_memory_space(), d_rowptrU);
+      auto h_colind = Kokkos::create_mirror_view_and_copy(host_memory_space(), d_colindU);
+      auto h_nzvals = Kokkos::create_mirror_view_and_copy(host_memory_space(), d_nzvalsU);
+      for (ordinal_type i = 0; i < m ; i++) {
+        for (int k = h_rowptr(i); k < h_rowptr(i+1); k++) {
+          for (int j = 0; j < nrhs; j++) {
+            h_t(h_colind(k), j) += h_nzvals(k) * h_w(i, j);
+          }
+        }
+      }
     }
-    {
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
-      track_free(work.span() * sizeof(value_type));
+    if ((nlvls-1-lvl)%2 == 0) {
+      Kokkos::deep_copy(_w_vec, h_t);
+    } else {
+      Kokkos::deep_copy(t, h_t);
+    }
 #endif
-      track_free(_buf.span() * sizeof(value_type));
-      _buf = value_type_array();
-    }
-    stat.t_extra += timer.seconds();
-
-    if (verbose) {
-      printf("Summary: LevelSetTools-Variant-%d (CholeskyFactorize)\n", variant);
-      printf("=====================================================\n");
-      printf( "\n  ** Team = %f s, Device = %f s, Update = %f s **\n\n",time_parallel,time_device,time_update );
-      print_stat_factor();
+    if (lvl == 0) {
+      // end : copy to output
+      if ((nlvls-1)%2 == 0) {
+        Kokkos::deep_copy(t, _w_vec);
+      }
     }
   }
 
-  inline void solveCholeskyLowerOnDeviceVar0(const ordinal_type pbeg, const ordinal_type pend,
-                                             const size_type_array_host &h_buf_solve_ptr, const value_type_matrix &t) {
+  inline void solveGenericUpperOnDeviceVar2_SpMV(const ordinal_type lvl, const ordinal_type nlvls,
+                                                 const ordinal_type pbeg, const ordinal_type pend,
+                                                 const value_type_matrix &t) {
+    const ordinal_type m = t.extent(0);
+    const ordinal_type nrhs = t.extent(1);
+
+    auto &s0 = _h_supernodes(_h_level_sids(pbeg));
+
+#if (defined(KOKKOS_ENABLE_CUDA) && defined(TACHO_HAVE_CUSPARSE)) || \
+     defined(KOKKOS_ENABLE_HIP)
+    #ifdef TACHO_INSERT_DIAGONALS
+    // x = t & y = w (lvl = 0,2,4)
+    // compute t = L^{-1}*w
+    const value_type alpha (1);
+    const value_type beta  (0);
+    const ordinal_type ldt = t.stride(1);
+    #else
+    exit(0);
+    #endif
+#if defined(KOKKOS_ENABLE_CUDA)
+    cudaDataType computeType = CUDA_R_64F;
+    if (std::is_same<value_type, float>::value) {
+      computeType = CUDA_R_32F;
+    } else if (!std::is_same<value_type, double>::value) {
+      TACHO_TEST_FOR_EXCEPTION(true, std::logic_error,
+                               "LevelSetTools::solveCholeskyLowerOnDevice: ComputeSPMV only supported double or float");
+    }
+
+    cusparseStatus_t status;
+    // Desctory old CSR
+    cusparseDestroySpMat(s0.U_cusparse);
+    // Re-create CuSparse CSR
+    cusparseCreateCsr(&s0.U_cusparse, m, m, s0.nnzU,
+                      s0.rowptrU, s0.colindU, s0.nzvalsU,
+                      CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                      CUSPARSE_INDEX_BASE_ZERO, computeType);
+
+    // Call SpMV/SPMM
+    if (nrhs > 1) {
+      if (lvl == 0) {
+        // start : destroy previous
+        cusparseDestroyDnMat(matU);
+        // start : create DnMat for T
+        cusparseCreateDnMat(&matU, m, nrhs, ldt, (void*)(t.data()), computeType, CUSPARSE_ORDER_COL);
+      }
+      auto vecX = (lvl%2 == 0 ? matU : matW);
+      auto vecY = (lvl%2 == 0 ? matW : matU);
+      // SpMM
+      status = cusparseSpMM(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE,
+                            &alpha, s0.U_cusparse, 
+                                    vecX,
+                            &beta,  vecY,
+                            computeType, TACHO_CUSPARSE_SPMM_ALG, (void*)buffer_U.data());
+    } else {
+      if (lvl == 0) {
+        // start : destroy previous
+        cusparseDestroyDnVec(vecU);
+        // start : create DnMat for T
+        cusparseCreateDnVec(&vecU, m, (void*)(t.data()), computeType);
+      }
+      auto vecX = (lvl%2 == 0 ? vecU : vecW);
+      auto vecY = (lvl%2 == 0 ? vecW : vecU);
+      // SpMV
+      status = cusparseSpMV(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE,
+                            &alpha, s0.U_cusparse, 
+                                    vecX,
+                            &beta,  vecY,
+                            computeType, TACHO_CUSPARSE_SPMV_ALG, (void*)buffer_U.data());
+    }
+    if (CUSPARSE_STATUS_SUCCESS != status) {
+       printf( " Failed cusparseSpMV for SpMV (upper)\n" );
+    }
+#elif defined(KOKKOS_ENABLE_HIP)
+    rocsparse_datatype rocsparse_compute_type = rocsparse_datatype_f64_r;
+    if (std::is_same<value_type, float>::value) {
+      rocsparse_compute_type = rocsparse_datatype_f32_r;
+    } else if (!std::is_same<value_type, double>::value) {
+      TACHO_TEST_FOR_EXCEPTION(true, std::logic_error,
+                               "LevelSetTools::solveCholeskyLowerOnDevice: ComputeSPMV only supported double or float");
+    }
+    size_t buffer_size_U = buffer_U.extent(0);
+    rocsparse_status status;
+    if (nrhs > 1) {
+      if (lvl == 0) {
+        // start : create DnMat for T
+        rocsparse_destroy_dnmat_descr(matU);
+        rocsparse_create_dnmat_descr(&matU, m, nrhs, ldt, (void*)(t.data()), rocsparse_compute_type, rocsparse_order_column);
+      }
+      auto vecX = (lvl%2 == 0 ? matU : matW);
+      auto vecY = (lvl%2 == 0 ? matW : matU);
+      status = rocsparse_spmm(rocsparseHandle, rocsparse_operation_none, rocsparse_operation_none,
+                              &alpha, s0.descrU, vecX, &beta, vecY,
+                              rocsparse_compute_type, rocsparse_spmm_alg_default,
+                              rocsparse_spmm_stage_compute,
+                              &buffer_size_U, (void*)buffer_U.data());
+    } else {
+      if (lvl == 0) {
+        // start : create DnVec for T
+        rocsparse_destroy_dnvec_descr(vecU);
+        rocsparse_create_dnvec_descr(&vecU, m, (void*)(t.data()), rocsparse_compute_type);
+      }
+      auto vecX = (lvl%2 == 0 ? vecU : vecW);
+      auto vecY = (lvl%2 == 0 ? vecW : vecU);
+      status = tacho_rocsparse_spmv
+          (rocsparseHandle, rocsparse_operation_none,
+           &alpha, s0.descrU, vecX, &beta, vecY,
+           rocsparse_compute_type, rocsparse_spmv_alg_default,
+           #if ROCM_VERSION >= 50400
+           rocsparse_spmv_stage_compute,
+           #endif
+           &buffer_size_U, (void*)buffer_U.data());
+    }
+    if (rocsparse_status_success != status) {
+      printf( " Failed rocsparse_spmv for U\n" );
+    }
+#endif
+#else
+    const value_type zero(0);
+    auto h_w = Kokkos::create_mirror_view_and_copy(host_memory_space(), (lvl%2 == 0 ? t : _w_vec));
+    auto h_t = Kokkos::create_mirror_view(host_memory_space(), (lvl%2 == 0 ? _w_vec : t));
+    Kokkos::deep_copy(h_t, zero);
+
+    UnmanagedViewType<int_type_array>    d_rowptrU(s0.rowptrU, m+1);
+    UnmanagedViewType<int_type_array>    d_colindU(s0.colindU, s0.nnzU);
+    UnmanagedViewType<value_type_array>  d_nzvalsU(s0.nzvalsU, s0.nnzU);
+    auto h_rowptr = Kokkos::create_mirror_view_and_copy(host_memory_space(), d_rowptrU);
+    auto h_colind = Kokkos::create_mirror_view_and_copy(host_memory_space(), d_colindU);
+    auto h_nzvals = Kokkos::create_mirror_view_and_copy(host_memory_space(), d_nzvalsU);
+
+    for (ordinal_type i = 0; i < m ; i++) {
+      for (int k = h_rowptr(i); k < h_rowptr(i+1); k++) {
+        for (int j = 0; j < nrhs; j++) {
+          h_t(i, j) += h_nzvals(k) * h_w(h_colind(k), j);
+        }
+      }
+    }
+    if (lvl%2 == 0) {
+      Kokkos::deep_copy(_w_vec, h_t);
+    } else {
+      Kokkos::deep_copy(t, h_t);
+    }
+#endif
+    if (lvl == nlvls-1) {
+      // end : copy to output
+      if (lvl%2 == 0) {
+        Kokkos::deep_copy(t, _w_vec);
+      }
+    }
+  }
+
+  /// 
+  /// Non-pivot LDL Lower
+  ///
+  inline void solveNoPivotLDLLowerOnDeviceVar0(const ordinal_type pbeg, const ordinal_type pend,
+                                              const size_type_array_host &h_buf_solve_ptr, const value_type_matrix &t) {
     const ordinal_type nrhs = t.extent(1);
     const value_type minus_one(-1), zero(0);
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+    ordinal_type q(0);
+#endif
+    exec_space exec_instance;
+    for (ordinal_type p = pbeg; p < pend; ++p) {
+      const ordinal_type sid = _h_level_sids(p);
+      if (_h_solve_mode(sid) == 0) {
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+        const ordinal_type qid = q % _nstreams;
+        blas_handle_type handle_blas = getBlasHandle(qid);
+        setStreamOnHandle(qid);
+        exec_instance = _exec_instances[qid];
+        ++q;
+#else
+        blas_handle_type handle_blas = getBlasHandle();
+#endif
+
+        const auto &s = _h_supernodes(sid);
+        {
+          const ordinal_type m = s.m, n = s.n, n_m = n - m;
+          if (m > 0) {
+            value_type *aptr = s.u_buf;
+            UnmanagedViewType<value_type_matrix> ATL(aptr, m, m);
+            aptr += ATL.span();
+
+            const ordinal_type offm = s.row_begin;
+            auto tT = Kokkos::subview(t, range_type(offm, offm + m), Kokkos::ALL());
+
+            _status =
+                Trsv<Uplo::Upper, Trans::ConjTranspose, Algo::OnDevice>::invoke(handle_blas, Diag::Unit(), ATL, tT);
+            checkDeviceBlasStatus("trsv");
+
+            if (n_m > 0) {
+              // solve offdiag
+              value_type *bptr = _buf.data() + h_buf_solve_ptr(p - pbeg);
+              UnmanagedViewType<value_type_matrix> ATR(aptr, m, n_m); // aptr += m*n_m;
+              UnmanagedViewType<value_type_matrix> bB(bptr, n_m, nrhs);
+
+              _status = Gemv<Trans::ConjTranspose, Algo::OnDevice>::invoke(handle_blas, minus_one, ATR, tT, zero, bB);
+              checkDeviceBlasStatus("gemv");
+            }
+
+            // Apply D^{-1} on off-diagonal
+            _status = Scale_BlockInverseDiagonals<Side::Left, Algo::OnDevice>::invoke(exec_instance, ATL, tT);
+            checkDeviceBlasStatus("scale");
+          }
+        }
+      }
+    }
+  }
+
+  inline void solveNoPivotLDLLowerOnDeviceVar1(const ordinal_type pbeg, const ordinal_type pend,
+                                               const size_type_array_host &h_buf_solve_ptr, const value_type_matrix &t) {
+    const ordinal_type nrhs = t.extent(1);
+    const value_type minus_one(-1), zero(0);
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+    ordinal_type q(0);
+#endif
+    exec_space exec_instance;
+    for (ordinal_type p = pbeg; p < pend; ++p) {
+      const ordinal_type sid = _h_level_sids(p);
+      if (_h_solve_mode(sid) == 0) {
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+        const ordinal_type qid = q % _nstreams;
+        blas_handle_type handle_blas = getBlasHandle(qid);
+        setStreamOnHandle(qid);
+        exec_instance = _exec_instances[qid];
+        ++q;
+#else
+        blas_handle_type handle_blas = getBlasHandle();
+#endif
+
+        const auto &s = _h_supernodes(sid);
+        {
+          const ordinal_type m = s.m, n = s.n, n_m = n - m;
+          if (m > 0) {
+            value_type *aptr = s.u_buf;
+            UnmanagedViewType<value_type_matrix> ATL(aptr, m, m);
+            aptr += m * m;
+
+            value_type *bptr = _buf.data() + h_buf_solve_ptr(p - pbeg);
+            UnmanagedViewType<value_type_matrix> bT(bptr, m, nrhs);
+            bptr += m * nrhs;
+
+            const ordinal_type offm = s.row_begin;
+            const auto tT = Kokkos::subview(t, range_type(offm, offm + m), Kokkos::ALL());
+
+             // Copy current block (TODO: should be in Trmv?)
+            _status = Copy<Algo::OnDevice>::invoke(exec_instance, bT, tT);
+            checkDeviceBlasStatus("copy");
+
+            // Solve diag (ATL is square)
+            _status = Trmv<Uplo::Upper, Trans::ConjTranspose, Algo::OnDevice>::invoke(handle_blas, Diag::Unit(), ATL, tT, bT);
+            checkDeviceBlasStatus("gemv");
+
+            if (n_m > 0) {
+              // Update offdiag
+              UnmanagedViewType<value_type_matrix> ATR(aptr, m, n_m);
+              UnmanagedViewType<value_type_matrix> bB(bptr, n_m, nrhs);
+
+              _status = Gemv<Trans::ConjTranspose, Algo::OnDevice>::invoke(handle_blas, minus_one, ATR, bT, zero, bB);
+              checkDeviceBlasStatus("gemv");
+            }
+
+            // Apply D^{-1} on off-diagonal
+            _status = Scale_BlockInverseDiagonals<Side::Left, Algo::OnDevice>::invoke(exec_instance, ATL, bT);
+            checkDeviceBlasStatus("scale");
+          }
+        }
+      }
+    }
+  }
+
+  inline void solveNoPivotLDLLowerOnDeviceVar2(const ordinal_type pbeg, const ordinal_type pend,
+                                               const size_type_array_host &h_buf_solve_ptr, const value_type_matrix &t) {
+    const ordinal_type nrhs = t.extent(1);
+
+    exec_space exec_instance;
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
     ordinal_type q(0);
 #endif
@@ -2117,6 +3014,265 @@ public:
         const ordinal_type qid = q % _nstreams;
         blas_handle_type handle_blas = getBlasHandle(qid);
         setStreamOnHandle(qid);
+        exec_instance = _exec_instances[qid];
+        ++q;
+#else
+        blas_handle_type handle_blas = getBlasHandle();
+#endif
+
+        const auto &s = _h_supernodes(sid);
+        {
+          const ordinal_type m = s.m, n = s.n;
+          if (m > 0) {
+            value_type *aptr = s.u_buf;
+            UnmanagedViewType<value_type_matrix> AT(aptr, m, n);
+
+            value_type *bptr = _buf.data() + h_buf_solve_ptr(p - pbeg);
+            UnmanagedViewType<value_type_matrix> b(bptr, n, nrhs);
+
+            const ordinal_type offm = s.row_begin;
+            auto tT = Kokkos::subview(t, range_type(offm, offm + m), Kokkos::ALL());
+
+            // Copy current block from t to buffer (NOTE: should be in Trmv?)
+            const auto dx = Kokkos::subview(b,  range_type(0, m), Kokkos::ALL());
+            _status = Copy<Algo::OnDevice>::invoke(exec_instance, dx, tT);
+            checkDeviceBlasStatus("copy");
+
+            // AT is short-wide: b := AT'\t : compute current block, and then use it to update off-diagonal
+            _status = Trmv<Uplo::Upper, Trans::ConjTranspose, Algo::OnDevice>::invoke(handle_blas, Diag::Unit(), AT, tT, b);
+            checkDeviceBlasStatus("trmv");
+
+            // Apply D^{-1} on diagonal (already updated using this block, also n >= m so diagonal block is stored first in aptr)
+            UnmanagedViewType<value_type_matrix> ATL(aptr, m, m);
+            _status = Scale_BlockInverseDiagonals<Side::Left, Algo::OnDevice>::invoke(exec_instance, ATL, dx);
+            checkDeviceBlasStatus("scale");
+          }
+        }
+      }
+    }
+  }
+
+  inline void solveNoPivotLDLLowerOnDevice(const ordinal_type lvl, const ordinal_type nlvls,
+                                           const ordinal_type pbeg, const ordinal_type pend,
+                                           const size_type_array_host &h_buf_solve_ptr, const value_type_matrix &t) {
+    if (variant == 0)
+      solveNoPivotLDLLowerOnDeviceVar0(pbeg, pend, h_buf_solve_ptr, t);
+    else if (variant == 1)
+      solveNoPivotLDLLowerOnDeviceVar1(pbeg, pend, h_buf_solve_ptr, t);
+    else if (variant == 2)
+      solveNoPivotLDLLowerOnDeviceVar2(pbeg, pend, h_buf_solve_ptr, t);
+    else if (variant == 3) {
+      // apply L^{-1}
+      solveGenericLowerOnDeviceVar2_SpMV(lvl, nlvls, pbeg, pend, t);
+      {
+        // apply D^{-1}
+        const ordinal_type nrhs = t.extent(1);
+        auto matY = (lvl == 0 ? t : ((nlvls-1-lvl)%2 == 0 ? _w_vec : t));
+        auto &s0 = _h_supernodes(_h_level_sids(pbeg));
+        const UnmanagedViewType<nzvals_view> matD(s0.nzvalsD, _m);
+
+        using policy_type = Kokkos::RangePolicy<exec_space>;
+        const auto policy = policy_type(0, _m);
+        Kokkos::parallel_for(
+            policy, KOKKOS_LAMBDA(const ordinal_type &i) {
+              for (ordinal_type j = 0; j < nrhs; j++) matY(i,j) = matY(i, j) / matD(i); 
+            });
+      }
+    } else {
+      TACHO_TEST_FOR_EXCEPTION(true, std::logic_error,
+                               "LevelSetTools::solveNoPivotLDLLowerOnDevice, algorithm variant is not supported");
+    }
+  }
+
+  /// 
+  /// Non-pivot LDL Upper
+  ///
+  inline void solveNoPivotLDLUpperOnDeviceVar0(const ordinal_type pbeg, const ordinal_type pend,
+                                               const size_type_array_host &h_buf_solve_ptr, const value_type_matrix &t) {
+    const ordinal_type nrhs = t.extent(1);
+    const value_type minus_one(-1), one(1);
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+    ordinal_type q(0);
+#endif
+    for (ordinal_type p = pbeg; p < pend; ++p) {
+      const ordinal_type sid = _h_level_sids(p);
+      if (_h_solve_mode(sid) == 0) {
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+        const ordinal_type qid = q % _nstreams;
+        blas_handle_type handle_blas = getBlasHandle(qid);
+        setStreamOnHandle(qid);
+        ++q;
+#else
+        blas_handle_type handle_blas = getBlasHandle();
+#endif
+
+        const auto &s = _h_supernodes(sid);
+        {
+          const ordinal_type m = s.m, n = s.n, n_m = n - m;
+          if (m > 0) {
+            value_type *aptr = s.u_buf, *bptr = _buf.data() + h_buf_solve_ptr(p - pbeg);
+            ;
+            const UnmanagedViewType<value_type_matrix> ATL(aptr, m, m);
+            aptr += m * m;
+            const UnmanagedViewType<value_type_matrix> bB(bptr, n_m, nrhs);
+
+            const ordinal_type offm = s.row_begin;
+            const auto tT = Kokkos::subview(t, range_type(offm, offm + m), Kokkos::ALL());
+
+            if (n_m > 0) {
+              const UnmanagedViewType<value_type_matrix> ATR(aptr, m, n_m); // aptr += m*n;
+              _status = Gemv<Trans::NoTranspose, Algo::OnDevice>::invoke(handle_blas, minus_one, ATR, bB, one, tT);
+              checkDeviceBlasStatus("gemv");
+            }
+            _status =
+                Trsv<Uplo::Upper, Trans::NoTranspose, Algo::OnDevice>::invoke(handle_blas, Diag::Unit(), ATL, tT);
+            checkDeviceBlasStatus("trsv");
+          }
+        }
+      }
+    }
+  }
+
+  inline void solveNoPivotLDLUpperOnDeviceVar1(const ordinal_type pbeg, const ordinal_type pend,
+                                               const size_type_array_host &h_buf_solve_ptr, const value_type_matrix &t) {
+    const ordinal_type nrhs = t.extent(1);
+    const value_type minus_one(-1), one(1);
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+    ordinal_type q(0);
+#endif
+    exec_space exec_instance;
+    for (ordinal_type p = pbeg; p < pend; ++p) {
+      const ordinal_type sid = _h_level_sids(p);
+      if (_h_solve_mode(sid) == 0) {
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+        const ordinal_type qid = q % _nstreams;
+        blas_handle_type handle_blas = getBlasHandle(qid);
+        setStreamOnHandle(qid);
+        exec_instance = _exec_instances[qid];
+        ++q;
+#else
+        blas_handle_type handle_blas = getBlasHandle();
+#endif
+        const auto &s = _h_supernodes(sid);
+        {
+          const ordinal_type m = s.m, n = s.n, n_m = n - m;
+          if (m > 0) {
+            value_type *aptr = s.u_buf, *bptr = _buf.data() + h_buf_solve_ptr(p - pbeg);
+
+            const UnmanagedViewType<value_type_matrix> ATL(aptr, m, m);
+            aptr += m * m;
+            const UnmanagedViewType<value_type_matrix> bT(bptr, m, nrhs);
+            bptr += m * nrhs;
+
+            const ordinal_type offm = s.row_begin;
+            const auto tT = Kokkos::subview(t, range_type(offm, offm + m), Kokkos::ALL());
+
+            // Update with off-diagonal
+            if (n_m > 0) {
+              const UnmanagedViewType<value_type_matrix> ATR(aptr, m, n_m); // aptr += m*n;
+              const UnmanagedViewType<value_type_matrix> bB(bptr, n_m, nrhs);
+              _status = Gemv<Trans::NoTranspose, Algo::OnDevice>::invoke(handle_blas, minus_one, ATR, bB, one, tT);
+              checkDeviceBlasStatus("gemv");
+            }
+
+            // Copy current block (NOTE: should be in Trmv?)
+            _status = Copy<Algo::OnDevice>::invoke(exec_instance, bT, tT);
+            checkDeviceBlasStatus("Copy");
+
+            // Solve with diagonal block
+            // invoke Gemv_OnDevice with handle_blas as member (which will call blas_/cublas_/rocblas_invoke)
+            _status = Trmv<Uplo::Upper, Trans::NoTranspose, Algo::OnDevice>::invoke(handle_blas, Diag::Unit(), ATL, tT, bT);
+            checkDeviceBlasStatus("gemv");
+
+            _status = Copy<Algo::OnDevice>::invoke(exec_instance, tT, bT);
+            checkDeviceBlasStatus("Copy");
+          }
+        }
+      }
+    }
+  }
+
+  inline void solveNoPivotLDLUpperOnDeviceVar2(const ordinal_type pbeg, const ordinal_type pend,
+                                               const size_type_array_host &h_buf_solve_ptr, const value_type_matrix &t) {
+    const ordinal_type nrhs = t.extent(1);
+    exec_space exec_instance;
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+    ordinal_type q(0);
+#endif
+    for (ordinal_type p = pbeg; p < pend; ++p) {
+      const ordinal_type sid = _h_level_sids(p);
+      if (_h_solve_mode(sid) == 0) {
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+        const ordinal_type qid = q % _nstreams;
+        blas_handle_type handle_blas = getBlasHandle(qid);
+        setStreamOnHandle(qid);
+        exec_instance = _exec_instances[qid];
+        ++q;
+#else
+        blas_handle_type handle_blas = getBlasHandle();
+#endif
+
+        const auto &s = _h_supernodes(sid);
+        {
+          const ordinal_type m = s.m, n = s.n;
+          if (m > 0 && n > 0) {
+            value_type *aptr = s.u_buf, *bptr = _buf.data() + h_buf_solve_ptr(p - pbeg);
+ 
+            const UnmanagedViewType<value_type_matrix> AT(aptr, m, n);
+            const UnmanagedViewType<value_type_matrix> b(bptr, n, nrhs);
+
+            const ordinal_type offm = s.row_begin;
+            const auto tT = Kokkos::subview(t, range_type(offm, offm + m), Kokkos::ALL());
+
+            // Copy current block (NOTE: should be in Trmv?)
+            const auto dx = Kokkos::subview(b, range_type(0, m), Kokkos::ALL());
+            _status = Copy<Algo::OnDevice>::invoke(exec_instance, tT, dx);
+            checkDeviceBlasStatus("copy");
+
+            _status = Trmv<Uplo::Upper, Trans::NoTranspose, Algo::OnDevice>::invoke(handle_blas, Diag::Unit(), AT, b, tT);
+            checkDeviceBlasStatus("trmv");
+          }
+        }
+      }
+    }
+  }
+
+  inline void solveNoPivotLDLUpperOnDevice(const ordinal_type lvl, const ordinal_type nlvls,
+                                           const ordinal_type pbeg, const ordinal_type pend,
+                                           const size_type_array_host &h_buf_solve_ptr, const value_type_matrix &t) {
+    if (variant == 0)
+      solveNoPivotLDLUpperOnDeviceVar0(pbeg, pend, h_buf_solve_ptr, t);
+    else if (variant == 1)
+      solveNoPivotLDLUpperOnDeviceVar1(pbeg, pend, h_buf_solve_ptr, t);
+    else if (variant == 2)
+      solveNoPivotLDLUpperOnDeviceVar2(pbeg, pend, h_buf_solve_ptr, t);
+    else if (variant == 3) {
+      solveGenericUpperOnDeviceVar2_SpMV(lvl, nlvls, pbeg, pend, t);
+    } else {
+      TACHO_TEST_FOR_EXCEPTION(true, std::logic_error,
+                               "LevelSetTools::solveNoPivotLDLUpperOnDevice, algorithm variant is not supported");
+    }
+  }
+
+  /// 
+  /// Cholesky Lower
+  ///
+  inline void solveCholeskyLowerOnDeviceVar0(const ordinal_type pbeg, const ordinal_type pend,
+                                             const size_type_array_host &h_buf_solve_ptr, const value_type_matrix &t) {
+    const ordinal_type nrhs = t.extent(1);
+    const value_type minus_one(-1), zero(0);
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+    ordinal_type q(0);
+#endif
+    exec_space exec_instance;
+    for (ordinal_type p = pbeg; p < pend; ++p) {
+      const ordinal_type sid = _h_level_sids(p);
+      if (_h_solve_mode(sid) == 0) {
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+        const ordinal_type qid = q % _nstreams;
+        blas_handle_type handle_blas = getBlasHandle(qid);
+        setStreamOnHandle(qid);
+        exec_instance = _exec_instances[qid];
         ++q;
 #else
         blas_handle_type handle_blas = getBlasHandle();
@@ -2141,6 +3297,7 @@ public:
               value_type *bptr = _buf.data() + h_buf_solve_ptr(p - pbeg);
               UnmanagedViewType<value_type_matrix> ATR(aptr, m, n_m); // aptr += m*n_m;
               UnmanagedViewType<value_type_matrix> bB(bptr, n_m, nrhs);
+
               _status = Gemv<Trans::ConjTranspose, Algo::OnDevice>::invoke(handle_blas, minus_one, ATR, tT, zero, bB);
               checkDeviceBlasStatus("gemv");
             }
@@ -2157,6 +3314,7 @@ public:
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
     ordinal_type q(0);
 #endif
+    exec_space exec_instance;
     for (ordinal_type p = pbeg; p < pend; ++p) {
       const ordinal_type sid = _h_level_sids(p);
       if (_h_solve_mode(sid) == 0) {
@@ -2164,6 +3322,7 @@ public:
         const ordinal_type qid = q % _nstreams;
         blas_handle_type handle_blas = getBlasHandle(qid);
         setStreamOnHandle(qid);
+        exec_instance = _exec_instances[qid];
         ++q;
 #else
         blas_handle_type handle_blas = getBlasHandle();
@@ -2184,11 +3343,12 @@ public:
             const ordinal_type offm = s.row_begin;
             const auto tT = Kokkos::subview(t, range_type(offm, offm + m), Kokkos::ALL());
 
+            // Solve diag
             _status = Gemv<Trans::ConjTranspose, Algo::OnDevice>::invoke(handle_blas, one, ATL, tT, zero, bT);
             checkDeviceBlasStatus("gemv");
 
             if (n_m > 0) {
-              // solve offdiag
+              // Update offdiag
               UnmanagedViewType<value_type_matrix> ATR(aptr, m, n_m);
               UnmanagedViewType<value_type_matrix> bB(bptr, n_m, nrhs);
 
@@ -2201,238 +3361,12 @@ public:
     }
   }
 
-  inline void solveGenericLowerOnDeviceVar2_SpMV(const ordinal_type lvl, const ordinal_type nlvls,
-                                                 const ordinal_type pbeg, const ordinal_type pend,
-                                                 const value_type_matrix &t) {
-#if (defined(KOKKOS_ENABLE_CUDA) && defined(TACHO_HAVE_CUSPARSE)) || \
-     defined(KOKKOS_ENABLE_HIP)
-    const ordinal_type m = t.extent(0);
-    const ordinal_type nrhs = t.extent(1);
-#if defined(KOKKOS_ENABLE_CUDA)
-    cudaDataType computeType = CUDA_R_64F;
-    if (std::is_same<value_type, float>::value) {
-      computeType = CUDA_R_32F;
-    } else if (!std::is_same<value_type, double>::value) {
-      TACHO_TEST_FOR_EXCEPTION(true, std::logic_error,
-                               "LevelSetTools::solveCholeskyLowerOnDevice: ComputeSPMV only supported double or float");
-    }
-#elif defined(KOKKOS_ENABLE_HIP)
-    rocsparse_datatype rocsparse_compute_type = rocsparse_datatype_f64_r;
-    if (std::is_same<value_type, float>::value) {
-      rocsparse_compute_type = rocsparse_datatype_f32_r;
-    } else if (!std::is_same<value_type, double>::value) {
-      TACHO_TEST_FOR_EXCEPTION(true, std::logic_error,
-                               "LevelSetTools::solveCholeskyLowerOnDevice: ComputeSPMV only supported double or float");
-    }
-#endif
-    #ifdef TACHO_INSERT_DIAGONALS
-    // compute t = L^{-1}*w
-    const value_type alpha (1);
-    const value_type beta  (0);
-    if (_w_vec.extent(1) != nrhs) {
-      // expand workspace
-      Kokkos::resize(_w_vec, m, nrhs);
-      // attach to Cusparse/Rocsparse data struct
-      int ldw = _w_vec.stride(1);
-#if defined(KOKKOS_ENABLE_CUDA)
-      cusparseCreateDnMat(&matW, m, nrhs, ldw, (void*)(_w_vec.data()), computeType, CUSPARSE_ORDER_COL);
-      cusparseCreateDnVec(&vecW, m, (void*)(_w_vec.data()), computeType);
-#elif defined(KOKKOS_ENABLE_HIP)
-      rocsparse_create_dnmat_descr(&matW, m, nrhs, ldw, (void*)(_w_vec.data()), rocsparse_compute_type, rocsparse_order_column);
-      rocsparse_create_dnvec_descr(&vecW, m, (void*)(_w_vec.data()), rocsparse_compute_type);
-#endif
-    }
-    const ordinal_type ldt = t.stride(1);
-    const ordinal_type ldw = _w_vec.stride(1);
-    auto &s0 = _h_supernodes(_h_level_sids(pbeg));
-    #else
-    exit(0);
-    #endif
-#if defined(KOKKOS_ENABLE_CUDA)
-    // Re-create CuSparse CSR
-    if (s0.spmv_explicit_transpose) {
-      size_t nnz = s0.nzvalsL.extent(0);
-      cusparseCreateCsr(&s0.L_cusparse, m, m, nnz,
-                        s0.rowptrL.data(), s0.colindL.data(), s0.nzvalsL.data(),
-                        CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
-                        CUSPARSE_INDEX_BASE_ZERO, computeType);
-    } else {
-      size_t nnz = s0.nzvalsU.extent(0);
-      cusparseCreateCsr(&s0.L_cusparse, m, m, nnz,
-                        s0.rowptrU.data(), s0.colindU.data(), s0.nzvalsU.data(),
-                        CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
-                        CUSPARSE_INDEX_BASE_ZERO, computeType);
-    }
-    // Call SpMV/SPMM
-    cusparseStatus_t status;
-    if (nrhs > 1) {
-      if (lvl == nlvls-1) {
-        // start : create DnMat for T
-        cusparseCreateDnMat(&matT, m, nrhs, ldt, (void*)(t.data()), computeType, CUSPARSE_ORDER_COL);
-      }
-      // create vectors
-      auto matX = ((nlvls-1-lvl)%2 == 0 ? matT : matW);
-      auto matY = ((nlvls-1-lvl)%2 == 0 ? matW : matT);
-      // SpMM
-      if (s0.spmv_explicit_transpose) {
-        status = cusparseSpMM(s0.cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE,
-                              &alpha, s0.L_cusparse, 
-                                      matX,
-                              &beta,  matY,
-                              computeType, TACHO_CUSPARSE_SPMM_ALG, (void*)buffer_L.data());
-      } else {
-        status = cusparseSpMM(s0.cusparseHandle, CUSPARSE_OPERATION_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE,
-                              &alpha, s0.L_cusparse,  // L_cusparse stores the same ptrs as descrU, but optimized for trans
-                                      matX,
-                              &beta,  matY,
-                              computeType, TACHO_CUSPARSE_SPMM_ALG, (void*)buffer_L.data());
-      }
-    } else {
-      if (lvl == nlvls-1) {
-        // start : create DnMat for T
-        cusparseCreateDnVec(&vecT, m, (void*)(t.data()), computeType);
-      }
-      // create vectors
-      auto vecX = ((nlvls-1-lvl)%2 == 0 ? vecT : vecW);
-      auto vecY = ((nlvls-1-lvl)%2 == 0 ? vecW : vecT);
-      // SpMV
-      if (s0.spmv_explicit_transpose) {
-        status = cusparseSpMV(s0.cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE,
-                              &alpha, s0.L_cusparse, 
-                                      vecX,
-                              &beta,  vecY,
-                              computeType, TACHO_CUSPARSE_SPMV_ALG, (void*)buffer_L.data());
-      } else {
-        status = cusparseSpMV(s0.cusparseHandle, CUSPARSE_OPERATION_TRANSPOSE,
-                              &alpha, s0.L_cusparse, // L_cusparse stores the same ptrs as descrU, but optimized for trans
-                                      vecX,
-                              &beta,  vecY,
-                              computeType, TACHO_CUSPARSE_SPMV_ALG, (void*)buffer_L.data());
-      }
-    }
-    if (CUSPARSE_STATUS_SUCCESS != status) {
-      printf( " Failed cusparseSpMV for SpMV\n" );
-    }
-#elif defined(KOKKOS_ENABLE_HIP)
-    rocsparse_status status;
-    if (nrhs > 1) {
-      if (lvl == nlvls-1) {
-        // start : create DnMat for T
-        rocsparse_create_dnmat_descr(&matT, m, nrhs, ldt, (void*)(t.data()), rocsparse_compute_type, rocsparse_order_column);
-      }
-      // create vectors
-      auto vecX = ((nlvls-1-lvl)%2 == 0 ? matT : matW);
-      auto vecY = ((nlvls-1-lvl)%2 == 0 ? matW : matT);
-      if (s0.spmv_explicit_transpose) {
-        size_t buffer_size_L = buffer_L.extent(0);
-        status = rocsparse_spmm(s0.rocsparseHandle, rocsparse_operation_none, rocsparse_operation_none,
-                                &alpha, s0.descrL, vecX, &beta, vecY,
-                                rocsparse_compute_type, rocsparse_spmm_alg_default,
-                                rocsparse_spmm_stage_compute,
-                                &buffer_size_L, (void*)buffer_L.data());
-      } else {
-        size_t buffer_size_L = buffer_L.extent(0);
-        status = rocsparse_spmm(s0.rocsparseHandle, rocsparse_operation_transpose, rocsparse_operation_none,
-                                &alpha, s0.descrL, vecX, &beta, vecY, // dscrL stores the same ptrs as descrU, but optimized for trans
-                                rocsparse_compute_type, rocsparse_spmm_alg_default,
-                                rocsparse_spmm_stage_compute,
-                                &buffer_size_L, (void*)buffer_L.data());
-      }
-    } else {
-      if (lvl == nlvls-1) {
-        // start : create DnVec for T
-        rocsparse_create_dnvec_descr(&vecT, m, (void*)(t.data()), rocsparse_compute_type);
-      }
-      size_t buffer_size_L = buffer_L.extent(0);
-      auto vecX = ((nlvls-1-lvl)%2 == 0 ? vecT : vecW);
-      auto vecY = ((nlvls-1-lvl)%2 == 0 ? vecW : vecT);
-      if (s0.spmv_explicit_transpose) {
-        status =
-          #if ROCM_VERSION >= 50400
-          rocsparse_spmv_ex
-          #else
-          rocsparse_spmv
-          #endif
-          (s0.rocsparseHandle, rocsparse_operation_none,
-           &alpha, s0.descrL, vecX, &beta, vecY,
-           rocsparse_compute_type, rocsparse_spmv_alg_default,
-           #if ROCM_VERSION >= 50400
-           rocsparse_spmv_stage_compute,
-           #endif
-           &buffer_size_L, (void*)buffer_L.data());
-      } else {
-        status =
-          #if ROCM_VERSION >= 50400
-          rocsparse_spmv_ex
-          #else
-          rocsparse_spmv
-          #endif
-          (s0.rocsparseHandle, rocsparse_operation_transpose,
-           &alpha, s0.descrL, vecX, &beta, vecY, // dscrL stores the same ptrs as descrU, but optimized for trans
-           rocsparse_compute_type, rocsparse_spmv_alg_default,
-           #if ROCM_VERSION >= 50400
-           rocsparse_spmv_stage_compute,
-           #endif
-           &buffer_size_L, (void*)buffer_L.data());
-      }
-    }
-    if (rocsparse_status_success != status) {
-      printf( " Failed rocsparse_spmv for L\n" );
-    }
-#else
-    const value_type zero(0);
-    auto h_w = Kokkos::create_mirror_view_and_copy(host_memory_space(), ((nlvls-1-lvl)%2 == 0 ? t : _w_vec));
-    auto h_t = Kokkos::create_mirror_view(host_memory_space(), ((nlvls-1-lvl)%2 == 0 ? _w_vec : t));
-    Kokkos::deep_copy(h_t, zero);
-
-    if (s0.spmv_explicit_transpose) {
-      auto h_rowptr = Kokkos::create_mirror_view_and_copy(host_memory_space(), s0.rowptrL);
-      auto h_colind = Kokkos::create_mirror_view_and_copy(host_memory_space(), s0.colindL);
-      auto h_nzvals = Kokkos::create_mirror_view_and_copy(host_memory_space(), s0.nzvalsL);
-      for (ordinal_type i = 0; i < m ; i++) {
-        for (int k = h_rowptr(i); k < h_rowptr(i+1); k++) {
-          for (int j = 0; j < nrhs; j++) {
-            h_t(i, j) += h_nzvals(k) * h_w(h_colind(k), j);
-          }
-        }
-      }
-    } else {
-      auto h_rowptr = Kokkos::create_mirror_view_and_copy(host_memory_space(), s0.rowptrU);
-      auto h_colind = Kokkos::create_mirror_view_and_copy(host_memory_space(), s0.colindU);
-      auto h_nzvals = Kokkos::create_mirror_view_and_copy(host_memory_space(), s0.nzvalsU);
-      for (ordinal_type i = 0; i < m ; i++) {
-        for (int k = h_rowptr(i); k < h_rowptr(i+1); k++) {
-          for (int j = 0; j < nrhs; j++) {
-            h_t(h_colind(k), j) += h_nzvals(k) * h_w(i, j);
-          }
-        }
-      }
-    }
-#endif
-    if (lvl == 0) {
-      // end : destroy vectors
-#if defined(KOKKOS_ENABLE_CUDA) && defined(TACHO_HAVE_CUSPARSE)
-      if (nrhs > 1)
-        cusparseDestroyDnMat(matT);
-      else
-        cusparseDestroyDnVec(vecT);
-#elif defined(KOKKOS_ENABLE_HIP)
-      if (nrhs > 1)
-        rocsparse_destroy_dnmat_descr(matT);
-      else
-        rocsparse_destroy_dnvec_descr(vecT);
-#endif
-      if ((nlvls-1)%2 == 0) {
-        Kokkos::deep_copy(t, _w_vec);
-      }
-    }
-#endif
-  }
-
   inline void solveCholeskyLowerOnDeviceVar2(const ordinal_type pbeg, const ordinal_type pend,
                                              const size_type_array_host &h_buf_solve_ptr, const value_type_matrix &t) {
-    const ordinal_type nrhs = t.extent(1);
     const value_type one(1), zero(0);
+    const ordinal_type nrhs = t.extent(1);
+
+    exec_space exec_instance;
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
     ordinal_type q(0);
 #endif
@@ -2443,6 +3377,7 @@ public:
         const ordinal_type qid = q % _nstreams;
         blas_handle_type handle_blas = getBlasHandle(qid);
         setStreamOnHandle(qid);
+        exec_instance = _exec_instances[qid];
         ++q;
 #else
         blas_handle_type handle_blas = getBlasHandle();
@@ -2486,6 +3421,9 @@ public:
     }
   }
 
+  /// 
+  /// Cholesky Upper
+  ///
   inline void solveCholeskyUpperOnDeviceVar0(const ordinal_type pbeg, const ordinal_type pend,
                                              const size_type_array_host &h_buf_solve_ptr, const value_type_matrix &t) {
     const ordinal_type nrhs = t.extent(1);
@@ -2493,7 +3431,6 @@ public:
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
     ordinal_type q(0);
 #endif
-    exec_space exec_instance;
     for (ordinal_type p = pbeg; p < pend; ++p) {
       const ordinal_type sid = _h_level_sids(p);
       if (_h_solve_mode(sid) == 0) {
@@ -2567,6 +3504,7 @@ public:
             const ordinal_type offm = s.row_begin;
             const auto tT = Kokkos::subview(t, range_type(offm, offm + m), Kokkos::ALL());
 
+            // Update with off-diagonal
             if (n_m > 0) {
               const UnmanagedViewType<value_type_matrix> ATR(aptr, m, n_m); // aptr += m*n;
               const UnmanagedViewType<value_type_matrix> bB(bptr, n_m, nrhs);
@@ -2574,6 +3512,8 @@ public:
               checkDeviceBlasStatus("gemv");
             }
 
+            // Solve with diagonal block
+            // invoke Gemv_OnDevice with handle_blas as member (which will call blas_/cublas_/rocblas_invoke)
             _status = Gemv<Trans::NoTranspose, Algo::OnDevice>::invoke(handle_blas, one, ATL, tT, zero, bT);
             checkDeviceBlasStatus("gemv");
 
@@ -2585,162 +3525,12 @@ public:
     }
   }
 
-  inline void solveGenericUpperOnDeviceVar2_SpMV(const ordinal_type lvl, const ordinal_type nlvls,
-                                                 const ordinal_type pbeg, const ordinal_type pend,
-                                                 const value_type_matrix &t) {
-#if (defined(KOKKOS_ENABLE_CUDA) && defined(TACHO_HAVE_CUSPARSE)) || \
-     defined(KOKKOS_ENABLE_HIP)
-    const ordinal_type m = t.extent(0);
-    const ordinal_type nrhs = t.extent(1);
-
-    auto &s0 = _h_supernodes(_h_level_sids(pbeg));
-
-    #ifdef TACHO_INSERT_DIAGONALS
-    // x = t & y = w (lvl = 0,2,4)
-    // compute t = L^{-1}*w
-    const value_type alpha (1);
-    const value_type beta  (0);
-    const ordinal_type ldt = t.stride(1);
-    const ordinal_type ldw = _w_vec.stride(1);
-    #else
-    exit(0);
-    #endif
-#if defined(KOKKOS_ENABLE_CUDA)
-    cudaDataType computeType = CUDA_R_64F;
-    if (std::is_same<value_type, float>::value) {
-      computeType = CUDA_R_32F;
-    } else if (!std::is_same<value_type, double>::value) {
-      TACHO_TEST_FOR_EXCEPTION(true, std::logic_error,
-                               "LevelSetTools::solveCholeskyLowerOnDevice: ComputeSPMV only supported double or float");
-    }
-
-    cusparseStatus_t status;
-    // Re-create CuSparse CSR
-    size_t nnz = s0.nzvalsU.extent(0);
-    cusparseCreateCsr(&s0.U_cusparse, m, m, nnz,
-                      s0.rowptrU.data(), s0.colindU.data(), s0.nzvalsU.data(),
-                      CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
-                      CUSPARSE_INDEX_BASE_ZERO, computeType);
-    // Call SpMV/SPMM
-    if (nrhs > 1) {
-      if (lvl == 0) {
-        // start : create DnMat for T
-        cusparseCreateDnMat(&matT, m, nrhs, ldt, (void*)(t.data()), computeType, CUSPARSE_ORDER_COL);
-      }
-      auto vecX = (lvl%2 == 0 ? matT : matW);
-      auto vecY = (lvl%2 == 0 ? matW : matT);
-      // SpMM
-      status = cusparseSpMM(s0.cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE,
-                            &alpha, s0.U_cusparse, 
-                                    vecX,
-                            &beta,  vecY,
-                            computeType, TACHO_CUSPARSE_SPMM_ALG, (void*)buffer_U.data());
-    } else {
-      if (lvl == 0) {
-        // start : create DnMat for T
-        cusparseCreateDnVec(&vecT, m, (void*)(t.data()), computeType);
-      }
-      auto vecX = (lvl%2 == 0 ? vecT : vecW);
-      auto vecY = (lvl%2 == 0 ? vecW : vecT);
-      // SpMV
-      status = cusparseSpMV(s0.cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE,
-                            &alpha, s0.U_cusparse, 
-                                    vecX,
-                            &beta,  vecY,
-                            computeType, TACHO_CUSPARSE_SPMV_ALG, (void*)buffer_U.data());
-    }
-    if (CUSPARSE_STATUS_SUCCESS != status) {
-       printf( " Failed cusparseSpMV for SpMV\n" );
-    }
-#elif defined(KOKKOS_ENABLE_HIP)
-    rocsparse_datatype rocsparse_compute_type = rocsparse_datatype_f64_r;
-    if (std::is_same<value_type, float>::value) {
-      rocsparse_compute_type = rocsparse_datatype_f32_r;
-    } else if (!std::is_same<value_type, double>::value) {
-      TACHO_TEST_FOR_EXCEPTION(true, std::logic_error,
-                               "LevelSetTools::solveCholeskyLowerOnDevice: ComputeSPMV only supported double or float");
-    }
-    size_t buffer_size_U = buffer_U.extent(0);
-    rocsparse_status status;
-    if (nrhs > 1) {
-      if (lvl == 0) {
-        // start : create DnMat for T
-        rocsparse_create_dnmat_descr(&matT, m, nrhs, ldt, (void*)(t.data()), rocsparse_compute_type, rocsparse_order_column);
-      }
-      auto vecX = (lvl%2 == 0 ? matT : matW);
-      auto vecY = (lvl%2 == 0 ? matW : matT);
-      status = rocsparse_spmm(s0.rocsparseHandle, rocsparse_operation_none, rocsparse_operation_none,
-                              &alpha, s0.descrU, vecX, &beta, vecY,
-                              rocsparse_compute_type, rocsparse_spmm_alg_default,
-                              rocsparse_spmm_stage_compute,
-                              &buffer_size_U, (void*)buffer_U.data());
-    } else {
-      if (lvl == 0) {
-        // start : create DnVec for T
-        rocsparse_create_dnvec_descr(&vecT, m, (void*)(t.data()), rocsparse_compute_type);
-      }
-      auto vecX = (lvl%2 == 0 ? vecT : vecW);
-      auto vecY = (lvl%2 == 0 ? vecW : vecT);
-      status =
-        #if ROCM_VERSION >= 50400
-        rocsparse_spmv_ex
-        #else
-        rocsparse_spmv
-        #endif
-          (s0.rocsparseHandle, rocsparse_operation_none,
-           &alpha, s0.descrU, vecX, &beta, vecY,
-           rocsparse_compute_type, rocsparse_spmv_alg_default,
-           #if ROCM_VERSION >= 50400
-           rocsparse_spmv_stage_compute,
-           #endif
-           &buffer_size_U, (void*)buffer_U.data());
-    }
-    if (rocsparse_status_success != status) {
-      printf( " Failed rocsparse_spmv for U\n" );
-    }
-#else
-    const value_type zero(0);
-    auto h_w = Kokkos::create_mirror_view_and_copy(host_memory_space(), (lvl%2 == 0 ? t : _w_vec));
-    auto h_t = Kokkos::create_mirror_view(host_memory_space(), (lvl%2 == 0 ? _w_vec : t));
-    Kokkos::deep_copy(h_t, zero);
-
-    auto h_rowptr = Kokkos::create_mirror_view_and_copy(host_memory_space(), s0.rowptrU);
-    auto h_colind = Kokkos::create_mirror_view_and_copy(host_memory_space(), s0.colindU);
-    auto h_nzvals = Kokkos::create_mirror_view_and_copy(host_memory_space(), s0.nzvalsU);
-
-    for (ordinal_type i = 0; i < m ; i++) {
-      for (int k = h_rowptr(i); k < h_rowptr(i+1); k++) {
-        for (int j = 0; j < nrhs; j++) {
-          h_t(i, j) += h_nzvals(k) * h_w(h_colind(k), j);
-        }
-      }
-    }
-    Kokkos::deep_copy(t, h_t);
-#endif
-    if (lvl == nlvls-1) {
-      // end : destroy vectors
-#if defined(KOKKOS_ENABLE_CUDA) && defined(TACHO_HAVE_CUSPARSE)
-      if (nrhs > 1)
-        cusparseDestroyDnMat(matT);
-      else
-        cusparseDestroyDnVec(vecT);
-#elif defined(KOKKOS_ENABLE_HIP)
-      if (nrhs > 1)
-        rocsparse_destroy_dnmat_descr(matT);
-      else
-        rocsparse_destroy_dnvec_descr(vecT);
-#endif
-      if (lvl%2 == 0) {
-        Kokkos::deep_copy(t, _w_vec);
-      }
-    }
-#endif
-  }
-
   inline void solveCholeskyUpperOnDeviceVar2(const ordinal_type pbeg, const ordinal_type pend,
                                              const size_type_array_host &h_buf_solve_ptr, const value_type_matrix &t) {
-    const ordinal_type nrhs = t.extent(1);
     const value_type one(1), zero(0);
+    const ordinal_type nrhs = t.extent(1);
+
+    exec_space exec_instance;
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
     ordinal_type q(0);
 #endif
@@ -2751,6 +3541,7 @@ public:
         const ordinal_type qid = q % _nstreams;
         blas_handle_type handle_blas = getBlasHandle(qid);
         setStreamOnHandle(qid);
+        exec_instance = _exec_instances[qid];
         ++q;
 #else
         blas_handle_type handle_blas = getBlasHandle();
@@ -2761,7 +3552,7 @@ public:
           const ordinal_type m = s.m, n = s.n;
           if (m > 0 && n > 0) {
             value_type *aptr = s.u_buf, *bptr = _buf.data() + h_buf_solve_ptr(p - pbeg);
-            ;
+ 
             const UnmanagedViewType<value_type_matrix> AT(aptr, m, n);
             const UnmanagedViewType<value_type_matrix> b(bptr, n, nrhs);
 
@@ -2793,6 +3584,9 @@ public:
     }
   }
 
+  /// 
+  /// LDL Lower
+  ///
   inline void solveLDL_LowerOnDeviceVar0(const ordinal_type pbeg, const ordinal_type pend,
                                          const size_type_array_host &h_buf_solve_ptr, const value_type_matrix &t) {
     const ordinal_type nrhs = t.extent(1);
@@ -2971,6 +3765,9 @@ public:
     }
   }
 
+  /// 
+  /// LDL Upper
+  ///
   inline void solveLDL_UpperOnDeviceVar0(const ordinal_type pbeg, const ordinal_type pend,
                                          const size_type_array_host &h_buf_solve_ptr, const value_type_matrix &t) {
     const ordinal_type nrhs = t.extent(1);
@@ -3122,7 +3919,7 @@ public:
 
             const ordinal_type offm = s.row_begin;
             const auto tT = Kokkos::subview(t, range_type(offm, offm + m), Kokkos::ALL());
-            const UnmanagedViewType<value_type_matrix> bT(bptr, m, nrhs);
+            const auto bT = Kokkos::subview(b, range_type(0, m), Kokkos::ALL());
 
             ConstUnmanagedViewType<ordinal_type_array> P(_piv.data() + offm * 4, m * 4);
             ConstUnmanagedViewType<value_type_matrix> D(_diag.data() + offm * 2, m, 2);
@@ -3159,6 +3956,9 @@ public:
     }
   }
 
+  /// 
+  /// LU Lower
+  ///
   inline void solveLU_LowerOnDeviceVar0(const ordinal_type pbeg, const ordinal_type pend,
                                         const size_type_array_host &h_buf_solve_ptr, const value_type_matrix &t) {
     const ordinal_type nrhs = t.extent(1);
@@ -3335,6 +4135,9 @@ public:
     }
   }
 
+  /// 
+  /// LDL Upper
+  ///
   inline void solveLU_UpperOnDeviceVar0(const ordinal_type pbeg, const ordinal_type pend,
                                         const size_type_array_host &h_buf_solve_ptr, const value_type_matrix &t) {
     const ordinal_type nrhs = t.extent(1);
@@ -3381,6 +4184,7 @@ public:
       }
     }
   }
+
   inline void solveLU_UpperOnDeviceVar1(const ordinal_type pbeg, const ordinal_type pend,
                                         const size_type_array_host &h_buf_solve_ptr, const value_type_matrix &t) {
     const ordinal_type nrhs = t.extent(1);
@@ -3488,25 +4292,181 @@ public:
     }
   }
 
-  inline void allocateWorkspaceSolve(const ordinal_type nrhs) {
-    if (variant == 3) {
-    } else {
-      const size_type buf_extent = _bufsize_solve * nrhs;
-      const size_type buf_span = _buf.span();
+  ///
+  /// Level set factorize & solve
+  ///
 
-      if (buf_extent != buf_span) {
-        _buf = value_type_array(do_not_initialize_tag("buf"), buf_extent);
-        track_free(buf_span * sizeof(value_type));
-        track_alloc(_buf.span() * sizeof(value_type));
-        {
-          const Kokkos::RangePolicy<exec_space> policy(0, _buf_solve_ptr.extent(0));
-          const auto buf_solve_nrhs_ptr = _buf_solve_nrhs_ptr;
-          const auto buf_solve_ptr = _buf_solve_ptr;
-          Kokkos::parallel_for(
-              policy, KOKKOS_LAMBDA(const ordinal_type &i) { buf_solve_nrhs_ptr(i) = nrhs * buf_solve_ptr(i); });
-        }
-        Kokkos::deep_copy(_h_buf_solve_nrhs_ptr, _buf_solve_nrhs_ptr);
+  /// 
+  /// Cholesky
+  ///
+  inline void factorizeCholesky(const value_type_array &ax, const bool store_transpose,
+                                const mag_type pivot_tol, const ordinal_type verbose) {
+    constexpr bool is_host = std::is_same<exec_memory_space, Kokkos::HostSpace>::value;
+    Kokkos::Timer timer;
+    Kokkos::Timer tick;
+    double time_parallel = 0.0;
+    double time_device = 0.0;
+    double time_update = 0.0;
+
+    timer.reset();
+    if (_buf.span() < size_t(_bufsize_factorize)) {
+      if (_buf.span() > 0) track_free(_buf.span() * sizeof(value_type));
+      Kokkos::resize(_buf, _bufsize_factorize);
+      track_alloc(_buf.span() * sizeof(value_type));
+    }
+
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+    {
+      size_type worksize = _worksize * (_nstreams + 1);
+      if (size_t(worksize) > _work.span()) {
+        if (_work.span() > 0) track_free(_work.span() * sizeof(value_type));
+        Kokkos::resize(_work, worksize);
+        track_alloc(_work.span() * sizeof(value_type));
       }
+    }
+#endif
+    stat.t_extra = timer.seconds();
+
+    timer.reset();
+    {
+      _ax = ax; // matrix values
+      constexpr bool copy_to_l_buf(false);
+      _info.copySparseToSuperpanels(copy_to_l_buf, _ap, _aj, _ax, _perm, _peri);
+    }
+    if (_nstreams > 1) {
+      exec_space().fence(); // wait for copy
+    }
+    stat.t_copy = timer.seconds();
+
+    stat_level.n_kernel_launching = 0;
+    timer.reset();
+    {
+      // this should be considered with average problem sizes in levels
+      const ordinal_type half_level = _nlevel / 2;
+      // const ordinal_type team_size_factor[2] = { 64, 16 }, vector_size_factor[2] = { 8, 8};
+      // const ordinal_type team_size_factor[2] = { 16, 16 }, vector_size_factor[2] = { 32, 32};
+      const ordinal_type team_size_factor[2] = {64, 64}, vector_size_factor[2] = {8, 4};
+      const ordinal_type team_size_update[2] = {16, 8}, vector_size_update[2] = {32, 32};
+      // returned value from team Chol
+      colind_view d_rval("rval",1);
+      auto h_rval = Kokkos::create_mirror_view(host_memory_space(), d_rval);
+      {
+        typedef TeamFunctor_FactorizeChol<supernode_info_type> functor_type;
+        functor_type functor(_info, _factorize_mode, _level_sids, _buf, d_rval.data());
+        if (pivot_tol > 0.0) {
+          functor.setDiagPertubationTol(pivot_tol);
+        }
+        if (this->getSolutionMethod() == 0) {
+          functor.setIndefiniteFactorization(true);
+        }
+
+#if defined(TACHO_TEST_LEVELSET_TOOLS_KERNEL_OVERHEAD)
+        typedef Kokkos::TeamPolicy<Kokkos::Schedule<Kokkos::Static>, exec_space, typename functor_type::DummyTag>
+            team_policy_factorize;
+        typedef Kokkos::TeamPolicy<Kokkos::Schedule<Kokkos::Static>, exec_space, typename functor_type::DummyTag>
+            team_policy_update;
+#else
+        typedef Kokkos::TeamPolicy<Kokkos::Schedule<Kokkos::Static>, exec_space,
+                                   typename functor_type::template FactorizeTag<variant>>
+            team_policy_factor;
+        typedef Kokkos::TeamPolicy<Kokkos::Schedule<Kokkos::Static>, exec_space, typename functor_type::UpdateTag>
+            team_policy_update;
+#endif
+        team_policy_factor policy_factor(1, 1, 1);
+        team_policy_update policy_update(1, 1, 1);
+
+        // get max vector size
+        const ordinal_type vmax = policy_factor.vector_length_max();
+        {
+          for (ordinal_type lvl = (_team_serial_level_cut - 1); lvl >= 0; --lvl) {
+            const ordinal_type pbeg = _h_level_ptr(lvl), pend = _h_level_ptr(lvl + 1), pcnt = pend - pbeg;
+
+            const range_type range_buf_factor_ptr(_h_buf_level_ptr(lvl), _h_buf_level_ptr(lvl + 1));
+
+            const auto buf_factor_ptr = Kokkos::subview(_buf_factor_ptr, range_buf_factor_ptr);
+            functor.setRange(pbeg, pend);
+            functor.setBufferPtr(buf_factor_ptr);
+            if (is_host) {
+              policy_factor = team_policy_factor(pcnt, 1, 1);
+              policy_update = team_policy_update(pcnt, 1, 1);
+            } else {
+              const ordinal_type idx = lvl > half_level;
+              // pick vector sizes
+              ordinal_type vsize_factor = std::min(vector_size_factor[idx],vmax);
+              ordinal_type vsize_update = std::min(vector_size_update[idx],vmax);
+              // pick teamm sizes
+              policy_factor = team_policy_factor(pcnt, 1, vsize_factor);
+              policy_update = team_policy_update(pcnt, 1, vsize_update);
+              const ordinal_type factor_tmax = policy_factor.team_size_max(functor, Kokkos::ParallelForTag());
+              const ordinal_type update_tmax = policy_update.team_size_max(functor, Kokkos::ParallelForTag());;
+
+              // create policies
+              policy_factor = team_policy_factor(pcnt, std::min(team_size_factor[idx],factor_tmax), vsize_factor);
+              policy_update = team_policy_update(pcnt, std::min(team_size_update[idx],update_tmax), vsize_update);
+            }
+            if (lvl < _device_level_cut) {
+              // do nothing
+              // Kokkos::parallel_for("factor lower", policy_factor, functor);
+            } else {
+              if (verbose) {
+                Kokkos::fence(); tick.reset();
+              }
+              Kokkos::parallel_for("factor", policy_factor, functor);
+              if (verbose) {
+                Kokkos::fence(); time_parallel += tick.seconds();
+              }
+              ++stat_level.n_kernel_launching;
+            }
+
+            const auto h_buf_factor_ptr = Kokkos::subview(_h_buf_factor_ptr, range_buf_factor_ptr);
+            if (verbose) {
+              Kokkos::fence(); tick.reset();
+            }
+            if (this->getSolutionMethod() == 0) {
+              factorizeNoPivotLDLOnDevice(pbeg, pend, h_buf_factor_ptr, _work);
+            } else {
+              factorizeCholeskyOnDevice(pbeg, pend, h_buf_factor_ptr, _work);
+            }
+            if (verbose) {
+              Kokkos::fence(); time_device += tick.seconds();
+              tick.reset();
+            }
+            Kokkos::deep_copy(h_rval, d_rval);
+            int rval = h_rval(0);
+            if (rval != 0) {
+              TACHO_TEST_FOR_EXCEPTION(true, std::runtime_error, "POTRF (team) returns non-zero error code.");
+            }
+
+            Kokkos::parallel_for("update factor", policy_update, functor);
+            if (verbose) {
+              Kokkos::fence(); time_update += tick.seconds();
+            }
+            ++stat_level.n_kernel_launching;
+            exec_space().fence(); // Kokkos::fence();
+          }
+        }
+      }
+    } // end of Cholesky
+    stat.t_factor = timer.seconds();
+    timer.reset();
+    if (variant == 3) {
+      // compress each partitioned inverse at each level into CRS matrix
+      bool lu = false;
+      extractCRS(lu, store_transpose);
+    }
+    stat.t_extra += timer.seconds();
+
+    if (verbose) {
+      printf("Summary: LevelSetTools-Variant-%d (CholeskyFactorize)\n", variant);
+      printf("=====================================================\n");
+      printf( "\n  ** Team = %f s, Device = %f s, Update = %f s **\n",time_parallel,time_device,time_update );
+      if (variant == 3) {
+        printf( "  extractCRS with total nnzL = %ld and nnzU = %ld\n",colindL.extent(0),colindU.extent(0) );
+        if (store_transpose) printf( "  > explicitly storing transpose\n" );
+      }
+      printf( "\n" );
+      print_stat_factor();
+      fflush(stdout);
     }
   }
 
@@ -3514,6 +4474,7 @@ public:
                             const value_type_matrix &b, // right hand side
                             const value_type_matrix &t,
                             const ordinal_type verbose) { // temporary workspace (store permuted vectors)
+
     TACHO_TEST_FOR_EXCEPTION(x.extent(0) != b.extent(0) || x.extent(1) != b.extent(1) || x.extent(0) != t.extent(0) ||
                                  x.extent(1) != t.extent(1),
                              std::logic_error, "x, b, t, and w dimensions do not match");
@@ -3544,7 +4505,7 @@ public:
 #endif
       // this should be considered with average problem sizes in levels
       const ordinal_type half_level = _nlevel / 2;
-      const ordinal_type team_size_solve[2] = {64, 16}, vector_size_solve[2] = {8, 8};
+      const ordinal_type team_size_solve[2] = {16, 16}, vector_size_solve[2] = {8, 8};
       const ordinal_type team_size_update[2] = {128, 32}, vector_size_update[2] = {1, 1};
       {
         typedef TeamFunctor_SolveLowerChol<supernode_info_type> functor_type;
@@ -3562,6 +4523,10 @@ public:
             team_policy_update;
 #endif
         functor_type functor(_info, _solve_mode, _level_sids, t, _buf);
+
+        if (this->getSolutionMethod() == 0) {
+          functor.setIndefiniteFactorization(true);
+        }
 
         team_policy_solve policy_solve(1, 1, 1);
         team_policy_update policy_update(1, 1, 1);
@@ -3601,9 +4566,13 @@ public:
               ++stat_level.n_kernel_launching;
             }
             const auto h_buf_solve_ptr = Kokkos::subview(_h_buf_solve_nrhs_ptr, range_solve_buf_ptr);
-            solveCholeskyLowerOnDevice(lvl, _team_serial_level_cut, pbeg, pend, h_buf_solve_ptr, t);
-
+            if (this->getSolutionMethod() == 0) {
+              solveNoPivotLDLLowerOnDevice(lvl, _team_serial_level_cut, pbeg, pend, h_buf_solve_ptr, t);
+            } else {
+              solveCholeskyLowerOnDevice(lvl, _team_serial_level_cut, pbeg, pend, h_buf_solve_ptr, t);
+            }
             if (variant != 3) {
+              // copy from buffer to t
               Kokkos::fence();
               Kokkos::parallel_for("update lower", policy_update_with_work_property, functor);
               ++stat_level.n_kernel_launching;
@@ -3628,7 +4597,9 @@ public:
             team_policy_update;
 #endif
         functor_type functor(_info, _solve_mode, _level_sids, t, _buf);
-
+        if (this->getSolutionMethod() == 0) {
+          functor.setIndefiniteFactorization(true);
+        }
         team_policy_solve policy_solve(1, 1, 1);
         team_policy_update policy_update(1, 1, 1);
 
@@ -3672,7 +4643,11 @@ public:
               }
             }
             const auto h_buf_solve_ptr = Kokkos::subview(_h_buf_solve_nrhs_ptr, range_solve_buf_ptr);
-            solveCholeskyUpperOnDevice(lvl, _team_serial_level_cut, pbeg, pend, h_buf_solve_ptr, t);
+            if (this->getSolutionMethod() == 0) {
+              solveNoPivotLDLUpperOnDevice(lvl, _team_serial_level_cut, pbeg, pend, h_buf_solve_ptr, t);
+            } else {
+              solveCholeskyUpperOnDevice(lvl, _team_serial_level_cut, pbeg, pend, h_buf_solve_ptr, t);
+            }
             if (variant != 3) {
               Kokkos::fence();
             }
@@ -3692,9 +4667,13 @@ public:
       printf("Summary: LevelSetTools-Variant-%d (Cholesky Solve: %3d)\n", variant, nrhs);
       printf("=======================================================\n");
       print_stat_solve();
+      fflush(stdout);
     }
   }
 
+  /// 
+  /// LDL
+  ///
   inline void factorizeLDL(const value_type_array &ax, const ordinal_type verbose) {
     constexpr bool is_host = std::is_same<exec_memory_space, Kokkos::HostSpace>::value;
     Kokkos::Timer timer;
@@ -3704,23 +4683,21 @@ public:
     double time_update = 0.0;
 
     timer.reset();
-    value_type_array work;
-    {
-      _buf = value_type_array(do_not_initialize_tag("buf"), _bufsize_factorize);
+    if (_buf.span() < size_t(_bufsize_factorize)) {
+      if (_buf.span() > 0) track_free(_buf.span() * sizeof(value_type));
+      Kokkos::resize(_buf, _bufsize_factorize);
       track_alloc(_buf.span() * sizeof(value_type));
-
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
-      value_type_matrix T(NULL, _info.max_supernode_size, _info.max_supernode_size);
-      ordinal_type_array P(NULL, _info.max_supernode_size);
-      const size_type worksize = LDL<Uplo::Lower, Algo::OnDevice>::invoke(_handle_lapack, T, P, work);
-
-      work = value_type_array(do_not_initialize_tag("work"), worksize * (_nstreams + 1) * max(8, _nstreams));
-#else
-      const size_type worksize = 32 * _info.max_supernode_size;
-      work = value_type_array(do_not_initialize_tag("work"), worksize);
-#endif
-      track_alloc(work.span() * sizeof(value_type));
     }
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+    {
+      size_type worksize = _worksize * (_nstreams + 1);
+      if (size_t(worksize) > _work.span()) {
+        if (_work.span() > 0) track_free(_work.span() * sizeof(value_type));
+        Kokkos::resize(_work, worksize);
+        track_alloc(_work.span() * sizeof(value_type));
+      }
+    }
+#endif
     stat.t_extra = timer.seconds();
 
     timer.reset();
@@ -3752,8 +4729,13 @@ public:
       const ordinal_type team_size_factor[2] = {64, 64}, vector_size_factor[2] = {8, 4};
 #endif
       const ordinal_type team_size_update[2] = {16, 8},  vector_size_update[2] = {32, 32};
+      // returned value from team LDL
+      colind_view d_rval("rval",1);
+      auto h_rval = Kokkos::create_mirror_view(host_memory_space(), d_rval);
       {
         typedef TeamFunctor_FactorizeLDL<supernode_info_type> functor_type;
+        functor_type functor(_info, _factorize_mode, _level_sids, _piv, _diag, _buf, d_rval.data());
+
 #if defined(TACHO_TEST_LEVELSET_TOOLS_KERNEL_OVERHEAD)
         typedef Kokkos::TeamPolicy<Kokkos::Schedule<Kokkos::Static>, exec_space, typename functor_type::DummyTag>
             team_policy_factorize;
@@ -3766,12 +4748,10 @@ public:
         typedef Kokkos::TeamPolicy<Kokkos::Schedule<Kokkos::Static>, exec_space, typename functor_type::UpdateTag>
             team_policy_update;
 #endif
-        int rval = 0;
-        team_policy_factor policy_factor(1, 1, 1);
-        team_policy_update policy_update(1, 1, 1);
-        functor_type functor(_info, _factorize_mode, _level_sids, _piv, _diag, _buf, &rval);
 
         // get max vector length
+        team_policy_factor policy_factor(1, 1, 1);
+        team_policy_update policy_update(1, 1, 1);
         const ordinal_type vmax = policy_factor.vector_length_max();
         {
           for (ordinal_type lvl = (_team_serial_level_cut - 1); lvl >= 0; --lvl) {
@@ -3787,14 +4767,17 @@ public:
               policy_update = team_policy_update(pcnt, 1, 1);
             } else {
               const ordinal_type idx = lvl > half_level;
-              // get max teamm sizes
-              policy_factor = team_policy_factor(pcnt, 1, std::min(vector_size_factor[idx],vmax));
-              policy_update = team_policy_update(pcnt, 1, std::min(vector_size_update[idx],vmax));
+              // pick vector sizes
+              ordinal_type vsize_factor = std::min(vector_size_factor[idx],vmax);
+              ordinal_type vsize_update = std::min(vector_size_update[idx],vmax);
+              // pick teamm sizes
+              policy_factor = team_policy_factor(pcnt, 1, vsize_factor);
+              policy_update = team_policy_update(pcnt, 1, vsize_update);
               const ordinal_type factor_tmax = policy_factor.team_size_max(functor, Kokkos::ParallelForTag());
               const ordinal_type update_tmax = policy_update.team_size_max(functor, Kokkos::ParallelForTag());
 
-              policy_factor = team_policy_factor(pcnt, std::min(team_size_factor[idx],factor_tmax), std::min(vector_size_factor[idx],vmax));
-              policy_update = team_policy_update(pcnt, std::min(team_size_update[idx],update_tmax), std::min(vector_size_update[idx],vmax));
+              policy_factor = team_policy_factor(pcnt, std::min(team_size_factor[idx],factor_tmax), vsize_factor);
+              policy_update = team_policy_update(pcnt, std::min(team_size_update[idx],update_tmax), vsize_update);
             }
             if (lvl < _device_level_cut) {
               // do nothing
@@ -3815,12 +4798,13 @@ public:
             if (verbose) {
               Kokkos::fence(); tick.reset();
             }
-            factorizeLDL_OnDevice(pbeg, pend, h_buf_factor_ptr, work);
+            factorizeLDL_OnDevice(pbeg, pend, h_buf_factor_ptr, _work);
             if (verbose) {
               Kokkos::fence(); time_device += tick.seconds();
               tick.reset();
             }
-            Kokkos::fence();
+            Kokkos::deep_copy(h_rval, d_rval);
+            int rval = h_rval(0);
             if (rval != 0) {
               TACHO_TEST_FOR_EXCEPTION(rval, std::runtime_error, "SYTRF (team) returns non-zero error code.");
             }
@@ -3838,21 +4822,13 @@ public:
       }
     } // end of LDL
     stat.t_factor = timer.seconds();
-    timer.reset();
-    {
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
-      track_free(work.span() * sizeof(value_type));
-#endif
-      track_free(_buf.span() * sizeof(value_type));
-      _buf = value_type_array();
-    }
-    stat.t_extra += timer.seconds();
 
     if (verbose) {
       printf("Summary: LevelSetTools-Variant-%d (LDL Factorize)\n", variant);
       printf("=================================================\n");
       printf( "\n  ** Team = %f s, Device = %f s, Update = %f s **\n\n",time_parallel,time_device,time_update );
       print_stat_factor();
+      fflush(stdout);
     }
   }
 
@@ -3891,13 +4867,8 @@ public:
       // this should be considered with average problem sizes in levels
       const ordinal_type half_level = _nlevel / 2;
 #if defined(CUDA_VERSION)
-#if (11000 > CUDA_VERSION)
-      /// cuda 11.1 below
-      const ordinal_type team_size_solve[2] = {32, 16}, vector_size_solve[2] = {8, 8};
-#else
-      /// cuda 11.1 and higher
-      const ordinal_type team_size_solve[2] = {32, 16}, vector_size_solve[2] = {8, 8};
-#endif
+      /// cuda
+      const ordinal_type team_size_solve[2] = {16, 16}, vector_size_solve[2] = {8, 8};
 #else
       /// not cuda
       const ordinal_type team_size_solve[2] = {64, 16}, vector_size_solve[2] = {8, 8};
@@ -4045,10 +5016,14 @@ public:
       printf("Summary: LevelSetTools-Variant-%d (LDL Solve: %3d)\n", variant, nrhs);
       printf("==================================================\n");
       print_stat_solve();
+      fflush(stdout);
     }
   }
 
-  inline void factorizeLU(const value_type_array &ax, const ordinal_type verbose) {
+  /// 
+  /// LU
+  ///
+  inline void factorizeLU(const value_type_array &ax, const bool store_transpose, const mag_type pivot_tol, const ordinal_type verbose) {
     constexpr bool is_host = std::is_same<exec_memory_space, Kokkos::HostSpace>::value;
     Kokkos::Timer timer;
     Kokkos::Timer tick;
@@ -4057,22 +5032,22 @@ public:
     double time_update = 0.0;
 
     timer.reset();
-    value_type_array work;
-    {
-      _buf = value_type_array(do_not_initialize_tag("buf"), _bufsize_factorize);
+    if (_buf.span() < size_t(_bufsize_factorize)) {
+      if (_buf.span() > 0) track_free(_buf.span() * sizeof(value_type));
+      Kokkos::resize(_buf, _bufsize_factorize);
       track_alloc(_buf.span() * sizeof(value_type));
+    }
 
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
-      // NOTE : move this to symbolic with the actual max worksize?
-      value_type_matrix T(NULL, _info.max_supernode_size, _info.max_num_cols);
-      ordinal_type_array P(NULL, std::min(_info.max_supernode_size, _info.max_num_cols));
-      const size_type worksize = LU<Algo::OnDevice>::invoke(_handle_lapack, T, P, work);
-
-      work = value_type_array(do_not_initialize_tag("work"), worksize * (_nstreams + 1));
-      // work = value_type_array(do_not_initialize_tag("work"), worksize*_nstreams);
-#endif
-      track_alloc(work.span() * sizeof(value_type));
+    {
+      size_type worksize = _worksize * (_nstreams + 1);
+      if (size_t(worksize) > _work.span()) {
+        if (_work.span() > 0) track_free(_work.span() * sizeof(value_type));
+        Kokkos::resize(_work, worksize);
+        track_alloc(_work.span() * sizeof(value_type));
+      }
     }
+#endif
     stat.t_extra = timer.seconds();
 
     timer.reset();
@@ -4104,6 +5079,10 @@ public:
       const ordinal_type team_size_factor[2] = {64, 64}, vector_size_factor[2] = {8, 4};
 #endif
       const ordinal_type team_size_update[2] = {16, 8},  vector_size_update[2] = {32, 32};
+
+      // returned value from team LU
+      colind_view d_rval("rval",1);
+      auto h_rval = Kokkos::create_mirror_view(host_memory_space(), d_rval);
       {
         typedef TeamFunctor_FactorizeLU<supernode_info_type> functor_type;
 #if defined(TACHO_TEST_LEVELSET_TOOLS_KERNEL_OVERHEAD)
@@ -4118,11 +5097,12 @@ public:
         typedef Kokkos::TeamPolicy<Kokkos::Schedule<Kokkos::Static>, exec_space, typename functor_type::UpdateTag>
             team_policy_update;
 #endif
-        int rval = 0;
         team_policy_factor policy_factor(1, 1, 1);
         team_policy_update policy_update(1, 1, 1);
-        functor_type functor(_info, _factorize_mode, _level_sids, _piv, _buf, &rval);
-
+        functor_type functor(_info, _factorize_mode, _level_sids, _piv, _buf, d_rval.data());
+        if (pivot_tol > 0.0) {
+          functor.setDiagPertubationTol(pivot_tol);
+        }
         // get max vector length
         const ordinal_type vmax = policy_factor.vector_length_max();
         {
@@ -4139,15 +5119,18 @@ public:
               policy_update = team_policy_update(pcnt, 1, 1);
             } else {
               const ordinal_type idx = lvl > half_level;
-              // get max teamm sizes
-              policy_factor = team_policy_factor(pcnt, 1, std::min(vector_size_factor[idx],vmax));
-              policy_update = team_policy_update(pcnt, 1, std::min(vector_size_update[idx],vmax));
+              // pick vector sizes
+              ordinal_type vsize_factor = std::min(vector_size_factor[idx],vmax);
+              ordinal_type vsize_update = std::min(vector_size_update[idx],vmax);
+              // pick teamm sizes
+              policy_factor = team_policy_factor(pcnt, 1, vsize_factor);
+              policy_update = team_policy_update(pcnt, 1, vsize_update);
               const ordinal_type factor_tmax = policy_factor.team_size_max(functor, Kokkos::ParallelForTag());
               const ordinal_type update_tmax = policy_update.team_size_max(functor, Kokkos::ParallelForTag());
 
               // create policies
-              policy_factor = team_policy_factor(pcnt, std::min(team_size_factor[idx],factor_tmax), std::min(vector_size_factor[idx],vmax));
-              policy_update = team_policy_update(pcnt, std::min(team_size_update[idx],update_tmax), std::min(vector_size_update[idx],vmax));
+              policy_factor = team_policy_factor(pcnt, std::min(team_size_factor[idx],factor_tmax), vsize_factor);
+              policy_update = team_policy_update(pcnt, std::min(team_size_update[idx],update_tmax), vsize_update);
             }
             if (lvl < _device_level_cut) {
               // do nothing
@@ -4168,12 +5151,13 @@ public:
             if (verbose) {
               Kokkos::fence(); tick.reset();
             }
-            factorizeLU_OnDevice(pbeg, pend, h_buf_factor_ptr, work);
+            factorizeLU_OnDevice(pbeg, pend, h_buf_factor_ptr, _work);
             if (verbose) {
               Kokkos::fence(); time_device += tick.seconds();
               tick.reset();
             }
-            Kokkos::fence();
+            Kokkos::deep_copy(h_rval, d_rval);
+            int rval = h_rval(0);
             if (rval != 0) {
               TACHO_TEST_FOR_EXCEPTION(rval, std::runtime_error, "GETRF (team) returns non-zero error code.");
             }
@@ -4195,22 +5179,21 @@ public:
     if (variant == 3) {
       // compress each partitioned inverse at each level into CRS matrix
       bool lu = true;
-      extractCRS(lu);
-    }
-    {
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
-      track_free(work.span() * sizeof(value_type));
-#endif
-      track_free(_buf.span() * sizeof(value_type));
-      _buf = value_type_array();
+      extractCRS(lu, store_transpose);
     }
     stat.t_extra += timer.seconds();
 
     if (verbose) {
       printf("Summary: LevelSetTools-Variant-%d (LU Factorize)\n", variant);
       printf("================================================\n");
-      printf( "\n  ** Team = %f s, Device = %f s, Update = %f s **\n\n",time_parallel,time_device,time_update );
+      printf( "\n  ** Team = %f s, Device = %f s, Update = %f s (%d streams) **\n",time_parallel,time_device,time_update,_nstreams );
+      if (variant == 3) {
+        printf( " extractCRS with total nnzL = %ld and nnzU = %ld\n\n",colindL.extent(0),colindU.extent(0) );
+      } else {
+        printf( "\n" );
+      }
       print_stat_factor();
+      fflush(stdout);
     }
   }
 
@@ -4250,13 +5233,8 @@ public:
       // this should be considered with average problem sizes in levels
       const ordinal_type half_level = _nlevel / 2;
 #if defined(CUDA_VERSION)
-#if (11000 > CUDA_VERSION)
-      /// cuda 11.1 below
-      const ordinal_type team_size_solve[2] = {32, 16}, vector_size_solve[2] = {8, 8};
-#else
-      /// cuda 11.1 and higher
-      const ordinal_type team_size_solve[2] = {32, 16}, vector_size_solve[2] = {8, 8};
-#endif
+      /// cuda
+      const ordinal_type team_size_solve[2] = {16, 16}, vector_size_solve[2] = {8, 8};
 #else
       /// not cuda
       const ordinal_type team_size_solve[2] = {64, 16}, vector_size_solve[2] = {8, 8};
@@ -4414,11 +5392,16 @@ public:
     }
   }
 
-  inline void factorize(const value_type_array &ax, const ordinal_type verbose = 0) override {
+  /// 
+  /// Main Entry Functions
+  ///
+  inline void factorize(const value_type_array &ax, const bool store_transpose,
+                        const mag_type pivot_tol = 0.0, const ordinal_type verbose = 0) override {
     Kokkos::deep_copy(_superpanel_buf, value_type(0));
     switch (this->getSolutionMethod()) {
+    case 0:   /// LDL no-pivot
     case 1: { /// Cholesky
-      factorizeCholesky(ax, verbose);
+      factorizeCholesky(ax, store_transpose, pivot_tol, verbose);
       break;
     }
     case 2: { /// LDL
@@ -4450,11 +5433,11 @@ public:
           track_alloc(_piv.span() * sizeof(ordinal_type));
         }
       }
-      factorizeLU(ax, verbose);
+      factorizeLU(ax, store_transpose, pivot_tol, verbose);
       break;
     }
     default: {
-      TACHO_TEST_FOR_EXCEPTION(false, std::logic_error, "The solution method is not supported");
+      TACHO_TEST_FOR_EXCEPTION(true, std::logic_error, "The solution method is not supported");
       break;
     }
     }
@@ -4465,6 +5448,7 @@ public:
                     const value_type_matrix &t, // temporary workspace (store permuted vectors)
                     const ordinal_type verbose = 0) override {
     switch (this->getSolutionMethod()) {
+    case 0:   /// LDL no-pivot
     case 1: { /// Cholesky
       solveCholesky(x, b, t, verbose);
       break;
@@ -4478,7 +5462,7 @@ public:
       break;
     }
     default: {
-      TACHO_TEST_FOR_EXCEPTION(false, std::logic_error, "The solution method is not supported");
+      TACHO_TEST_FOR_EXCEPTION(true, std::logic_error, "The solution method is not supported");
       break;
     }
     }

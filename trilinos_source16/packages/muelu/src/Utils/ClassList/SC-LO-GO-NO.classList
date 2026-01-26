@@ -64,11 +64,9 @@ MapTransferFactory
 MatrixAnalysisFactory
 MergedBlockedMatrixFactory
 MergedSmoother
-MLParameterListInterpreter - #if defined(HAVE_MUELU_DEPRECATED_CODE)
 MultiVectorTransferFactory
 NotayAggregationFactory
 NullspaceFactory
-NullspaceFactory_kokkos - #if defined(HAVE_MUELU_DEPRECATED_CODE)
 NullspacePresmoothFactory
 ParameterListInterpreter
 PatternFactory
@@ -95,6 +93,7 @@ ReorderBlockAFactory
 RepartitionFactory - #ifdef HAVE_MPI
 RepartitionBlockDiagonalFactory - #ifdef HAVE_MPI
 RepartitionHeuristicFactory - #ifdef HAVE_MPI
+RepartitionUtilities - #ifdef HAVE_MPI
 ReplicatePFactory
 RigidBodyModeFactory
 SaPFactory
@@ -102,8 +101,8 @@ SaPFactory_kokkos - #if defined(HAVE_MUELU_DEPRECATED_CODE)
 ScaledNullspaceFactory
 SchurComplementFactory
 SegregatedAFactory
-ShiftedLaplacian - #if defined(HAVE_MUELU_IFPACK2) && defined(HAVE_MUELU_BELOS) && defined(HAVE_MUELU_TPETRA_INST_INT_INT)
-ShiftedLaplacianOperator - #if defined(HAVE_MUELU_BELOS) && defined(HAVE_MUELU_TPETRA_INST_INT_INT)
+ShiftedLaplacian - #if defined(HAVE_MUELU_IFPACK2) && defined(HAVE_MUELU_BELOS) && defined(HAVE_TPETRA_COMPLEX_DOUBLE)
+ShiftedLaplacianOperator - #if defined(HAVE_MUELU_BELOS) && defined(HAVE_TPETRA_COMPLEX_DOUBLE)
 SimpleSmoother
 Smoother
 SmootherBase
@@ -148,3 +147,6 @@ RefMaxwell
 Maxwell1
 MultiPhys
 Maxwell_Utils
+SingleLevelMatlabFactory - #if defined(HAVE_MUELU_MATLAB)
+TwoLevelMatlabFactory - #if defined(HAVE_MUELU_MATLAB)
+MatlabSmoother - #if defined(HAVE_MUELU_MATLAB)

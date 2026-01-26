@@ -1,43 +1,11 @@
-//@HEADER
-// ************************************************************************
+// @HEADER
+// *****************************************************************************
+//               ShyLU: Scalable Hybrid LU Preconditioner and Solver
 //
-//               ShyLU: Hybrid preconditioner package
-//                 Copyright 2012 Sandia Corporation
-//
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
-// the U.S. Government retains certain rights in this software.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Alexander Heinlein (alexander.heinlein@uni-koeln.de)
-//
-// ************************************************************************
-//@HEADER
+// Copyright 2011 NTESS and the ShyLU contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
+// @HEADER
 
 #ifndef _FROSCH_COARSESPACE_DEF_HPP
 #define _FROSCH_COARSESPACE_DEF_HPP
@@ -98,10 +66,10 @@ namespace FROSch {
 
         // BasisMapUnique - First, we check if any of the unassembled unique maps is null. In case, we re-build a unique map
         bool buildUniqueMap = false;
-        UN i=0;
-        while (!buildUniqueMap && i<UnassembledBasesMapsUnique_.size()) {
-            buildUniqueMap = UnassembledBasesMapsUnique_[i].is_null();
-            i++;
+        UN ii=0;
+        while (!buildUniqueMap && ii<UnassembledBasesMapsUnique_.size()) {
+            buildUniqueMap = UnassembledBasesMapsUnique_[ii].is_null();
+            ii++;
         }
         int buildUniqueMapMax = 0;
         reduceAll(*this->MpiComm_,REDUCE_MAX,int(buildUniqueMap),ptr(&buildUniqueMapMax));
@@ -120,8 +88,8 @@ namespace FROSch {
         if (!AssembledBasisMap_.is_null()) {
             if (AssembledBasisMap_->getGlobalNumElements()>0) { // AH 02/12/2019: Is this the right condition? Seems to work for now...
                 LO totalSize = -1;
-                for (UN i=0; i<UnassembledSubspaceBases_.size(); i++) {
-                    if (!UnassembledSubspaceBases_[i].is_null()) totalSize = max(totalSize,LO(UnassembledSubspaceBases_[i]->getLocalLength()+Offsets_[i]));
+                for (UN j=0; j<UnassembledSubspaceBases_.size(); j++) {
+                    if (!UnassembledSubspaceBases_[j].is_null()) totalSize = max(totalSize,LO(UnassembledSubspaceBases_[j]->getLocalLength()+Offsets_[j]));
                 }
                 XMapPtr serialMap = MapFactory<LO,GO,NO>::Build(AssembledBasisMap_->lib(),totalSize,0,this->SerialComm_);
 
@@ -137,14 +105,14 @@ namespace FROSch {
                     auto assembledView = assembledTpetraMVector->getLocalViewDevice(Tpetra::Access::ReadWrite);
                     auto assembledCols = Tpetra::getMultiVectorWhichVectors(*  assembledTpetraMVector);
 
-                    UN itmp = 0;
+                    UN itmp2 = 0;
                     for (UN i=0; i<UnassembledSubspaceBases_.size(); i++) {
                         if (!UnassembledSubspaceBases_[i].is_null()) {
                             const UN Offset_i = Offsets_[i];
                             const UN NumVectors_i = UnassembledSubspaceBases_[i]->getNumVectors();
                             const UN LocalLength_i = UnassembledSubspaceBases_[i]->getLocalLength();
 
-                            FROSCH_ASSERT(NumVectors_i+itmp <= AssembledBasis_->getNumVectors(),"FROSch::CoarseSpace: NumVectors_i+itmp <= AssembledBasis_->getNumVectors()");
+                            FROSCH_ASSERT(NumVectors_i+itmp2 <= AssembledBasis_->getNumVectors(),"FROSch::CoarseSpace: NumVectors_i+itmp <= AssembledBasis_->getNumVectors()");
                             FROSCH_ASSERT(LocalLength_i+Offsets_[i] <= AssembledBasis_->getLocalLength(),"FROSch::CoarseSpace: LocalLength_i+Offsets_[i] <= AssembledBasis_");
 
                             Kokkos::RangePolicy<execution_space> policy (0, LocalLength_i);
@@ -157,14 +125,14 @@ namespace FROSch {
                             auto unassembledCols = Tpetra::getMultiVectorWhichVectors(*unassembledTpetraMVector);
                             for (UN j=0; j < NumVectors_i; j++) {
                                 int col_in  = unassembledTpetraMVector->isConstantStride() ? j      : unassembledCols[j];
-                                int col_out =   assembledTpetraMVector->isConstantStride() ? j+itmp :   assembledCols[j+itmp];
+                                int col_out =   assembledTpetraMVector->isConstantStride() ? j+itmp2 :   assembledCols[j+itmp2];
                                 Kokkos::parallel_for(
                                     "FROSch_CoarseSpace::assembleCoarseSpace", policy,
                                     KOKKOS_LAMBDA(const UN k) {
                                         assembledView(k+Offset_i, col_out) = unassembledView(k, col_in);
                                     });
                             }
-                            itmp += NumVectors_i;
+                            itmp2 += NumVectors_i;
                         }
                     }
                     Kokkos::fence();
@@ -234,7 +202,7 @@ namespace FROSch {
 
             auto repeatedLocalMap = repeatedMap->getLocalMap();
             auto rowLocalMap = rowMap->getLocalMap();
-            auto AssembledBasisView = AssembledBasis_->getDeviceLocalView(Access::ReadOnly);
+            auto AssembledBasisView = AssembledBasis_->getLocalViewDevice(Tpetra::Access::ReadOnly);
 
             // count number of nonzeros per row
             UN numLocalRows = rowMap->getLocalNumElements();

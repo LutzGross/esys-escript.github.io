@@ -19,7 +19,6 @@
 
 #include <stk_mesh/base/MetaData.hpp>
 #include <stk_mesh/base/Part.hpp>
-#include <stk_mesh/base/GetBuckets.hpp>
 
 #include <stk_io/IossBridge.hpp>
 #include <Akri_MasterElementDeterminer.hpp>
@@ -27,13 +26,14 @@
 #include <Akri_BoundingBox.hpp>
 #include <Akri_Composite_Surface.hpp>
 #include <Akri_NodalSurfaceDistance.hpp>
+#include <Akri_Sign.hpp>
 
 namespace krino{
 
 namespace {
 double relative_crossing_position(const double ls0, const double ls1)
 {
-  return LevelSet::sign_change(ls0, ls1) ? ls0 / ( ls0 - ls1 ) : -10.;
+  return sign_change(ls0, ls1) ? ls0 / ( ls0 - ls1 ) : -10.;
 }
 }
 
@@ -55,7 +55,7 @@ void IC_Alg::execute(const double time)
   }
 
   const stk::mesh::BulkData& mesh = levelSet.mesh();
-  const FieldRef dField = levelSet.get_distance_field();
+  const FieldRef dField = levelSet.get_isovar_field();
   compute_nodal_surface_distance(mesh, levelSet.get_coordinates_field(), dField, surface_list, time, levelSet.narrow_band_size());
 
   if (levelSet.narrow_band_size() > 0. && surface_list.truncated_distance_may_have_wrong_sign())
@@ -79,7 +79,7 @@ void IC_Alg::compute_IC_error_indicator()
   const stk::mesh::BulkData& mesh = levelSet.mesh();
   const stk::mesh::MetaData& meta = mesh.mesh_meta_data();
   const FieldRef xField = levelSet.get_coordinates_field();
-  const FieldRef dField = levelSet.get_distance_field();
+  const FieldRef dField = levelSet.get_isovar_field();
   stk::mesh::Selector fieldSelector(dField);
   const int spatial_dim = meta.spatial_dimension();
   const auto & refinementSupport = RefinementSupport::get(meta);

@@ -18,7 +18,11 @@
 #include <Teuchos_ScalarTraits.hpp>
 #include <Teuchos_ParameterList.hpp>
 
+#if KOKKOS_VERSION >= 40799
+#include "KokkosKernels_ArithTraits.hpp"
+#else
 #include "Kokkos_ArithTraits.hpp"
+#endif
 
 #include <Xpetra_BlockedCrsMatrix_fwd.hpp>
 #include <Xpetra_BlockedMap_fwd.hpp>
@@ -127,9 +131,9 @@ class UtilitiesBase {
    * @ret: vector containing max_{i\not=k}(-a_ik)
    */
 
-  static Teuchos::ArrayRCP<Magnitude> GetMatrixMaxMinusOffDiagonal(const Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& A);
+  static Teuchos::RCP<Vector> GetMatrixMaxMinusOffDiagonal(const Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& A);
 
-  static Teuchos::ArrayRCP<Magnitude> GetMatrixMaxMinusOffDiagonal(const Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& A, const Xpetra::Vector<LocalOrdinal, LocalOrdinal, GlobalOrdinal, Node>& BlockNumber);
+  static Teuchos::RCP<Vector> GetMatrixMaxMinusOffDiagonal(const Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& A, const Xpetra::Vector<LocalOrdinal, LocalOrdinal, GlobalOrdinal, Node>& BlockNumber);
 
   /*! @brief Return vector containing inverse of input vector
    *
@@ -161,6 +165,15 @@ class UtilitiesBase {
 
   static RCP<Xpetra::Vector<Magnitude, LocalOrdinal, GlobalOrdinal, Node>>
   GetMatrixOverlappedAbsDeletedRowsum(const Matrix& A);
+
+  /*! @brief Counts the number of negative diagonal entries
+
+    Returns a GlobalOrdinal with the number of negative diagonal entries
+    This generally will involve MPI communication and this must be called
+    on all ranks in A's communicator.
+    NOTE: This only works on matrices locally fitted column maps.
+   */
+  static GlobalOrdinal CountNegativeDiagonalEntries(const Matrix& A);
 
   // TODO: should NOT return an Array. Definition must be changed to:
   // - ArrayRCP<> ResidualNorm(Matrix const &Op, MultiVector const &X, MultiVector const &RHS)
@@ -253,6 +266,13 @@ class UtilitiesBase {
     @return boolean array.  The ith entry is true iff row i is a Dirichlet row.
   */
   static Teuchos::ArrayRCP<const bool> DetectDirichletRowsExt(const Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& A, bool& bHasZeroDiagonal, const Magnitude& tol = Teuchos::ScalarTraits<Scalar>::zero());
+
+  /*! @brief Detect Dirichlet rows and copy values from RHS multivector to InitialGuess for Dirichlet rows.
+
+    This can be used to assure that the InitialGuess satisfies the boundary conditions enforced on A.
+    Useful in particular for using CG when boundary conditions have only been enforce by one-and-zeroing rows of A, but not columns.
+   */
+  static void EnforceInitialCondition(const Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& A, const Xpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>& RHS, Xpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>& InitialGuess, const Magnitude& tol = Teuchos::ScalarTraits<Magnitude>::zero(), const bool count_twos_as_dirichlet = false);
 
   /*! @brief Find non-zero values in an ArrayRCP
     Compares the value to 2 * machine epsilon

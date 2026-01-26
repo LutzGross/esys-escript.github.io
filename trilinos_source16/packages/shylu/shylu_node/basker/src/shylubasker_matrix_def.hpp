@@ -1,3 +1,12 @@
+// @HEADER
+// *****************************************************************************
+//               ShyLU: Scalable Hybrid LU Preconditioner and Solver
+//
+// Copyright 2011 NTESS and the ShyLU contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
+// @HEADER
+
 #ifndef SHYLUBASKER_MATRIX_DEF_HPP
 #define SHYLUBASKER_MATRIX_DEF_HPP
 
@@ -15,7 +24,6 @@
 
 
 #include <iostream>
-//using namespace std;
 
 namespace BaskerNS
 {
@@ -42,7 +50,7 @@ namespace BaskerNS
 
   template <class Int, class Entry, class Exe_Space>
   BASKER_INLINE
-  BaskerMatrix<Int,Entry,Exe_Space>::BaskerMatrix(string _label)
+  BaskerMatrix<Int,Entry,Exe_Space>::BaskerMatrix(std::string _label)
   {
     label   = _label;
     ncol    = 0;
@@ -83,7 +91,7 @@ namespace BaskerNS
   BASKER_INLINE
   BaskerMatrix<Int,Entry, Exe_Space>::BaskerMatrix
   (
-   string _label, Int _m, Int _n, Int _nnz,
+   std::string _label, Int _m, Int _n, Int _nnz,
    Int *colptr, Int *rowind, Entry *nzval
   )
   {
@@ -113,6 +121,7 @@ namespace BaskerNS
     if(v_fill == BASKER_TRUE)
     {
       FREE_INT_1DARRAY(col_ptr);
+      FREE_INT_1DARRAY(dig_ptr);
       FREE_INT_1DARRAY(row_idx);
       FREE_ENTRY_1DARRAY(val);
       v_fill = BASKER_FALSE;
@@ -181,10 +190,12 @@ namespace BaskerNS
     //printf( " init_col(n=%d)\n",ncol );
     BASKER_ASSERT(ncol >= 0, "INIT_COL, ncol > 0");
     MALLOC_INT_1DARRAY(col_ptr, ncol+1);
+    MALLOC_INT_1DARRAY(dig_ptr, ncol+1);
     MALLOC_INT_1DARRAY(col_idx, ncol+1);
     for(Int i = 0; i < ncol+1; ++i)
     {
       col_ptr(i) = (Int) BASKER_MAX_IDX;
+      dig_ptr(i) = (Int) BASKER_MAX_IDX;
       col_idx(i) = (Int) BASKER_MAX_IDX;
     }
   }//end init_col()
@@ -197,6 +208,7 @@ namespace BaskerNS
     for(Int i = 0; i < ncol+1; ++i)
     {
       col_ptr(i) = (Int) BASKER_MAX_IDX;
+      dig_ptr(i) = (Int) BASKER_MAX_IDX;
       col_idx(i) = (Int) BASKER_MAX_IDX;
     }
     nnz = 0;
@@ -219,6 +231,7 @@ namespace BaskerNS
     {
       BASKER_ASSERT((ncol+1)>0, "matrix init_vector ncol");
       MALLOC_INT_1DARRAY(col_ptr,ncol+1);
+      MALLOC_INT_1DARRAY(dig_ptr,ncol+1);
     }
     if(nnz > 0)
     {
@@ -247,7 +260,7 @@ namespace BaskerNS
   BASKER_INLINE
   void BaskerMatrix<Int, Entry, Exe_Space>::init_matrix
   (
-   string _label, Int _m, Int _n, 
+   std::string _label, Int _m, Int _n, 
    Int _nnz
   )
   {
@@ -259,7 +272,7 @@ namespace BaskerNS
   BASKER_INLINE
   void BaskerMatrix<Int,Entry,Exe_Space>::init_matrix
   (
-   string _label, Int _m, Int _n, Int _nnz,
+   std::string _label, Int _m, Int _n, Int _nnz,
    Int *_col_ptr, Int *_row_idx, Entry *_val
   )
   {
@@ -275,7 +288,7 @@ namespace BaskerNS
   BASKER_INLINE
   void BaskerMatrix<Int, Entry, Exe_Space>::init_matrix
   (
-   string _label,
+   std::string _label,
    Int _sr, Int _m,
    Int _sc, Int _n,
    Int _nnz
@@ -319,7 +332,7 @@ namespace BaskerNS
     if(nnz == _nnz)
     {
       copy_vec(_row_idx, _nnz, row_idx);
-      copy_vec(_val,_nnz,     val);
+      copy_vec(_val,     _nnz,     val);
     }
     else
     {
@@ -491,6 +504,13 @@ namespace BaskerNS
   
   template <class Int, class Entry, class Exe_Space>
   BASKER_INLINE
+  void BaskerMatrix<Int,Entry,Exe_Space>::init_ptr()
+  {
+    for (Int i = 0; i < ncol+1; i ++) col_ptr(i) = 0;
+  }
+
+  template <class Int, class Entry, class Exe_Space>
+  BASKER_INLINE
   void BaskerMatrix<Int,Entry,Exe_Space>::convert2D
   (
    BASKER_MATRIX &M,
@@ -499,9 +519,6 @@ namespace BaskerNS
    bool keep_zeros
   )
   {
-    using STS = Teuchos::ScalarTraits<Entry>;
-    using Mag = typename STS::magnitudeType;
-
     if(nnz == 0)
     {
       for(Int i = 0; i < ncol+1; i++)

@@ -44,6 +44,14 @@
 #ifndef _EPETRA_SERIALDENSEOPERATOR_H_
 #define _EPETRA_SERIALDENSEOPERATOR_H_
 
+#if defined(Epetra_SHOW_DEPRECATED_WARNINGS)
+#ifdef __GNUC__
+#warning "The Epetra package is deprecated"
+#endif
+#endif
+
+
+
 #include "Epetra_ConfigDefs.h"
 class Epetra_SerialDenseMatrix;
 
@@ -109,7 +117,7 @@ class EPETRA_LIB_DLL_EXPORT Epetra_SerialDenseOperator {
 
     //! Returns the infinity norm of the global matrix.
     /* Returns the quantity \f$ \| A \|_\infty\f$ such that
-       \f[\| A \|_\infty = \max_{1\lei\lem} \sum_{j=1}^n |a_{ij}| \f].
+       \f[\| A \|_\infty = \max_{1\leq i\leq m} \sum_{j=1}^n |a_{ij}| \f].
 
        \warning This method must not be called unless HasNormInf() returns true.
     */
@@ -138,10 +146,3 @@ class EPETRA_LIB_DLL_EXPORT Epetra_SerialDenseOperator {
 };
 
 #endif /* _EPETRA_OPERATOR_H_ */
-
-#if defined(Epetra_SHOW_DEPRECATED_WARNINGS)
-#ifdef __GNUC__
-#warning "The Epetra package is deprecated"
-#endif
-#endif
-

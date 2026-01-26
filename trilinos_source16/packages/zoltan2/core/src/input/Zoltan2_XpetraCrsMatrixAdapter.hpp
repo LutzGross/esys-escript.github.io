@@ -1,46 +1,10 @@
 // @HEADER
-//
-// ***********************************************************************
-//
+// *****************************************************************************
 //   Zoltan2: A package of combinatorial algorithms for scientific computing
-//                  Copyright 2012 Sandia Corporation
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
-// the U.S. Government retains certain rights in this software.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Karen Devine      (kddevin@sandia.gov)
-//                    Erik Boman        (egboman@sandia.gov)
-//                    Siva Rajamanickam (srajama@sandia.gov)
-//
-// ***********************************************************************
-//
+// Copyright 2012 NTESS and the Zoltan2 contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
 // @HEADER
 
 /*! \file Zoltan2_XpetraCrsMatrixAdapter.hpp
@@ -102,8 +66,12 @@ public:
   using user_t = User;
 #endif
 
+/*! \brief Destructor
+   */
+  ~XpetraCrsMatrixAdapter() { }
+
   /*! \brief Constructor
-   *    \param inmatrix The user's Epetra, Tpetra, or Xpetra CrsMatrix object
+   *    \param inmatrix The users Epetra, Tpetra, or Xpetra CrsMatrix object
    *    \param nWeightsPerRow If row weights will be provided in setRowWeights(),
    *        then set \c nWeightsPerRow to the number of weights per row.
    */
@@ -171,22 +139,27 @@ public:
     return matrix_->getLocalNumEntries();
   }
 
-  bool CRSViewAvailable() const { return true; }
-
   void getRowIDsView(const gno_t *&rowIds) const
   {
     ArrayView<const gno_t> rowView = rowMap_->getLocalElementList();
     rowIds = rowView.getRawPtr();
   }
 
-  void getCRSView(ArrayRCP<const offset_t> &offsets,
-                  ArrayRCP<const gno_t> &colIds) const
+  void getColumnIDsView(const gno_t *&colIds) const
+  {
+    ArrayView<const gno_t> colView = colMap_->getLocalElementList();
+    colIds = colView.getRawPtr();
+  }
+
+  void getCRSView(ArrayRCP<const offset_t> &offsets, ArrayRCP<const gno_t> &colIds) const
   {
     ArrayRCP< const lno_t > localColumnIds;
     ArrayRCP<const scalar_t> values;
     matrix_->getAllValues(offsets,localColumnIds,values);
     colIds = columnIds_;
   }
+
+  bool CRSViewAvailable() const { return true; }
 
   void getCRSView(ArrayRCP<const offset_t> &offsets,
                   ArrayRCP<const gno_t> &colIds,
@@ -196,6 +169,65 @@ public:
     colIds = columnIds_;
   }
 
+  void getCCSView(ArrayRCP<const offset_t> &offsets,
+                  ArrayRCP<const gno_t> &rowIds) const override {
+    ArrayRCP<const offset_t> crsOffsets;
+    ArrayRCP<const lno_t> crsLocalColumnIds;
+    ArrayRCP<const scalar_t> values;
+    matrix_->getAllValues(crsOffsets, crsLocalColumnIds, values);
+
+    const auto localRowIds = rowMap_->getLocalElementList();
+    const auto numLocalCols = colMap_->getLocalNumElements();
+
+    // Lambda used to compute local row based on column index from CRS view
+    auto determineRow = [&crsOffsets, &localRowIds](const int columnIdx) {
+      int curLocalRow = 0;
+      for (int rowIdx = 0; rowIdx < localRowIds.size(); ++rowIdx) {
+        if (rowIdx < (localRowIds.size() - 1)) {
+          if (static_cast<offset_t>(columnIdx) < crsOffsets[rowIdx + 1]) {
+            return curLocalRow;
+          }
+          ++curLocalRow;
+        } else {
+          return curLocalRow;
+        }
+      }
+
+      return -1;
+    };
+
+    // Vector of global rows per each local column
+    std::vector<std::vector<gno_t>> rowIDsPerCol(numLocalCols);
+
+    for (int colIdx = 0; colIdx < crsLocalColumnIds.size(); ++colIdx) {
+      const auto colID = crsLocalColumnIds[colIdx];
+      const auto globalRow = rowMap_->getGlobalElement(determineRow(colIdx));
+
+      rowIDsPerCol[colID].push_back(globalRow);
+    }
+
+    size_t offsetWrite = 0;
+    ArrayRCP<gno_t> ccsRowIds(values.size());
+    ArrayRCP<offset_t> ccsOffsets(colMap_->getLocalNumElements() + 1);
+
+    ccsOffsets[0] = 0;
+    for (int64_t colID = 1; colID < ccsOffsets.size(); ++colID) {
+      const auto &rowIDs = rowIDsPerCol[colID - 1];
+
+      if (not rowIDs.empty()) {
+        std::copy(rowIDs.begin(), rowIDs.end(),
+                  ccsRowIds.begin() + offsetWrite);
+        offsetWrite += rowIDs.size();
+      }
+
+      ccsOffsets[colID] = offsetWrite;
+    }
+
+    ccsOffsets[numLocalCols] = crsLocalColumnIds.size();
+
+    rowIds = ccsRowIds;
+    offsets = ccsOffsets;
+  }
 
   int getNumWeightsPerRow() const { return nWeightsPerRow_; }
 
@@ -272,7 +304,7 @@ template <typename User, typename UserCoord>
   matrix_->getAllValues(offset,localColumnIds,values);
   columnIds_.resize(nnz, 0);
 
-  for(offset_t i = 0; i < offset[nrows]; i++){
+  for (offset_t i = 0; i < offset[nrows]; i++) {
     columnIds_[i] = colMap_->getGlobalElement(localColumnIds[i]);
   }
 

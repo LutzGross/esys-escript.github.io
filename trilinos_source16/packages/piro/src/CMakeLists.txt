@@ -74,11 +74,7 @@ IF (Piro_ENABLE_NOX)
     Piro_NOXSolver_Def.hpp
     Piro_LOCASolver.hpp
     Piro_LOCASolver_Def.hpp
-    Piro_LOCAAdaptiveSolver.hpp
-    Piro_LOCAAdaptiveSolver_Def.hpp
     Piro_ObserverToLOCASaveDataStrategyAdapter.hpp
-    Piro_VelocityVerletSolver.hpp
-    Piro_VelocityVerletSolver_Def.hpp
     Piro_TrapezoidRuleSolver.hpp
     Piro_TrapezoidRuleSolver_Def.hpp
     Piro_TransientDecorator.hpp
@@ -98,7 +94,6 @@ ENDIF()
   APPEND_SET(SOURCES
     Piro_NOXSolver.cpp
     Piro_LOCASolver.cpp
-    Piro_LOCAAdaptiveSolver.cpp
     Piro_ObserverToLOCASaveDataStrategyAdapter.cpp
     )
 IF(PIRO_HAVE_EPETRA_STACK)
@@ -127,25 +122,6 @@ IF (Piro_ENABLE_Tempus)
     Piro_ObserverToTempusIntegrationObserverAdapter.hpp 
     Piro_ObserverToTempusIntegrationObserverAdapter_Def.hpp) 
 ENDIF()
-
-# Optional StochasticGalerkin capability, depending upon Stokhos and NOX
-IF (Piro_ENABLE_Stokhos AND Piro_ENABLE_NOX AND PIRO_HAVE_EPETRA_STACK)
-  APPEND_SET(HEADERS
-    Piro_Epetra_StokhosNOXObserver.hpp
-    Piro_Epetra_StokhosSolverFactory.hpp
-    Piro_Epetra_StokhosSolver.hpp
-    Piro_Epetra_StokhosMPSolver.hpp
-    Piro_Epetra_NECoupledModelEvaluator.hpp
-    )
-  APPEND_SET(SOURCES
-    Piro_Epetra_StokhosNOXObserver.cpp
-    Piro_Epetra_StokhosSolverFactory.cpp
-    Piro_Epetra_StokhosSolver.cpp
-    Piro_Epetra_StokhosMPSolver.cpp
-    Piro_Epetra_NECoupledModelEvaluator.cpp
-    )
-ENDIF()
-
 
 IF (Piro_ENABLE_ROL)
   APPEND_SET(HEADERS

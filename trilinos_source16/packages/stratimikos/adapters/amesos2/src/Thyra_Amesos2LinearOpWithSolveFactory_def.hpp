@@ -1,49 +1,16 @@
-/*
 // @HEADER
-// ***********************************************************************
-//
+// *****************************************************************************
 //         Stratimikos: Thyra-based strategies for linear solvers
-//                Copyright (2006) Sandia Corporation
 //
-// Under terms of Contract DE-AC04-94AL85000, there is a non-exclusive
-// license for use of this work by or on behalf of the U.S. Government.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Roscoe A. Bartlett (rabartl@sandia.gov)
-//
-// ***********************************************************************
+// Copyright 2006 NTESS and the Stratimikos contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
 // @HEADER
-*/
 
 #ifndef THYRA_AMESOS2_LINEAR_OP_WITH_SOLVE_FACTORY_HPP
 #define THYRA_AMESOS2_LINEAR_OP_WITH_SOLVE_FACTORY_HPP
 
+#include "Teuchos_StandardParameterEntryValidators.hpp"
 #include "Thyra_Amesos2LinearOpWithSolveFactory_decl.hpp"
 
 #include "Thyra_Amesos2LinearOpWithSolve.hpp"
@@ -51,6 +18,7 @@
 #include "Amesos2_Details_LinearSolverFactory.hpp"
 #include "Amesos2_Version.hpp"
 #include "Amesos2_Factory.hpp"
+#include "Thyra_Amesos2Types.hpp"
 #include "Thyra_TpetraLinearOp.hpp"
 #include "Thyra_TpetraThyraWrappers.hpp"
 #include "Thyra_DefaultDiagonalLinearOp.hpp"
@@ -58,6 +26,7 @@
 #include "Teuchos_TimeMonitor.hpp"
 #include "Teuchos_TypeNameTraits.hpp"
 #include "Teuchos_VerboseObjectParameterListHelpers.hpp"
+#include "Teuchos_StandardParameterEntryValidators.hpp"
 
 namespace Thyra {
 
@@ -206,6 +175,11 @@ void Amesos2LinearOpWithSolveFactory<Scalar>::initializeOp(
 #ifdef HAVE_AMESOS2_PARDISO_MKL
         case Thyra::Amesos2::PARDISO_MKL:
           amesos2Solver = ::Amesos2::create<MAT,MV>("pardiso_mkl", tpetraCrsMat);
+          break;
+#endif
+#ifdef HAVE_AMESOS2_CSS_MKL
+        case Thyra::Amesos2::CSS_MKL:
+          amesos2Solver = ::Amesos2::create<MAT,MV>("css_mkl", tpetraCrsMat);
           break;
 #endif
 #ifdef HAVE_AMESOS2_CHOLMOD
@@ -426,7 +400,15 @@ Amesos2LinearOpWithSolveFactory<Scalar>::generateAndGetValidParameters()
   static RCP<Teuchos::ParameterList> validParamList;
   if (validParamList.get()==NULL) {
     validParamList = Teuchos::rcp(new Teuchos::ParameterList("Amesos2"));
-    validParamList->set(SolverType_name, Thyra::Amesos2::solverTypeNames[0]);
+    Teuchos::Array<std::string> solverTypeNames(Amesos2::numSolverTypes);
+    for (int k = 0; k<Amesos2::numSolverTypes; ++k)
+      solverTypeNames[k] = Thyra::Amesos2::solverTypeNames[k];
+    auto validator = Teuchos::rcp(new Teuchos::StringValidator(solverTypeNames));
+    validParamList->set(SolverType_name,
+                        Thyra::Amesos2::solverTypeNames[0],
+                        "Type of Amesos2 solver",
+                        validator
+                        );
     validParamList->set(RefactorizationPolicy_name,
       Amesos2::toString(Amesos2::REPIVOT_ON_REFACTORIZATION));
     validParamList->set(ThrowOnPreconditionerInput_name,bool(true));

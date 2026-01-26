@@ -12,7 +12,10 @@
 
 namespace {
 
-class UpdateNgpMesh : public stk::unit_test_util::simple_fields::MeshFixture
+using ngp_unit_test_utils::check_bucket_layout;
+using NgpMeshDefaultMemSpace = stk::mesh::NgpMeshDefaultMemSpace;
+
+class UpdateNgpMesh : public stk::unit_test_util::MeshFixture
 {
 public:
   void setup_test_mesh()
@@ -20,7 +23,7 @@ public:
     setup_empty_mesh(stk::mesh::BulkData::NO_AUTO_AURA);
     extraPart = &get_meta().declare_part("extraPart");
     std::string meshDesc = "0,1,HEX_8,1,2,3,4,5,6,7,8\n";
-    stk::unit_test_util::simple_fields::setup_text_mesh(get_bulk(), meshDesc);
+    stk::unit_test_util::setup_text_mesh(get_bulk(), meshDesc);
   }
   const stk::mesh::Part* extraPart = nullptr;
 };
@@ -39,6 +42,23 @@ TEST_F(UpdateNgpMesh, explicitUpdate)
 
   EXPECT_FALSE(ngpMesh->is_up_to_date());
   ngpMesh = &stk::mesh::get_updated_ngp_mesh(get_bulk());
+  EXPECT_TRUE(ngpMesh->is_up_to_date());
+}
+
+TEST_F(UpdateNgpMesh, explicitUpdate_custom_NgpMemSpace)
+{
+  if (stk::parallel_machine_size(MPI_COMM_WORLD) > 1) { GTEST_SKIP(); }
+  setup_test_mesh();
+
+  stk::mesh::NgpMeshT<NgpMeshDefaultMemSpace> * ngpMesh = &stk::mesh::get_updated_ngp_mesh<NgpMeshDefaultMemSpace>(get_bulk());
+
+  get_bulk().modification_begin();
+  stk::mesh::Entity node1 = get_bulk().get_entity(stk::topology::NODE_RANK, 1);
+  get_bulk().change_entity_parts(node1, stk::mesh::ConstPartVector{extraPart});
+  get_bulk().modification_end();
+
+  EXPECT_FALSE(ngpMesh->is_up_to_date());
+  ngpMesh = &stk::mesh::get_updated_ngp_mesh<NgpMeshDefaultMemSpace>(get_bulk());
   EXPECT_TRUE(ngpMesh->is_up_to_date());
 }
 
@@ -61,6 +81,25 @@ TEST_F(UpdateNgpMesh, referenceGetsUpdated)
   EXPECT_TRUE(ngpMesh.is_up_to_date());
 }
 
+TEST_F(UpdateNgpMesh, referenceGetsUpdated_custom_NgpMemSpace)
+{
+  if (stk::parallel_machine_size(MPI_COMM_WORLD) > 1) { GTEST_SKIP(); }
+  setup_test_mesh();
+
+  // If storing a persistent reference, call the get_updated_ngp_mesh() function
+  // to ensure that it is synchronized with BulkData
+  stk::mesh::NgpMeshT<NgpMeshDefaultMemSpace> & ngpMesh = stk::mesh::get_updated_ngp_mesh<NgpMeshDefaultMemSpace>(get_bulk());
+
+  get_bulk().modification_begin();
+  stk::mesh::Entity node1 = get_bulk().get_entity(stk::topology::NODE_RANK, 1);
+  get_bulk().change_entity_parts(node1, stk::mesh::ConstPartVector{extraPart});
+  get_bulk().modification_end();
+
+  EXPECT_FALSE(ngpMesh.is_up_to_date());
+  stk::mesh::get_updated_ngp_mesh<NgpMeshDefaultMemSpace>(get_bulk());  // Trigger update
+  EXPECT_TRUE(ngpMesh.is_up_to_date());
+}
+
 TEST_F(UpdateNgpMesh, OnlyOneDeviceMesh_InternalAndExternal)
 {
   setup_test_mesh();
@@ -72,6 +111,20 @@ TEST_F(UpdateNgpMesh, OnlyOneDeviceMesh_InternalAndExternal)
   EXPECT_THROW(stk::mesh::NgpMesh secondNgpMesh(get_bulk()), std::logic_error);
 #else
   EXPECT_NO_THROW(stk::mesh::NgpMesh secondNgpMesh(get_bulk()));
+#endif
+}
+
+TEST_F(UpdateNgpMesh, OnlyOneDeviceMesh_InternalAndExternal_custom_NgpMemSpace)
+{
+  setup_test_mesh();
+
+  // Create first NgpMesh inside BulkData
+  stk::mesh::get_updated_ngp_mesh<NgpMeshDefaultMemSpace>(get_bulk());
+
+#ifdef STK_USE_DEVICE_MESH
+  EXPECT_THROW(stk::mesh::NgpMeshT<NgpMeshDefaultMemSpace> secondNgpMesh(get_bulk()), std::logic_error);
+#else
+  EXPECT_NO_THROW(stk::mesh::NgpMeshT<NgpMeshDefaultMemSpace> secondNgpMesh(get_bulk()));
 #endif
 }
 
@@ -88,7 +141,20 @@ TEST_F(UpdateNgpMesh, OnlyOneDeviceMesh_TwoExternal)
 #endif
 }
 
-class BucketLayoutModification : public stk::unit_test_util::simple_fields::MeshFixture
+TEST_F(UpdateNgpMesh, OnlyOneDeviceMesh_TwoExternal_custom_NgpMemSpace)
+{
+  setup_test_mesh();
+
+  stk::mesh::NgpMeshT<NgpMeshDefaultMemSpace> firstNgpMesh(get_bulk());
+
+#ifdef STK_USE_DEVICE_MESH
+  EXPECT_THROW(stk::mesh::NgpMeshT<NgpMeshDefaultMemSpace> secondNgpMesh(get_bulk()), std::logic_error);
+#else
+  EXPECT_NO_THROW(stk::mesh::NgpMeshT<NgpMeshDefaultMemSpace> secondNgpMesh(get_bulk()));
+#endif
+}
+
+class BucketLayoutModification : public stk::unit_test_util::MeshFixture
 {
 public:
   void setup_mesh_3hex_3block(unsigned bucketCapacity)
@@ -120,7 +186,7 @@ TEST_F(BucketLayoutModification, DeleteBucketInMiddle)
 
   stk::mesh::NgpMesh & ngpMesh = stk::mesh::get_updated_ngp_mesh(get_bulk());
 
-  ngp_unit_test_utils::check_bucket_layout(get_bulk(), {{"block_1", {1}}, {"block_2", {2}}, {"block_3", {3}}});
+  check_bucket_layout(get_bulk(), {{{"block_1"}, {1}}, {{"block_2"}, {2}}, {{"block_3"}, {3}}});
 
   get_bulk().modification_begin();
   stk::mesh::PartVector addParts{get_meta().get_part("block_1")};
@@ -130,7 +196,7 @@ TEST_F(BucketLayoutModification, DeleteBucketInMiddle)
 
   ngpMesh.update_mesh();
 
-  ngp_unit_test_utils::check_bucket_layout(get_bulk(), {{"block_1", {1,2}}, {"block_3", {3}}});
+  check_bucket_layout(get_bulk(), {{{"block_1"}, {1,2}}, {{"block_3"}, {3}}});
 }
 
 //   -------------------------        -------------------------
@@ -148,7 +214,7 @@ TEST_F(BucketLayoutModification, AddBucketInMiddle)
 
   stk::mesh::NgpMesh & ngpMesh = stk::mesh::get_updated_ngp_mesh(get_bulk());
 
-  ngp_unit_test_utils::check_bucket_layout(get_bulk(), {{"block_1", {1}}, {"block_2", {2}}, {"block_3", {3}}});
+  check_bucket_layout(get_bulk(), {{{"block_1"}, {1}}, {{"block_2"}, {2}}, {{"block_3"}, {3}}});
 
   get_bulk().modification_begin();
   stk::mesh::PartVector addParts{get_meta().get_part("block_1")};
@@ -158,7 +224,7 @@ TEST_F(BucketLayoutModification, AddBucketInMiddle)
 
   ngpMesh.update_mesh();
 
-  ngp_unit_test_utils::check_bucket_layout(get_bulk(), {{"block_1", {1}}, {"block_1", {3}}, {"block_2", {2}}});
+  check_bucket_layout(get_bulk(), {{{"block_1"}, {1}}, {{"block_1"}, {3}}, {{"block_2"}, {2}}});
 }
 
 //   -------------------------        -------------------------
@@ -176,7 +242,7 @@ TEST_F(BucketLayoutModification, ChangeBucketContents)
 
   stk::mesh::NgpMesh & ngpMesh = stk::mesh::get_updated_ngp_mesh(get_bulk());
 
-  ngp_unit_test_utils::check_bucket_layout(get_bulk(), {{"block_1", {1,2}}, {"block_3", {3}}});
+  check_bucket_layout(get_bulk(), {{{"block_1"}, {1,2}}, {{"block_3"}, {3}}});
 
   get_bulk().modification_begin();
   stk::mesh::PartVector addParts{get_meta().get_part("block_3")};
@@ -186,7 +252,7 @@ TEST_F(BucketLayoutModification, ChangeBucketContents)
 
   ngpMesh.update_mesh();
 
-  ngp_unit_test_utils::check_bucket_layout(get_bulk(), {{"block_1", {1}}, {"block_3", {2,3}}});
+  check_bucket_layout(get_bulk(), {{{"block_1"}, {1}}, {{"block_3"}, {2,3}}});
 }
 
 //   -------------------------        -------------------------
@@ -204,7 +270,7 @@ TEST_F(BucketLayoutModification, DeleteBucketInMiddle_WithCopy)
 
   stk::mesh::NgpMesh ngpMesh = stk::mesh::get_updated_ngp_mesh(get_bulk());
 
-  ngp_unit_test_utils::check_bucket_layout(get_bulk(), {{"block_1", {1}}, {"block_2", {2}}, {"block_3", {3}}});
+  check_bucket_layout(get_bulk(), {{{"block_1"}, {1}}, {{"block_2"}, {2}}, {{"block_3"}, {3}}});
 
   get_bulk().modification_begin();
   stk::mesh::PartVector addParts{get_meta().get_part("block_1")};
@@ -214,7 +280,7 @@ TEST_F(BucketLayoutModification, DeleteBucketInMiddle_WithCopy)
 
   stk::mesh::get_updated_ngp_mesh(get_bulk());  // Trigger an update
 
-  ngp_unit_test_utils::check_bucket_layout(get_bulk(), {{"block_1", {1,2}}, {"block_3", {3}}});
+  check_bucket_layout(get_bulk(), {{{"block_1"}, {1,2}}, {{"block_3"}, {3}}});
 }
 
 //   -------------------------        -------------------------
@@ -232,7 +298,7 @@ TEST_F(BucketLayoutModification, AddBucketInMiddle_WithCopy)
 
   stk::mesh::NgpMesh ngpMesh = stk::mesh::get_updated_ngp_mesh(get_bulk());
 
-  ngp_unit_test_utils::check_bucket_layout(get_bulk(), {{"block_1", {1}}, {"block_2", {2}}, {"block_3", {3}}});
+  check_bucket_layout(get_bulk(), {{{"block_1"}, {1}}, {{"block_2"}, {2}}, {{"block_3"}, {3}}});
 
   get_bulk().modification_begin();
   stk::mesh::PartVector addParts{get_meta().get_part("block_1")};
@@ -242,7 +308,7 @@ TEST_F(BucketLayoutModification, AddBucketInMiddle_WithCopy)
 
   stk::mesh::get_updated_ngp_mesh(get_bulk());  // Trigger an update
 
-  ngp_unit_test_utils::check_bucket_layout(get_bulk(), {{"block_1", {1}}, {"block_1", {3}}, {"block_2", {2}}});
+  check_bucket_layout(get_bulk(), {{{"block_1"}, {1}}, {{"block_1"}, {3}}, {{"block_2"}, {2}}});
 }
 
 //   -------------------------        -------------------------
@@ -260,7 +326,7 @@ TEST_F(BucketLayoutModification, ChangeBucketContents_WithCopy)
 
   stk::mesh::NgpMesh ngpMesh = stk::mesh::get_updated_ngp_mesh(get_bulk());
 
-  ngp_unit_test_utils::check_bucket_layout(get_bulk(), {{"block_1", {1,2}}, {"block_3", {3}}});
+  check_bucket_layout(get_bulk(), {{{"block_1"}, {1,2}}, {{"block_3"}, {3}}});
 
   get_bulk().modification_begin();
   stk::mesh::PartVector addParts{get_meta().get_part("block_3")};
@@ -270,7 +336,7 @@ TEST_F(BucketLayoutModification, ChangeBucketContents_WithCopy)
 
   stk::mesh::get_updated_ngp_mesh(get_bulk());  // Trigger an update
 
-  ngp_unit_test_utils::check_bucket_layout(get_bulk(), {{"block_1", {1}}, {"block_3", {2,3}}});
+  check_bucket_layout(get_bulk(), {{{"block_1"}, {1}}, {{"block_3"}, {2,3}}});
 }
 
-}
+}  // namespace

@@ -57,6 +57,16 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
   )
 
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
+  CrsMatrix_NewCopyAndPermute
+  SOURCES
+    CrsMatrix_NewCopyAndPermute.cpp
+    ${TEUCHOS_STD_UNIT_TEST_MAIN}
+  ARGS ${ARGS}
+  COMM serial mpi
+  STANDARD_PASS_OUTPUT
+  )
+
+TRIBITS_ADD_EXECUTABLE_AND_TEST(
   CrsMatrix_UnitTests_LocalAccessors
   SOURCES
     CrsMatrix_UnitTests_LocalAccessors.cpp
@@ -490,6 +500,16 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
   STANDARD_PASS_OUTPUT
   )
 
+TRIBITS_ADD_EXECUTABLE_AND_TEST(
+  CrsMatrix_MatvecFence
+  SOURCES
+    CrsMatrix_MatvecFence.cpp
+    ${TEUCHOS_STD_UNIT_TEST_MAIN}
+  COMM mpi
+  STANDARD_PASS_OUTPUT
+  )
+
+
 if (
   # supported TPLs
   (
@@ -513,6 +533,15 @@ if (
     STANDARD_PASS_OUTPUT
     )
 endif()
+
+TRIBITS_ADD_EXECUTABLE_AND_TEST(
+  CrsMatrix_getLocalDiagCopy
+  SOURCES
+    CrsMatrix_getLocalDiagCopy.cpp
+    ${TEUCHOS_STD_UNIT_TEST_MAIN}
+  COMM mpi
+  STANDARD_PASS_OUTPUT
+  )
 
 SET(TIMING_INSTALLS "")
 

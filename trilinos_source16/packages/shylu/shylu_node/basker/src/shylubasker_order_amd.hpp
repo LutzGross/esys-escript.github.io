@@ -1,3 +1,12 @@
+// @HEADER
+// *****************************************************************************
+//               ShyLU: Scalable Hybrid LU Preconditioner and Solver
+//
+// Copyright 2011 NTESS and the ShyLU contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
+// @HEADER
+
 #ifndef SHYLUBASKER_ORDER_AMD_HPP
 #define SHYLUBASKER_ORDER_AMD_HPP
 
@@ -19,7 +28,7 @@ namespace BaskerNS
   //==========================csymamd===================
 
   template <class Int>
-  BASKER_FINLINE
+  BASKER_INLINE
   int my_amesos_csymamd
   (
    Int n, 
@@ -33,7 +42,7 @@ namespace BaskerNS
   }//end my_amesos_csymamd
 
   template <>
-  BASKER_FINLINE
+  BASKER_INLINE
   int my_amesos_csymamd <>
   (
    int n, 
@@ -63,7 +72,7 @@ namespace BaskerNS
 
 
   template <>
-  BASKER_FINLINE
+  BASKER_INLINE
   int my_amesos_csymamd <>
   (
    long n, 
@@ -93,7 +102,7 @@ namespace BaskerNS
 
 
   template <class Int, class Entry, class Exe_Space>
-  BASKER_FINLINE
+  BASKER_INLINE
   void Basker<Int,Entry,Exe_Space>::amd_order
   (
    BASKER_MATRIX &M,
@@ -110,7 +119,7 @@ namespace BaskerNS
 
 
   template <class Int, class Entry, class Exe_Space>
-  BASKER_FINLINE
+  BASKER_INLINE
   void Basker<Int, Entry,Exe_Space>::csymamd_order
   (
    BASKER_MATRIX &M,
@@ -159,7 +168,7 @@ namespace BaskerNS
   //======================COLAMD=======================
 
   template <class Int>
-  BASKER_FINLINE
+  BASKER_INLINE
   int trilinos_colamd
   (
    Int n_row, 
@@ -176,7 +185,7 @@ namespace BaskerNS
   
  
   template < >
-  BASKER_FINLINE
+  BASKER_INLINE
   int trilinos_colamd<>
   (
    int n_row,
@@ -195,7 +204,7 @@ namespace BaskerNS
 
   //template<class Entry, class Exe_Space>
   template <>
-  BASKER_FINLINE
+  BASKER_INLINE
   int trilinos_colamd<>
   (
    long n_row,

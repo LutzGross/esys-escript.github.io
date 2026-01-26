@@ -1,3 +1,12 @@
+// @HEADER
+// *****************************************************************************
+//               ShyLU: Scalable Hybrid LU Preconditioner and Solver
+//
+// Copyright 2011 NTESS and the ShyLU contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
+// @HEADER
+
 #ifndef SHYLUBASKER_NFACTOR_INC_HPP
 #define SHYLUBASKER_NFACTOR_INC_HPP
 
@@ -58,8 +67,6 @@ namespace BaskerNS
     //Kokkos::Timer       timer;
     #endif
     //===TIMER===
-
-    typedef Kokkos::TeamPolicy<Exe_Space>        TeamPolicy;
     if(btf_tabs_offset != 0)
       {
 	//printf("domain\n");
@@ -79,7 +86,7 @@ namespace BaskerNS
 	init_value(thread_start, num_threads+1, 
 		   (Int) BASKER_MAX_IDX);
 	int nt = nfactor_domain_error(thread_start);
-	if((nt == BASKER_SUCCESS))
+	if(nt == BASKER_SUCCESS)
 	  {
 	    FREE_INT_1DARRAY(thread_start);
 	    break;
@@ -179,7 +186,7 @@ namespace BaskerNS
 		      (Int) BASKER_MAX_IDX);
 	    int nt = nfactor_sep_error(thread_start);
 	    //printf("AFTER SEP ERROR %d \n", nt);
-	    if((nt == BASKER_SUCCESS))
+	    if(nt == BASKER_SUCCESS)
 	      {
 		FREE_INT_1DARRAY(thread_start);
 		break;

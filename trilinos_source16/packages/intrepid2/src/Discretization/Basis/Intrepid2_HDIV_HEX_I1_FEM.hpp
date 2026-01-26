@@ -190,6 +190,23 @@ namespace Intrepid2 {
                                   operatorType );
     }
 
+    virtual void 
+    getScratchSpaceSize(      ordinal_type& perTeamSpaceSize,
+                              ordinal_type& perThreadSpaceSize,
+                        const PointViewType inputPointsconst,
+                        const EOperator operatorType = OPERATOR_VALUE) const override;
+
+    KOKKOS_INLINE_FUNCTION
+    virtual void 
+    getValues(       
+          OutputViewType outputValues,
+      const PointViewType  inputPoints,
+      const EOperator operatorType,
+      const typename Kokkos::TeamPolicy<typename DeviceType::execution_space>::member_type& team_member,
+      const typename DeviceType::execution_space::scratch_memory_space & scratchStorage, 
+      const ordinal_type subcellDim = -1,
+      const ordinal_type subcellOrdinal = -1) const override;
+
     virtual
     void
     getDofCoords( ScalarViewType dofCoords ) const override {
@@ -201,7 +218,7 @@ namespace Intrepid2 {
       INTREPID2_TEST_FOR_EXCEPTION( static_cast<ordinal_type>(dofCoords.extent(0)) != this->basisCardinality_, std::invalid_argument,
                                     ">>> ERROR: (Intrepid2::Basis_HDIV_HEX_I1_FEM::getDofCoords) mismatch in number of dof and 0th dimension of dofCoords array");
       // Verify 1st dimension of output array.
-      INTREPID2_TEST_FOR_EXCEPTION( dofCoords.extent(1) != this->basisCellTopology_.getDimension(), std::invalid_argument,
+      INTREPID2_TEST_FOR_EXCEPTION( dofCoords.extent(1) != this->getBaseCellTopology().getDimension(), std::invalid_argument,
                                     ">>> ERROR: (Intrepid2::Basis_HDIV_HEX_I1_FEM::getDofCoords) incorrect reference cell (1st) dimension in dofCoords array");
 #endif
       Kokkos::deep_copy(dofCoords, this->dofCoords_);

@@ -63,6 +63,8 @@ TRIBITS_COPY_FILES_TO_BINARY_DIR(Ifpack2BelosCopyFiles
   test_2_Jacobi_nos1_hb.xml
   test_Jacobi_gcrodr_nos1_hb.xml
   nos1.rsa
+  nos2.rsa
+  nos1_random_coords.mtx
   test_Jacobi_bcsstk14_hb.xml
   test_Jacobi_minres_bcsstk14_hb.xml
   test_Jacobi_pseudoblockcg_bcsstk14_hb.xml
@@ -70,11 +72,12 @@ TRIBITS_COPY_FILES_TO_BINARY_DIR(Ifpack2BelosCopyFiles
   test_2_ILUT_nos1_hb.xml
   test_2_RILUK_nos1_hb.xml
   test_RBILUK_nos1_hb_block.xml
+  test_RBILUK_2streams_nos2_hb_block.xml
   test_2_RILUK_HTS_nos1_hb.xml
   test_2_RILUK_2streams_nos1_hb.xml
   test_2_RILUK_4streams_nos1_hb.xml
   test_2_RILUK_2streams_rcm_nos1_hb.xml
-  test_2_RILUK_4streams_rcm_nos1_hb.xml
+  test_2_RILUK_4streams_rcm_nos1_hb.xml  
   test_4_ILUT_nos1_hb.xml
   test_4_RILUK_nos1_hb.xml
   test_4_RILUK_HTS_nos1_hb.xml
@@ -82,6 +85,9 @@ TRIBITS_COPY_FILES_TO_BINARY_DIR(Ifpack2BelosCopyFiles
   test_4_RILUK_4streams_nos1_hb.xml
   test_4_RILUK_2streams_rcm_nos1_hb.xml
   test_4_RILUK_4streams_rcm_nos1_hb.xml
+  test_schwarz_RILUK_2streams_rcb_nos1_hb.xml
+  test_schwarz_RILUK_4streams_rcb_nos1_hb.xml
+  test_Jacobi_coords_nos1_hb.xml
   test_SGS_calore1_mm.xml
   test_MTSGS_calore1_mm.xml
   calore1.mtx
@@ -360,6 +366,15 @@ TRIBITS_ADD_TEST(
 
 TRIBITS_ADD_TEST(
   tif_belos
+  NAME RBILUK_2streams_hb_belos_block_serial
+  ARGS "--xml_file=test_RBILUK_2streams_nos2_hb_block.xml"
+  COMM serial mpi
+  NUM_MPI_PROCS 1
+  STANDARD_PASS_OUTPUT
+)
+
+TRIBITS_ADD_TEST(
+  tif_belos
   NAME RILUK_hb_belos
   ARGS "--xml_file=test_4_RILUK_nos1_hb.xml"
   COMM serial mpi
@@ -447,6 +462,51 @@ TRIBITS_ADD_TEST(
   tif_belos
   NAME RILUK_4streams_rcm_hb_belos
   ARGS "--xml_file=test_4_RILUK_4streams_rcm_nos1_hb.xml"
+  COMM serial mpi
+  NUM_MPI_PROCS 4
+  STANDARD_PASS_OUTPUT
+)
+
+TRIBITS_ADD_TEST(
+  tif_belos
+  NAME SCHWARZ_RILUK_2streams_rcb_hb_belos
+  ARGS "--xml_file=test_schwarz_RILUK_2streams_rcb_nos1_hb.xml"
+  COMM serial mpi
+  NUM_MPI_PROCS 2
+  STANDARD_PASS_OUTPUT
+)
+
+TRIBITS_ADD_TEST(
+  tif_belos
+  NAME SCHWARZ_RILUK_4streams_rcb_hb_belos
+  ARGS "--xml_file=test_schwarz_RILUK_4streams_rcb_nos1_hb.xml"
+  COMM serial mpi
+  NUM_MPI_PROCS 2
+  STANDARD_PASS_OUTPUT
+)
+
+TRIBITS_ADD_TEST(
+  tif_belos
+  NAME SCHWARZ_RILUK_2streams_rcb_hb_belos
+  ARGS "--xml_file=test_schwarz_RILUK_2streams_rcb_nos1_hb.xml"
+  COMM serial mpi
+  NUM_MPI_PROCS 4
+  STANDARD_PASS_OUTPUT
+)
+
+TRIBITS_ADD_TEST(
+  tif_belos
+  NAME SCHWARZ_RILUK_4streams_rcb_hb_belos
+  ARGS "--xml_file=test_schwarz_RILUK_4streams_rcb_nos1_hb.xml"
+  COMM serial mpi
+  NUM_MPI_PROCS 4
+  STANDARD_PASS_OUTPUT
+)
+
+TRIBITS_ADD_TEST(
+  tif_belos
+  NAME Jacobi_coords_hb_belos
+  ARGS "--xml_file=test_Jacobi_coords_nos1_hb.xml"
   COMM serial mpi
   NUM_MPI_PROCS 4
   STANDARD_PASS_OUTPUT

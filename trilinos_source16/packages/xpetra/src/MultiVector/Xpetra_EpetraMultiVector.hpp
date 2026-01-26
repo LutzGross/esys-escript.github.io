@@ -1,48 +1,12 @@
 // @HEADER
-//
-// ***********************************************************************
-//
+// *****************************************************************************
 //             Xpetra: A linear algebra interface package
-//                  Copyright 2012 Sandia Corporation
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
-// the U.S. Government retains certain rights in this software.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact
-//                    Jonathan Hu       (jhu@sandia.gov)
-//                    Andrey Prokopenko (aprokop@sandia.gov)
-//                    Ray Tuminaro      (rstumin@sandia.gov)
-//
-// ***********************************************************************
-//
+// Copyright 2012 NTESS and the Xpetra contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
 // @HEADER
+
 #ifndef XPETRA_EPETRAMULTIVECTOR_HPP
 #define XPETRA_EPETRAMULTIVECTOR_HPP
 
@@ -69,7 +33,9 @@
 
 #if defined(XPETRA_ENABLE_DEPRECATED_CODE)
 #ifdef __GNUC__
+#if defined(Xpetra_SHOW_DEPRECATED_WARNINGS)
 #warning "The header file Trilinos/packages/xpetra/src/MultiVector/Xpetra_EpetraMultiVector.hpp is deprecated."
+#endif
 #endif
 #else
 #error "The header file Trilinos/packages/xpetra/src/MultiVector/Xpetra_EpetraMultiVector.hpp is deprecated."
@@ -699,15 +665,15 @@ class EpetraMultiVectorT<int, EpetraNode>
 
   typedef typename Xpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>::dual_view_type dual_view_type;
 
-  typename dual_view_type::t_host_const_um getHostLocalView(Access::ReadOnlyStruct) const override { return getHostLocalView(Access::ReadWrite); }
+  typename dual_view_type::t_host_const_um getLocalViewHost(Tpetra::Access::ReadOnlyStruct) const override { return getLocalViewHost(Tpetra::Access::ReadWrite); }
 
-  typename dual_view_type::t_dev_const_um getDeviceLocalView(Access::ReadOnlyStruct) const override { return getDeviceLocalView(Access::ReadWrite); }
+  typename dual_view_type::t_dev_const_um getLocalViewDevice(Tpetra::Access::ReadOnlyStruct) const override { return getLocalViewDevice(Tpetra::Access::ReadWrite); }
 
-  typename dual_view_type::t_host_um getHostLocalView(Access::OverwriteAllStruct) const override { return getHostLocalView(Access::ReadWrite); }
+  typename dual_view_type::t_host_um getLocalViewHost(Tpetra::Access::OverwriteAllStruct) const override { return getLocalViewHost(Tpetra::Access::ReadWrite); }
 
-  typename dual_view_type::t_dev_um getDeviceLocalView(Access::OverwriteAllStruct) const override { return getDeviceLocalView(Access::ReadWrite); }
+  typename dual_view_type::t_dev_um getLocalViewDevice(Tpetra::Access::OverwriteAllStruct) const override { return getLocalViewDevice(Tpetra::Access::ReadWrite); }
 
-  typename dual_view_type::t_host_um getHostLocalView(Access::ReadWriteStruct) const override {
+  typename dual_view_type::t_host_um getLocalViewHost(Tpetra::Access::ReadWriteStruct) const override {
     typedef Kokkos::View<typename dual_view_type::t_host::data_type,
                          Kokkos::LayoutLeft,
                          typename dual_view_type::t_host::device_type,
@@ -728,7 +694,7 @@ class EpetraMultiVectorT<int, EpetraNode>
     return ret;
   }
 
-  typename dual_view_type::t_dev_um getDeviceLocalView(Access::ReadWriteStruct) const override { return getHostLocalView(Access::ReadWrite); }
+  typename dual_view_type::t_dev_um getLocalViewDevice(Tpetra::Access::ReadWriteStruct) const override { return getLocalViewHost(Tpetra::Access::ReadWrite); }
 
   //@}
 

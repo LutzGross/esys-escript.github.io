@@ -113,7 +113,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "--p 4 --nt 200 --d 3 --kokkos-threads=2"
+    "--p 4 --nt 200 --d 3 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -135,7 +135,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "--p 4 --nt 200 --d 2 --kokkos-threads=2"
+    "--p 4 --nt 200 --d 2 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -157,7 +157,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "--p 4 --nt 200 --d 1 --kokkos-threads=2"
+    "--p 4 --nt 200 --d 1 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -180,7 +180,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "--p 4 --nt 200 --d 3 --kokkos-threads=2"
+    "--p 4 --nt 200 --d 3 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -202,7 +202,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "--p 4 --nt 200 --d 2 --kokkos-threads=2"
+    "--p 4 --nt 200 --d 2 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -224,7 +224,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "--p 4 --nt 200 --d 1 --kokkos-threads=2"
+    "--p 4 --nt 200 --d 1 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -247,7 +247,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "--p 4 --nt 200 --d 3 --solver LU --kokkos-threads=2"
+    "--p 4 --nt 200 --d 3 --solver LU --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -270,7 +270,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "--p 3 --nt 200 --d 3 --solver LU --constraint NEUMANN_GRAD_SCALAR --kokkos-threads=2"
+    "--p 3 --nt 200 --d 3 --solver LU --constraint NEUMANN_GRAD_SCALAR --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -293,7 +293,7 @@ endif() # test created
 #  COMM serial mpi
 #  NUM_MPI_PROCS 1
 #  ARGS
-#    "3 200 3 0 0 1 --kokkos-threads=2"
+#    "3 200 3 0 0 1 --kokkos-num-threads=2"
 #  ADDED_TESTS_NAMES_OUT ${testName}_CREATED
 #  ) # end tribits_add_test
 #if (${testName}_CREATED)
@@ -316,7 +316,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "--p 3 --nt 20 --d 3 --kokkos-threads=2"
+    "--p 3 --nt 20 --d 3 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -338,7 +338,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "--p 3 --nt 20 --d 2 --kokkos-threads=2"
+    "--p 3 --nt 20 --d 2 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -360,7 +360,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "--p 3 --nt 20 --d 1 --kokkos-threads=2"
+    "--p 3 --nt 20 --d 1 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -383,7 +383,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "--p 3 --nt 200 --d 3 --solver LU --kokkos-threads=2"
+    "--p 3 --nt 200 --d 3 --solver LU --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -407,7 +407,7 @@ tribits_add_test(
   NUM_MPI_PROCS 1
   COMM serial mpi
   ARGS
-    "--p 4 --nt 200 --d 2 --kokkos-threads=2"
+    "--p 4 --nt 200 --d 2 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -429,7 +429,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "--p 4 --nt 200 --d 1 --kokkos-threads=2"
+    "--p 4 --nt 200 --d 1 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -452,7 +452,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "--p 4 --nt 200 --d 3 --kokkos-threads=2"
+    "--p 4 --nt 200 --d 3 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -476,7 +476,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "--p 3 --nt 100 --d 3 --kokkos-threads=4"
+    "--p 3 --nt 100 --d 3 --kokkos-num-threads=4"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -500,7 +500,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "--p 3 --nt 200 --d 2 --kokkos-threads=2"
+    "--p 3 --nt 200 --d 2 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -518,7 +518,7 @@ if (NOT(Compadre_DEBUG OR Compadre_EXTREME_DEBUG))
   # This test is too slow in DEBUG (3x longer than all other tests
   # combined)
 
-  if (PYTHON_EXECUTABLE)
+  if (Python3_EXECUTABLE)
     # Python driven test of a C++ executable (Python changes command line
     # arguments given to executable)
     configure_file(
@@ -529,7 +529,7 @@ if (NOT(Compadre_DEBUG OR Compadre_EXTREME_DEBUG))
     set(testName GMLS_Manifold_Multiple_Evaluation_Sites)
     TRIBITS_ADD_ADVANCED_TEST(
       ${testName}
-      TEST_0 CMND ${PYTHON_EXECUTABLE} ARGS ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Manifold_Multiple_Evaluation_Sites.py --porder=3 --grids=3 --in-trilinos=True
+      TEST_0 CMND ${Python3_EXECUTABLE} ARGS ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Manifold_Multiple_Evaluation_Sites.py --porder=3 --grids=3 --in-trilinos=True
       PASS_REGULAR_EXPRESSION "Passed."
       COMM mpi serial
       ADDED_TEST_NAME_OUT ${testName}_CREATED
@@ -546,7 +546,7 @@ if (NOT(Compadre_DEBUG OR Compadre_EXTREME_DEBUG))
             $<TARGET_FILE:Compadre_GMLS_Manifold_MultiSite_Test>
       )
     endif() # test created
-  endif() # PYTHON_EXECUTABLE
+  endif() # Python3_EXECUTABLE
 
   # Divergence-free basis test for GMLS on non-manifold
   # Note: QR is needed to be used here due to the null space introduced
@@ -557,7 +557,7 @@ if (NOT(Compadre_DEBUG OR Compadre_EXTREME_DEBUG))
       ${testName}
     NUM_MPI_PROCS 1
     ARGS
-      "--p 3 --nt 200 --d 3 --kokkos-threads=2"
+      "--p 3 --nt 200 --d 3 --kokkos-num-threads=2"
     ADDED_TESTS_NAMES_OUT ${testName}_CREATED
     ) # end tribits_add_test
   if (${testName}_CREATED)
@@ -577,7 +577,7 @@ if (NOT(Compadre_DEBUG OR Compadre_EXTREME_DEBUG))
   #    ${testName}
   #  NUM_MPI_PROCS 1
   #  ARGS
-  #    "2 200 3 0 0 0 --kokkos-threads=2"
+  #    "2 200 3 0 0 0 --kokkos-num-threads=2"
   #  ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   #  ) # end tribits_add_test
   #if (${testName}_CREATED)
@@ -599,7 +599,7 @@ if (NOT(Compadre_DEBUG OR Compadre_EXTREME_DEBUG))
       ${testName}
     NUM_MPI_PROCS 1
     ARGS
-      "--p 3 --nt 200 --d 2 --kokkos-threads=2"
+      "--p 3 --nt 200 --d 2 --kokkos-num-threads=2"
     ADDED_TESTS_NAMES_OUT ${testName}_CREATED
     ) # end tribits_add_test
   if (${testName}_CREATED)
@@ -619,7 +619,7 @@ if (NOT(Compadre_DEBUG OR Compadre_EXTREME_DEBUG))
   #    ${testName}
   #  NUM_MPI_PROCS 1
   #  ARGS
-  #    "2 200 2 0 0 0 --kokkos-threads=2"
+  #    "2 200 2 0 0 0 --kokkos-num-threads=2"
   #  ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   #  ) # end tribits_add_test
   #if (${testName}_CREATED)
@@ -634,7 +634,7 @@ if (NOT(Compadre_DEBUG OR Compadre_EXTREME_DEBUG))
   #endif() # test created
 endif() # not debug
 
-if (PYTHON_EXECUTABLE)
+if (Python3_EXECUTABLE)
   # Python driven test of a C++ executable (Python changes command line
   # arguments given to executable) - calling QR solver
   configure_file(
@@ -645,7 +645,7 @@ if (PYTHON_EXECUTABLE)
   set(testName GMLS_Manifold_Refinement_Study_QR)
   TRIBITS_ADD_ADVANCED_TEST(
     ${testName}
-    TEST_0 CMND ${PYTHON_EXECUTABLE} ARGS ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Manifold.py --porder=3 --grids=4 --solver-type=QR --in-trilinos=True
+    TEST_0 CMND ${Python3_EXECUTABLE} ARGS ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Manifold.py --porder=3 --grids=4 --solver-type=QR --in-trilinos=True
     PASS_REGULAR_EXPRESSION "Passed."
     COMM mpi serial
     ADDED_TEST_NAME_OUT ${testName}_CREATED
@@ -668,7 +668,7 @@ if (PYTHON_EXECUTABLE)
   set(testName GMLS_Manifold_Refinement_Study_LU)
   TRIBITS_ADD_ADVANCED_TEST(
     ${testName}
-    TEST_0 CMND ${PYTHON_EXECUTABLE} ARGS ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Manifold.py --porder=3 --grids=4 --solver-type=LU --in-trilinos=True
+    TEST_0 CMND ${Python3_EXECUTABLE} ARGS ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Manifold.py --porder=3 --grids=4 --solver-type=LU --in-trilinos=True
     PASS_REGULAR_EXPRESSION "Passed."
     COMM mpi serial
     ADDED_TEST_NAME_OUT ${testName}_CREATED
@@ -698,7 +698,7 @@ if (PYTHON_EXECUTABLE)
   set(testName GMLS_Staggered_Manifold_Refinement_Study)
   TRIBITS_ADD_ADVANCED_TEST(
     ${testName}
-    TEST_0 CMND ${PYTHON_EXECUTABLE} ARGS ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Staggered_Manifold.py --porder=3 --grids=4 --in-trilinos=True
+    TEST_0 CMND ${Python3_EXECUTABLE} ARGS ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Staggered_Manifold.py --porder=3 --grids=4 --in-trilinos=True
     PASS_REGULAR_EXPRESSION "Passed."
     COMM mpi serial
     ADDED_TEST_NAME_OUT ${testName}_CREATED
@@ -715,7 +715,7 @@ if (PYTHON_EXECUTABLE)
           $<TARGET_FILE:Compadre_GMLS_Staggered_Manifold_Test>
     )
   endif() # test created
-endif() # PYTHON_EXECUTABLE
+endif() # Python3_EXECUTABLE
 
 # Utility test - Filter By ID
 set(testName Test_Utilities)
@@ -726,7 +726,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "200 --kokkos-threads=2"
+    "200 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -749,7 +749,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "2 200 6.5 0 --kokkos-threads=2"
+    "2 200 6.5 0 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -771,7 +771,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "2 300 4.5 0 --kokkos-threads=2"
+    "2 300 4.5 0 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -793,7 +793,7 @@ endif() # test created
 #  COMM serial mpi
 #  NUM_MPI_PROCS 1
 #  ARGS
-#    "2 400 1.8 --kokkos-threads=2"
+#    "2 400 1.8 --kokkos-num-threads=2"
 #  ADDED_TESTS_NAMES_OUT ${testName}_CREATED
 #  ) # end tribits_add_test
 #if (${testName}_CREATED)
@@ -816,7 +816,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "3 100 4.5 0 --kokkos-threads=2"
+    "3 100 4.5 0 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -838,7 +838,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "3 150 3.5 0 --kokkos-threads=2"
+    "3 150 3.5 0 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -860,7 +860,7 @@ endif() # test created
 #  COMM serial mpi
 #  NUM_MPI_PROCS 1
 #  ARGS
-#    "3 160 1.8 --kokkos-threads=2"
+#    "3 160 1.8 --kokkos-num-threads=2"
 #  ADDED_TESTS_NAMES_OUT ${testName}_CREATED
 #  ) # end tribits_add_test
 #if (${testName}_CREATED)
@@ -883,7 +883,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "2 200 6.5 1 --kokkos-threads=2"
+    "2 200 6.5 1 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -905,7 +905,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "2 300 4.5 1 --kokkos-threads=2"
+    "2 300 4.5 1 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -927,7 +927,7 @@ endif() # test created
 #  COMM serial mpi
 #  NUM_MPI_PROCS 1
 #  ARGS
-#    "2 400 1.8 --kokkos-threads=2"
+#    "2 400 1.8 --kokkos-num-threads=2"
 #  ADDED_TESTS_NAMES_OUT ${testName}_CREATED
 #  ) # end tribits_add_test
 #if (${testName}_CREATED)
@@ -950,7 +950,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "3 100 4.5 1 --kokkos-threads=2"
+    "3 100 4.5 1 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -972,7 +972,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "3 150 3.5 1 --kokkos-threads=2"
+    "3 150 3.5 1 --kokkos-num-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -994,7 +994,7 @@ endif() # test created
 #  COMM serial mpi
 #  NUM_MPI_PROCS 1
 #  ARGS
-#    "3 160 1.8 1 --kokkos-threads=2"
+#    "3 160 1.8 1 --kokkos-num-threads=2"
 #  ADDED_TESTS_NAMES_OUT ${testName}_CREATED
 #  ) # end tribits_add_test
 #if (${testName}_CREATED)

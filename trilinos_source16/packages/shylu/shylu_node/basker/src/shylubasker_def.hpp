@@ -1,3 +1,12 @@
+// @HEADER
+// *****************************************************************************
+//               ShyLU: Scalable Hybrid LU Preconditioner and Solver
+//
+// Copyright 2011 NTESS and the ShyLU contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
+// @HEADER
+
 #ifndef SHYLUBASKER_DEF_HPP
 #define SHYLUBASKER_DEF_HPP
 
@@ -42,7 +51,7 @@ namespace BaskerNS
   template <class Int, class Entry, class Exe_Space>
   BASKER_INLINE
   Basker<Int, Entry, Exe_Space>::Basker()
-  {   
+  {
     //Presetup flags
     matrix_flag       = BASKER_FALSE;
     order_flag        = BASKER_FALSE;
@@ -83,16 +92,8 @@ namespace BaskerNS
   BASKER_INLINE
   void Basker<Int,Entry,Exe_Space>::Finalize()
   {
-    //finalize all matrices
-    A.Finalize();
-    At.Finalize(); //??? is At even used
-    BTF_A.Finalize();
-    BTF_C.Finalize();
-    BTF_B.Finalize();
-    BTF_D.Finalize();
-    BTF_E.Finalize();
-   
     //finalize array of 2d matrics
+    // Actuall Finalize is called by desctructor
     FREE_MATRIX_2DARRAY(AVM, tree.nblks);
     FREE_MATRIX_2DARRAY(ALM, tree.nblks);
     
@@ -111,7 +112,6 @@ namespace BaskerNS
        
     //Thread Array
     FREE_THREAD_1DARRAY(thread_array);
-    basker_barrier.Finalize();
        
     //S (Check on this)
     FREE_INT_2DARRAY(S, tree.nblks);
@@ -178,18 +178,12 @@ namespace BaskerNS
 
     FREE_ENTRY_1DARRAY(x_view_ptr_scale);
     FREE_ENTRY_1DARRAY(y_view_ptr_scale);
-
-    //Structures
-    part_tree.Finalize();
-    tree.Finalize();
-    stree.Finalize();
-    stats.Finalize();
   }//end Finalize()
 
 
   template <class Int, class Entry, class Exe_Space>
   BASKER_INLINE
-  int Basker<Int, Entry, Exe_Space>::InitMatrix(string filename)
+  int Basker<Int, Entry, Exe_Space>::InitMatrix(std::string filename)
   { 
     //Note: jdb comeback to add trans option
     readMTX(filename, A);
@@ -230,7 +224,7 @@ namespace BaskerNS
     //Option = 2, BTF BASKER
 
     if(option == 1)
-    {	
+    {
       default_order();
     }
     else if(option == 2)
@@ -363,6 +357,7 @@ namespace BaskerNS
     Kokkos::Timer timer;
     #endif
 
+    int err = 0;
     if(Options.verbose == BASKER_TRUE)
     {
       std::cout << "\n == Basker Symbolic ==" << std::endl;
@@ -466,12 +461,16 @@ namespace BaskerNS
       //Find BTF ordering
       if(btf_order2() != BASKER_SUCCESS)
       {
+        if(Options.verbose == BASKER_TRUE)
+        {
+          printf("Basker Ordering Failed \n"); fflush(stdout);
+        }
         return BASKER_ERROR;
       }
 
       if(Options.verbose == BASKER_TRUE)
       {
-        printf("Basker Ordering Found \n");
+        printf("Basker Ordering Found \n"); fflush(stdout);
       }
 
       /*if((Options.btf == BASKER_TRUE) && (btf_tabs_offset != 0))
@@ -503,7 +502,7 @@ namespace BaskerNS
     if(symb_flag == BASKER_TRUE)
     {
       if(Options.verbose == BASKER_TRUE) {
-        printf("BASKER: YOU CANNOT RERUN SFACTOR\n");
+        printf("BASKER: YOU CANNOT RERUN SFACTOR\n"); fflush(stdout);
       }
       return BASKER_ERROR;
     }
@@ -535,21 +534,6 @@ namespace BaskerNS
       symb_flag = BASKER_TRUE;
     }
 
-
-    if(Options.verbose == BASKER_TRUE)
-    {
-      printf(" == Basker Symbolic Done ==\n\n");
-    }
-
-    #ifdef BASKER_TIMER
-    time = timer.seconds();
-    stats.time_sfactor += time;
-    std::cout << "Basker Symbolic total time: " << time
-              << std::endl << std::endl;
-    std::cout.precision(old_precision);
-    std::cout.flags(old_settings);
-    #endif
-
     // NDE store matrix dims here for comparison in Factor
     sym_gn = A.ncol;
     sym_gm = A.nrow;
@@ -579,8 +563,30 @@ namespace BaskerNS
       }
     }
     printf("];\n");*/
+    bool allocate_nd_workspace = (Options.blk_matching == 0 && Options.static_delayed_pivot == 0);
+    if (btf_tabs_offset != 0 && allocate_nd_workspace) {
+      // setup data-structure for ND
+      bool doSymbolic = true;
+      bool copy_BTFA = (Options.blk_matching == 0 || Options.static_delayed_pivot != 0);
+      bool alloc_BTFA = (Options.static_delayed_pivot != 0);
+      err = sfactor_copy2(doSymbolic, alloc_BTFA, copy_BTFA);
+    }
 
-    return 0;
+    #ifdef BASKER_TIMER
+    time = timer.seconds();
+    stats.time_sfactor += time;
+    std::cout << "Basker Symbolic total time: " << time
+              << std::endl << std::endl;
+    std::cout.precision(old_precision);
+    std::cout.flags(old_settings);
+    #endif
+
+    if(Options.verbose == BASKER_TRUE)
+    {
+      printf(" == Basker Symbolic Done ==\n\n"); fflush(stdout);
+    }
+
+    return err;
   } //end Symbolic()
 
 
@@ -933,11 +939,11 @@ namespace BaskerNS
         // reset the small D blocks
         if (btf_top_tabs_offset  > 0) {
           Int d_last = btf_top_tabs_offset;
-          Int ncol = btf_tabs(d_last);
+          Int ncol_d = btf_tabs(d_last);
 
           // revert BLK_AMD ordering
           auto order_blk_amd_d = Kokkos::subview(order_blk_amd_inv,
-                                                 range_type(0, ncol));
+                                                 range_type(0, ncol_d));
           permute_row(BTF_D, order_blk_amd_d);
           permute_col(BTF_D, order_blk_amd_d);
           if (BTF_E.ncol > 0) {
@@ -948,7 +954,7 @@ namespace BaskerNS
           if (Options.blk_matching != 0) {
             // revert BLK_MWM ordering
             auto order_blk_mwm_d = Kokkos::subview(order_blk_mwm_inv, 
-                                                   range_type (0, ncol));
+                                                   range_type (0, ncol_d));
             permute_row(BTF_D, order_blk_mwm_d);
             if (BTF_E.ncol > 0) {
               // Apply MWM perm to cols
@@ -1067,10 +1073,10 @@ namespace BaskerNS
       }
       BTF_A.gnorm = A.anorm;
       if(Options.verbose == BASKER_TRUE) {
-         cout<< " Basker Factor: Time to compute " 
-             << " norm(A) = "     << BTF_A.gnorm << " with n = " << A.ncol << ", and "
-             << " norm(BTF_A) = " << BTF_A.anorm << " with n = " << BTF_A.ncol
-             << " : " << normA_timer.seconds() << std::endl;
+        std::cout<< " Basker Factor: Time to compute" 
+                 << " norm(A) = "     << BTF_A.gnorm << " with n = " << A.ncol << ", and "
+                 << " norm(BTF_A) = " << BTF_A.anorm << " with n = " << BTF_A.ncol
+                 << " : " << normA_timer.seconds() << std::endl;
       }
     }
 
@@ -1097,15 +1103,15 @@ namespace BaskerNS
       if (btf_top_tabs_offset > 0) {
         Kokkos::Timer mwm_amd_perm_timer;
         Int d_last = btf_top_tabs_offset;
-        Int ncol = btf_tabs(d_last);
+        Int ncol_d = btf_tabs(d_last);
 
         auto order_blk_mwm_d = Kokkos::subview(order_blk_mwm_array,
-                                               range_type(0, ncol));
+                                               range_type(0, ncol_d));
         auto order_blk_amd_d = Kokkos::subview(order_blk_amd_array,
-                                               range_type(0, ncol));
+                                               range_type(0, ncol_d));
         if(Options.verbose == BASKER_TRUE) {
           std::cout << " calling MWM on D" << std::endl;
-          std::cout << " btf_blk_mwm: btf_top_tabs(" << btf_top_tabs_offset << ")=" << ncol << std::endl;
+          std::cout << " btf_blk_mwm: btf_top_tabs(" << btf_top_tabs_offset << ")=" << ncol_d << std::endl;
         }
 
         // ----------------------------------------------------------------------------------------------
@@ -1292,8 +1298,8 @@ namespace BaskerNS
           nd_sizes(0) = 0;
           Kokkos::fence();
           Kokkos::parallel_for(
-            "ndsort_matrix_store_valperms", num_threads,
-            KOKKOS_LAMBDA(const int id) {
+            "ndsort_matrix_store_valperms", RangePolicy(0, num_threads),
+            BASKER_LAMBDA(const int id) {
               for (Int k = id; k < nblks; k += num_threads) {
                 for (Int i = part_tree.row_tabs[k]; i < part_tree.row_tabs[k+1]; i++) {
                   nd_map(i) = k;
@@ -1467,7 +1473,7 @@ namespace BaskerNS
             Int nleaves = num_threads;
             kokkos_amd_order<Int> amd_functor(nleaves, nblks, tree.col_tabs, AAT.col_ptr, AAT.row_idx,
                                               tempp, temp_col, temp_row, order_nd_amd, Options.verbose);
-            Kokkos::parallel_for("BLK_AMD on A", Kokkos::RangePolicy<Exe_Space>(0, nleaves), amd_functor);
+            Kokkos::parallel_for("BLK_AMD on A", RangePolicy(0, nleaves), amd_functor);
             Kokkos::fence();
             #else
             for(Int b = 0; b < tree.nblks; ++b) {
@@ -1556,15 +1562,15 @@ namespace BaskerNS
             }
             #else
             Kokkos::parallel_for(
-              "reset ndbtfa", BTF_A.nrow,
-              KOKKOS_LAMBDA(const int i) {
+              "reset ndbtfa", RangePolicy(0, BTF_A.nrow),
+              BASKER_LAMBDA(const int i) {
                 order_nd_mwm(i) += nfirst;
                 order_nd_amd(i) += nfirst;
               });
             #endif
           }
 
-	  // ----------------------------------------------------------------------------------------------
+          // ----------------------------------------------------------------------------------------------
           // 'sort' rows of BTF_A into ND structure
           #if 0
           for (Int i = 0; i < BTF_A.nnz; ++i) {
@@ -1572,8 +1578,8 @@ namespace BaskerNS
           }
           #else
           Kokkos::parallel_for(
-            "reset ndbtfa", BTF_A.nnz,
-            KOKKOS_LAMBDA(const int i) {
+            "reset ndbtfa", RangePolicy(0, BTF_A.nnz),
+            BASKER_LAMBDA(const int i) {
               vals_order_ndbtfa_array(i) = i;
             });
           Kokkos::fence();
@@ -1612,6 +1618,7 @@ namespace BaskerNS
         symmetric_sfactor();
         if(Options.verbose == BASKER_TRUE) {
           std::cout<< " > Basker Factor: Time for symbolic after ND on a big block A: " << nd_symbolic_timer.seconds() << std::endl;
+          fflush(stdout);
         }
 
         Kokkos::Timer nd_last_dense_timer;
@@ -1619,16 +1626,23 @@ namespace BaskerNS
         btf_last_dense(flag);
         if(Options.verbose == BASKER_TRUE) {
           std::cout<< " > Basker Factor: Time for last-dense after ND on a big block A: " << nd_last_dense_timer.seconds() << std::endl;
+          fflush(stdout);
         }
 
 
         #ifdef BASKER_KOKKOS
         // ----------------------------------------------------------------------------------------------
         // Allocate & Initialize blocks
+        #ifdef BASKER_PARALLEL_INIT_FACTOR
         kokkos_sfactor_init_factor<Int,Entry,Exe_Space>
           iF(this);
         Kokkos::parallel_for(TeamPolicy(num_threads,1), iF);
         Kokkos::fence();
+        #else
+        for (Int p = 0; p < num_threads; p++) {
+          this->t_init_factor(p);
+        }
+        #endif
 
         /*kokkos_sfactor_init_workspace<Int,Entry,Exe_Space>
           iWS(flag, this);
@@ -1928,6 +1942,7 @@ namespace BaskerNS
     // sfactor_copy2 is now only responsible for the copy from BTF_A to 2D blocks
     Kokkos::Timer timer_sfactorcopy;
     double sfactorcopy_time = 0.0;
+    bool doSymbolic_ND = (Options.blk_matching != 0 || Options.static_delayed_pivot != 0);
     if (btf_tabs_offset != 0) {
       bool flag = true;
       #ifdef BASKER_KOKKOS
@@ -1941,10 +1956,19 @@ namespace BaskerNS
       }*/
 
       Kokkos::Timer nd_setup2_timer;
-      kokkos_sfactor_init_workspace<Int,Entry,Exe_Space>
-        iWS(flag, this);
-      Kokkos::parallel_for(TeamPolicy(num_threads,1), iWS);
-      Kokkos::fence();
+      // if sfactor_copy2 has been called in symbolic
+      // then all the blocks have been allocated and can initialize them in parallel-for
+      // if not, then use non-parallel for
+      if (doSymbolic_ND) {
+        for (Int p = 0; p < num_threads; p++) {
+          this->t_init_workspace(flag, p);
+        }
+      } else {
+        kokkos_sfactor_init_workspace<Int,Entry,Exe_Space>
+          iWS(flag, this);
+        Kokkos::parallel_for(TeamPolicy(num_threads,1), iWS);
+        Kokkos::fence();
+      }
       if(Options.verbose == BASKER_TRUE) {
         std::cout<< " > Basker Factor: Time for workspace allocation after ND on a big block A: " << nd_setup2_timer.seconds() << std::endl;
       }
@@ -1952,7 +1976,7 @@ namespace BaskerNS
     }
     bool copy_BTFA = (Options.blk_matching == 0 || Options.static_delayed_pivot != 0);
     bool alloc_BTFA = (Options.static_delayed_pivot != 0);
-    err = sfactor_copy2(alloc_BTFA, copy_BTFA);
+    err = sfactor_copy2(doSymbolic_ND, alloc_BTFA, copy_BTFA);
 
     if(Options.verbose == BASKER_TRUE) {
       sfactorcopy_time += timer_sfactorcopy.seconds();
@@ -1961,6 +1985,7 @@ namespace BaskerNS
     }
     if(err == BASKER_ERROR)
     { return BASKER_ERROR; }
+    //BTF_A.print_matrix("AA.dat");
 
     Kokkos::Timer timer_factornotoken;
     double fnotoken_time = 0.0;
@@ -1981,7 +2006,7 @@ namespace BaskerNS
 
     if(err == BASKER_ERROR)
     {
-      printf("ShyLUBasker factor_notoken/inc_lvl error returned (err=%d)\n",err);
+      printf("ShyLUBasker %s error returned (err=%d)\n",(Options.incomplete == BASKER_FALSE ? "factor_notoken" : "factor_inc_lvl"),err);
       return BASKER_ERROR; 
     }
 
@@ -2023,10 +2048,7 @@ namespace BaskerNS
   BASKER_INLINE
   int Basker<Int, Entry, Exe_Space>::Solve(Entry *b, Entry *x, bool transpose)
   {
-    #ifdef BASKER_TIMER 
     Kokkos::Timer timer;
-    double time = 0.0;
-    #endif
 
     if(Options.verbose == BASKER_TRUE)
     {
@@ -2048,13 +2070,10 @@ namespace BaskerNS
 
     if(Options.verbose == BASKER_TRUE)
     {
-      printf("Basker Solve Done \n");
+      double time = timer.seconds();
+      std::cout << "Basker Solve Done (total time: " << time << ")" << std::endl;
     }
 
-    #ifdef BASKER_TIMER
-    time += timer.seconds();
-    std::cout << "Basker Solve total time: " << time << std::endl;
-    #endif
 
     return 0;
   }//Solve(Entry *, Entry *);
@@ -2064,10 +2083,7 @@ namespace BaskerNS
   BASKER_INLINE
   int Basker<Int,Entry,Exe_Space>::Solve(Int _nrhs, Entry *b, Entry *x, bool transpose)
   {
-    #ifdef BASKER_TIMER 
     Kokkos::Timer timer;
-    double time = 0.0;
-    #endif
 
     if(Options.verbose == BASKER_TRUE)
     {
@@ -2089,13 +2105,9 @@ namespace BaskerNS
 
     if(Options.verbose == BASKER_TRUE)
     {
-      printf("Basker Multisolve Done \n");
+      double time = timer.seconds();
+      std::cout << "Basker MV Solve Done (total time: " << time << ")" << std::endl;
     }
-    
-    #ifdef BASKER_TIMER
-    time += timer.seconds();
-    std::cout << "Basker Solve total time: " << time << std::endl;
-    #endif
 
     return 0;
   }
@@ -2138,30 +2150,35 @@ namespace BaskerNS
   {
     //Need to test if power of nparts
     //TODO: hard-coded to be two. It is also hard-coded in shylubasker_structs.hpp
-    double nparts = 2.0;
-    if (pow(nparts, log((double)nthreads)/log(nparts)) != nthreads)
+    Int check_value = pow(2, log2(nthreads));
+    if (check_value != nthreads)
     {
-      BASKER_ASSERT(0==1, "Basker SetThreads Assert: Number of thread error - not a power of 2");
-      //Set default 1
-      num_threads = 1;
-      return BASKER_ERROR;
+      if(Options.verbose == BASKER_TRUE) {
+        printf("Basker SetThreads Assert: Number of thread error - not a power of 2. Re-setting from %d to %d.",
+               int(nthreads), int(check_value));
+      }
+      nthreads = check_value;
     }
 
     //Next test if Kokkos has that many threads!
     //This is a common mistake in mpi-based apps
     #ifdef KOKKOS_ENABLE_OPENMP
-    int check_value = Kokkos::OpenMP::impl_max_hardware_threads();
+    check_value = Kokkos::OpenMP::impl_max_hardware_threads();
+    #else
+    check_value = 1;
+    #endif
     if(nthreads > check_value)
     {
-      BASKER_ASSERT(0==1, "Basker SetThreads Assert: Number of thread not available");
-      num_threads =  1;
-      return BASKER_ERROR;
+      if(Options.verbose == BASKER_TRUE) {
+        printf("Basker SetThreads Assert: Number of thread not available (%d > %d). Resetting to %d.",
+                int(nthreads), int(check_value), int(check_value));
+      }
+      nthreads = check_value;
     }
-    #else
-    nthreads = 1;
-    #endif
 
+    // Finally, set the internal number of threads used by ShyLU-Basker.
     num_threads = nthreads;
+
     return BASKER_SUCCESS;
   }//end SetThreads()
 
@@ -2295,10 +2312,6 @@ namespace BaskerNS
     printU();
     printUMTX();
     std::cout << "U printed" << std::endl;
-    //printRHS();
-    std::cout << "RHS printed" << std::endl;
-    //printSOL();
-    std::cout << "SOL printed" << std::endl;
     //printTree();
     std::cout << "Tree printed" << std::endl;
 

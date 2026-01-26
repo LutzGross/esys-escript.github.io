@@ -1,3 +1,12 @@
+// @HEADER
+// *****************************************************************************
+//               ShyLU: Scalable Hybrid LU Preconditioner and Solver
+//
+// Copyright 2011 NTESS and the ShyLU contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
+// @HEADER
+
 #ifndef SHYLUBASKER_NFACTOR_COL_HPP
 #define SHYLUBASKER_NFACTOR_COL_HPP
 
@@ -426,8 +435,8 @@ namespace BaskerNS
     for(Int l = 0; l < lvl; l++)
     {
       printf("OPS.   KID : %d  LVL: %d OPS : %d \n",
-          kid, l, thread_array[kid].ops_counts[l][0]);
-      thread_array[kid].ops_count[1][0] = 0;
+          kid, l, thread_array(kid).ops_counts[l][0]);
+      thread_array(kid).ops_count[1][0] = 0;
     }
     #endif
 
@@ -471,7 +480,7 @@ namespace BaskerNS
     #endif
     //end get needed variables//
 
-    BASKER_MATRIX  &U = LU(U_col)(U_row); 
+    BASKER_MATRIX  &U = LU(U_col)(U_row);
     
     //Ask C++ guru if this is ok
     BASKER_MATRIX        *Bp;
@@ -484,7 +493,7 @@ namespace BaskerNS
     }
     else
     {
-      Bp = &(thread_array[kid].C);
+      Bp = &(thread_array(kid).C);
       //printf("Using temp matrix, kid: %d\n", kid);
       //Bp->print();
     }
@@ -604,7 +613,7 @@ namespace BaskerNS
 
     //Count ops to show imbalance
     #ifdef BASKER_COUNT_OPS
-    thread_array[kid].ops_counts[0][l] += xnnz;
+    thread_array(kid).ops_counts[0][l] += xnnz;
     #endif
 
     //WE SHOUD DO A UNNZ COUNT
@@ -657,12 +666,12 @@ namespace BaskerNS
     //#endif
 
 
+    // --------------
+    // solve with L
     #ifdef BASKER_INC_LVL
     //Note we have not made a t_back_solve_atomic_selective
     t_back_solve_selective(kid, l,l, k, top, xnnz);
-     
     #else //BASKER_INC_LVL
-
     #ifdef BASKER_ATOMIC_2
     t_back_solve(kid, l, l, k, top, xnnz);
     #else
@@ -672,6 +681,8 @@ namespace BaskerNS
     #endif
     #endif //BASKER_INC_LVL
 
+
+    // --------------
     //move over nnz to U 
     for(Int i = top; i < ws_size && info == BASKER_SUCCESS; ++i)
     {
@@ -869,9 +880,9 @@ namespace BaskerNS
     #endif
 
     #ifdef BASKER_2DL
-    INT_1DARRAY ws     = LL[X_col][X_row].iws;
-    const Int ws_size  = LL[X_col][X_row].iws_size;
-    ENTRY_1DARRAY X    = LL[X_col][X_row].ews;
+    INT_1DARRAY ws     = LL(X_col)(X_row).iws;
+    const Int ws_size  = LL(X_col)(X_row).iws_size;
+    ENTRY_1DARRAY X    = LL(X_col)(X_row).ews;
     #else
     BASKER_ASSERT(0==1, "t_upper_col_factor_offdiag, only works with 2D layout");
     #endif
@@ -950,12 +961,12 @@ namespace BaskerNS
   )
   {
 
-    Int            b = S[l][kid];
-    BASKER_MATRIX &L = LL[b][0];
-    INT_1DARRAY   ws = thread_array[kid].iws;
-    ENTRY_1DARRAY  X = thread_array[team_leader].ews;
-    Int      ws_size = thread_array[kid].iws_size;
-    Int     ews_size = thread_array[team_leader].ews_size;
+    Int            b = S(l)(kid);
+    BASKER_MATRIX &L = LL(b)(0);
+    INT_1DARRAY   ws = thread_array(kid).iws;
+    ENTRY_1DARRAY  X = thread_array(team_leader).ews;
+    Int      ws_size = thread_array(kid).iws_size;
+    Int     ews_size = thread_array(team_leader).ews_size;
   
     #ifdef BASKER_DEBUG_NFACTOR_COL
     if(kid>3)
@@ -1228,7 +1239,7 @@ namespace BaskerNS
     #endif
 
     #ifdef BASKER_OPS_COUNT
-    thread_array[kid].ops_counts[0][l] += xnnz;
+    thread_array(kid).ops_counts[0][l] += xnnz;
     #endif
    
     t_back_solve(kid, lvl,l+1, k, top, xnnz); // note: l not lvl given
@@ -1294,20 +1305,20 @@ namespace BaskerNS
     {
       if(Options.verbose == BASKER_TRUE)
       {
-        cout << endl << endl;
-        cout << "---------------------------" << endl;
-        cout << "Error: Col Matrix is singular, col k = " << k
-             << ", lvl = " << lvl << ", l = " << l << endl;
-        cout << "MaxIndex: " << maxindex << " pivot " << pivot << endl;
-        cout << " norm(A)   = " << normA     << " (global)" << endl
-             << " norm(A)   = " << normA_blk << " (block)"  << endl
-             << " replace_zero_pivot = " << Options.replace_zero_pivot << endl;
+        std::cout << std::endl << std::endl;
+        std::cout << "---------------------------" << std::endl;
+        std::cout << "Error: Col Matrix is singular, col k = " << k
+                  << ", lvl = " << lvl << ", l = " << l << std::endl;
+        std::cout << "MaxIndex: " << maxindex << " pivot " << pivot << std::endl;
+        std::cout << " norm(A)   = " << normA     << " (global)" << std::endl
+                  << " norm(A)   = " << normA_blk << " (block)"  << std::endl
+                  << " replace_zero_pivot = " << Options.replace_zero_pivot << std::endl;
         if (Options.replace_tiny_pivot && normA_blk > abs(zero) && maxindex != BASKER_MAX_IDX) {
-          cout << "  + replace zero pivot with " << normA_blk * sqrt(eps) << endl;
+          std::cout << "  + replace zero pivot with " << normA_blk * sqrt(eps) << std::endl;
         } else if (Options.replace_zero_pivot && normA_blk > abs(zero) && maxindex != BASKER_MAX_IDX) {
-          cout << "  - replace zero pivot with " << normA_blk * eps << endl;
+          std::cout << "  - replace zero pivot with " << normA_blk * eps << std::endl;
         }
-        cout << "---------------------------" << endl;
+        std::cout << "---------------------------" << std::endl;
       }
        
       if (Options.replace_tiny_pivot && normA_blk > abs(zero) && maxindex != BASKER_MAX_IDX) {
@@ -1327,14 +1338,14 @@ namespace BaskerNS
     } else if (Options.replace_tiny_pivot && normA_blk > abs(zero) && abs(pivot) < normA_blk * sqrt(eps)) {
       if (Options.verbose == BASKER_TRUE)
       {
-        cout << endl << endl;
-        cout << "---------------------------" << endl;
-        cout << "Col Matrix : replace tiny pivot col k = " << k
-             << ", lvl = " << lvl << ", l = " << l << endl;
-        cout << " pivot " << pivot << " -> "
-             << (STS::real(pivot) >= abs(zero) ? normA_blk * sqrt(eps) : -normA_blk * sqrt(eps))
-             << endl;
-        cout << "---------------------------" << endl;
+        std::cout << std::endl << std::endl;
+        std::cout << "---------------------------" << std::endl;
+        std::cout << "Col Matrix : replace tiny pivot col k = " << k
+                  << ", lvl = " << lvl << ", l = " << l << std::endl;
+        std::cout << " pivot " << pivot << " -> "
+                  << (STS::real(pivot) >= abs(zero) ? normA_blk * sqrt(eps) : -normA_blk * sqrt(eps))
+                  << std::endl;
+        std::cout << "---------------------------" << std::endl;
       }
       if (STS::real(pivot) >= abs(zero)) {
         pivot = normA_blk * sqrt(eps);
@@ -1358,9 +1369,9 @@ namespace BaskerNS
       newsize = lnnz * 1.1 + 2 *A.nrow + 1;
       if (Options.verbose == BASKER_TRUE)
       {
-        cout << "Lower Col Reallocing L oldsize: " << llnnz 
-             << " newsize: " << newsize << " kid = " << kid
-             << endl;
+        std::cout << "Lower Col Reallocing L oldsize: " << llnnz 
+                  << " newsize: " << newsize << " kid = " << kid
+                  << std::endl;
         //cout << " > k = " << k << " lnnz = " << lnnz << " lcnt = " << lcnt << endl;
         //cout << " > L_col = " << L_col << " L_row = " << L_row << endl;
       }
@@ -1385,9 +1396,9 @@ namespace BaskerNS
       newsize = uunnz*1.1 + 2*A.nrow+1;
       if (Options.verbose == BASKER_TRUE)
       {
-        cout << "Lower Col Reallocing U oldsize: " << uunnz 
-             << " newsize " << newsize << " kid = " << kid
-             << endl;
+        std::cout << "Lower Col Reallocing U oldsize: " << uunnz 
+                  << " newsize " << newsize << " kid = " << kid
+                  << std::endl;
       }
 
       thread_array(kid).error_blk    = U_col;
@@ -1859,7 +1870,6 @@ namespace BaskerNS
 
         if(kid != team_leader)
         {
-          //LL[my_idx][blk].p_size = 0;
           LL(my_idx)(blk).p_size = 0;
         }
         else
@@ -1868,7 +1878,6 @@ namespace BaskerNS
           printf("SETTING PS: %d L:%d %d kid: %d\n",
               p_sizeL, leader_idx, blk, kid);
 #endif
-          //LL[leader_idx][blk].p_size = p_sizeL;
           LL(leader_idx)(blk).p_size = p_sizeL;
         }
         p_size = 0;
@@ -2026,7 +2035,6 @@ namespace BaskerNS
 
         if(kid != team_leader)
         {
-          //LL[my_idx][blk].p_size = 0;
           LL(my_idx)(blk).p_size = 0;
         }
         else
@@ -2035,7 +2043,6 @@ namespace BaskerNS
           printf("SETTING PS: %d L:%d %d kid: %d\n",
               p_sizeL, leader_idx, blk, kid);
 #endif
-          //LL[leader_idx][blk].p_size = p_sizeL;
           LL(leader_idx)(blk).p_size = p_sizeL;
         }
         p_size = 0;
@@ -2095,7 +2102,7 @@ namespace BaskerNS
       else
       {
         //printf("lower picked, kid: %d\n", kid);
-        Bp = &(ALM[A_col][0]);
+        Bp = &(ALM(A_col)(0));
       }
 
       BASKER_MATRIX   &B  = *Bp;
@@ -2172,7 +2179,7 @@ namespace BaskerNS
       const Int   ws_size = LL(leader_idx)(bl).ews_size;
       const Int      brow = LL(leader_idx)(bl).srow;
       const Int      nrow = LL(leader_idx)(bl).nrow;
-      Int p_size          = LL[leader_idx][bl].p_size;
+      Int p_size          = LL(leader_idx)(bl).p_size;
 
       //For recounting patterns in dense blk
       //Need better sparse update
@@ -2239,7 +2246,6 @@ namespace BaskerNS
         printf("SETTING move_over set 0, L: %d %d kid: %d \n",
             leader_idx, bl, kid);
 #endif
-        //LL[leader_idx][bl].p_size = 0;
         LL(leader_idx)(bl).p_size = 0;
         p_count =0;
       }
@@ -2252,7 +2258,6 @@ namespace BaskerNS
         printf("SETTING Re-pop pattern: %d %d size: %d \n",
             leader_idx, bl, p_count);
 #endif
-        //LL[leader_idx][bl].p_size = p_count;
         LL(leader_idx)(bl).p_size = p_count;
       }
 
@@ -2325,7 +2330,7 @@ namespace BaskerNS
       else
       {
         //printf("lower picked, kid: %d\n", kid);
-        Bp = &(ALM[A_col][0]);
+        Bp = &(ALM(A_col)(0));
       }
 
       BASKER_MATRIX   &B  = *Bp;
@@ -2336,17 +2341,11 @@ namespace BaskerNS
       //B.print();
 
       team_leader = find_leader(kid, l);
-      //ENTRY_1DARRAY   X = LL[team_leader][bl].ews;
       ENTRY_1DARRAY   X = LL(leader_idx)(bl).ews;
-      //INT_1DARRAY    ws = LL[team_leader][bl].iws;
       INT_1DARRAY    ws = LL(leader_idx)(bl).iws;
-      //Int brow = LL[team_leader][bl].srow;
-      //Int nrow = LL[team_leader][bl].nrow;
       const Int brow = LL(leader_idx)(bl).srow;
       const Int nrow = LL(leader_idx)(bl).nrow;
-      //Int p_size = LL[team_leader][bl].p_size;
       Int p_size = LL(leader_idx)(bl).p_size;
-      //Int ws_size = LL[team_leader][bl].iws_size;
       const Int ws_size = LL(leader_idx)(bl).iws_size;
       Int *color = &(ws(0));
       Int *pattern = &(color[ws_size]);
@@ -2422,18 +2421,12 @@ namespace BaskerNS
       Int A_col = S(lvl)(kid);
       Int A_row = (lvl==1)?(2):S(bl)(kid)%(LU_size(A_col));
       Int CM_idx = kid;
-      //ENTRY_1DARRAY   X = LL[team_leader][bl].ews;
       ENTRY_1DARRAY   X = LL(leader_idx)(bl).ews;
-      //INT_1DARRAY    ws = LL[team_leader][bl].iws;
       INT_1DARRAY    ws = LL(leader_idx)(bl).iws;
-      //Int        ws_size =LL[team_leader][bl].ews_size;
-      const Int   ws_size =LL(leader_idx)(bl).ews_size;
-      //Int brow = LL[team_leader][bl].srow;
+      const Int ws_size = LL(leader_idx)(bl).ews_size;
       const Int brow = LL(leader_idx)(bl).srow;
-      //Int nrow = LL[team_leader][bl].nrow;
       const Int nrow = LL(leader_idx)(bl).nrow;
-      //Int p_size = LL[team_leader][bl].p_size;
-      Int p_size = LL[leader_idx][bl].p_size;
+      Int p_size = LL(leader_idx)(bl).p_size;
 
       //For recounting patterns in dense blk
       //Need better sparse update
@@ -2502,7 +2495,6 @@ namespace BaskerNS
         printf("SETTING move_over set 0, L: %d %d kid: %d \n",
             leader_idx, bl, kid);
 #endif
-        //LL[leader_idx][bl].p_size = 0;
         LL(leader_idx)(bl).p_size = 0;
         p_count =0;
       }
@@ -2512,7 +2504,6 @@ namespace BaskerNS
         printf("SETTING Re-pop pattern: %d %d size: %d \n",
             leader_idx, bl, p_count);
 #endif
-        //LL[leader_idx][bl].p_size = p_count;
         LL(leader_idx)(bl).p_size = p_count;
       }
 
@@ -2540,7 +2531,7 @@ namespace BaskerNS
        Int CM_idx = kid;
        BASKER_MATRIX_VIEW &B = AV[A_col][A_row];
 
-       B.flip_base(&(thread_array[kid].C));
+       B.flip_base(&(thread_array(kid).C));
        B.k_offset = k;
 
        if(kid == 0)
@@ -2621,8 +2612,8 @@ namespace BaskerNS
 
       /* Old Atomic Barrier
          BaskerBarrier<Int,Entry,Exe_Space> BB;
-         BB.Barrier(thread_array[leader_kid].token[sublvl][function_n],
-         thread_array[leader_kid].token[sublvl][1],
+         BB.Barrier(thread_array(leader_kid).token[sublvl][function_n],
+         thread_array(leader_kid).token[sublvl][1],
          size);
          */
     }

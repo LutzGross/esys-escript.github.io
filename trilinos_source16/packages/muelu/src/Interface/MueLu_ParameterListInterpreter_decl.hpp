@@ -124,7 +124,7 @@ class ParameterListInterpreter : public HierarchyManager<Scalar, LocalOrdinal, G
   ParameterListInterpreter(const std::string& xmlFileName, const Teuchos::Comm<int>& comm, Teuchos::RCP<FactoryFactory> factFact = Teuchos::null, Teuchos::RCP<FacadeClassFactory> facadeFact = Teuchos::null);
 
   //! Destructor.
-  virtual ~ParameterListInterpreter() {}
+  virtual ~ParameterListInterpreter();
 
   //@}
 
@@ -153,11 +153,12 @@ class ParameterListInterpreter : public HierarchyManager<Scalar, LocalOrdinal, G
   //! Setup Operator object
   virtual void SetupOperator(Operator& A) const;
 
-  int blockSize_;            ///< block size of matrix (fixed block size)
-  CycleType Cycle_;          ///< multigrid cycle type (V-cycle or W-cycle)
-  int WCycleStartLevel_;     ///< in case of W-cycle, level on which cycle should start
-  double scalingFactor_;     ///< prolongator scaling factor
-  GlobalOrdinal dofOffset_;  ///< global offset variable describing offset of DOFs in operator
+  int blockSize_;               ///< block size of matrix (fixed block size)
+  CycleType Cycle_;             ///< multigrid cycle type (V-cycle or W-cycle)
+  int WCycleStartLevel_;        ///< in case of W-cycle, level on which cycle should start
+  double scalingFactor_;        ///< prolongator scaling factor
+  GlobalOrdinal dofOffset_;     ///< global offset variable describing offset of DOFs in operator
+  std::string hierarchyLabel_;  ///< name of hierarchy (for user convenience), printed in summary
 
   //! Easy interpreter stuff
   //@{
@@ -185,6 +186,8 @@ class ParameterListInterpreter : public HierarchyManager<Scalar, LocalOrdinal, G
                                 int levelID, std::vector<keep_pair>& keeps) const;
   void UpdateFactoryManager_Coordinates(Teuchos::ParameterList& paramList, const Teuchos::ParameterList& defaultList, FactoryManager& manager,
                                         int levelID, std::vector<keep_pair>& keeps) const;
+  void UpdateFactoryManager_Material(Teuchos::ParameterList& paramList, const Teuchos::ParameterList& defaultList, FactoryManager& manager,
+                                     int levelID, std::vector<keep_pair>& keeps) const;
   void UpdateFactoryManager_Repartition(Teuchos::ParameterList& paramList, const Teuchos::ParameterList& defaultList, FactoryManager& manager,
                                         int levelID, std::vector<keep_pair>& keeps, RCP<Factory>& nullSpaceFactory) const;
   void UpdateFactoryManager_LowPrecision(ParameterList& paramList, const ParameterList& defaultList, FactoryManager& manager,
@@ -218,6 +221,7 @@ class ParameterListInterpreter : public HierarchyManager<Scalar, LocalOrdinal, G
 
   bool useCoordinates_;
   bool useBlockNumber_;
+  bool useMaterial_;
   bool useKokkos_;
   //@}
 

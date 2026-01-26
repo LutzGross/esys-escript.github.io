@@ -24,18 +24,18 @@ namespace Intrepid2 {
 // -------------------------------------------------------------------------------------
 namespace Impl {
 
-template<EOperator opType>
+template<EOperator OpType>
 template<typename OutputViewType,
-typename inputViewType,
-typename workViewType,
-typename vinvViewType>
+typename InputViewType,
+typename WorkViewType,
+typename VinvViewType>
 KOKKOS_INLINE_FUNCTION
 void
-Basis_HDIV_TRI_In_FEM::Serial<opType>::
-getValues( /* */ OutputViewType output,
-    const inputViewType  input,
-    /* */ workViewType   work,
-    const vinvViewType   coeffs ) {
+Basis_HDIV_TRI_In_FEM::Serial<OpType>::
+getValues(      OutputViewType  output,
+            const InputViewType input,
+                WorkViewType    work,
+            const VinvViewType  coeffs ) {
 
   constexpr ordinal_type spaceDim = 2;
   const ordinal_type
@@ -52,17 +52,17 @@ getValues( /* */ OutputViewType output,
     }
   }
 
-  typedef typename Kokkos::DynRankView<typename workViewType::value_type, typename workViewType::memory_space> viewType;
-  auto vcprop = Kokkos::common_view_alloc_prop(work);
+  typedef typename Kokkos::DynRankView<typename InputViewType::value_type, typename WorkViewType::memory_space> ViewType;
+  auto vcprop = Kokkos::common_view_alloc_prop(input);
   auto ptr = work.data();
 
-  switch (opType) {
+  switch (OpType) {
   case OPERATOR_VALUE: {
-    const viewType phis(Kokkos::view_wrap(ptr, vcprop), card, npts);
-    workViewType dummyView;
+    const ViewType phis(Kokkos::view_wrap(ptr, vcprop), card, npts);
+    ViewType dummyView;
 
     Impl::Basis_HGRAD_TRI_Cn_FEM_ORTH::
-    Serial<opType>::getValues(phis, input, dummyView, order);
+    Serial<OpType>::getValues(phis, input, dummyView, order);
 
     for (ordinal_type i=0;i<card;++i)
       for (ordinal_type j=0;j<npts;++j)
@@ -74,9 +74,9 @@ getValues( /* */ OutputViewType output,
     break;
   }
   case OPERATOR_DIV: {
-    const viewType phis(Kokkos::view_wrap(ptr, vcprop), card, npts, spaceDim);
+    const ViewType phis(Kokkos::view_wrap(ptr, vcprop), card, npts, spaceDim);
     ptr += card*npts*spaceDim*get_dimension_scalar(work);
-    const viewType workView(Kokkos::view_wrap(ptr, vcprop), card, npts, spaceDim+1);
+    const ViewType workView(Kokkos::view_wrap(ptr, vcprop), card, npts, spaceDim+1);
 
     Impl::Basis_HGRAD_TRI_Cn_FEM_ORTH::
     Serial<OPERATOR_GRAD>::getValues(phis, input, workView, order);
@@ -159,12 +159,12 @@ Basis_HDIV_TRI_In_FEM( const ordinal_type order,
   INTREPID2_TEST_FOR_EXCEPTION( order > Parameters::MaxOrder, std::invalid_argument, "polynomial order exceeds the max supported by this class");
 
   constexpr ordinal_type spaceDim = 2;
-  this->basisCardinality_  = CardinalityHDivTri(order);
-  this->basisDegree_       = order; // small n
-  this->basisCellTopology_ = shards::CellTopology(shards::getCellTopologyData<shards::Triangle<3> >() );
-  this->basisType_         = BASIS_FEM_LAGRANGIAN;
-  this->basisCoordinates_  = COORDINATES_CARTESIAN;
-  this->functionSpace_     = FUNCTION_SPACE_HDIV;
+  this->basisCardinality_     = CardinalityHDivTri(order);
+  this->basisDegree_          = order; // small n
+  this->basisCellTopologyKey_ = shards::Triangle<3>::key;
+  this->basisType_            = BASIS_FEM_LAGRANGIAN;
+  this->basisCoordinates_     = COORDINATES_CARTESIAN;
+  this->functionSpace_        = FUNCTION_SPACE_HDIV;
   pointType_ = (pointType == POINTTYPE_DEFAULT) ? POINTTYPE_EQUISPACED : pointType;
 
   const ordinal_type card = this->basisCardinality_;
@@ -245,11 +245,11 @@ Basis_HDIV_TRI_In_FEM( const ordinal_type order,
   Kokkos::DynRankView<scalarType,typename DT::execution_space::array_layout,Kokkos::HostSpace>
   V2("Hdiv::Tri::In::V2", card ,cardVecPn);
 
-  const ordinal_type numEdges = this->basisCellTopology_.getEdgeCount();
+  const shards::CellTopology cellTopo(shards::getCellTopologyData<shards::Triangle<3>>());
+  const ordinal_type numEdges = cellTopo.getEdgeCount();
+  shards::CellTopology edgeTopo(shards::getCellTopologyData<shards::Line<2> >() );
 
-  shards::CellTopology edgeTop(shards::getCellTopologyData<shards::Line<2> >() );
-
-  const int numPtsPerEdge = PointTools::getLatticeSize( edgeTop ,
+  const int numPtsPerEdge = PointTools::getLatticeSize( edgeTopo ,
       order+1 ,
       1 );
 
@@ -260,7 +260,7 @@ Basis_HDIV_TRI_In_FEM( const ordinal_type order,
   // construct lattice
   const ordinal_type offset = 1;
   PointTools::getLattice( linePts,
-      edgeTop,
+      edgeTopo,
       order+1, offset,
       pointType_ );
 
@@ -273,13 +273,13 @@ Basis_HDIV_TRI_In_FEM( const ordinal_type order,
   for (ordinal_type edge=0;edge<numEdges;edge++) {  // loop over edges
     CellTools<Kokkos::HostSpace>::getReferenceSideNormal( edgeNormal ,
         edge ,
-        this->basisCellTopology_ );
+        cellTopo);
 
     CellTools<Kokkos::HostSpace>::mapToReferenceSubcell( edgePts ,
         linePts ,
         1 ,
         edge ,
-        this->basisCellTopology_ );
+        cellTopo );
 
     Impl::Basis_HGRAD_TRI_Cn_FEM_ORTH::getValues<Kokkos::HostSpace::execution_space,Parameters::MaxNumPtsPerBasisEval>(typename Kokkos::HostSpace::execution_space{},
                                                                                                                        phisAtEdgePoints,
@@ -322,7 +322,7 @@ Basis_HDIV_TRI_In_FEM( const ordinal_type order,
   // the degree == 1 space corresponds classicaly to RT0 and so gets
   // no internal nodes, and degree == 2 corresponds to RT1 and needs
   // one internal node per vector component.
-  const ordinal_type numPtsPerCell = PointTools::getLatticeSize( this->basisCellTopology_ ,
+  const ordinal_type numPtsPerCell = PointTools::getLatticeSize( cellTopo ,
       order + 1 ,
       1 );
 
@@ -330,7 +330,7 @@ Basis_HDIV_TRI_In_FEM( const ordinal_type order,
     Kokkos::DynRankView<scalarType,typename DT::execution_space::array_layout,Kokkos::HostSpace>
     internalPoints( "Hdiv::Tri::In::internalPoints", numPtsPerCell , spaceDim );
     PointTools::getLattice( internalPoints ,
-        this->basisCellTopology_ ,
+        cellTopo ,
         order + 1 ,
         1 ,
         pointType_ );
@@ -390,7 +390,7 @@ Basis_HDIV_TRI_In_FEM( const ordinal_type order,
   Teuchos::LAPACK<ordinal_type,scalarType> lapack;
 
   lapack.GETRF(card, card,
-      vmat.data(), vmat.stride_1(),
+      vmat.data(), vmat.stride(1),
       (ordinal_type*)ipiv.data(),
       &info);
 
@@ -399,7 +399,7 @@ Basis_HDIV_TRI_In_FEM( const ordinal_type order,
       ">>> ERROR: (Intrepid2::Basis_HDIV_TRI_In_FEM) lapack.GETRF returns nonzero info." );
 
   lapack.GETRI(card,
-      vmat.data(), vmat.stride_1(),
+      vmat.data(), vmat.stride(1),
       (ordinal_type*)ipiv.data(),
       work.data(), lwork,
       &info);
@@ -447,5 +447,65 @@ Basis_HDIV_TRI_In_FEM( const ordinal_type order,
         posDfOrd);
   }
 }
+
+  template<typename DT, typename OT, typename PT>
+  void 
+  Basis_HDIV_TRI_In_FEM<DT,OT,PT>::getScratchSpaceSize(       
+                                    ordinal_type& perTeamSpaceSize,
+                                    ordinal_type& perThreadSpaceSize,
+                              const PointViewType inputPoints,
+                              const EOperator operatorType) const {
+    perTeamSpaceSize = 0;
+    ordinal_type scalarWorkViewExtent = (operatorType == OPERATOR_VALUE) ? this->basisCardinality_ : 5*this->basisCardinality_;
+    perThreadSpaceSize = scalarWorkViewExtent*get_dimension_scalar(inputPoints)*sizeof(scalarType);
+  }
+
+  template<typename DT, typename OT, typename PT>
+  KOKKOS_INLINE_FUNCTION
+  void 
+  Basis_HDIV_TRI_In_FEM<DT,OT,PT>::getValues(       
+          OutputViewType outputValues,
+      const PointViewType  inputPoints,
+      const EOperator operatorType,
+      const typename Kokkos::TeamPolicy<typename DT::execution_space>::member_type& team_member,
+      const typename DT::execution_space::scratch_memory_space & scratchStorage, 
+      const ordinal_type subcellDim,
+      const ordinal_type subcellOrdinal) const {
+
+      INTREPID2_TEST_FOR_ABORT( !((subcellDim == -1) && (subcellOrdinal == -1)),
+        ">>> ERROR: (Intrepid2::Basis_HDIV_TRI_In_FEM::getValues), The capability of selecting subsets of basis functions has not been implemented yet.");
+
+      const int numPoints = inputPoints.extent(0);
+      using WorkViewType = Kokkos::DynRankView< scalarType, typename DT::execution_space::scratch_memory_space,Kokkos::MemoryTraits<Kokkos::Unmanaged> >;
+      ordinal_type scalarSizePerPoint = (operatorType == OPERATOR_VALUE) ? this->basisCardinality_ : 5*this->basisCardinality_;
+      ordinal_type sizePerPoint = scalarSizePerPoint*get_dimension_scalar(inputPoints);
+      WorkViewType workView(scratchStorage, sizePerPoint*team_member.team_size());
+      using range_type = Kokkos::pair<ordinal_type,ordinal_type>;
+
+      switch(operatorType) {
+        case OPERATOR_VALUE:
+          Kokkos::parallel_for (Kokkos::TeamThreadRange (team_member, numPoints), [=, &coeffs_ = this->coeffs_] (ordinal_type& pt) {
+            auto       output = Kokkos::subview( outputValues, Kokkos::ALL(), range_type  (pt,pt+1), Kokkos::ALL() );
+            const auto input  = Kokkos::subview( inputPoints,                 range_type(pt, pt+1), Kokkos::ALL() );
+            WorkViewType  work(workView.data() + sizePerPoint*team_member.team_rank(), sizePerPoint);
+            Impl::Basis_HDIV_TRI_In_FEM::Serial<OPERATOR_VALUE>::getValues( output, input, work, coeffs_ );
+          });
+          break;
+          case OPERATOR_DIV:
+          Kokkos::parallel_for (Kokkos::TeamThreadRange (team_member, numPoints), [=, &coeffs_ = this->coeffs_] (ordinal_type& pt) {
+            auto       output = Kokkos::subview( outputValues, Kokkos::ALL(), range_type(pt,pt+1), Kokkos::ALL() );
+            const auto input  = Kokkos::subview( inputPoints,                 range_type(pt,pt+1), Kokkos::ALL() );
+            WorkViewType  work(workView.data() + sizePerPoint*team_member.team_rank(), sizePerPoint);
+            Impl::Basis_HDIV_TRI_In_FEM::Serial<OPERATOR_DIV>::getValues( output, input, work, coeffs_ );
+          });
+          break;
+        default: {          
+          INTREPID2_TEST_FOR_ABORT( true,
+            ">>> ERROR (Basis_HDIV_TRI_In_FEM): getValues not implemented for this operator");
+          }
+    }
+  }
+
 } // namespace Intrepid2
+
 #endif

@@ -9,15 +9,19 @@
 
 #include <iostream>
 #include <Kokkos_Core.hpp>
+#if KOKKOS_VERSION >= 40799
+#include <KokkosKernels_ArithTraits.hpp>
+#else
 #include <Kokkos_ArithTraits.hpp>
+#endif
 #include <KokkosSparse_CrsMatrix.hpp>
-#include <Kokkos_StaticCrsGraph.hpp>
+#include <KokkosSparse_StaticCrsGraph.hpp>
 #include <Kokkos_Timer.hpp>
 
 template <class scalar_type, class local_ordinal_type, class device_type>
 class LWGraph_kokkos {
  private:
-  typedef Kokkos::StaticCrsGraph<local_ordinal_type, Kokkos::LayoutLeft, device_type> local_graph_type;
+  typedef KokkosSparse::StaticCrsGraph<local_ordinal_type, Kokkos::LayoutLeft, device_type> local_graph_type;
   typedef Kokkos::View<bool*, device_type> boundary_nodes_type;
 
  public:
@@ -80,7 +84,11 @@ kernel_construct(local_ordinal_type numRows) {
 template <class scalar_type, class local_ordinal_type, class device_type>
 void kernel_coalesce_drop_device(KokkosSparse::CrsMatrix<scalar_type, local_ordinal_type, device_type> A) {
   typedef KokkosSparse::CrsMatrix<scalar_type, local_ordinal_type, device_type> local_matrix_type;
+#if KOKKOS_VERSION >= 40799
+  typedef KokkosKernels::ArithTraits<scalar_type> ATS;
+#else
   typedef Kokkos::ArithTraits<scalar_type> ATS;
+#endif
   typedef typename ATS::mag_type magnitude_type;
   typedef Kokkos::View<bool*, device_type> boundary_nodes_type;
 
@@ -109,7 +117,7 @@ void kernel_coalesce_drop_device(KokkosSparse::CrsMatrix<scalar_type, local_ordi
       });
 
   // Stage 1: calculate the number of remaining entries per row
-  typedef Kokkos::StaticCrsGraph<local_ordinal_type, Kokkos::LayoutLeft, device_type> local_graph_type;
+  typedef KokkosSparse::StaticCrsGraph<local_ordinal_type, Kokkos::LayoutLeft, device_type> local_graph_type;
   typedef typename local_graph_type::row_map_type row_map_type;
   typedef typename local_graph_type::entries_type entries_type;
 
@@ -200,7 +208,11 @@ void kernel_coalesce_drop_device(KokkosSparse::CrsMatrix<scalar_type, local_ordi
 template <class scalar_type, class local_ordinal_type, class device_type>
 void kernel_coalesce_drop_serial(KokkosSparse::CrsMatrix<scalar_type, local_ordinal_type, device_type> A) {
   typedef KokkosSparse::CrsMatrix<scalar_type, local_ordinal_type, device_type> local_matrix_type;
+#if KOKKOS_VERSION >= 40799
+  typedef KokkosKernels::ArithTraits<scalar_type> ATS;
+#else
   typedef Kokkos::ArithTraits<scalar_type> ATS;
+#endif
   typedef typename ATS::mag_type magnitude_type;
   typedef Kokkos::View<bool*, device_type> boundary_nodes_type;
 
@@ -225,7 +237,7 @@ void kernel_coalesce_drop_serial(KokkosSparse::CrsMatrix<scalar_type, local_ordi
   }
 
   // Stage 1: calculate the number of remaining entries per row
-  typedef Kokkos::StaticCrsGraph<local_ordinal_type, Kokkos::LayoutLeft, device_type> local_graph_type;
+  typedef KokkosSparse::StaticCrsGraph<local_ordinal_type, Kokkos::LayoutLeft, device_type> local_graph_type;
   typedef typename local_graph_type::row_map_type row_map_type;
   typedef typename local_graph_type::entries_type entries_type;
 

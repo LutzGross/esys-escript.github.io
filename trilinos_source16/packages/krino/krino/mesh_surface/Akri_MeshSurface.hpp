@@ -18,7 +18,7 @@
 #include <memory>
 
 namespace stk { namespace mesh { class BulkData; } }
-namespace stk { namespace mesh { class Entity; } }
+namespace stk { namespace mesh { struct Entity; } }
 namespace stk { namespace mesh { class MetaData; } }
 namespace stk { namespace mesh { class Selector; } }
 
@@ -94,6 +94,11 @@ public:
       const std::string & filename,
       const int sign,
       const stk::math::Vector3d & scale);
+  STLSurface(const std::string & filename,
+      const stk::diag::Timer &parentTimer = sierra::Diag::sierraTimer(),
+      const int sign = 1,
+      const stk::math::Vector3d & scale = stk::math::Vector3d(1.,1.,1.))
+  : STLSurface("STL surf", parentTimer, filename, sign, scale) {}
 
   virtual ~STLSurface() {}
   virtual BoundingBox get_bounding_box() override;

@@ -14,7 +14,7 @@
 #include "MueLu_ConfigDefs.hpp"
 
 #include "Xpetra_Map.hpp"
-#include "Xpetra_CrsMatrixUtils.hpp"
+#include "MueLu_CrsMatrixUtils.hpp"
 #include "Xpetra_MatrixUtils.hpp"
 
 #include "MueLu_MultiPhys_decl.hpp"
@@ -29,9 +29,6 @@
 #include "MueLu_ParameterListInterpreter.hpp"
 #include "MueLu_HierarchyManager.hpp"
 #include <MueLu_HierarchyUtils.hpp>
-#if defined(HAVE_MUELU_KOKKOS_REFACTOR)
-#include "MueLu_Utilities_kokkos.hpp"
-#endif
 #include "MueLu_VerbosityLevel.hpp"
 #include <MueLu_CreateXpetraPreconditioner.hpp>
 #include <MueLu_ML2MueLuParameterTranslator.hpp>
@@ -72,8 +69,10 @@ void MultiPhys<Scalar, LocalOrdinal, GlobalOrdinal, Node>::setParameters(Teuchos
       TEUCHOS_TEST_FOR_EXCEPTION(true, Exceptions::RuntimeError, "Must provide sublist " + listName);
 
     arrayOfParamLists_[i]->set("verbosity", arrayOfParamLists_[i]->get("verbosity", verbosity));
-    arrayOfParamLists_[i]->set("smoother: pre or post", "none");
-    arrayOfParamLists_[i]->set("smoother: type", "none");
+    if (OmitSubblockSmoother_) {
+      arrayOfParamLists_[i]->set("smoother: pre or post", "none");
+      arrayOfParamLists_[i]->set("smoother: type", "none");
+    }
   }
 
   // Are we using Kokkos?
@@ -108,7 +107,15 @@ void MultiPhys<Scalar, LocalOrdinal, GlobalOrdinal, Node>::compute(bool reuse) {
 
   for (int iii = 0; iii < nBlks_; iii++) {
     if (arrayOfCoords_ != Teuchos::null) {
-      arrayOfParamLists_[iii]->sublist("user data").set("Coordinates", arrayOfCoords_[iii]);
+      if (arrayOfCoords_[iii] != Teuchos::null) {
+        arrayOfParamLists_[iii]->sublist("user data").set("Coordinates", arrayOfCoords_[iii]);
+      }
+    }
+
+    if (arrayOfMaterials_ != Teuchos::null) {
+      if (arrayOfMaterials_[iii] != Teuchos::null) {
+        arrayOfParamLists_[iii]->sublist("user data").set("Material", arrayOfMaterials_[iii]);
+      }
     }
 
     bool wantToRepartition = false;
@@ -129,13 +136,21 @@ void MultiPhys<Scalar, LocalOrdinal, GlobalOrdinal, Node>::compute(bool reuse) {
 
   paramListMultiphysics_->set<bool>("repartition: enable", false);
 
-  LO maxLevels = 9999;
+  bool useMaxLevels = false;
+  if (paramListMultiphysics_->isParameter("combine: useMaxLevels"))
+    useMaxLevels = paramListMultiphysics_->get<bool>("combine: useMaxLevels");
+
+  LO maxLevels = useMaxLevels ? 0 : std::numeric_limits<LO>::max();
   for (int i = 0; i < nBlks_; i++) {
     std::string operatorLabel = "MultiPhys (" + Teuchos::toString(i) + "," + Teuchos::toString(i) + ")";
     arrayOfAuxMatrices_[i]->setObjectLabel(operatorLabel);
     arrayOfHierarchies_[i] = MueLu::CreateXpetraPreconditioner(arrayOfAuxMatrices_[i], *arrayOfParamLists_[i]);
     LO tempNlevels         = arrayOfHierarchies_[i]->GetGlobalNumLevels();
-    if (tempNlevels < maxLevels) maxLevels = tempNlevels;
+    if (useMaxLevels) {
+      if (tempNlevels > maxLevels) maxLevels = tempNlevels;
+    } else {
+      if (tempNlevels < maxLevels) maxLevels = tempNlevels;
+    }
   }
 
   hierarchyMultiphysics_ = rcp(new Hierarchy("Combo"));
@@ -145,6 +160,23 @@ void MultiPhys<Scalar, LocalOrdinal, GlobalOrdinal, Node>::compute(bool reuse) {
   for (int i = 0; i < nBlks_; i++) {
     std::string subblkName = "Psubblock" + Teuchos::toString(i);
     MueLu::HierarchyUtils<SC, LO, GO, NO>::CopyBetweenHierarchies(*(arrayOfHierarchies_[i]), *(hierarchyMultiphysics_), "P", subblkName, "RCP<Matrix>");
+
+    std::string subblkOpName = "Operatorsubblock" + Teuchos::toString(i);
+    MueLu::HierarchyUtils<SC, LO, GO, NO>::CopyBetweenHierarchies(*(arrayOfHierarchies_[i]), *(hierarchyMultiphysics_), "A", subblkOpName, "RCP<Matrix>");
+
+    // Copy remaining levels, if needed
+    if (useMaxLevels) {
+      const auto numLevelsBlk       = arrayOfHierarchies_[i]->GetNumLevels();
+      const auto numGlobalLevelsBlk = arrayOfHierarchies_[i]->GetGlobalNumLevels();
+      if (numLevelsBlk == numGlobalLevelsBlk) {
+        auto crsLevel = arrayOfHierarchies_[i]->GetLevel(numLevelsBlk - 1);
+        TEUCHOS_ASSERT(crsLevel->IsAvailable("A"));
+        for (int levelId = numLevelsBlk; levelId < maxLevels; ++levelId) {
+          auto level = hierarchyMultiphysics_->GetLevel(levelId);
+          MueLu::HierarchyUtils<SC, LO, GO, NO>::CopyBetweenLevels(*crsLevel, *level, "A", subblkOpName, "RCP<Matrix>");
+        }
+      }
+    }
   }
   paramListMultiphysics_->set("coarse: max size", 1);
   paramListMultiphysics_->set("max levels", maxLevels);
@@ -226,7 +258,8 @@ void MultiPhys<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
                const Teuchos::ArrayRCP<Teuchos::RCP<MultiVector>> arrayOfNullspaces,
                const Teuchos::ArrayRCP<Teuchos::RCP<RealValuedMultiVector>> arrayOfCoords,
                const int nBlks,
-               Teuchos::ParameterList& List) {
+               Teuchos::ParameterList& List,
+               const Teuchos::ArrayRCP<Teuchos::RCP<MultiVector>> arrayOfMaterials) {
   arrayOfHierarchies_.resize(nBlks_);
   for (int i = 0; i < nBlks_; i++) arrayOfHierarchies_[i] = Teuchos::null;
 

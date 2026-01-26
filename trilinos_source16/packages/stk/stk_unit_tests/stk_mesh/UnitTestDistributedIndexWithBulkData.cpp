@@ -97,7 +97,7 @@ TEST( UnderstandingDistributedIndex, WithoutStkMeshBulkData)
   if(procCount == 2)
   {
     const std::string generatedMeshSpec = "generated:2x2x2|sideset:xXyYzZ|nodeset:xXyYzZ";
-    stk::unit_test_util::simple_fields::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
+    stk::unit_test_util::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
 
     stk::mesh::MetaData &stkMeshMetaData = *stkMesh.getMetaData();
     stk::unit_test_util::BulkDataTester &stkMeshBulkData = *stkMesh.getBulkData();
@@ -172,7 +172,7 @@ TEST( UnderstandingDistributedIndex, ViaStkMeshBulkData)
   if(procCount == 2)
   {
     const std::string generatedMeshSpec = "generated:2x2x2|sideset:xXyYzZ|nodeset:xXyYzZ";
-    stk::unit_test_util::simple_fields::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
+    stk::unit_test_util::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
 
     stk::mesh::MetaData &stkMeshMetaData = *stkMesh.getMetaData();
     stk::mesh::Part &line2_part = stkMeshMetaData.get_topology_root_part(stk::topology::LINE_2);
@@ -296,7 +296,7 @@ TEST(UnderstandingDistributedIndex, TestSharedAndGhostedAndOwnedEntitiesWithoutA
   if(procCount == 2)
   {
     const std::string generatedMeshSpec = "generated:2x2x2|sideset:xXyYzZ|nodeset:xXyYzZ";
-    stk::unit_test_util::simple_fields::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
+    stk::unit_test_util::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
 
     stk::unit_test_util::BulkDataTester &stkMeshBulkData = *stkMesh.getBulkData();
 
@@ -423,7 +423,7 @@ TEST(UnderstandingDistributedIndex, GhostAnElement)
   if(procCount == 2)
   {
     const std::string generatedMeshSpec = "generated:2x2x4|sideset:xXyYzZ|nodeset:xXyYzZ";
-    stk::unit_test_util::simple_fields::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
+    stk::unit_test_util::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
 
     stk::unit_test_util::BulkDataTester &stkMeshBulkData = *stkMesh.getBulkData();
 
@@ -496,7 +496,7 @@ TEST(UnderstandingDistributedIndex, KillAGhostedElement)
   if(procCount == 2)
   {
     const std::string generatedMeshSpec = "generated:2x2x4|sideset:xXyYzZ|nodeset:xXyYzZ";
-    stk::unit_test_util::simple_fields::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
+    stk::unit_test_util::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
 
     stk::unit_test_util::BulkDataTester &stkMeshBulkData = *stkMesh.getBulkData();
 
@@ -564,7 +564,7 @@ TEST(UnderstandingDistributedIndex, CreateDisconnectedElement)
   if(procCount == 2)
   {
     const std::string generatedMeshSpec = "generated:2x2x4|sideset:xXyYzZ|nodeset:xXyYzZ";
-    stk::unit_test_util::simple_fields::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
+    stk::unit_test_util::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
 
     stk::unit_test_util::BulkDataTester &stkMeshBulkData = *stkMesh.getBulkData();
 
@@ -652,7 +652,7 @@ TEST(UnderstandingDistributedIndex, MoveAnElement)
   if(procCount == 2)
   {
     const std::string generatedMeshSpec = "generated:2x2x4|sideset:xXyYzZ|nodeset:xXyYzZ";
-    stk::unit_test_util::simple_fields::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
+    stk::unit_test_util::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
 
     stk::unit_test_util::BulkDataTester &stkMeshBulkData = *stkMesh.getBulkData();
 
@@ -744,7 +744,7 @@ TEST(UnderstandingDistributedIndex, GhostANode)
   if(procCount == 2)
   {
     const std::string generatedMeshSpec = "generated:2x2x4|sideset:xXyYzZ|nodeset:xXyYzZ";
-    stk::unit_test_util::simple_fields::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
+    stk::unit_test_util::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
 
     stk::unit_test_util::BulkDataTester &stkMeshBulkData = *stkMesh.getBulkData();
 
@@ -863,18 +863,18 @@ void testOwningProcHasOneNodeGhosted(stk::unit_test_util::BulkDataTester &stkMes
 }
 
 void testReceivingProcHasNoGhosts(stk::unit_test_util::BulkDataTester &stkMeshBulkData,
-                                  stk::mesh::Ghosting &ghosting1,
-                                  stk::mesh::Ghosting &ghosting2,
-                                  int nodeIdToGhost, int owningProc)
+                                  stk::mesh::Ghosting & /*ghosting1*/,
+                                  stk::mesh::Ghosting & /*ghosting2*/,
+                                  int nodeIdToGhost, int /*owningProc*/)
 {
   stk::mesh::Entity ghostedNode = stkMeshBulkData.get_entity(stk::topology::NODE_RANK, nodeIdToGhost);
   EXPECT_FALSE(stkMeshBulkData.is_valid(ghostedNode));
 }
 
 void testOwningProcHasNoGhosts(stk::unit_test_util::BulkDataTester &stkMeshBulkData,
-                               stk::mesh::Ghosting &ghosting1,
-                               stk::mesh::Ghosting &ghosting2,
-                               int nodeIdToGhost, int ghostReceivingProc)
+                               stk::mesh::Ghosting & /*ghosting1*/,
+                               stk::mesh::Ghosting & /*ghosting2*/,
+                               int nodeIdToGhost, int /*ghostReceivingProc*/)
 {
   stk::mesh::Entity ghostedNode = stkMeshBulkData.get_entity(stk::topology::NODE_RANK, nodeIdToGhost);
   stk::mesh::PairIterEntityComm commStuff = stkMeshBulkData.my_internal_entity_comm_map(stkMeshBulkData.entity_key(ghostedNode));
@@ -883,7 +883,7 @@ void testOwningProcHasNoGhosts(stk::unit_test_util::BulkDataTester &stkMeshBulkD
 }
 
 void testReceivingProcAfterOneGhostingDestroyed(stk::unit_test_util::BulkDataTester &stkMeshBulkData,
-                                                stk::mesh::Ghosting &ghosting1,
+                                                stk::mesh::Ghosting & /*ghosting1*/,
                                                 stk::mesh::Ghosting &ghosting2,
                                                 int nodeIdToGhost, int owningProc)
 {
@@ -900,7 +900,7 @@ void testReceivingProcAfterOneGhostingDestroyed(stk::unit_test_util::BulkDataTes
 }
 
 void testOwningProcAfterOneGhostingDestroyed(stk::unit_test_util::BulkDataTester &stkMeshBulkData,
-                                             stk::mesh::Ghosting &ghosting1,
+                                             stk::mesh::Ghosting & /*ghosting1*/,
                                              stk::mesh::Ghosting &ghosting2,
                                              int nodeIdToGhost, int ghostReceivingProc)
 {
@@ -975,7 +975,7 @@ TEST(UnderstandingDistributedIndex, MultipleCustomGhostings)
   if(procCount == 2)
   {
     const std::string generatedMeshSpec = "generated:2x2x4|sideset:xXyYzZ|nodeset:xXyYzZ";
-    stk::unit_test_util::simple_fields::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
+    stk::unit_test_util::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
 
     int owningProc = 0;
     int ghostReceivingProc = 1;
@@ -1021,7 +1021,7 @@ TEST(UnderstandingDistributedIndex, MultipleCustomGhostingsWithDestroy)
   if(procCount == 2)
   {
     const std::string generatedMeshSpec = "generated:2x2x4|sideset:xXyYzZ|nodeset:xXyYzZ";
-    stk::unit_test_util::simple_fields::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
+    stk::unit_test_util::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
 
     int owningProc = 0;
     int ghostReceivingProc = 1;

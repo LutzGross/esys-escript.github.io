@@ -1,20 +1,12 @@
 // clang-format off
-/* =====================================================================================
-Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
-Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
-certain rights in this software.
-
-SCR#:2790.0
-
-This file is part of Tacho. Tacho is open source software: you can redistribute it
-and/or modify it under the terms of BSD 2-Clause License
-(https://opensource.org/licenses/BSD-2-Clause). A copy of the licese is also
-provided under the main directory
-
-Questions? Kyungjoo Kim at <kyukim@sandia.gov,https://github.com/kyungjoo-kim>
-
-Sandia National Laboratories, Albuquerque, NM, USA
-===================================================================================== */
+// @HEADER
+// *****************************************************************************
+//                            Tacho package
+//
+// Copyright 2022 NTESS and the Tacho contributors.
+// SPDX-License-Identifier: BSD-2-Clause
+// *****************************************************************************
+// @HEADER
 // clang-format on
 #ifndef __TACHO_NUMERIC_TOOLS_SERIAL_HPP__
 #define __TACHO_NUMERIC_TOOLS_SERIAL_HPP__
@@ -53,6 +45,7 @@ public:
   using typename base_type::ordinal_type_array;
   using typename base_type::ordinal_type_array_host;
   using typename base_type::size_type_array;
+  using typename base_type::mag_type;
   using typename base_type::value_type;
   using typename base_type::value_type_array;
   using typename base_type::value_type_matrix;
@@ -119,7 +112,7 @@ public:
       break;
     }
     default: {
-      TACHO_TEST_FOR_EXCEPTION(false, std::logic_error, "The solution method is not supported");
+      TACHO_TEST_FOR_EXCEPTION(true, std::logic_error, "The solution method is not supported");
     }
     }
     const double kilo(1024);
@@ -483,7 +476,7 @@ public:
   ///
   /// main interface
   ///
-  inline void factorize(const value_type_array &ax, const ordinal_type verbose = 0) override {
+  inline void factorize(const value_type_array &ax, const bool /* store_transpose */, const mag_type pivot_tol = 0.0, const ordinal_type verbose = 0) override {
     {
       const bool test = !std::is_same<exec_memory_space, Kokkos::HostSpace>::value;
       TACHO_TEST_FOR_EXCEPTION(test, std::logic_error, "Serial interface works on host device only");
@@ -533,7 +526,7 @@ public:
       break;
     }
     default: {
-      TACHO_TEST_FOR_EXCEPTION(false, std::logic_error, "The solution method is not supported");
+      TACHO_TEST_FOR_EXCEPTION(true, std::logic_error, "The solution method is not supported");
       break;
     }
     }

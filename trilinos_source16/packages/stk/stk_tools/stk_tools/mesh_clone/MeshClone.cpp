@@ -143,9 +143,12 @@ void copy_meta(const stk::mesh::MetaData &inputMeta, stk::mesh::MetaData &output
   // Query the coordinate field, to figure out the final name (if none set by the user)
   inputMeta.coordinate_field();
 
-  outputMeta.initialize(inputMeta.spatial_dimension(),
-                        inputMeta.entity_rank_names(),
-                        inputMeta.coordinate_field_name());
+  if (!outputMeta.is_initialized()){
+     outputMeta.initialize(inputMeta.spatial_dimension(),
+                           inputMeta.entity_rank_names(),
+                           inputMeta.coordinate_field_name());
+  }
+
   copy_parts(inputMeta, outputMeta);
   copy_fields(inputMeta, outputMeta);
   copy_surface_to_block_mapping(inputMeta, outputMeta);
@@ -255,13 +258,30 @@ void copy_field_data(const stk::mesh::BulkData& oldBulk,
 
   for(unsigned i=0; i<oldFields.size(); ++i)
   {
-    unsigned oldBytesPerEntity = stk::mesh::field_bytes_per_entity(*oldFields[i], oldEntity);
+    auto oldFieldBytes = oldFields[i]->data_bytes<const std::byte>();
+    auto newFieldBytes = newFields[i]->data_bytes<std::byte>();
 
-    unsigned char* oldData = static_cast<unsigned char*>(stk::mesh::field_data(*oldFields[i], oldEntity));
-    unsigned char* newData = static_cast<unsigned char*>(stk::mesh::field_data(*newFields[i], newEntity));
+    if (oldFields[i]->host_data_layout() == stk::mesh::Layout::Right) {
+      auto oldEntityBytes = oldFieldBytes.entity_bytes<stk::mesh::Layout::Right>(oldEntity);
+      auto newEntityBytes = newFieldBytes.entity_bytes<stk::mesh::Layout::Right>(newEntity);
 
-    for(unsigned j=0; j<oldBytesPerEntity; ++j)
-      newData[j] = oldData[j];
+      for (stk::mesh::ByteIdx idx : oldEntityBytes.bytes()) {
+        newEntityBytes(idx) = oldEntityBytes(idx);
+      }
+    }
+
+    else if (oldFields[i]->host_data_layout() == stk::mesh::Layout::Left) {
+      auto oldEntityBytes = oldFieldBytes.entity_bytes<stk::mesh::Layout::Left>(oldEntity);
+      auto newEntityBytes = newFieldBytes.entity_bytes<stk::mesh::Layout::Left>(newEntity);
+
+      for (stk::mesh::ByteIdx idx : oldEntityBytes.bytes()) {
+        newEntityBytes(idx) = oldEntityBytes(idx);
+      }
+    }
+
+    else {
+      STK_ThrowErrorMsg("Unsupported host Field data layout: " << oldFields[i]->host_data_layout());
+    }
   }
 }
 
@@ -324,7 +344,7 @@ void copy_all_field_data(const stk::mesh::BulkData &inputBulk, stk::mesh::Select
   }
 }
 
-void copy_bucket_entities(const stk::mesh::BulkData &inputBulk, stk::mesh::Selector inputSelector, const stk::mesh::Bucket *bucket, stk::mesh::BulkData &outputBulk)
+void copy_bucket_entities(const stk::mesh::BulkData &inputBulk, stk::mesh::Selector /*inputSelector*/, const stk::mesh::Bucket *bucket, stk::mesh::BulkData &outputBulk)
 {
   stk::mesh::EntityRank rank = bucket->entity_rank();
   stk::mesh::PartVector newParts = get_new_parts(bucket, outputBulk);

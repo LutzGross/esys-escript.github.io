@@ -1,46 +1,11 @@
-/*
 // @HEADER
-// ************************************************************************
-//
+// *****************************************************************************
 //        Piro: Strategy package for embedded analysis capabilitites
-//                  Copyright (2010) Sandia Corporation
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
-// the U.S. Government retains certain rights in this software.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Andy Salinger (agsalin@sandia.gov), Sandia
-// National Laboratories.
-//
-// ************************************************************************
+// Copyright 2010 NTESS and the Piro contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
 // @HEADER
-*/
 
 #include "Piro_MatrixFreeDecorator.hpp"
 
@@ -178,18 +143,18 @@ TEUCHOS_UNIT_TEST(Piro_MatrixFreeDecorator, JacobianOperatorInitialization)
 
   const RCP<Thyra::VectorBase<double> > rhs = Thyra::createMember(jacobian->domain());
   Thyra::assign(rhs.ptr(), 1.0);
-  const RCP<Thyra::VectorBase<double> > result = Thyra::createMember(jacobian->range());
-  Thyra::assign(result.ptr(), 0.0);
+  const RCP<Thyra::VectorBase<double> > lhs = Thyra::createMember(jacobian->range());
+  Thyra::assign(lhs.ptr(), 0.0);
 
   TEST_ASSERT(isPartiallyInitialized(*jacobian));
   TEST_ASSERT(!opSupported(*jacobian, Thyra::NOTRANS));
-  TEST_THROW(Thyra::apply(*jacobian, Thyra::NOTRANS, *rhs, result.ptr()), Thyra::Exceptions::OpNotSupported);
+  TEST_THROW(Thyra::apply(*jacobian, Thyra::NOTRANS, *rhs, lhs.ptr()), Thyra::Exceptions::OpNotSupported);
 
   eval_W_op_default(*decorator, *jacobian);
 
   TEST_ASSERT(isFullyInitialized(*jacobian));
   TEST_ASSERT(opSupported(*jacobian, Thyra::NOTRANS));
-  TEST_NOTHROW(Thyra::apply(*jacobian, Thyra::NOTRANS, *rhs, result.ptr()));
+  TEST_NOTHROW(Thyra::apply(*jacobian, Thyra::NOTRANS, *rhs, lhs.ptr()));
 }
 
 TEUCHOS_UNIT_TEST(Piro_MatrixFreeDecorator, JacobianOperatorAppliesWithCoefs)
@@ -202,84 +167,84 @@ TEUCHOS_UNIT_TEST(Piro_MatrixFreeDecorator, JacobianOperatorAppliesWithCoefs)
 
   {
     const RCP<Thyra::VectorBase<double> > rhs = Thyra::createMember(jacobian->domain());
-    const RCP<Thyra::VectorBase<double> > result = Thyra::createMember(jacobian->range());
+    const RCP<Thyra::VectorBase<double> > lhs = Thyra::createMember(jacobian->range());
 
     const double rhs_coef = 0.0;
-    const double result_coef = 0.0;
-    Thyra::apply(*jacobian, Thyra::NOTRANS, *rhs, result.ptr(), rhs_coef, result_coef);
+    const double lhs_coef = 0.0;
+    Thyra::apply(*jacobian, Thyra::NOTRANS, *rhs, lhs.ptr(), rhs_coef, lhs_coef);
 
-    const Array<double> actual = arrayFromVector(*result);
+    const Array<double> actual = arrayFromVector(*lhs);
     const Array<double> expected = tuple(0.0, 0.0, 0.0, 0.0);
     TEST_COMPARE_FLOATING_ARRAYS(actual, expected, tightTol);
   }
 
   {
     const RCP<Thyra::VectorBase<double> > rhs = Thyra::createMember(jacobian->domain());
-    const RCP<Thyra::VectorBase<double> > result = Thyra::createMember(jacobian->range());
+    const RCP<Thyra::VectorBase<double> > lhs = Thyra::createMember(jacobian->range());
 
     const double rhs_coef = 0.0;
-    const double result_coef = -2.0;
-    Thyra::assign(result.ptr(), 1.0);
+    const double lhs_coef = -2.0;
+    Thyra::assign(lhs.ptr(), 1.0);
 
     const Array<double> expected = tuple(-2.0, -2.0, -2.0, -2.0);
 
     {
-      Thyra::apply(*jacobian, Thyra::NOTRANS, *rhs, result.ptr(), rhs_coef, result_coef);
-      const Array<double> actual = arrayFromVector(*result);
+      Thyra::apply(*jacobian, Thyra::NOTRANS, *rhs, lhs.ptr(), rhs_coef, lhs_coef);
+      const Array<double> actual = arrayFromVector(*lhs);
       TEST_COMPARE_FLOATING_ARRAYS(actual, expected, tightTol);
     }
 
     Thyra::assign(rhs.ptr(), 1.0);
-    Thyra::assign(result.ptr(), 1.0);
+    Thyra::assign(lhs.ptr(), 1.0);
 
     {
-      Thyra::apply(*jacobian, Thyra::NOTRANS, *rhs, result.ptr(), rhs_coef, result_coef);
-      const Array<double> actual = arrayFromVector(*result);
+      Thyra::apply(*jacobian, Thyra::NOTRANS, *rhs, lhs.ptr(), rhs_coef, lhs_coef);
+      const Array<double> actual = arrayFromVector(*lhs);
       TEST_COMPARE_FLOATING_ARRAYS(actual, expected, tightTol);
     }
   }
 
   {
     const RCP<Thyra::VectorBase<double> > rhs = Thyra::createMember(jacobian->domain());
-    const RCP<Thyra::VectorBase<double> > result = Thyra::createMember(jacobian->range());
+    const RCP<Thyra::VectorBase<double> > lhs = Thyra::createMember(jacobian->range());
 
     const double rhs_coef = 2.0;
-    const double result_coef = 0.0;
+    const double lhs_coef = 0.0;
     Thyra::assign(rhs.ptr(), 1.0);
 
     const Array<double> expected = tuple(12.0, 12.0, 12.0, 12.0);
 
     {
-      Thyra::apply(*jacobian, Thyra::NOTRANS, *rhs, result.ptr(), rhs_coef, result_coef);
-      const Array<double> actual = arrayFromVector(*result);
+      Thyra::apply(*jacobian, Thyra::NOTRANS, *rhs, lhs.ptr(), rhs_coef, lhs_coef);
+      const Array<double> actual = arrayFromVector(*lhs);
       TEST_COMPARE_FLOATING_ARRAYS(actual, expected, relaxedTol);
     }
 
     Thyra::assign(rhs.ptr(), 1.0);
-    Thyra::assign(result.ptr(), -1.0);
+    Thyra::assign(lhs.ptr(), -1.0);
 
     {
-      Thyra::apply(*jacobian, Thyra::NOTRANS, *rhs, result.ptr(), rhs_coef, result_coef);
-      const Array<double> actual = arrayFromVector(*result);
+      Thyra::apply(*jacobian, Thyra::NOTRANS, *rhs, lhs.ptr(), rhs_coef, lhs_coef);
+      const Array<double> actual = arrayFromVector(*lhs);
       TEST_COMPARE_FLOATING_ARRAYS(actual, expected, relaxedTol);
     }
   }
 
   {
     const RCP<Thyra::VectorBase<double> > rhs = Thyra::createMember(jacobian->domain());
-    const RCP<Thyra::VectorBase<double> > result = Thyra::createMember(jacobian->range());
+    const RCP<Thyra::VectorBase<double> > lhs = Thyra::createMember(jacobian->range());
 
     const double rhs_coef = 2.0;
-    const double result_coef = -1.0;
+    const double lhs_coef = -1.0;
     Thyra::assign(rhs.ptr(), 1.0);
-    Thyra::assign(result.ptr(), -1.0);
+    Thyra::assign(lhs.ptr(), -1.0);
 
     const Array<double> expected = tuple(13.0, 13.0, 13.0, 13.0);
 
     {
-      Thyra::apply(*jacobian, Thyra::NOTRANS, *rhs, result.ptr(), rhs_coef, result_coef);
+      Thyra::apply(*jacobian, Thyra::NOTRANS, *rhs, lhs.ptr(), rhs_coef, lhs_coef);
 
-      const Array<double> actual = arrayFromVector(*result);
+      const Array<double> actual = arrayFromVector(*lhs);
       TEST_COMPARE_FLOATING_ARRAYS(actual, expected, relaxedTol);
     }
   }
@@ -345,9 +310,9 @@ TEUCHOS_UNIT_TEST(Piro_MatrixFreeDecorator, DefaultJacobian)
     const Array<double> actual = arrayFromLinOp(*jacobian, i);
     const Array<double> expected = arrayFromLinOp(*expectedJacobian, i);
     double diff2(0),norm2(0);
-    for (int i=0; i< actual.size(); i++) {
-      diff2 += std::pow(actual[i] - expected[i],2);
-      norm2 += std::pow(expected[i],2);
+    for (int j=0; j< actual.size(); j++) {
+      diff2 += std::pow(actual[j] - expected[j],2);
+      norm2 += std::pow(expected[j],2);
     }
     success = std::sqrt(diff2/norm2) < relaxedTol;
     //TEST_COMPARE_FLOATING_ARRAYS(actual, expected, relaxedTol);
@@ -371,9 +336,9 @@ TEUCHOS_UNIT_TEST(Piro_MatrixFreeDecorator, DefaultJacobian_ModelSupportsW)
     const Array<double> actual = arrayFromLinOp(*jacobian, i);
     const Array<double> expected = arrayFromLinOp(*expectedJacobian, i);
     double diff2(0),norm2(0);
-    for (int i=0; i< actual.size(); i++) {
-      diff2 += std::pow(actual[i] - expected[i],2);
-      norm2 += std::pow(expected[i],2);
+    for (int j=0; j< actual.size(); j++) {
+      diff2 += std::pow(actual[j] - expected[j],2);
+      norm2 += std::pow(expected[j],2);
     }
     success = std::sqrt(diff2/norm2) < relaxedTol;
     //TEST_COMPARE_FLOATING_ARRAYS(actual, expected, relaxedTol);
@@ -413,9 +378,9 @@ TEUCHOS_UNIT_TEST(Piro_MatrixFreeDecorator, DynamicJacobian)
         const Array<double> actual = arrayFromLinOp(*jacobian, i);
         const Array<double> expected = arrayFromLinOp(*expectedJacobian, i);
         double diff2(0),norm2(0);
-        for (int i=0; i< actual.size(); i++) {
-          diff2 += std::pow(actual[i] - expected[i],2);
-          norm2 += std::pow(expected[i],2);
+        for (int j=0; j< actual.size(); j++) {
+          diff2 += std::pow(actual[j] - expected[j],2);
+          norm2 += std::pow(expected[j],2);
         }
         success = std::sqrt(diff2/norm2) < relaxedTol;
         //TEST_COMPARE_FLOATING_ARRAYS(actual, expected, 6.0 * relaxedTol);

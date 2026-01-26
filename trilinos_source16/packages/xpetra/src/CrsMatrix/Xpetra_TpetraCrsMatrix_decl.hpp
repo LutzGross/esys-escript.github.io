@@ -1,48 +1,12 @@
 // @HEADER
-//
-// ***********************************************************************
-//
+// *****************************************************************************
 //             Xpetra: A linear algebra interface package
-//                  Copyright 2012 Sandia Corporation
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
-// the U.S. Government retains certain rights in this software.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact
-//                    Jonathan Hu       (jhu@sandia.gov)
-//                    Andrey Prokopenko (aprokop@sandia.gov)
-//                    Ray Tuminaro      (rstumin@sandia.gov)
-//
-// ***********************************************************************
-//
+// Copyright 2012 NTESS and the Xpetra contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
 // @HEADER
+
 #ifndef XPETRA_TPETRACRSMATRIX_DECL_HPP
 #define XPETRA_TPETRACRSMATRIX_DECL_HPP
 
@@ -55,6 +19,7 @@
 #include "Xpetra_TpetraConfigDefs.hpp"
 
 #include "Tpetra_CrsMatrix.hpp"
+#include "Tpetra_FECrsMatrix.hpp"
 #include "Tpetra_replaceDiagonalCrsMatrix.hpp"
 
 #include "Xpetra_CrsMatrix.hpp"
@@ -78,6 +43,7 @@ class TpetraCrsMatrix
 #undef XPETRA_TPETRACRSMATRIX_SHORT
 #include "Xpetra_UseShortNamesScalar.hpp"
 
+ public:
   // The following typedef are used by the XPETRA_DYNAMIC_CAST() macro.
   typedef TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> TpetraCrsMatrixClass;
   typedef TpetraVector TpetraVectorClass;
@@ -86,59 +52,67 @@ class TpetraCrsMatrix
 
   // The following typedefs are used by the Kokkos interface
 #ifdef HAVE_XPETRA_TPETRA
-  typedef typename Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_matrix_type local_matrix_type;
+  using local_matrix_type        = typename Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_matrix_type;
+  using local_matrix_device_type = typename Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_matrix_device_type;
+  using local_matrix_host_type   = typename Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_matrix_host_type;
 #endif
 
- public:
+#if KOKKOS_VERSION >= 40799
+  using ATS = KokkosKernels::ArithTraits<Scalar>;
+#else
+  using ATS = Kokkos::ArithTraits<Scalar>;
+#endif
+  using impl_scalar_type = typename ATS::val_type;
+
   //! @name Constructor/Destructor Methods
   //@{
 
   //! Constructor specifying fixed number of entries for each row.
-  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rowMap, size_t maxNumEntriesPerRow, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null);
+  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rowMap, size_t maxNumEntriesPerRow, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null);
 
   //! Constructor specifying (possibly different) number of entries in each row.
-  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rowMap, const ArrayRCP<const size_t> &NumEntriesPerRowToAlloc, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null);
+  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rowMap, const ArrayRCP<const size_t> &NumEntriesPerRowToAlloc, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null);
 
   //! Constructor specifying column Map and fixed number of entries for each row.
-  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rowMap, const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &colMap, size_t maxNumEntriesPerRow, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null);
+  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rowMap, const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &colMap, size_t maxNumEntriesPerRow, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null);
 
   //! Constructor specifying column Map and number of entries in each row.
-  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rowMap, const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &colMap, const ArrayRCP<const size_t> &NumEntriesPerRowToAlloc, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null);
+  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rowMap, const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &colMap, const ArrayRCP<const size_t> &NumEntriesPerRowToAlloc, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null);
 
   //! Constructor specifying a previously constructed graph.
-  TpetraCrsMatrix(const Teuchos::RCP<const CrsGraph<LocalOrdinal, GlobalOrdinal, Node> > &graph, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null);
+  TpetraCrsMatrix(const Teuchos::RCP<const CrsGraph<LocalOrdinal, GlobalOrdinal, Node>> &graph, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null);
 
   //! Constructor specifying a previously constructed graph and values array.
-  TpetraCrsMatrix(const Teuchos::RCP<const CrsGraph<LocalOrdinal, GlobalOrdinal, Node> > &graph, typename Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_matrix_type::values_type &values, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null);
+  TpetraCrsMatrix(const Teuchos::RCP<const CrsGraph<LocalOrdinal, GlobalOrdinal, Node>> &graph, typename Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_matrix_type::values_type &values, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null);
 
   //! Constructor for a fused import
   TpetraCrsMatrix(const Teuchos::RCP<const CrsMatrix> &sourceMatrix,
                   const Import<LocalOrdinal, GlobalOrdinal, Node> &importer,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap = Teuchos::null,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap  = Teuchos::null,
-                  const Teuchos::RCP<Teuchos::ParameterList> &params                           = Teuchos::null);
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap = Teuchos::null,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap  = Teuchos::null,
+                  const Teuchos::RCP<Teuchos::ParameterList> &params                          = Teuchos::null);
 
   //! Constructor for a fused export
   TpetraCrsMatrix(const Teuchos::RCP<const CrsMatrix> &sourceMatrix,
                   const Export<LocalOrdinal, GlobalOrdinal, Node> &exporter,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap = Teuchos::null,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap  = Teuchos::null,
-                  const Teuchos::RCP<Teuchos::ParameterList> &params                           = Teuchos::null);
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap = Teuchos::null,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap  = Teuchos::null,
+                  const Teuchos::RCP<Teuchos::ParameterList> &params                          = Teuchos::null);
 
   //! Constructor for a fused import
   TpetraCrsMatrix(const Teuchos::RCP<const CrsMatrix> &sourceMatrix,
                   const Import<LocalOrdinal, GlobalOrdinal, Node> &RowImporter,
-                  const Teuchos::RCP<const Import<LocalOrdinal, GlobalOrdinal, Node> > DomainImporter,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap,
+                  const Teuchos::RCP<const Import<LocalOrdinal, GlobalOrdinal, Node>> DomainImporter,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap,
                   const Teuchos::RCP<Teuchos::ParameterList> &params);
 
   //! Constructor for a fused export
   TpetraCrsMatrix(const Teuchos::RCP<const CrsMatrix> &sourceMatrix,
                   const Export<LocalOrdinal, GlobalOrdinal, Node> &RowExporter,
-                  const Teuchos::RCP<const Export<LocalOrdinal, GlobalOrdinal, Node> > DomainExporter,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap,
+                  const Teuchos::RCP<const Export<LocalOrdinal, GlobalOrdinal, Node>> DomainExporter,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap,
                   const Teuchos::RCP<Teuchos::ParameterList> &params);
 
 #ifdef HAVE_XPETRA_TPETRA
@@ -162,29 +136,29 @@ class TpetraCrsMatrix
   /// \param params [in/out] Optional list of parameters.  If not
   ///   null, any missing parameters will be filled in with their
   ///   default values.
-  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rowMap,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &colMap,
+  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rowMap,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &colMap,
                   const local_matrix_type &lclMatrix,
                   const Teuchos::RCP<Teuchos::ParameterList> &params = null);
 
   /// \brief Constructor specifying local matrix and 4 maps
   TpetraCrsMatrix(
       const local_matrix_type &lclMatrix,
-      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rowMap,
-      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &colMap,
-      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap = Teuchos::null,
-      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap  = Teuchos::null,
-      const Teuchos::RCP<Teuchos::ParameterList> &params                           = null);
+      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rowMap,
+      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &colMap,
+      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap = Teuchos::null,
+      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap  = Teuchos::null,
+      const Teuchos::RCP<Teuchos::ParameterList> &params                          = null);
 
   /// \brief Constructor specifying local matrix, four maps, import and export objects.
   TpetraCrsMatrix(
       const local_matrix_type &lclMatrix,
-      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rowMap,
-      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &colMap,
-      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap,
-      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap,
-      const Teuchos::RCP<const Import<LocalOrdinal, GlobalOrdinal, Node> > &importer,
-      const Teuchos::RCP<const Export<LocalOrdinal, GlobalOrdinal, Node> > &exporter,
+      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rowMap,
+      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &colMap,
+      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap,
+      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap,
+      const Teuchos::RCP<const Import<LocalOrdinal, GlobalOrdinal, Node>> &importer,
+      const Teuchos::RCP<const Export<LocalOrdinal, GlobalOrdinal, Node>> &exporter,
       const Teuchos::RCP<Teuchos::ParameterList> &params = null);
 #endif
 
@@ -241,20 +215,20 @@ class TpetraCrsMatrix
   void resumeFill(const RCP<ParameterList> &params = null);
 
   //! Signal that data entry is complete, specifying domain and range maps.
-  void fillComplete(const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap, const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap, const RCP<ParameterList> &params = null);
+  void fillComplete(const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap, const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap, const RCP<ParameterList> &params = null);
 
   //! Signal that data entry is complete.
   void fillComplete(const RCP<ParameterList> &params = null);
 
   //!  Replaces the current domainMap and importer with the user-specified objects.
-  void replaceDomainMapAndImporter(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &newDomainMap, Teuchos::RCP<const Import<LocalOrdinal, GlobalOrdinal, Node> > &newImporter);
+  void replaceDomainMapAndImporter(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &newDomainMap, Teuchos::RCP<const Import<LocalOrdinal, GlobalOrdinal, Node>> &newImporter);
 
   //! Expert static fill complete
-  void expertStaticFillComplete(const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap,
-                                const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap,
-                                const RCP<const Import<LocalOrdinal, GlobalOrdinal, Node> > &importer = Teuchos::null,
-                                const RCP<const Export<LocalOrdinal, GlobalOrdinal, Node> > &exporter = Teuchos::null,
-                                const RCP<ParameterList> &params                                      = Teuchos::null);
+  void expertStaticFillComplete(const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap,
+                                const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap,
+                                const RCP<const Import<LocalOrdinal, GlobalOrdinal, Node>> &importer = Teuchos::null,
+                                const RCP<const Export<LocalOrdinal, GlobalOrdinal, Node>> &exporter = Teuchos::null,
+                                const RCP<ParameterList> &params                                     = Teuchos::null);
 
   //@}
 
@@ -262,13 +236,13 @@ class TpetraCrsMatrix
   //@{
 
   //! Returns the Map that describes the row distribution in this matrix.
-  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > getRowMap() const;
+  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> getRowMap() const;
 
   //! Returns the Map that describes the column distribution in this matrix.
-  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > getColMap() const;
+  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> getColMap() const;
 
   //! Returns the CrsGraph associated with this matrix.
-  RCP<const CrsGraph<LocalOrdinal, GlobalOrdinal, Node> > getCrsGraph() const;
+  RCP<const CrsGraph<LocalOrdinal, GlobalOrdinal, Node>> getCrsGraph() const;
 
   //! Number of global elements in the row map of this matrix.
   global_size_t getGlobalNumRows() const;
@@ -339,13 +313,13 @@ class TpetraCrsMatrix
   void apply(const MultiVector &X, MultiVector &Y, Teuchos::ETransp mode = Teuchos::NO_TRANS, Scalar alpha = ScalarTraits<Scalar>::one(), Scalar beta = ScalarTraits<Scalar>::zero()) const;
 
   //! Computes the matrix-multivector multiplication for region layout matrices
-  void apply(const MultiVector &X, MultiVector &Y, Teuchos::ETransp mode, Scalar alpha, Scalar beta, bool sumInterfaceValues, const RCP<Xpetra::Import<LocalOrdinal, GlobalOrdinal, Node> > &regionInterfaceImporter, const Teuchos::ArrayRCP<LocalOrdinal> &regionInterfaceLIDs) const;
+  void apply(const MultiVector &X, MultiVector &Y, Teuchos::ETransp mode, Scalar alpha, Scalar beta, bool sumInterfaceValues, const RCP<Xpetra::Import<LocalOrdinal, GlobalOrdinal, Node>> &regionInterfaceImporter, const Teuchos::ArrayRCP<LocalOrdinal> &regionInterfaceLIDs) const;
 
   //! Returns the Map associated with the domain of this operator. This will be null until fillComplete() is called.
-  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > getDomainMap() const;
+  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> getDomainMap() const;
 
   //!
-  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > getRangeMap() const;
+  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> getRangeMap() const;
 
   //@}
 
@@ -393,7 +367,7 @@ class TpetraCrsMatrix
   //{@
 
   //! Access function for the Tpetra::Map this DistObject was constructed with.
-  Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > getMap() const;
+  Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> getMap() const;
 
   //! Import.
   void doImport(const DistObject<char, LocalOrdinal, GlobalOrdinal, Node> &source,
@@ -411,7 +385,7 @@ class TpetraCrsMatrix
   void doExport(const DistObject<char, LocalOrdinal, GlobalOrdinal, Node> &dest,
                 const Export<LocalOrdinal, GlobalOrdinal, Node> &exporter, CombineMode CM);
 
-  void removeEmptyProcessesInPlace(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &newMap);
+  void removeEmptyProcessesInPlace(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &newMap);
 
   // @}
   //! @name Xpetra specific
@@ -421,17 +395,21 @@ class TpetraCrsMatrix
   bool hasMatrix() const;
 
   //! TpetraCrsMatrix constructor to wrap a Tpetra::CrsMatrix object
-  TpetraCrsMatrix(const Teuchos::RCP<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > &mtx);
+  TpetraCrsMatrix(const Teuchos::RCP<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> &mtx);
 
   //! Get the underlying Tpetra matrix
-  RCP<const Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > getTpetra_CrsMatrix() const;
+  RCP<const Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> getTpetra_CrsMatrix() const;
 
   //! Get the underlying Tpetra matrix
-  RCP<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > getTpetra_CrsMatrixNonConst() const;  // TODO: remove
+  RCP<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> getTpetra_CrsMatrixNonConst() const;  // TODO: remove
 
 #ifdef HAVE_XPETRA_TPETRA
   /// \brief Access the local Kokkos::CrsMatrix data
+#if KOKKOS_VERSION >= 40799
+  typename local_matrix_type::host_mirror_type getLocalMatrixHost() const {
+#else
   typename local_matrix_type::HostMirror getLocalMatrixHost() const {
+#endif
     return getTpetra_CrsMatrixNonConst()->getLocalMatrixHost();
   }
   /// \brief Access the local Kokkos::CrsMatrix data
@@ -457,7 +435,7 @@ class TpetraCrsMatrix
   //@}
 
  private:
-  RCP<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > mtx_;
+  RCP<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> mtx_;
 };  // TpetraCrsMatrix class
 
 #ifdef HAVE_XPETRA_EPETRA
@@ -489,64 +467,64 @@ class TpetraCrsMatrix<Scalar, int, int, EpetraNode>
   //@{
 
   //! Constructor specifying fixed number of entries for each row.
-  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rowMap, size_t maxNumEntriesPerRow, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
+  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rowMap, size_t maxNumEntriesPerRow, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), "int", typeid(EpetraNode).name());
   }
 
   //! Constructor specifying (possibly different) number of entries in each row.
-  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rowMap, const ArrayRCP<const size_t> &NumEntriesPerRowToAlloc, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
+  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rowMap, const ArrayRCP<const size_t> &NumEntriesPerRowToAlloc, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), "int", typeid(EpetraNode).name());
   }
 
   //! Constructor specifying column Map and fixed number of entries for each row.
-  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rowMap, const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &colMap, size_t maxNumEntriesPerRow, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
+  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rowMap, const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &colMap, size_t maxNumEntriesPerRow, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), "int", typeid(EpetraNode).name());
   }
 
   //! Constructor specifying column Map and number of entries in each row.
-  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rowMap, const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &colMap, const ArrayRCP<const size_t> &NumEntriesPerRowToAlloc, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
+  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rowMap, const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &colMap, const ArrayRCP<const size_t> &NumEntriesPerRowToAlloc, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), "int", typeid(EpetraNode).name());
   }
 
   //! Constructor specifying a previously constructed graph.
-  TpetraCrsMatrix(const Teuchos::RCP<const CrsGraph<LocalOrdinal, GlobalOrdinal, Node> > &graph, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
+  TpetraCrsMatrix(const Teuchos::RCP<const CrsGraph<LocalOrdinal, GlobalOrdinal, Node>> &graph, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), "int", typeid(EpetraNode).name());
   }
 
   //! Constructor for a fused import
-  TpetraCrsMatrix(const Teuchos::RCP<const CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > &sourceMatrix,
+  TpetraCrsMatrix(const Teuchos::RCP<const CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> &sourceMatrix,
                   const Import<LocalOrdinal, GlobalOrdinal, Node> &importer,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap = Teuchos::null,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap  = Teuchos::null,
-                  const Teuchos::RCP<Teuchos::ParameterList> &params                           = Teuchos::null) {
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap = Teuchos::null,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap  = Teuchos::null,
+                  const Teuchos::RCP<Teuchos::ParameterList> &params                          = Teuchos::null) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), "int", typeid(EpetraNode).name());
   }
 
   //! Constructor for a fused export
-  TpetraCrsMatrix(const Teuchos::RCP<const CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > &sourceMatrix,
+  TpetraCrsMatrix(const Teuchos::RCP<const CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> &sourceMatrix,
                   const Export<LocalOrdinal, GlobalOrdinal, Node> &exporter,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap = Teuchos::null,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap  = Teuchos::null,
-                  const Teuchos::RCP<Teuchos::ParameterList> &params                           = Teuchos::null) {
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap = Teuchos::null,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap  = Teuchos::null,
+                  const Teuchos::RCP<Teuchos::ParameterList> &params                          = Teuchos::null) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), "int", typeid(EpetraNode).name());
   }
 
   //! Constructor for a fused import
-  TpetraCrsMatrix(const Teuchos::RCP<const CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > &sourceMatrix,
+  TpetraCrsMatrix(const Teuchos::RCP<const CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> &sourceMatrix,
                   const Import<LocalOrdinal, GlobalOrdinal, Node> &RowImporter,
-                  const Teuchos::RCP<const Import<LocalOrdinal, GlobalOrdinal, Node> > DomainImporter,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap,
+                  const Teuchos::RCP<const Import<LocalOrdinal, GlobalOrdinal, Node>> DomainImporter,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap,
                   const Teuchos::RCP<Teuchos::ParameterList> &params) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), "int", typeid(EpetraNode).name());
   }
 
   //! Constructor for a fused export
-  TpetraCrsMatrix(const Teuchos::RCP<const CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > &sourceMatrix,
+  TpetraCrsMatrix(const Teuchos::RCP<const CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> &sourceMatrix,
                   const Export<LocalOrdinal, GlobalOrdinal, Node> &RowExporter,
-                  const Teuchos::RCP<const Export<LocalOrdinal, GlobalOrdinal, Node> > DomainExporter,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap,
+                  const Teuchos::RCP<const Export<LocalOrdinal, GlobalOrdinal, Node>> DomainExporter,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap,
                   const Teuchos::RCP<Teuchos::ParameterList> &params) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), "int", typeid(EpetraNode).name());
   }
@@ -572,8 +550,8 @@ class TpetraCrsMatrix<Scalar, int, int, EpetraNode>
   /// \param params [in/out] Optional list of parameters.  If not
   ///   null, any missing parameters will be filled in with their
   ///   default values.
-  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rowMap,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &colMap,
+  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rowMap,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &colMap,
                   const local_matrix_type &lclMatrix,
                   const Teuchos::RCP<Teuchos::ParameterList> &params = null) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), "TpetraCrsMatrix<int,int>", "int", typeid(EpetraNode).name());
@@ -582,11 +560,11 @@ class TpetraCrsMatrix<Scalar, int, int, EpetraNode>
   /// \brief Constructor specifying local matrix and 4 maps
   TpetraCrsMatrix(
       const local_matrix_type &lclMatrix,
-      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rowMap,
-      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &colMap,
-      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap = Teuchos::null,
-      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap  = Teuchos::null,
-      const Teuchos::RCP<Teuchos::ParameterList> &params                           = null) {
+      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rowMap,
+      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &colMap,
+      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap = Teuchos::null,
+      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap  = Teuchos::null,
+      const Teuchos::RCP<Teuchos::ParameterList> &params                          = null) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), "TpetraCrsMatrix<int,int>", "int", typeid(EpetraNode).name());
   }
 #endif
@@ -644,20 +622,20 @@ class TpetraCrsMatrix<Scalar, int, int, EpetraNode>
   void resumeFill(const RCP<ParameterList> &params = null) {}
 
   //! Signal that data entry is complete, specifying domain and range maps.
-  void fillComplete(const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap, const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap, const RCP<ParameterList> &params = null) {}
+  void fillComplete(const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap, const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap, const RCP<ParameterList> &params = null) {}
 
   //! Signal that data entry is complete.
   void fillComplete(const RCP<ParameterList> &params = null) {}
 
   //!  Replaces the current domainMap and importer with the user-specified objects.
-  void replaceDomainMapAndImporter(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &newDomainMap, Teuchos::RCP<const Import<LocalOrdinal, GlobalOrdinal, Node> > &newImporter) {}
+  void replaceDomainMapAndImporter(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &newDomainMap, Teuchos::RCP<const Import<LocalOrdinal, GlobalOrdinal, Node>> &newImporter) {}
 
   //! Expert static fill complete
-  void expertStaticFillComplete(const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap,
-                                const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap,
-                                const RCP<const Import<LocalOrdinal, GlobalOrdinal, Node> > &importer = Teuchos::null,
-                                const RCP<const Export<LocalOrdinal, GlobalOrdinal, Node> > &exporter = Teuchos::null,
-                                const RCP<ParameterList> &params                                      = Teuchos::null) {}
+  void expertStaticFillComplete(const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap,
+                                const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap,
+                                const RCP<const Import<LocalOrdinal, GlobalOrdinal, Node>> &importer = Teuchos::null,
+                                const RCP<const Export<LocalOrdinal, GlobalOrdinal, Node>> &exporter = Teuchos::null,
+                                const RCP<ParameterList> &params                                     = Teuchos::null) {}
 
   //@}
 
@@ -665,13 +643,13 @@ class TpetraCrsMatrix<Scalar, int, int, EpetraNode>
   //@{
 
   //! Returns the Map that describes the row distribution in this matrix.
-  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > getRowMap() const { return Teuchos::null; }
+  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> getRowMap() const { return Teuchos::null; }
 
   //! Returns the Map that describes the column distribution in this matrix.
-  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > getColMap() const { return Teuchos::null; }
+  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> getColMap() const { return Teuchos::null; }
 
   //! Returns the CrsGraph associated with this matrix.
-  RCP<const CrsGraph<LocalOrdinal, GlobalOrdinal, Node> > getCrsGraph() const { return Teuchos::null; }
+  RCP<const CrsGraph<LocalOrdinal, GlobalOrdinal, Node>> getCrsGraph() const { return Teuchos::null; }
 
   //! Number of global elements in the row map of this matrix.
   global_size_t getGlobalNumRows() const { return 0; }
@@ -742,13 +720,13 @@ class TpetraCrsMatrix<Scalar, int, int, EpetraNode>
   void apply(const MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node> &X, MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node> &Y, Teuchos::ETransp mode = Teuchos::NO_TRANS, Scalar alpha = ScalarTraits<Scalar>::one(), Scalar beta = ScalarTraits<Scalar>::zero()) const {}
 
   //! Computes the matrix-multivector multiplication for region layout matrices
-  void apply(const MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node> &X, MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node> &Y, Teuchos::ETransp mode, Scalar alpha, Scalar beta, bool sumInterfaceValues, const RCP<Xpetra::Import<LocalOrdinal, GlobalOrdinal, Node> > &regionInterfaceImporter, const Teuchos::ArrayRCP<LocalOrdinal> &regionInterfaceLIDs) const {}
+  void apply(const MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node> &X, MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node> &Y, Teuchos::ETransp mode, Scalar alpha, Scalar beta, bool sumInterfaceValues, const RCP<Xpetra::Import<LocalOrdinal, GlobalOrdinal, Node>> &regionInterfaceImporter, const Teuchos::ArrayRCP<LocalOrdinal> &regionInterfaceLIDs) const {}
 
   //! Returns the Map associated with the domain of this operator. This will be null until fillComplete() is called.
-  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > getDomainMap() const { return Teuchos::null; }
+  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> getDomainMap() const { return Teuchos::null; }
 
   //!
-  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > getRangeMap() const { return Teuchos::null; }
+  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> getRangeMap() const { return Teuchos::null; }
 
   //@}
 
@@ -793,7 +771,7 @@ class TpetraCrsMatrix<Scalar, int, int, EpetraNode>
   //{@
 
   //! Access function for the Tpetra::Map this DistObject was constructed with.
-  Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > getMap() const { return Teuchos::null; }
+  Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> getMap() const { return Teuchos::null; }
 
   //! Import.
   void doImport(const DistObject<char, LocalOrdinal, GlobalOrdinal, Node> &source,
@@ -811,7 +789,7 @@ class TpetraCrsMatrix<Scalar, int, int, EpetraNode>
   void doExport(const DistObject<char, LocalOrdinal, GlobalOrdinal, Node> &dest,
                 const Export<LocalOrdinal, GlobalOrdinal, Node> &exporter, CombineMode CM) {}
 
-  void removeEmptyProcessesInPlace(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &newMap) {}
+  void removeEmptyProcessesInPlace(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &newMap) {}
 
   // @}
   //! @name Xpetra specific
@@ -821,15 +799,15 @@ class TpetraCrsMatrix<Scalar, int, int, EpetraNode>
   bool hasMatrix() const { return false; }
 
   //! TpetraCrsMatrix constructor to wrap a Tpetra::CrsMatrix object
-  TpetraCrsMatrix(const Teuchos::RCP<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > &mtx) {
+  TpetraCrsMatrix(const Teuchos::RCP<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> &mtx) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, int, int, EpetraNode>).name(), "int", typeid(EpetraNode).name());
   }
 
   //! Get the underlying Tpetra matrix
-  RCP<const Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > getTpetra_CrsMatrix() const { return Teuchos::null; }
+  RCP<const Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> getTpetra_CrsMatrix() const { return Teuchos::null; }
 
   //! Get the underlying Tpetra matrix
-  RCP<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > getTpetra_CrsMatrixNonConst() const { return Teuchos::null; }  // TODO: remove
+  RCP<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> getTpetra_CrsMatrixNonConst() const { return Teuchos::null; }  // TODO: remove
 
 #ifdef HAVE_XPETRA_TPETRA
   /// \brief Access the local Kokkos::CrsMatrix data
@@ -881,64 +859,64 @@ class TpetraCrsMatrix<Scalar, int, long long, EpetraNode>
   //@{
 
   //! Constructor specifying fixed number of entries for each row.
-  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rowMap, size_t maxNumEntriesPerRow, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
+  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rowMap, size_t maxNumEntriesPerRow, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), "long long", typeid(EpetraNode).name());
   }
 
   //! Constructor specifying (possibly different) number of entries in each row.
-  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rowMap, const ArrayRCP<const size_t> &NumEntriesPerRowToAlloc, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
+  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rowMap, const ArrayRCP<const size_t> &NumEntriesPerRowToAlloc, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), "long long", typeid(EpetraNode).name());
   }
 
   //! Constructor specifying column Map and fixed number of entries for each row.
-  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rowMap, const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &colMap, size_t maxNumEntriesPerRow, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
+  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rowMap, const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &colMap, size_t maxNumEntriesPerRow, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), "long long", typeid(EpetraNode).name());
   }
 
   //! Constructor specifying column Map and number of entries in each row.
-  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rowMap, const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &colMap, const ArrayRCP<const size_t> &NumEntriesPerRowToAlloc, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
+  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rowMap, const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &colMap, const ArrayRCP<const size_t> &NumEntriesPerRowToAlloc, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), "long long", typeid(EpetraNode).name());
   }
 
   //! Constructor specifying a previously constructed graph.
-  TpetraCrsMatrix(const Teuchos::RCP<const CrsGraph<LocalOrdinal, GlobalOrdinal, Node> > &graph, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
+  TpetraCrsMatrix(const Teuchos::RCP<const CrsGraph<LocalOrdinal, GlobalOrdinal, Node>> &graph, const Teuchos::RCP<Teuchos::ParameterList> &params = Teuchos::null) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), "long long", typeid(EpetraNode).name());
   }
 
   //! Constructor for a fused import
-  TpetraCrsMatrix(const Teuchos::RCP<const CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > &sourceMatrix,
+  TpetraCrsMatrix(const Teuchos::RCP<const CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> &sourceMatrix,
                   const Import<LocalOrdinal, GlobalOrdinal, Node> &importer,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap = Teuchos::null,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap  = Teuchos::null,
-                  const Teuchos::RCP<Teuchos::ParameterList> &params                           = Teuchos::null) {
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap = Teuchos::null,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap  = Teuchos::null,
+                  const Teuchos::RCP<Teuchos::ParameterList> &params                          = Teuchos::null) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), "long long", typeid(EpetraNode).name());
   }
 
   //! Constructor for a fused export
-  TpetraCrsMatrix(const Teuchos::RCP<const CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > &sourceMatrix,
+  TpetraCrsMatrix(const Teuchos::RCP<const CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> &sourceMatrix,
                   const Export<LocalOrdinal, GlobalOrdinal, Node> &exporter,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap = Teuchos::null,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap  = Teuchos::null,
-                  const Teuchos::RCP<Teuchos::ParameterList> &params                           = Teuchos::null) {
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap = Teuchos::null,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap  = Teuchos::null,
+                  const Teuchos::RCP<Teuchos::ParameterList> &params                          = Teuchos::null) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), "long long", typeid(EpetraNode).name());
   }
 
   //! Constructor for a fused import
-  TpetraCrsMatrix(const Teuchos::RCP<const CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > &sourceMatrix,
+  TpetraCrsMatrix(const Teuchos::RCP<const CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> &sourceMatrix,
                   const Import<LocalOrdinal, GlobalOrdinal, Node> &RowImporter,
-                  const Teuchos::RCP<const Import<LocalOrdinal, GlobalOrdinal, Node> > DomainImporter,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap,
+                  const Teuchos::RCP<const Import<LocalOrdinal, GlobalOrdinal, Node>> DomainImporter,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap,
                   const Teuchos::RCP<Teuchos::ParameterList> &params) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), "long long", typeid(EpetraNode).name());
   }
 
   //! Constructor for a fused export
-  TpetraCrsMatrix(const Teuchos::RCP<const CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > &sourceMatrix,
+  TpetraCrsMatrix(const Teuchos::RCP<const CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> &sourceMatrix,
                   const Export<LocalOrdinal, GlobalOrdinal, Node> &RowExporter,
-                  const Teuchos::RCP<const Export<LocalOrdinal, GlobalOrdinal, Node> > DomainExporter,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap,
+                  const Teuchos::RCP<const Export<LocalOrdinal, GlobalOrdinal, Node>> DomainExporter,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap,
                   const Teuchos::RCP<Teuchos::ParameterList> &params) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), "long long", typeid(EpetraNode).name());
   }
@@ -964,8 +942,8 @@ class TpetraCrsMatrix<Scalar, int, long long, EpetraNode>
   /// \param params [in/out] Optional list of parameters.  If not
   ///   null, any missing parameters will be filled in with their
   ///   default values.
-  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rowMap,
-                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &colMap,
+  TpetraCrsMatrix(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rowMap,
+                  const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &colMap,
                   const local_matrix_type &lclMatrix,
                   const Teuchos::RCP<Teuchos::ParameterList> &params = null) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), "long long", typeid(EpetraNode).name());
@@ -974,11 +952,11 @@ class TpetraCrsMatrix<Scalar, int, long long, EpetraNode>
   /// \brief Constructor specifying local matrix and 4 maps
   TpetraCrsMatrix(
       const local_matrix_type &lclMatrix,
-      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rowMap,
-      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &colMap,
-      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap = Teuchos::null,
-      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap  = Teuchos::null,
-      const Teuchos::RCP<Teuchos::ParameterList> &params                           = null) {
+      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rowMap,
+      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &colMap,
+      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap = Teuchos::null,
+      const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap  = Teuchos::null,
+      const Teuchos::RCP<Teuchos::ParameterList> &params                          = null) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), "long long", typeid(EpetraNode).name());
   }
 #endif
@@ -1036,20 +1014,20 @@ class TpetraCrsMatrix<Scalar, int, long long, EpetraNode>
   void resumeFill(const RCP<ParameterList> &params = null) {}
 
   //! Signal that data entry is complete, specifying domain and range maps.
-  void fillComplete(const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap, const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap, const RCP<ParameterList> &params = null) {}
+  void fillComplete(const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap, const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap, const RCP<ParameterList> &params = null) {}
 
   //! Signal that data entry is complete.
   void fillComplete(const RCP<ParameterList> &params = null) {}
 
   //!  Replaces the current domainMap and importer with the user-specified objects.
-  void replaceDomainMapAndImporter(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &newDomainMap, Teuchos::RCP<const Import<LocalOrdinal, GlobalOrdinal, Node> > &newImporter) {}
+  void replaceDomainMapAndImporter(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &newDomainMap, Teuchos::RCP<const Import<LocalOrdinal, GlobalOrdinal, Node>> &newImporter) {}
 
   //! Expert static fill complete
-  void expertStaticFillComplete(const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &domainMap,
-                                const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &rangeMap,
-                                const RCP<const Import<LocalOrdinal, GlobalOrdinal, Node> > &importer = Teuchos::null,
-                                const RCP<const Export<LocalOrdinal, GlobalOrdinal, Node> > &exporter = Teuchos::null,
-                                const RCP<ParameterList> &params                                      = Teuchos::null) {}
+  void expertStaticFillComplete(const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &domainMap,
+                                const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &rangeMap,
+                                const RCP<const Import<LocalOrdinal, GlobalOrdinal, Node>> &importer = Teuchos::null,
+                                const RCP<const Export<LocalOrdinal, GlobalOrdinal, Node>> &exporter = Teuchos::null,
+                                const RCP<ParameterList> &params                                     = Teuchos::null) {}
 
   //@}
 
@@ -1057,13 +1035,13 @@ class TpetraCrsMatrix<Scalar, int, long long, EpetraNode>
   //@{
 
   //! Returns the Map that describes the row distribution in this matrix.
-  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > getRowMap() const { return Teuchos::null; }
+  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> getRowMap() const { return Teuchos::null; }
 
   //! Returns the Map that describes the column distribution in this matrix.
-  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > getColMap() const { return Teuchos::null; }
+  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> getColMap() const { return Teuchos::null; }
 
   //! Returns the CrsGraph associated with this matrix.
-  RCP<const CrsGraph<LocalOrdinal, GlobalOrdinal, Node> > getCrsGraph() const { return Teuchos::null; }
+  RCP<const CrsGraph<LocalOrdinal, GlobalOrdinal, Node>> getCrsGraph() const { return Teuchos::null; }
 
   //! Number of global elements in the row map of this matrix.
   global_size_t getGlobalNumRows() const { return 0; }
@@ -1134,13 +1112,13 @@ class TpetraCrsMatrix<Scalar, int, long long, EpetraNode>
   void apply(const MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node> &X, MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node> &Y, Teuchos::ETransp mode = Teuchos::NO_TRANS, Scalar alpha = ScalarTraits<Scalar>::one(), Scalar beta = ScalarTraits<Scalar>::zero()) const {}
 
   //! Computes the matrix-multivector multiplication for region layout matrices
-  void apply(const MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node> &X, MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node> &Y, Teuchos::ETransp mode, Scalar alpha, Scalar beta, bool sumInterfaceValues, const RCP<Xpetra::Import<LocalOrdinal, GlobalOrdinal, Node> > &regionInterfaceImporter, const Teuchos::ArrayRCP<LocalOrdinal> &regionInterfaceLIDs) const {}
+  void apply(const MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node> &X, MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node> &Y, Teuchos::ETransp mode, Scalar alpha, Scalar beta, bool sumInterfaceValues, const RCP<Xpetra::Import<LocalOrdinal, GlobalOrdinal, Node>> &regionInterfaceImporter, const Teuchos::ArrayRCP<LocalOrdinal> &regionInterfaceLIDs) const {}
 
   //! Returns the Map associated with the domain of this operator. This will be null until fillComplete() is called.
-  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > getDomainMap() const { return Teuchos::null; }
+  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> getDomainMap() const { return Teuchos::null; }
 
   //!
-  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > getRangeMap() const { return Teuchos::null; }
+  const RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> getRangeMap() const { return Teuchos::null; }
 
   //@}
 
@@ -1185,7 +1163,7 @@ class TpetraCrsMatrix<Scalar, int, long long, EpetraNode>
   //{@
 
   //! Access function for the Tpetra::Map this DistObject was constructed with.
-  Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > getMap() const { return Teuchos::null; }
+  Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> getMap() const { return Teuchos::null; }
 
   //! Import.
   void doImport(const DistObject<char, LocalOrdinal, GlobalOrdinal, Node> &source,
@@ -1203,7 +1181,7 @@ class TpetraCrsMatrix<Scalar, int, long long, EpetraNode>
   void doExport(const DistObject<char, LocalOrdinal, GlobalOrdinal, Node> &dest,
                 const Export<LocalOrdinal, GlobalOrdinal, Node> &exporter, CombineMode CM) {}
 
-  void removeEmptyProcessesInPlace(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > &newMap) {}
+  void removeEmptyProcessesInPlace(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> &newMap) {}
 
   // @}
   //! @name Xpetra specific
@@ -1213,15 +1191,15 @@ class TpetraCrsMatrix<Scalar, int, long long, EpetraNode>
   bool hasMatrix() const { return false; }
 
   //! TpetraCrsMatrix constructor to wrap a Tpetra::CrsMatrix object
-  TpetraCrsMatrix(const Teuchos::RCP<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > &mtx) {
+  TpetraCrsMatrix(const Teuchos::RCP<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> &mtx) {
     XPETRA_TPETRA_ETI_EXCEPTION(typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), typeid(TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, EpetraNode>).name(), "long long", typeid(EpetraNode).name());
   }
 
   //! Get the underlying Tpetra matrix
-  RCP<const Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > getTpetra_CrsMatrix() const { return Teuchos::null; }
+  RCP<const Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> getTpetra_CrsMatrix() const { return Teuchos::null; }
 
   //! Get the underlying Tpetra matrix
-  RCP<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > getTpetra_CrsMatrixNonConst() const { return Teuchos::null; }  // TODO: remove
+  RCP<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> getTpetra_CrsMatrixNonConst() const { return Teuchos::null; }  // TODO: remove
 
 #ifdef HAVE_XPETRA_TPETRA
   /// \brief Access the local Kokkos::CrsMatrix data
@@ -1230,9 +1208,15 @@ class TpetraCrsMatrix<Scalar, int, long long, EpetraNode>
   }
 
   /// \brief Access the local Kokkos::CrsMatrix data
+#if KOKKOS_VERSION >= 40799
+  typename local_matrix_type::host_mirror_type getLocalMatrixHost() const {
+    TEUCHOS_UNREACHABLE_RETURN(typename local_matrix_type::host_mirror_type());
+  }
+#else
   typename local_matrix_type::HostMirror getLocalMatrixHost() const {
     TEUCHOS_UNREACHABLE_RETURN(typename local_matrix_type::HostMirror());
   }
+#endif
   /// \brief Access the local Kokkos::CrsMatrix data
   local_matrix_type getLocalMatrixDevice() const {
     TEUCHOS_UNREACHABLE_RETURN(local_matrix_type());
@@ -1256,6 +1240,30 @@ class TpetraCrsMatrix<Scalar, int, long long, EpetraNode>
 #endif
 
 #endif  // HAVE_XPETRA_EPETRA
+
+template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
+Teuchos::RCP<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>
+toTpetra(const Teuchos::RCP<Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> &A) {
+  return Teuchos::rcp_dynamic_cast<Xpetra::TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>(A, true)->getTpetra_CrsMatrixNonConst();
+}
+
+template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
+Teuchos::RCP<const Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>
+toTpetra(const Teuchos::RCP<const Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> &A) {
+  return Teuchos::rcp_dynamic_cast<const Xpetra::TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>(A, true)->getTpetra_CrsMatrix();
+}
+
+template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
+Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> &
+toTpetra(Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> &A) {
+  return *dynamic_cast<Xpetra::TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> &>(A).getTpetra_CrsMatrixNonConst();
+}
+
+template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
+Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> &
+toTpetra(const Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> &A) {
+  return *dynamic_cast<const Xpetra::TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> &>(A).getTpetra_CrsMatrix();
+}
 
 }  // namespace Xpetra
 

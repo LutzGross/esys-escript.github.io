@@ -6,8 +6,12 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // *****************************************************************************
 // @HEADER
+#ifndef MUELU_TPETRAOPERATORASROWMATRIX_HPP
+#define MUELU_TPETRAOPERATORASROWMATRIX_HPP
 
+#include <Teuchos_RCP.hpp>
 #include <Tpetra_RowMatrix.hpp>
+#include <MueLu_Exceptions.hpp>
 
 namespace MueLu {
 
@@ -24,7 +28,11 @@ class TpetraOperatorAsRowMatrix : public Tpetra::RowMatrix<Scalar, LocalOrdinal,
   using row_matrix_type = Tpetra::RowMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>;
 
   using impl_scalar_type = typename row_matrix_type::impl_scalar_type;
-  using mag_type         = typename Kokkos::ArithTraits<impl_scalar_type>::mag_type;
+#if KOKKOS_VERSION >= 40799
+  using mag_type = typename KokkosKernels::ArithTraits<impl_scalar_type>::mag_type;
+#else
+  using mag_type = typename Kokkos::ArithTraits<impl_scalar_type>::mag_type;
+#endif
 
   using local_inds_device_view_type =
       typename row_matrix_type::local_inds_device_view_type;
@@ -244,3 +252,5 @@ class TpetraOperatorAsRowMatrix : public Tpetra::RowMatrix<Scalar, LocalOrdinal,
 };
 
 }  // namespace MueLu
+
+#endif

@@ -8,6 +8,7 @@
 
 #include <Akri_DiagWriter.hpp>
 #include <Akri_MathUtil.hpp>
+#include <Akri_Optimize.hpp>
 #include <gtest/gtest.h>
 #include <functional>
 
@@ -58,6 +59,78 @@ TEST(find_root_newton_raphson, givenPolynomialFunctionWithWRONGJacobian_findRoot
   expect_root_newton_raphson(0.25, guess, tol, [error](const double x){ std::cout << "Eval at " << x << std::endl; return std::make_pair(x-0.25, 1.*error); });
   expect_root_newton_raphson(0.25, guess, tol, [error](const double x){ std::cout << "Eval at " << x << std::endl; return std::make_pair(x*x-0.25*0.25, 2.*x*error); });
   expect_root_newton_raphson(0.25, guess, tol, [error](const double x){ std::cout << "Eval at " << x << std::endl; return std::make_pair(x*x*x-0.25*0.25*0.25, 3.*x*x*error); });
+}
+
+void expect_quadratic_crossing(const double gold, const std::array<double,3> & edgeVals)
+{
+  EXPECT_NEAR(gold, find_quadratic_crossing(edgeVals[0],edgeVals[1],edgeVals[2]), 1.e-6);
+}
+
+std::array<double,3> compute_edge_values(const double crossing1, const double crossing2)
+{
+  std::array<double,3> edgeVals = {{(0.-crossing1)*(0.-crossing2), (1.-crossing1)*(1.-crossing2), (0.5-crossing1)*(0.5-crossing2)}};
+  return edgeVals;
+}
+
+TEST(compute_edge_values, singleCrossings)
+{
+  expect_quadratic_crossing(0.25, compute_edge_values(0.25, -0.25));
+  expect_quadratic_crossing(0.25, compute_edge_values(0.25, 1.25));
+  expect_quadratic_crossing(0.33, compute_edge_values(0.33, -0.25));
+  expect_quadratic_crossing(0.77, compute_edge_values(0.77, 1.25));
+}
+
+std::tuple<double,double> minimize_function_along_gradient(const std::function<double(double)> & fn, const std::function<double(double)> & dfdx, const double x0, const double /*maxDeltax*/, const double /*tol*/)
+{
+  const auto vecfn = [&](const std::vector<double>& x) { return fn(x[0]); };
+  const auto vecgrad = [&](const std::vector<double>& x) { return std::vector{dfdx(x[0])}; };
+  std::cout << "Minimization starting at " << x0 << " " << fn(x0) << std::endl;
+  const std::vector soln = bfgs<std::vector<double>>(vecfn, vecgrad, std::vector{x0});
+  double xmin = soln[0];
+  double fmin = fn(xmin);
+  return {xmin, fmin};
+}
+
+void expect_find_minimum_along_gradient(const std::function<double(double)> & fn, const std::function<double(double)> & dfdx, const double x0, const double goldXmin, const double tol)
+{
+  const auto & [xmin, fmin] = minimize_function_along_gradient(fn, dfdx, x0, 1., tol);
+  EXPECT_NEAR(goldXmin, xmin, tol);
+}
+
+TEST(minimize_function, quadraticFunction)
+{
+  const double tol = 1.e-4;
+  const auto f = [](const double x) { return std::pow(x-5.,2); };
+  const auto dfdx = [](const double x) { return 2.*(x-5.); };
+
+  expect_find_minimum_along_gradient(f, dfdx, -5, 5., tol);
+  expect_find_minimum_along_gradient(f, dfdx, 0., 5., tol);
+  expect_find_minimum_along_gradient(f, dfdx, 5., 5., tol);
+  expect_find_minimum_along_gradient(f, dfdx, 10., 5., tol);
+}
+
+TEST(minimize_function, absFunction)
+{
+  const double tol = 0.03;
+  const auto f = [](const double x) { return std::pow(std::abs(x-5.)/5., 3); };
+  const auto dfdx = [](const double x) { return (x<5.) ? (-3/5.*std::pow((5.-x)/5.,2)) : (3/5.*std::pow((x-5.)/5.,2)); };
+
+  expect_find_minimum_along_gradient(f, dfdx, 1.1, 5., tol);
+  expect_find_minimum_along_gradient(f, dfdx, 2.1, 5., tol);
+  expect_find_minimum_along_gradient(f, dfdx, 5., 5., tol);
+  expect_find_minimum_along_gradient(f, dfdx, 8.1, 5., tol);
+}
+
+TEST(minimize_function, quarticFunction)
+{
+  const double tol = 0.3; // large tol because function is so flat near minimum
+  const auto f = [](const double x) { return std::pow((x-5.)/5., 4); };
+  const auto dfdx = [](const double x) { return 0.8*pow((x-5.)/5.,3); };
+
+  expect_find_minimum_along_gradient(f, dfdx, 1.1, 5., tol);
+  expect_find_minimum_along_gradient(f, dfdx, 2.1, 5., tol);
+  expect_find_minimum_along_gradient(f, dfdx, 5., 5., tol);
+  expect_find_minimum_along_gradient(f, dfdx, 8.1, 5., tol);
 }
 
 }

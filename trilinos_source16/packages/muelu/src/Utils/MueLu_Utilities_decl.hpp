@@ -54,11 +54,9 @@ class Epetra_Vector;
 #include <Tpetra_CrsMatrix.hpp>
 #include <Tpetra_BlockCrsMatrix.hpp>
 #include <Tpetra_BlockCrsMatrix_Helpers.hpp>
-#include <Tpetra_FECrsMatrix.hpp>
 #include <Tpetra_RowMatrixTransposer.hpp>
 #include <Tpetra_Map.hpp>
 #include <Tpetra_MultiVector.hpp>
-#include <Tpetra_FEMultiVector.hpp>
 #include <Xpetra_TpetraRowMatrix.hpp>
 #include <Xpetra_TpetraCrsMatrix_fwd.hpp>
 #include <Xpetra_TpetraMultiVector_fwd.hpp>
@@ -81,22 +79,6 @@ template <typename SC, typename LO, typename GO, typename NO>
 RCP<Xpetra::MultiVector<SC, LO, GO, NO>>
 EpetraMultiVector_To_XpetraMultiVector(const Teuchos::RCP<Epetra_MultiVector>& V);
 #endif
-
-template <typename SC, typename LO, typename GO, typename NO>
-RCP<Xpetra::Matrix<SC, LO, GO, NO>>
-TpetraCrs_To_XpetraMatrix(const Teuchos::RCP<Tpetra::CrsMatrix<SC, LO, GO, NO>>& Atpetra);
-
-template <typename SC, typename LO, typename GO, typename NO>
-RCP<Xpetra::Matrix<SC, LO, GO, NO>>
-TpetraFECrs_To_XpetraMatrix(const Teuchos::RCP<Tpetra::FECrsMatrix<SC, LO, GO, NO>>& Atpetra);
-
-template <typename SC, typename LO, typename GO, typename NO>
-RCP<Xpetra::MultiVector<SC, LO, GO, NO>>
-TpetraMultiVector_To_XpetraMultiVector(const Teuchos::RCP<Tpetra::MultiVector<SC, LO, GO, NO>>& Vtpetra);
-
-template <typename SC, typename LO, typename GO, typename NO>
-RCP<Xpetra::MultiVector<SC, LO, GO, NO>>
-TpetraFEMultiVector_To_XpetraMultiVector(const Teuchos::RCP<Tpetra::FEMultiVector<SC, LO, GO, NO>>& Vtpetra);
 
 template <typename SC, typename LO, typename GO, typename NO>
 void leftRghtDofScalingWithinNode(const Xpetra::Matrix<SC, LO, GO, NO>& Atpetra, size_t blkSize, size_t nSweeps, Teuchos::ArrayRCP<SC>& rowScaling, Teuchos::ArrayRCP<SC>& colScaling);
@@ -142,39 +124,6 @@ class Utilities : public UtilitiesBase<Scalar, LocalOrdinal, GlobalOrdinal, Node
   static const Epetra_Map& Map2EpetraMap(const Xpetra::Map<LocalOrdinal, GlobalOrdinal, Node>& map);
   // @}
 #endif
-
-  //! Helper utility to pull out the underlying Tpetra objects from an Xpetra object
-  static RCP<const Tpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>> MV2TpetraMV(RCP<Xpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>> const vec);
-  static RCP<Tpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>> MV2NonConstTpetraMV(RCP<Xpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>> vec);
-  static RCP<Tpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>> MV2NonConstTpetraMV2(Xpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>& vec);
-
-  static const Tpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>& MV2TpetraMV(const Xpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>& vec);
-  static Tpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>& MV2NonConstTpetraMV(Xpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>& vec);
-
-  static RCP<const Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> Op2TpetraCrs(RCP<const Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> Op);
-  static RCP<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> Op2NonConstTpetraCrs(RCP<Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> Op);
-
-  static const Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Op2TpetraCrs(const Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Op);
-  static Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Op2NonConstTpetraCrs(Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Op);
-
-  static RCP<const Tpetra::BlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> Op2TpetraBlockCrs(RCP<const Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> Op);
-  static RCP<Tpetra::BlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> Op2NonConstTpetraBlockCrs(RCP<Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> Op);
-
-  static const Tpetra::BlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Op2TpetraBlockCrs(const Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Op);
-  static Tpetra::BlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Op2NonConstTpetraBlockCrs(Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Op);
-
-  static RCP<const Tpetra::RowMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> Op2TpetraRow(RCP<const Xpetra::Operator<Scalar, LocalOrdinal, GlobalOrdinal, Node>> Op);
-  static RCP<Tpetra::RowMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> Op2NonConstTpetraRow(RCP<Xpetra::Operator<Scalar, LocalOrdinal, GlobalOrdinal, Node>> Op);
-
-  static const RCP<const Tpetra::Map<LocalOrdinal, GlobalOrdinal, Node>> Map2TpetraMap(const Xpetra::Map<LocalOrdinal, GlobalOrdinal, Node>& map);
-
-  static void MyOldScaleMatrix(Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Op, const Teuchos::ArrayRCP<const Scalar>& scalingVector, bool doInverse = true,
-                               bool doFillComplete = true, bool doOptimizeStorage = true);
-
-  static void MyOldScaleMatrix_Epetra(Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Op, const Teuchos::ArrayRCP<Scalar>& scalingVector,
-                                      bool doFillComplete, bool doOptimizeStorage);
-  static void MyOldScaleMatrix_Tpetra(Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Op, const Teuchos::ArrayRCP<Scalar>& scalingVector,
-                                      bool doFillComplete, bool doOptimizeStorage);
 
   static RCP<Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> Transpose(Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Op, bool optimizeTranspose = false, const std::string& label = std::string(), const Teuchos::RCP<Teuchos::ParameterList>& params = Teuchos::null);
 
@@ -290,405 +239,6 @@ class Utilities<double, int, int, Xpetra::EpetraNode> : public UtilitiesBase<dou
   }
   // @}
 
-  //! Helper utility to pull out the underlying Tpetra objects from an Xpetra object
-  static RCP<const Tpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>> MV2TpetraMV(RCP<MultiVector> const vec) {
-#if ((defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_OPENMP) || !defined(HAVE_TPETRA_INST_INT_INT))) || \
-     (!defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_SERIAL) || !defined(HAVE_TPETRA_INST_INT_INT))))
-    throw Exceptions::RuntimeError("MV2TpetraMV: Tpetra has not been compiled with support for LO=GO=int.");
-#else
-    RCP<const Xpetra::TpetraMultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>> tmpVec = rcp_dynamic_cast<Xpetra::TpetraMultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>>(vec);
-    if (tmpVec == Teuchos::null)
-      throw Exceptions::BadCast("Cast from Xpetra::MultiVector to Xpetra::TpetraMultiVector failed");
-    return tmpVec->getTpetra_MultiVector();
-#endif
-  }
-  static RCP<Tpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>> MV2NonConstTpetraMV(RCP<MultiVector> vec) {
-#if ((defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_OPENMP) || !defined(HAVE_TPETRA_INST_INT_INT))) || \
-     (!defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_SERIAL) || !defined(HAVE_TPETRA_INST_INT_INT))))
-    throw Exceptions::RuntimeError("MV2NonConstTpetraMV: Tpetra has not been compiled with support for LO=GO=int.");
-#else
-    RCP<const Xpetra::TpetraMultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>> tmpVec = rcp_dynamic_cast<Xpetra::TpetraMultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>>(vec);
-    if (tmpVec == Teuchos::null)
-      throw Exceptions::BadCast("Cast from Xpetra::MultiVector to Xpetra::TpetraMultiVector failed");
-    return tmpVec->getTpetra_MultiVector();
-#endif
-  }
-  static RCP<Tpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>> MV2NonConstTpetraMV2(MultiVector& vec) {
-#if ((defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_OPENMP) || !defined(HAVE_TPETRA_INST_INT_INT))) || \
-     (!defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_SERIAL) || !defined(HAVE_TPETRA_INST_INT_INT))))
-    throw Exceptions::RuntimeError("MV2NonConstTpetraMV2: Tpetra has not been compiled with support for LO=GO=int.");
-#else
-    const Xpetra::TpetraMultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>& tmpVec = dynamic_cast<const Xpetra::TpetraMultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>&>(vec);
-    return tmpVec.getTpetra_MultiVector();
-#endif
-  }
-
-  static const Tpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>& MV2TpetraMV(const MultiVector& vec) {
-#if ((defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_OPENMP) || !defined(HAVE_TPETRA_INST_INT_INT))) || \
-     (!defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_SERIAL) || !defined(HAVE_TPETRA_INST_INT_INT))))
-    throw Exceptions::RuntimeError("MV2TpetraMV: Tpetra has not been compiled with support for LO=GO=int.");
-#else
-    const Xpetra::TpetraMultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>& tmpVec = dynamic_cast<const Xpetra::TpetraMultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>&>(vec);
-    return *(tmpVec.getTpetra_MultiVector());
-#endif
-  }
-  static Tpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>& MV2NonConstTpetraMV(MultiVector& vec) {
-#if ((defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_OPENMP) || !defined(HAVE_TPETRA_INST_INT_INT))) || \
-     (!defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_SERIAL) || !defined(HAVE_TPETRA_INST_INT_INT))))
-    throw Exceptions::RuntimeError("MV2NonConstTpetraMV: Tpetra has not been compiled with support for LO=GO=int.");
-#else
-    const Xpetra::TpetraMultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>& tmpVec = dynamic_cast<const Xpetra::TpetraMultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>&>(vec);
-    return *(tmpVec.getTpetra_MultiVector());
-#endif
-  }
-
-  static RCP<const Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> Op2TpetraCrs(RCP<const Matrix> Op) {
-#if ((defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_OPENMP) || !defined(HAVE_TPETRA_INST_INT_INT))) || \
-     (!defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_SERIAL) || !defined(HAVE_TPETRA_INST_INT_INT))))
-    throw Exceptions::RuntimeError("Op2TpetraCrs: Tpetra has not been compiled with support for LO=GO=int.");
-#else
-    // Get the underlying Tpetra Mtx
-    RCP<const CrsMatrixWrap> crsOp = rcp_dynamic_cast<const CrsMatrixWrap>(Op);
-    if (crsOp == Teuchos::null)
-      throw Exceptions::BadCast("Cast from Xpetra::Matrix to Xpetra::CrsMatrixWrap failed");
-    const RCP<const Xpetra::TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>& tmp_ECrsMtx = rcp_dynamic_cast<const Xpetra::TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>(crsOp->getCrsMatrix());
-    if (tmp_ECrsMtx == Teuchos::null)
-      throw Exceptions::BadCast("Cast from Xpetra::CrsMatrix to Xpetra::TpetraCrsMatrix failed");
-    return tmp_ECrsMtx->getTpetra_CrsMatrix();
-#endif
-  }
-  static RCP<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> Op2NonConstTpetraCrs(RCP<Matrix> Op) {
-#if ((defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_OPENMP) || !defined(HAVE_TPETRA_INST_INT_INT))) || \
-     (!defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_SERIAL) || !defined(HAVE_TPETRA_INST_INT_INT))))
-    throw Exceptions::RuntimeError("Op2NonConstTpetraCrs: Tpetra has not been compiled with support for LO=GO=int.");
-#else
-    RCP<const CrsMatrixWrap> crsOp = rcp_dynamic_cast<const CrsMatrixWrap>(Op);
-    if (crsOp == Teuchos::null)
-      throw Exceptions::BadCast("Cast from Xpetra::Matrix to Xpetra::CrsMatrixWrap failed");
-    const RCP<const Xpetra::TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>& tmp_ECrsMtx = rcp_dynamic_cast<const Xpetra::TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>(crsOp->getCrsMatrix());
-    if (tmp_ECrsMtx == Teuchos::null)
-      throw Exceptions::BadCast("Cast from Xpetra::CrsMatrix to Xpetra::TpetraCrsMatrix failed");
-    return tmp_ECrsMtx->getTpetra_CrsMatrixNonConst();
-#endif
-  };
-
-  static const Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Op2TpetraCrs(const Matrix& Op) {
-#if ((defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_OPENMP) || !defined(HAVE_TPETRA_INST_INT_INT))) || \
-     (!defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_SERIAL) || !defined(HAVE_TPETRA_INST_INT_INT))))
-    throw Exceptions::RuntimeError("Op2TpetraCrs: Tpetra has not been compiled with support for LO=GO=int.");
-#else
-    try {
-      const CrsMatrixWrap& crsOp = dynamic_cast<const CrsMatrixWrap&>(Op);
-      try {
-        const Xpetra::TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& tmp_ECrsMtx = dynamic_cast<const Xpetra::TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>&>(*crsOp.getCrsMatrix());
-        return *tmp_ECrsMtx.getTpetra_CrsMatrix();
-      } catch (std::bad_cast&) {
-        throw Exceptions::BadCast("Cast from Xpetra::CrsMatrix to Xpetra::TpetraCrsMatrix failed");
-      }
-    } catch (std::bad_cast&) {
-      throw Exceptions::BadCast("Cast from Xpetra::Matrix to Xpetra::CrsMatrixWrap failed");
-    }
-#endif
-  }
-  static Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Op2NonConstTpetraCrs(Matrix& Op) {
-#if ((defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_OPENMP) || !defined(HAVE_TPETRA_INST_INT_INT))) || \
-     (!defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_SERIAL) || !defined(HAVE_TPETRA_INST_INT_INT))))
-    throw Exceptions::RuntimeError("Op2NonConstTpetraCrs: Tpetra has not been compiled with support for LO=GO=int.");
-#else
-    try {
-      CrsMatrixWrap& crsOp = dynamic_cast<CrsMatrixWrap&>(Op);
-      try {
-        Xpetra::TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& tmp_ECrsMtx = dynamic_cast<Xpetra::TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>&>(*crsOp.getCrsMatrix());
-        return *tmp_ECrsMtx.getTpetra_CrsMatrixNonConst();
-      } catch (std::bad_cast&) {
-        throw Exceptions::BadCast("Cast from Xpetra::CrsMatrix to Xpetra::TpetraCrsMatrix failed");
-      }
-    } catch (std::bad_cast&) {
-      throw Exceptions::BadCast("Cast from Xpetra::Matrix to Xpetra::CrsMatrixWrap failed");
-    }
-#endif
-  }
-
-  static RCP<const Tpetra::BlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> Op2TpetraBlockCrs(RCP<const Matrix> Op) {
-#if ((defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_OPENMP) || !defined(HAVE_TPETRA_INST_INT_INT))) || \
-     (!defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_SERIAL) || !defined(HAVE_TPETRA_INST_INT_INT))))
-    throw Exceptions::RuntimeError("Op2TpetraBlockCrs: Tpetra has not been compiled with support for LO=GO=int.");
-#else
-    // Get the underlying Tpetra Mtx
-    RCP<const CrsMatrixWrap> crsOp = rcp_dynamic_cast<const CrsMatrixWrap>(Op);
-    if (crsOp == Teuchos::null)
-      throw Exceptions::BadCast("Cast from Xpetra::Matrix to Xpetra::CrsMatrixWrap failed");
-    const RCP<const Xpetra::TpetraBlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>& tmp_ECrsMtx = rcp_dynamic_cast<const Xpetra::TpetraBlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>(crsOp->getCrsMatrix());
-    if (tmp_ECrsMtx == Teuchos::null)
-      throw Exceptions::BadCast("Cast from Xpetra::CrsMatrix to Xpetra::TpetraBlockCrsMatrix failed");
-    return tmp_ECrsMtx->getTpetra_BlockCrsMatrix();
-#endif
-  }
-
-  static RCP<Tpetra::BlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> Op2NonConstTpetraBlockCrs(RCP<Matrix> Op) {
-#if ((defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_OPENMP) || !defined(HAVE_TPETRA_INST_INT_INT))) || \
-     (!defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_SERIAL) || !defined(HAVE_TPETRA_INST_INT_INT))))
-    throw Exceptions::RuntimeError("Op2NonConstTpetraBlockCrs: Tpetra has not been compiled with support for LO=GO=int.");
-#else
-    RCP<const CrsMatrixWrap> crsOp = rcp_dynamic_cast<const CrsMatrixWrap>(Op);
-    if (crsOp == Teuchos::null)
-      throw Exceptions::BadCast("Cast from Xpetra::Matrix to Xpetra::CrsMatrixWrap failed");
-    const RCP<const Xpetra::TpetraBlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>& tmp_ECrsMtx = rcp_dynamic_cast<const Xpetra::TpetraBlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>(crsOp->getCrsMatrix());
-    if (tmp_ECrsMtx == Teuchos::null)
-      throw Exceptions::BadCast("Cast from Xpetra::CrsMatrix to Xpetra::TpetraBlockCrsMatrix failed");
-    return tmp_ECrsMtx->getTpetra_BlockCrsMatrixNonConst();
-#endif
-  };
-
-  static const Tpetra::BlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Op2TpetraBlockCrs(const Matrix& Op) {
-#if ((defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_OPENMP) || !defined(HAVE_TPETRA_INST_INT_INT))) || \
-     (!defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_SERIAL) || !defined(HAVE_TPETRA_INST_INT_INT))))
-    throw Exceptions::RuntimeError("Op2TpetraBlockCrs: Tpetra has not been compiled with support for LO=GO=int.");
-#else
-    try {
-      const CrsMatrixWrap& crsOp = dynamic_cast<const CrsMatrixWrap&>(Op);
-      try {
-        const Xpetra::TpetraBlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& tmp_ECrsMtx = dynamic_cast<const Xpetra::TpetraBlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>&>(*crsOp.getCrsMatrix());
-        return *tmp_ECrsMtx.getTpetra_BlockCrsMatrix();
-      } catch (std::bad_cast&) {
-        throw Exceptions::BadCast("Cast from Xpetra::CrsMatrix to Xpetra::TpetraBlockCrsMatrix failed");
-      }
-    } catch (std::bad_cast&) {
-      throw Exceptions::BadCast("Cast from Xpetra::Matrix to Xpetra::CrsMatrixWrap failed");
-    }
-#endif
-  }
-  static Tpetra::BlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Op2NonConstTpetraBlockCrs(Matrix& Op) {
-#if ((defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_OPENMP) || !defined(HAVE_TPETRA_INST_INT_INT))) || \
-     (!defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_SERIAL) || !defined(HAVE_TPETRA_INST_INT_INT))))
-    throw Exceptions::RuntimeError("Op2NonConstTpetraCrs: Tpetra has not been compiled with support for LO=GO=int.");
-#else
-    try {
-      CrsMatrixWrap& crsOp = dynamic_cast<CrsMatrixWrap&>(Op);
-      try {
-        Xpetra::TpetraBlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& tmp_ECrsMtx = dynamic_cast<Xpetra::TpetraBlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>&>(*crsOp.getCrsMatrix());
-        return *tmp_ECrsMtx.getTpetra_BlockCrsMatrixNonConst();
-      } catch (std::bad_cast&) {
-        throw Exceptions::BadCast("Cast from Xpetra::CrsMatrix to Xpetra::TpetraBlockCrsMatrix failed");
-      }
-    } catch (std::bad_cast&) {
-      throw Exceptions::BadCast("Cast from Xpetra::Matrix to Xpetra::CrsMatrixWrap failed");
-    }
-#endif
-  }
-
-  static RCP<const Tpetra::RowMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> Op2TpetraRow(RCP<const Operator> Op) {
-#if ((defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_OPENMP) || !defined(HAVE_TPETRA_INST_INT_INT))) || \
-     (!defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_SERIAL) || !defined(HAVE_TPETRA_INST_INT_INT))))
-    throw Exceptions::RuntimeError("Op2TpetraRow: Tpetra has not been compiled with support for LO=GO=int.");
-#else
-    RCP<const Matrix> mat                                                              = rcp_dynamic_cast<const Matrix>(Op);
-    RCP<const Xpetra::TpetraRowMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> rmat = rcp_dynamic_cast<const Xpetra::TpetraRowMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>(Op);
-    if (!mat.is_null()) {
-      RCP<const CrsMatrixWrap> crsOp = rcp_dynamic_cast<const CrsMatrixWrap>(mat);
-      if (crsOp == Teuchos::null)
-        throw Exceptions::BadCast("Cast from Xpetra::Matrix to Xpetra::CrsMatrixWrap failed");
-
-      RCP<const CrsMatrix> crsMat                                                                 = crsOp->getCrsMatrix();
-      const RCP<const Xpetra::TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> tmp_Crs = rcp_dynamic_cast<const Xpetra::TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>(crsMat);
-      RCP<const Xpetra::TpetraBlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> tmp_BlockCrs;
-      if (!tmp_Crs.is_null()) {
-        return tmp_Crs->getTpetra_CrsMatrixNonConst();
-      } else {
-        tmp_BlockCrs = rcp_dynamic_cast<const Xpetra::TpetraBlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>(crsMat);
-        if (tmp_BlockCrs.is_null())
-          throw Exceptions::BadCast("Cast from Xpetra::CrsMatrix to Xpetra::TpetraCrsMatrix and Xpetra::TpetraBlockCrsMatrix failed");
-        return tmp_BlockCrs->getTpetra_BlockCrsMatrixNonConst();
-      }
-    } else if (!rmat.is_null()) {
-      return rmat->getTpetra_RowMatrix();
-    } else {
-      RCP<const TpetraOperator> tpOp                                               = rcp_dynamic_cast<const TpetraOperator>(Op, true);
-      RCP<const Tpetra::Operator<Scalar, LocalOrdinal, GlobalOrdinal, Node>> tOp   = tpOp->getOperatorConst();
-      RCP<const Tpetra::RowMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> tRow = rcp_dynamic_cast<const Tpetra::RowMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>(tOp, true);
-      return tRow;
-    }
-#endif
-  }
-
-  static RCP<Tpetra::RowMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> Op2NonConstTpetraRow(RCP<Operator> Op) {
-#if ((defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_OPENMP) || !defined(HAVE_TPETRA_INST_INT_INT))) || \
-     (!defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_SERIAL) || !defined(HAVE_TPETRA_INST_INT_INT))))
-    throw Exceptions::RuntimeError("Op2NonConstTpetraRow: Tpetra has not been compiled with support for LO=GO=int.");
-#else
-    RCP<Matrix> mat                                                              = rcp_dynamic_cast<Matrix>(Op);
-    RCP<Xpetra::TpetraRowMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> rmat = rcp_dynamic_cast<Xpetra::TpetraRowMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>(Op);
-    if (!mat.is_null()) {
-      RCP<const CrsMatrixWrap> crsOp = rcp_dynamic_cast<const CrsMatrixWrap>(mat);
-      if (crsOp == Teuchos::null)
-        throw Exceptions::BadCast("Cast from Xpetra::Matrix to Xpetra::CrsMatrixWrap failed");
-
-      RCP<const CrsMatrix> crsMat                                                                 = crsOp->getCrsMatrix();
-      const RCP<const Xpetra::TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> tmp_Crs = rcp_dynamic_cast<const Xpetra::TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>(crsMat);
-      RCP<const Xpetra::TpetraBlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> tmp_BlockCrs;
-      if (!tmp_Crs.is_null()) {
-        return tmp_Crs->getTpetra_CrsMatrixNonConst();
-      } else {
-        tmp_BlockCrs = rcp_dynamic_cast<const Xpetra::TpetraBlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>(crsMat);
-        if (tmp_BlockCrs.is_null())
-          throw Exceptions::BadCast("Cast from Xpetra::CrsMatrix to Xpetra::TpetraCrsMatrix and Xpetra::TpetraBlockCrsMatrix failed");
-        return tmp_BlockCrs->getTpetra_BlockCrsMatrixNonConst();
-      }
-    } else if (!rmat.is_null()) {
-      return rmat->getTpetra_RowMatrixNonConst();
-    } else {
-      RCP<TpetraOperator> tpOp                                               = rcp_dynamic_cast<TpetraOperator>(Op, true);
-      RCP<Tpetra::Operator<Scalar, LocalOrdinal, GlobalOrdinal, Node>> tOp   = tpOp->getOperator();
-      RCP<Tpetra::RowMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> tRow = rcp_dynamic_cast<Tpetra::RowMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>(tOp, true);
-      return tRow;
-    }
-#endif
-  };
-
-  static const RCP<const Tpetra::Map<LocalOrdinal, GlobalOrdinal, Node>> Map2TpetraMap(const Map& map) {
-#if ((defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_OPENMP) || !defined(HAVE_TPETRA_INST_INT_INT))) || \
-     (!defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_SERIAL) || !defined(HAVE_TPETRA_INST_INT_INT))))
-    throw Exceptions::RuntimeError("Map2TpetraMap: Tpetra has not been compiled with support for LO=GO=int.");
-#else
-    const RCP<const Xpetra::TpetraMap<LocalOrdinal, GlobalOrdinal, Node>>& tmp_TMap = rcp_dynamic_cast<const Xpetra::TpetraMap<LocalOrdinal, GlobalOrdinal, Node>>(rcpFromRef(map));
-    if (tmp_TMap == Teuchos::null)
-      throw Exceptions::BadCast("Utilities::Map2TpetraMap : Cast from Xpetra::Map to Xpetra::TpetraMap failed");
-    return tmp_TMap->getTpetra_Map();
-#endif
-  };
-
-  static void MyOldScaleMatrix(Matrix& Op, const Teuchos::ArrayRCP<const Scalar>& scalingVector, bool doInverse = true,
-                               bool doFillComplete = true, bool doOptimizeStorage = true) {
-    Scalar one = Teuchos::ScalarTraits<Scalar>::one();
-    Teuchos::ArrayRCP<Scalar> sv(scalingVector.size());
-    if (doInverse) {
-      for (int i = 0; i < scalingVector.size(); ++i)
-        sv[i] = one / scalingVector[i];
-    } else {
-      for (int i = 0; i < scalingVector.size(); ++i)
-        sv[i] = scalingVector[i];
-    }
-
-    switch (Op.getRowMap()->lib()) {
-      case Xpetra::UseTpetra:
-        MyOldScaleMatrix_Tpetra(Op, sv, doFillComplete, doOptimizeStorage);
-        break;
-
-      case Xpetra::UseEpetra:
-        MyOldScaleMatrix_Epetra(Op, sv, doFillComplete, doOptimizeStorage);
-        break;
-
-      default:
-        throw Exceptions::RuntimeError("Only Epetra and Tpetra matrices can be scaled.");
-    }
-  }
-
-  // TODO This is the <double,int,int> specialization
-  static void MyOldScaleMatrix_Tpetra(Matrix& Op, const Teuchos::ArrayRCP<Scalar>& scalingVector,
-                                      bool doFillComplete, bool doOptimizeStorage) {
-#if ((defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_OPENMP) || !defined(HAVE_TPETRA_INST_INT_INT))) || \
-     (!defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_SERIAL) || !defined(HAVE_TPETRA_INST_INT_INT))))
-    throw Exceptions::RuntimeError("Matrix scaling is not possible because Tpetra has not been compiled with support for LO=GO=int.");
-#else
-    try {
-      Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& tpOp = Op2NonConstTpetraCrs(Op);
-
-      const RCP<const Tpetra::Map<LocalOrdinal, GlobalOrdinal, Node>> rowMap    = tpOp.getRowMap();
-      const RCP<const Tpetra::Map<LocalOrdinal, GlobalOrdinal, Node>> domainMap = tpOp.getDomainMap();
-      const RCP<const Tpetra::Map<LocalOrdinal, GlobalOrdinal, Node>> rangeMap  = tpOp.getRangeMap();
-
-      size_t maxRowSize = tpOp.getLocalMaxNumRowEntries();
-      if (maxRowSize == Teuchos::as<size_t>(-1))  // hasn't been determined yet
-        maxRowSize = 20;
-
-      std::vector<Scalar> scaledVals(maxRowSize);
-      if (tpOp.isFillComplete())
-        tpOp.resumeFill();
-
-      if (Op.isLocallyIndexed() == true) {
-        typename Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_inds_host_view_type cols;
-        typename Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::values_host_view_type vals;
-        for (size_t i = 0; i < rowMap->getLocalNumElements(); ++i) {
-          tpOp.getLocalRowView(i, cols, vals);
-          size_t nnz = tpOp.getNumEntriesInLocalRow(i);
-          if (nnz > maxRowSize) {
-            maxRowSize = nnz;
-            scaledVals.resize(maxRowSize);
-          }
-          for (size_t j = 0; j < nnz; ++j)
-            scaledVals[j] = vals[j] * scalingVector[i];
-
-          if (nnz > 0) {
-            Teuchos::ArrayView<const LocalOrdinal> cols_view(cols.data(), nnz);
-            Teuchos::ArrayView<const Scalar> valview(&scaledVals[0], nnz);
-            tpOp.replaceLocalValues(i, cols_view, valview);
-          }
-        }  // for (size_t i=0; ...
-
-      } else {
-        typename Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::local_inds_host_view_type cols;
-        typename Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::values_host_view_type vals;
-
-        for (size_t i = 0; i < rowMap->getLocalNumElements(); ++i) {
-          GlobalOrdinal gid = rowMap->getGlobalElement(i);
-          tpOp.getGlobalRowView(gid, cols, vals);
-          size_t nnz = tpOp.getNumEntriesInGlobalRow(gid);
-          if (nnz > maxRowSize) {
-            maxRowSize = nnz;
-            scaledVals.resize(maxRowSize);
-          }
-          // FIXME FIXME FIXME FIXME FIXME FIXME
-          for (size_t j = 0; j < nnz; ++j)
-            scaledVals[j] = vals[j] * scalingVector[i];  // FIXME i or gid?
-
-          if (nnz > 0) {
-            Teuchos::ArrayView<const LocalOrdinal> cols_view(cols.data(), nnz);
-            Teuchos::ArrayView<const Scalar> valview(&scaledVals[0], nnz);
-            tpOp.replaceGlobalValues(gid, cols_view, valview);
-          }
-        }  // for (size_t i=0; ...
-      }
-
-      if (doFillComplete) {
-        if (domainMap == Teuchos::null || rangeMap == Teuchos::null)
-          throw Exceptions::RuntimeError("In Utilities::Scaling: cannot fillComplete because the domain and/or range map hasn't been defined");
-
-        RCP<Teuchos::ParameterList> params = rcp(new Teuchos::ParameterList());
-        params->set("Optimize Storage", doOptimizeStorage);
-        params->set("No Nonlocal Changes", true);
-        Op.fillComplete(Op.getDomainMap(), Op.getRangeMap(), params);
-      }
-    } catch (...) {
-      throw Exceptions::RuntimeError("Only Tpetra::CrsMatrix types can be scaled (Err.1)");
-    }
-#endif
-  }
-
-  static void MyOldScaleMatrix_Epetra(Matrix& Op, const Teuchos::ArrayRCP<Scalar>& scalingVector, bool /* doFillComplete */, bool /* doOptimizeStorage */) {
-#ifdef HAVE_MUELU_EPETRA
-    try {
-      // const Epetra_CrsMatrix& epOp = Utilities<double,int,int>::Op2NonConstEpetraCrs(Op);
-      const Epetra_CrsMatrix& epOp = Op2NonConstEpetraCrs(Op);
-
-      Epetra_Map const& rowMap = epOp.RowMap();
-      int nnz;
-      double* vals;
-      int* cols;
-
-      for (int i = 0; i < rowMap.NumMyElements(); ++i) {
-        epOp.ExtractMyRowView(i, nnz, vals, cols);
-        for (int j = 0; j < nnz; ++j)
-          vals[j] *= scalingVector[i];
-      }
-
-    } catch (...) {
-      throw Exceptions::RuntimeError("Only Epetra_CrsMatrix types can be scaled");
-    }
-#else
-    throw Exceptions::RuntimeError("Matrix scaling is not possible because Epetra has not been enabled.");
-#endif  // HAVE_MUELU_EPETRA
-  }
-
   /*! @brief Transpose a Xpetra::Matrix
 
       Note: Currently, an error is thrown if the matrix isn't a Tpetra::CrsMatrix or Epetra_CrsMatrix.
@@ -704,7 +254,7 @@ class Utilities<double, int, int, Xpetra::EpetraNode> : public UtilitiesBase<dou
         using Helpers = Xpetra::Helpers<Scalar, LocalOrdinal, GlobalOrdinal, Node>;
         /***************************************************************/
         if (Helpers::isTpetraCrs(Op)) {
-          const Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& tpetraOp = Utilities<Scalar, LocalOrdinal, GlobalOrdinal, Node>::Op2TpetraCrs(Op);
+          const Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& tpetraOp = toTpetra(Op);
 
           // Compute the transpose A of the Tpetra matrix tpetraOp.
           RCP<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> A;
@@ -731,7 +281,7 @@ class Utilities<double, int, int, Xpetra::EpetraNode> : public UtilitiesBase<dou
         else if (Helpers::isTpetraBlockCrs(Op)) {
           using BCRS = Tpetra::BlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>;
           // using CRS  = Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>;
-          const BCRS& tpetraOp = Utilities<Scalar, LocalOrdinal, GlobalOrdinal, Node>::Op2TpetraBlockCrs(Op);
+          const BCRS& tpetraOp = toTpetraBlock(Op);
           RCP<BCRS> At;
           {
             Tpetra::BlockCrsMatrixTransposer<Scalar, LocalOrdinal, GlobalOrdinal, Node> transposer(rcpFromRef(tpetraOp), label);
@@ -935,21 +485,6 @@ EpetraMultiVector_To_XpetraMultiVector(const Teuchos::RCP<Epetra_MultiVector>& V
 }
 #endif
 
-/*! \fn TpetraCrs_To_XpetraMatrix
-  @brief Helper function to convert a Tpetra::CrsMatrix to an Xpetra::Matrix
-  TODO move this function to an Xpetra utility file
-  */
-template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
-RCP<Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>
-TpetraCrs_To_XpetraMatrix(const Teuchos::RCP<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>& Atpetra) {
-  typedef Xpetra::TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> XTCrsMatrix;
-  typedef Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> XCrsMatrix;
-  typedef Xpetra::CrsMatrixWrap<Scalar, LocalOrdinal, GlobalOrdinal, Node> XCrsMatrixWrap;
-
-  RCP<XCrsMatrix> Atmp = rcp(new XTCrsMatrix(Atpetra));
-  return rcp(new XCrsMatrixWrap(Atmp));
-}
-
 /*! \fn leftRghtDofScalingWithinNode
   @brief Helper function computes 2k left/right matrix scaling coefficients for PDE system with k x k blocks
 
@@ -1059,44 +594,6 @@ void leftRghtDofScalingWithinNode(const Xpetra::Matrix<Scalar, LocalOrdinal, Glo
   }
 }
 
-/*! \fn TpetraCrs_To_XpetraMatrix
-  @brief Helper function to convert a Tpetra::FECrsMatrix to an Xpetra::Matrix
-  TODO move this function to an Xpetra utility file
-  */
-template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
-RCP<Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>
-TpetraFECrs_To_XpetraMatrix(const Teuchos::RCP<Tpetra::FECrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>& Atpetra) {
-  typedef typename Tpetra::FECrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>::crs_matrix_type tpetra_crs_matrix_type;
-  typedef Xpetra::TpetraCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> XTCrsMatrix;
-  typedef Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> XCrsMatrix;
-  typedef Xpetra::CrsMatrixWrap<Scalar, LocalOrdinal, GlobalOrdinal, Node> XCrsMatrixWrap;
-
-  RCP<XCrsMatrix> Atmp = rcp(new XTCrsMatrix(rcp_dynamic_cast<tpetra_crs_matrix_type>(Atpetra)));
-  return rcp(new XCrsMatrixWrap(Atmp));
-}
-
-/*! \fn TpetraMultiVector_To_XpetraMultiVector
-  @brief Helper function to convert a Tpetra::MultiVector to an Xpetra::MultiVector
-  TODO move this function to an Xpetra utility file
-  */
-template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
-RCP<Xpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>>
-TpetraMultiVector_To_XpetraMultiVector(const Teuchos::RCP<Tpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>>& Vtpetra) {
-  return rcp(new Xpetra::TpetraMultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>(Vtpetra));
-}
-
-/*! \fn TpetraFEMultiVector_To_XpetraMultiVector
-@brief Helper function to convert a Tpetra::FEMultiVector to an Xpetra::MultiVector
-  TODO move this function to an Xpetra utility file
-  */
-template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
-RCP<Xpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>>
-TpetraFEMultiVector_To_XpetraMultiVector(const Teuchos::RCP<Tpetra::FEMultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>>& Vtpetra) {
-  typedef Tpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node> MV;
-  RCP<const MV> Vmv = Teuchos::rcp_dynamic_cast<const MV>(Vtpetra);
-  return rcp(new Xpetra::TpetraMultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>(Vmv));
-}
-
 //! Little helper function to convert non-string types to strings
 template <class T>
 std::string toString(const T& what) {
@@ -1122,22 +619,6 @@ template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
 RCP<Xpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>>
 EpetraMultiVector_To_XpetraMultiVector(const Teuchos::RCP<Epetra_MultiVector>& V);
 #endif
-
-/*! \fn TpetraCrs_To_XpetraMatrix
-  @brief Helper function to convert a Tpetra::CrsMatrix to an Xpetra::Matrix
-  TODO move this function to an Xpetra utility file
-  */
-template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
-RCP<Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>
-TpetraCrs_To_XpetraMatrix(const Teuchos::RCP<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>>& Atpetra);
-
-/*! \fn TpetraMultiVector_To_XpetraMultiVector
-  @brief Helper function to convert a Tpetra::MultiVector to an Xpetra::MultiVector
-  TODO move this function to an Xpetra utility file
-  */
-template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
-RCP<Xpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>>
-TpetraMultiVector_To_XpetraMultiVector(const Teuchos::RCP<Tpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>>& Vtpetra);
 
 // Generates a communicator whose only members are other ranks of the baseComm on my node
 Teuchos::RCP<const Teuchos::Comm<int>> GenerateNodeComm(RCP<const Teuchos::Comm<int>>& baseComm, int& NodeId, const int reductionFactor);
@@ -1165,7 +646,7 @@ Teuchos::RCP<const Xpetra::Map<LocalOrdinal, GlobalOrdinal, Node>> importOffRank
   finalVec->doImport(*toggleVec, *importer, Xpetra::ABSMAX);
 
   std::vector<GO> finalDropMapEntries = {};
-  auto finalVec_h_2D                  = finalVec->getHostLocalView(Xpetra::Access::ReadOnly);
+  auto finalVec_h_2D                  = finalVec->getLocalViewHost(Tpetra::Access::ReadOnly);
   auto finalVec_h_1D                  = Kokkos::subview(finalVec_h_2D, Kokkos::ALL(), 0);
   const size_t localLength            = finalVec->getLocalLength();
 

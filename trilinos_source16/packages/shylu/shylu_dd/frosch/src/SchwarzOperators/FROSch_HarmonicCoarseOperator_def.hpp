@@ -1,43 +1,11 @@
-//@HEADER
-// ************************************************************************
+// @HEADER
+// *****************************************************************************
+//               ShyLU: Scalable Hybrid LU Preconditioner and Solver
 //
-//               ShyLU: Hybrid preconditioner package
-//                 Copyright 2012 Sandia Corporation
-//
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
-// the U.S. Government retains certain rights in this software.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Alexander Heinlein (alexander.heinlein@uni-koeln.de)
-//
-// ************************************************************************
-//@HEADER
+// Copyright 2011 NTESS and the ShyLU contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
+// @HEADER
 
 #ifndef _FROSCH_HARMONICCOARSEOPERATOR_DEF_HPP
 #define _FROSCH_HARMONICCOARSEOPERATOR_DEF_HPP
@@ -141,10 +109,10 @@ namespace FROSch {
                 if (InterfaceCoarseSpaces_[i]->hasBasisMap()) {
                     FROSCH_ASSERT(InterfaceCoarseSpaces_[i]->hasBasisMapUnique(),"FROSch::HarmonicCoarseOperator: !InterfaceCoarseSpaces_[i]->hasAssembledBasis()");
                     this->AssembledInterfaceCoarseSpace_->addSubspace(InterfaceCoarseSpaces_[i]->getBasisMap(),InterfaceCoarseSpaces_[i]->getBasisMapUnique(),InterfaceCoarseSpaces_[i]->getAssembledBasis(),ii);
+                    ii += InterfaceCoarseSpaces_[i]->getAssembledBasis()->getLocalLength();
                 }
+                InterfaceCoarseSpaces_[i].reset();
             }
-            ii += InterfaceCoarseSpaces_[i]->getAssembledBasis()->getLocalLength();
-            InterfaceCoarseSpaces_[i].reset();
         }
         return this->AssembledInterfaceCoarseSpace_->assembleCoarseSpace();
     }
@@ -153,15 +121,6 @@ namespace FROSch {
     int HarmonicCoarseOperator<SC,LO,GO,NO>::addZeroCoarseSpaceBlock(ConstXMapPtr dofsMap)
     {
         FROSCH_DETAILTIMER_START_LEVELID(addZeroCoarseSpaceBlockTime,"HarmonicCoarseOperator::addZeroCoarseSpaceBlock");
-        // Das könnte man noch ändern
-        GammaDofs_->resize(GammaDofs_.size()+1);
-        IDofs_->resize(IDofs_.size()+1);
-        InterfaceCoarseSpaces_->resize(InterfaceCoarseSpaces_.size()+1);
-        DofsMaps_->resize(DofsMaps_.size()+1);
-        DofsPerNode_->resize(DofsPerNode_.size()+1);
-
-        NumberOfBlocks_++;
-
         /////
         int blockId = NumberOfBlocks_-1;
 
@@ -170,43 +129,52 @@ namespace FROSch {
         blockIdStringstream << blockId+1;
         string blockIdString = blockIdStringstream.str();
         RCP<ParameterList> coarseSpaceList = sublist(sublist(this->ParameterList_,"Blocks"),blockIdString.c_str());
-
         bool useForCoarseSpace = coarseSpaceList->get("Use For Coarse Space",true);
 
-        GammaDofs_[blockId] = LOVecPtr(0);
+	if (useForCoarseSpace) {
+            // Das könnte man noch ändern
+            NumberOfBlocks_++;
 
-        XMultiVectorPtr mVPhiGamma;
-        XMapPtr blockCoarseMap;
-        if (useForCoarseSpace) {
-            InterfaceCoarseSpaces_[blockId].reset(new CoarseSpace<SC,LO,GO,NO>(this->MpiComm_,this->SerialComm_));
+            GammaDofs_[blockId] = LOVecPtr(0);
 
-            //Epetra_SerialComm serialComm;
-            XMapPtr serialGammaMap = MapFactory<LO,GO,NO>::Build(dofsMap->lib(),dofsMap->getLocalNumElements(),0,this->SerialComm_);
-            mVPhiGamma = MultiVectorFactory<LO,GO,NO>::Build(serialGammaMap,dofsMap->getLocalNumElements());
-        }
+            XMultiVectorPtr mVPhiGamma;
+            XMapPtr blockCoarseMap;
+            if (useForCoarseSpace) {
+                InterfaceCoarseSpaces_[blockId].reset(new CoarseSpace<SC,LO,GO,NO>(this->MpiComm_,this->SerialComm_));
 
-        for (int i=0; i<dofsMap->getLocalNumElements(); i++) {
-            GammaDofs_[blockId]->push_back(i);
+                //Epetra_SerialComm serialComm;
+                XMapPtr serialGammaMap = MapFactory<LO,GO,NO>::Build(dofsMap->lib(),dofsMap->getLocalNumElements(),0,this->SerialComm_);
+                mVPhiGamma = MultiVectorFactory<LO,GO,NO>::Build(serialGammaMap,dofsMap->getLocalNumElements());
+            }
+
+            for (int i=0; i<dofsMap->getLocalNumElements(); i++) {
+                GammaDofs_[blockId]->push_back(i);
+
+                if (useForCoarseSpace) {
+                    mVPhiGamma->replaceLocalValue(i,i,ScalarTraits<SC>::one());
+                }
+            }
+
+            GammaDofs_->resize(GammaDofs_.size()+1);
+            IDofs_->resize(IDofs_.size()+1);
+            InterfaceCoarseSpaces_->resize(InterfaceCoarseSpaces_.size()+1);
+            DofsMaps_->resize(DofsMaps_.size()+1);
+            DofsPerNode_->resize(DofsPerNode_.size()+1);
+
+            IDofs_[blockId] = LOVecPtr(0);
 
             if (useForCoarseSpace) {
-                mVPhiGamma->replaceLocalValue(i,i,ScalarTraits<SC>::one());
+                blockCoarseMap = MapFactory<LO,GO,NO>::Build(dofsMap->lib(),-1,GammaDofs_[blockId](),0,this->MpiComm_);
+
+                InterfaceCoarseSpaces_[blockId]->addSubspace(blockCoarseMap,mVPhiGamma);
+                InterfaceCoarseSpaces_[blockId]->assembleCoarseSpace();
             }
+
+            DofsMaps_[blockId] = XMapPtrVecPtr(0);
+            DofsMaps_[blockId].push_back(dofsMap);
+
+            DofsPerNode_[blockId] = 1;
         }
-
-        IDofs_[blockId] = LOVecPtr(0);
-
-        if (useForCoarseSpace) {
-            blockCoarseMap = MapFactory<LO,GO,NO>::Build(dofsMap->lib(),-1,GammaDofs_[blockId](),0,this->MpiComm_);
-
-            InterfaceCoarseSpaces_[blockId]->addSubspace(blockCoarseMap,mVPhiGamma);
-            InterfaceCoarseSpaces_[blockId]->assembleCoarseSpace();
-        }
-
-        DofsMaps_[blockId] = XMapPtrVecPtr(0);
-        DofsMaps_[blockId].push_back(dofsMap);
-
-        DofsPerNode_[blockId] = 1;
-
         return 0;
     }
 
@@ -530,7 +498,7 @@ namespace FROSch {
                 auto localRepeatedMap = repeatedMap->getLocalMap();
                 auto localBasisMap = basisMap->getLocalMap();
 
-                auto localMVBasis = asembledBasis->getDeviceLocalView(Xpetra::Access::ReadOnly);
+                auto localMVBasis = asembledBasis->getLocalViewDevice(Tpetra::Access::ReadOnly);
 
                 // Array for scaling the columns of PhiGamma (1/norm(PhiGamma(:,i)))
                 using execution_space = typename Map<LO,GO,NO>::local_map_type::execution_space;
@@ -864,7 +832,7 @@ namespace FROSch {
 
         LO itmp = 0;
         ConstUNVecView numLocalBlockColumns = AssembledInterfaceCoarseSpace_->getLocalSubspaceSizes();
-        FROSCH_ASSERT(numLocalBlockColumns.size()==NumberOfBlocks_,"FROSch::HarmonicCoarseOperator: numLocalBlockColumns.size()!=NumberOfBlocks_");
+        FROSCH_ASSERT(numLocalBlockColumns.size()==NumberOfBlocks_,"FROSch::HarmonicCoarseOperator: numLocalBlockColumns.size()!=NumberOfBlocks_("+to_string(numLocalBlockColumns.size())+", "+to_string(NumberOfBlocks_)+") ");
         for (UN i=0; i<NumberOfBlocks_; i++) {
             stringstream blockIdStringstream;
             blockIdStringstream << i+1;
@@ -886,8 +854,8 @@ namespace FROSch {
 
             #if defined(HAVE_XPETRA_TPETRA)
             if (mVPhi->getMap()->lib() == UseTpetra) {
-                using XMap            = typename SchwarzOperator<SC,LO,GO,NO>::XMap;
-                using execution_space = typename XMap::local_map_type::execution_space;
+                using XMap2            = typename SchwarzOperator<SC,LO,GO,NO>::XMap;
+                using execution_space = typename XMap2::local_map_type::execution_space;
 
                 // explicitly copying indicesIDofsAll in Teuchos::Array to Kokkos::View on "device"
                 using GOIndViewHost = Kokkos::View<GO*, Kokkos::LayoutLeft, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>;
@@ -913,8 +881,8 @@ namespace FROSch {
                 auto mvPhiICols = Tpetra::getMultiVectorWhichVectors(*mVPhiITpetraMVector);
                 auto mvPhiCols = Tpetra::getMultiVectorWhichVectors(*mVPhiTpetraMVector);
                 for (UN j=0; j<numLocalBlockColumns[i]; j++) {
-                    int col_in = mVPhiITpetraMVector->isConstantStride() ? j : mvPhiICols[j];
-                    int col_out = mVPhiTpetraMVector->isConstantStride() ? j : mvPhiCols[j];
+                    int col_in = mVPhiITpetraMVector->isConstantStride() ? itmp : mvPhiICols[itmp];
+                    int col_out = mVPhiTpetraMVector->isConstantStride() ? itmp : mvPhiCols[itmp];
                     CopyPhiViewFunctor<GOIndView, ConstSCView, SCView> functor(col_in, indicesIDofsAllData, mvPhiIView, col_out, mvPhiView);
                     for (UN ii=0; ii<extensionBlocks.size(); ii++) {
                         Kokkos::RangePolicy<execution_space> policy (bound[extensionBlocks[ii]], bound[extensionBlocks[ii]+1]);
@@ -1218,7 +1186,7 @@ namespace FROSch {
             ExtensionSolver_->initialize();
         }
     }
-    
+
 }
 
 #endif
