@@ -13,9 +13,31 @@
 
 \chapter{Using Trilinos}
 \label{TRILINOS}
-Trilinos has a number of packages and provides a large collection of both direct and indirect solvers.
+
+\section{Introduction}
+Trilinos is a collection of open-source software libraries for the solution of large-scale, complex multi-physics engineering and scientific problems.
+Escript uses Trilinos version 16.2.0 and integrates several key packages to provide advanced solver capabilities.
 We refer the reader to \cite{TrilinosWeb} for details.  Escript needs to be installed with Trilinos to be able to use the Trilinos solvers.
-See the install guide for details.  We show a few examples for the Trilinos options with a simple example.
+See the installation guide for details.
+
+\subsection{Trilinos Packages Used by Escript}
+The following Trilinos packages are enabled in the escript build:
+\begin{itemize}
+\item \textbf{Amesos2}: Direct sparse solvers including KLU2 (default) and interfaces to SuperLU
+\item \textbf{Belos}: Iterative linear solvers including Pseudo Block CG, GMRES, BiCGStab, and MINRES
+\item \textbf{Ifpack2}: Algebraic preconditioners including Jacobi, Gauss-Seidel, ILU, and ILUT
+\item \textbf{MueLu}: Algebraic multigrid (AMG) preconditioner with smoothed aggregation
+\item \textbf{Kokkos}: Performance portable programming model for parallel execution
+\item \textbf{Tpetra}: Templated distributed linear algebra (vectors, matrices, graphs)
+\item \textbf{Teuchos}: Common utilities including parameter lists and memory management
+\end{itemize}
+
+\subsection{Optional Dependencies}
+Escript can be configured with METIS for graph partitioning, which Trilinos uses for matrix reordering to improve solver performance.
+Install METIS with: \texttt{sudo apt-get install libmetis-dev} (on Debian/Ubuntu).
+
+\section{Example Problem}
+We show a few examples for the Trilinos options with a simple example.
 
 Consider Laplacian in domain ($\Omega\in \mathbb{R}^3$) with a simple right hand side,
 \begin{align}
@@ -114,8 +136,36 @@ options.setVerbosityOn()
 
 
 
+\section{Solver Options Summary}
+Table~\ref{tab:solver_summary} provides a quick reference for the most commonly used Trilinos solver options in escript.
+
+\begin{table}[h]\center
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Option} & \textbf{Code} & \textbf{Description} \\
+\hline
+\multicolumn{3}{|c|}{\textit{Solver Methods}} \\
+\hline
+PCG & \verb|SolverOptions.PCG| & Preconditioned Conjugate Gradient \\
+GMRES & \verb|SolverOptions.GMRES| & Generalized Minimal Residual \\
+BiCGStab & \verb|SolverOptions.BICGSTAB| & BiConjugate Gradient Stabilized \\
+Direct & \verb|SolverOptions.DIRECT| & Direct solver (KLU2 default) \\
+Direct SuperLU & \verb|SolverOptions.DIRECT_SUPERLU| & SuperLU direct solver \\
+\hline
+\multicolumn{3}{|c|}{\textit{Preconditioners}} \\
+\hline
+Jacobi & \verb|SolverOptions.JACOBI| & Diagonal scaling (default) \\
+Gauss-Seidel & \verb|SolverOptions.GAUSS_SEIDEL| & Gauss-Seidel iteration \\
+AMG & \verb|SolverOptions.AMG| & Algebraic Multigrid (MueLu) \\
+ILU & \verb|SolverOptions.ILU0| & Incomplete LU factorization \\
+ILUT & \verb|SolverOptions.ILUT| & ILU with threshold \\
+\hline
+\end{tabular}
+\caption{Summary of Trilinos solver options available in escript}\label{tab:solver_summary}
+\end{table}
+
 \section{Direct Solvers}
-There are a number of options that can be set for solving the pde.  The simplest way to choose a direct solver is to use the default Trilinos direct solver KLU2.  Escript can only use this feature if it is available in Trilinos.
+There are a number of options that can be set for solving the PDE.  The simplest way to choose a direct solver is to use the default Trilinos direct solver KLU2.  Escript can only use this feature if it is available in Trilinos.
 
 To choose the default Trilinos direct solver, set the tolerance for the PDE solver to $10^{-8}$,  use the Trilinos suite of solvers and output information about the solvers, we add code to listing \ref{basic}.
 \begin{python}[caption=default Direct , label=defaultdirect ]
@@ -139,11 +189,11 @@ Trilinos is the default solver package so the setPackage line is not really nece
 chosen.
 
 \section{Preconditioned Conjugate Gradient}
-If we want to use preconditioned conjugate gradient, then we remover the DIRECT solver line and add the line
+If we want to use preconditioned conjugate gradient, then we remove the DIRECT solver line and add the line
 \begin{python}[caption=Preconditioned conjugate gradient defaults, label=PCG]
 options.setSolverMethod(SolverOptions.PCG)        
 \end{python}
-This takes 271 iterations to reach tolerance using a Jacobi preconditioner, BELOS Pseudo Block CG with Ifpack2.  To change the preconditioner to Gauss-Siedel, we add the line
+This takes 271 iterations to reach tolerance using a Jacobi preconditioner, BELOS Pseudo Block CG with Ifpack2.  To change the preconditioner to Gauss-Seidel, we add the line
 \begin{python}
 options.setPreconditioner(SolverOptions.GAUSS_SEIDEL)
 \end{python}
@@ -204,13 +254,13 @@ Once the coarse grid is chosen the restriction and interpolation operators are c
     \item coarsest grid solver
     \item cycle type 
 \end{itemize}
-We use Trilinos solvers and it is possible to access Trilinos options either within the escript script or, if more complicated control is needed, in an XML file. There are many Trilinos packages that can be used by escript including 
-MueLu   - setup of AMG, Belos   - linear solvers - Pseudo Block CG, Ifpack2 - iterative solvers (Jacobi, Gauss-Siedel), Amesos2 - direct solvers for coarse level and Voltan or Voltan2 - repartitioning for caorse grids
+We use Trilinos solvers and it is possible to access Trilinos options either within the escript script or, if more complicated control is needed, in an XML file. There are many Trilinos packages that can be used by escript including
+MueLu - setup of AMG, Belos - linear solvers (Pseudo Block CG), Ifpack2 - iterative solvers (Jacobi, Gauss-Seidel), and Amesos2 - direct solvers for coarse level.  For graph partitioning, escript can be configured with METIS which Trilinos can use for matrix reordering
 
 
 \subsection{Default MueLu Trilinos options for algebraic multigrid preconditioned conjugate gradient (AMG-PCG)}
 More detail on the various options can be found in the MUELU user guide and other Trilinos user guides \cite{TrilinosWeb}. MUELU uses other Trilinos packages and to access these parameters the XML file must be used.  
-Recall $\mathbf{R}_h^H$ is the restriction operator and $\mathbf{P}^h_H$ is the interpolation (prolongation) operator.  The default values used are shown in Table \ref{defaultAMG}.  To use AMG-PCG with default paramerters we use script \ref{basicAMG}. 
+Recall $\mathbf{R}_h^H$ is the restriction operator and $\mathbf{P}^h_H$ is the interpolation (prolongation) operator.  The default values used are shown in Table \ref{defaultAMG}.  To use AMG-PCG with default parameters we use script \ref{basicAMG}. 
 
 \begin{table}\center
 \begin{tabular}{|r|l|}
@@ -308,7 +358,7 @@ options.setTrilinosParameter("sa: use filtered matrix", True)
 options.setTrilinosParameter("filtered matrix: use lumping", True)
 options.setTrilinosParameter("filtered matrix: reuse eigenvalue", True)
 # unsmoothed
-options.setTrilinosParamter("multigrid algorithm", "unsmoothed")
+options.setTrilinosParameter("multigrid algorithm", "unsmoothed")
 # pg
 options.setTrilinosParameter("multigrid algorithm", "pg")
 # interpolation
@@ -385,7 +435,7 @@ options.setTrilinosParameter("reuse: type", "full")
 \end{python}
 
 \subsubsection{repartitioning}
-If there are multiple processors it might be benificial to repartition as the mesh are coarsened including perhaps using only one processor for the coarsest grid.  This is to reduce communication costs for the caorser grids.
+If there are multiple processors it might be beneficial to repartition as the mesh are coarsened including perhaps using only one processor for the coarsest grid.  This is to reduce communication costs for the coarser grids.
 \begin{python}
 options.setTrilinosParameter("repartition: enable", False)
 options.setTrilinosParameter("repartition: start level", 2)
@@ -487,4 +537,29 @@ A more complicated example that controls the number of pre and post sweeps is in
 
 </ParameterList>
 \end{python}
+
+\section{Tips and Troubleshooting}
+
+\subsection{Choosing the Right Solver}
+\begin{itemize}
+\item For symmetric positive definite problems (e.g., Laplace, heat conduction), use \textbf{PCG with AMG} preconditioner for best performance.
+\item For non-symmetric problems (e.g., convection-dominated), use \textbf{GMRES} or \textbf{BiCGStab}.
+\item For small to medium problems (up to $\sim$50,000 unknowns), \textbf{direct solvers} (KLU2) are often fastest.
+\item For large problems, iterative solvers with AMG preconditioning scale much better than direct solvers.
+\end{itemize}
+
+\subsection{Performance Tips}
+\begin{itemize}
+\item Set \verb|pde.setSymmetryOn()| when the problem is symmetric---this enables more efficient solvers.
+\item For multiple solves with the same matrix, use reuse options: \verb|options.setTrilinosParameter("reuse: type", "full")|
+\item Increase verbosity (\verb|options.setVerbosityOn()|) to diagnose convergence issues.
+\item If PCG stalls, try increasing the tolerance or switching to GMRES.
+\end{itemize}
+
+\subsection{Common Issues}
+\begin{itemize}
+\item \textbf{Solver does not converge}: Try a stronger preconditioner (AMG instead of Jacobi), or use a direct solver for debugging.
+\item \textbf{Memory issues with large problems}: Use iterative solvers instead of direct solvers; reduce AMG coarse grid size.
+\item \textbf{Kokkos finalize crash}: This is a known issue at program exit and does not affect results. The solver completes correctly before this occurs.
+\end{itemize}
 
