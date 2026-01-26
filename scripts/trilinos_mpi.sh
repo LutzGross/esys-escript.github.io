@@ -17,7 +17,9 @@ cmake \
       -D TPL_ENABLE_Boost=ON \
       -D TPL_ENABLE_Cholmod=OFF \
       -D TPL_ENABLE_SCALAPACK=OFF \
-      -D TPL_ENABLE_ParMETIS=OFF \
+      -D TPL_ENABLE_ParMETIS=ON \
+      -D TPL_ParMETIS_INCLUDE_DIRS=/usr/include/parmetis \
+      -D TPL_ParMETIS_LIBRARIES="/usr/lib/x86_64-linux-gnu/libparmetis.so;/usr/lib/x86_64-linux-gnu/libmetis.so.5" \
       -D TPL_ENABLE_MUMPS=OFF \
       -D TPL_ENABLE_SuperLU=OFF \
       -D TPL_ENABLE_UMFPACK=OFF \
