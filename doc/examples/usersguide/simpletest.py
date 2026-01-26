@@ -27,5 +27,5 @@ options.setTrilinosParameter("verbosity", "low")
 print("solve pde")
 u=pde.getSolution() 
 
-saveSilo("asimple",u=u) 
+saveSilo("output/asimple",u=u)
 print("simpletest.py finished.")

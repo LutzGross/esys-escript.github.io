@@ -198,7 +198,8 @@ There is however, an obvious difference when the anisotropic case is considered.
 \section{Classes}
 A number of classes are associated with escript symbols. A detailed listing of the definitions and usage is provided below. 
 \subsection{Symbol class}
-\begin{classdesc}{Symbol}{symbol \optional{, shape} \optional{, Dim}}
+\subsubsection*{class Symbol(symbol \optional{, shape)}
+\optional{, Dim}}
 Defines a \SYMBOL object. The first argument \member{symbol} is a string given
 to represent the \SYMBOL. The string typically matches the name of the object,
 for instance \texttt{u=Symbol('u')}. Next optional \member{shape} argument
@@ -208,18 +209,18 @@ object contained in the \SYMBOL.
 For a \SYMBOL definition \texttt{u = Symbol('u',(10,), dim=2)}, the value of u
 will be a vector with 10 components and the domain on which u will be used is
 2-dimensional (this is relevant with operations such as \texttt{grad} where the
-number of spatial dimensions is important). 
-\end{classdesc}
+number of spatial dimensions is important).
+
 \subsubsection{Symbol class methods}
-\begin{methoddesc}[Symbol]{atoms}{\optional{types}}
+\paragraph{Symbol.atoms(\optional{types})}
 Returns the atoms that form the current \SYMBOL.
 By default, only objects that are truly atomic and cannot be divided into
 smaller pieces are returned: symbols, numbers, and number symbols like $e$ and
 $pi$. It is possible to request atoms of any type via the \member{types}
 argument, however.
-\end{methoddesc}
 
-\begin{methoddesc}[Symbol]{coeff}{x \optional{, expand=true}}
+
+\paragraph{Symbol.coeff(x \optional{, expand=true})}
 Returns the coefficient of the term \texttt{x} or $0$ if there is no \texttt{x}.
 If \texttt{x} is a scalar \SYMBOL then \texttt{x} is searched in all components
 of this \SYMBOL. Otherwise the shapes must match and the coefficients are
@@ -236,50 +237,53 @@ will print:
       [3 3]]
      [[0 0]
       [0 3]]
-\end{python} 
-\end{methoddesc}
-\begin{methoddesc}[Symbol]{diff}{symbols}
+\end{python}
+
+\paragraph{Symbol.diff(symbols)}
 Takes the derivative of the \SYMBOL object of which the method is called with
 respect to the symbols specified in the argument \member{symbols}.
-\end{methoddesc}
-\begin{methoddesc}[Symbol]{evalf}{}
+
+\paragraph{Symbol.evalf()}
 Applies the \texttt{sympy.evalf} operation on all elements of the \SYMBOL which
 are of type or inherit from \texttt{sympy.Basic}.
-\end{methoddesc}
-\begin{methoddesc}[Symbol]{expand}{}
+
+\paragraph{Symbol.expand()}
 Applies the \texttt{sympy.expand} operation on all elements in this \SYMBOL.
-\end{methoddesc}
-%\begin{methoddesc}[Symbol]{getDataSubstitutions}{}
+
+%\paragraph{Symbol.getDataSubstitutions()}
 %end{methoddesc}
-\begin{methoddesc}[Symbol]{getDim}{}
+
+\paragraph{Symbol.getDim()}
 Returns the \SYMBOL's spatial dimensionality, or -1 if undefined.
-\end{methoddesc}
-\begin{methoddesc}[Symbol]{getRank}{}
+
+\paragraph{Symbol.getRank()}
 Returns the \SYMBOL's rank which is equal to the length of the shape.
-\end{methoddesc}
-\begin{methoddesc}[Symbol]{getShape}{}
+
+\paragraph{Symbol.getShape()}
 Returns the shape of this \SYMBOL.
-\end{methoddesc}
-\begin{methoddesc}[Symbol]{grad}{\optional{where=none}}
+
+\paragraph{Symbol.grad(\optional{where=none})}
 Returns the gradient of this \SYMBOL. The \SYMBOL must have a dimensionality
 defined in order for \texttt{grad} to work. As with the normal escript
 \texttt{grad} function a \FunctionSpace can be specified using the
 \member{where} argument. The \FunctionSpace should be wrapped in a \SYMBOL.
 To do this, set up a \SYMBOL and then use the \texttt{subs} function to
 substitute in the \FunctionSpace.
-\end{methoddesc}
-\begin{methoddesc}[Symbol]{inverse}{}
+
+\paragraph{Symbol.inverse()}
 Find the inverse of the \SYMBOL to which the function is applied. Inverse is only valid for square rank 2 symbols.
-\end{methoddesc}
-%\begin{methoddesc}[Symbol]{item}{}
-%\end{methoddesc} 
-%\begin{methoddesc}[Symbol]{lambdarepr}{}
+
+%\paragraph{Symbol.item()}
+%
+ 
+%\paragraph{Symbol.lambdarepr()}
 %test
-%\end{methoddesc}
-\begin{methoddesc}[Symbol]{simplify}{}
+%
+
+\paragraph{Symbol.simplify()}
 Applies the \texttt{sympy.simplify} operation on all elements in this \SYMBOL.
-\end{methoddesc}
-\begin{methoddesc}[Symbol]{subs}{old, new}
+
+\paragraph{Symbol.subs(old, new)}
 Substitutes or replaces a \SYMBOL specified in \member{old} with whatever is in
 \member{new} for this \SYMBOL. Consider:
   \begin{python}
@@ -289,77 +293,78 @@ Substitutes or replaces a \SYMBOL specified in \member{old} with whatever is in
      expr.subs(u,2)
 \end{python}
 This prints 4.
-\end{methoddesc}
-\begin{methoddesc}[Symbol]{trace}{axis_offset}
+
+\paragraph{Symbol.trace(axis_offset)}
 Returns the trace of the \SYMBOL object.
-\end{methoddesc}
+
 
 \subsection{Evaluator class}
 The \EVALUATOR class is intended to have a group of expressions added to it,
 substitutions can be made across all expressions and the expressions can then
 all be evaluated.
 \subsubsection{Evaluator class methods}
-\begin{classdesc}{Evaluator}{\optional{expressions}}
+\subsubsection*{class Evaluator(\optional{expressions})}
 An \EVALUATOR object is initiated via \texttt{Evaluator()} with an optional
 argument of expressions to store.
-\end{classdesc}
-\begin{methoddesc}[Evaluator]{addExpression}{expression}
+
+\paragraph{Evaluator.addExpression(expression)}
 Adds an expression to this \EVALUATOR.
-\end{methoddesc}
-\begin{methoddesc}[Evaluator]{evaluate}{\optional{evalf=False}\optional{, args}}
+
+\paragraph{Evaluator.evaluate(\optional{evalf=False)}
+\optional{, args}}
 Evaluates all expressions in this \EVALUATOR and returns the result as a tuple.
 \member{evalf} can be set to \texttt{True} to call \texttt{evalf} on any sympy
 symbols which may be part of the expression.
 \member{args} can be provided to make any substitutions before the expression
 is evaluated.
-\end{methoddesc}
-\begin{methoddesc}[Evaluator]{subs}{old,new}
+
+\paragraph{Evaluator.subs(old,new)}
 Substitutes or replaces a \SYMBOL specified in \member{old} with whatever is
 in \member{new} for all expressions in the \EVALUATOR.
-\end{methoddesc}
+
 
 \subsection{NonlinearPDE class}
-\begin{classdesc}{NonlinearPDE}{domain, u}
+\subsubsection*{class NonlinearPDE(domain, u)}
 Defines a general nonlinear, steady, second order PDE for an unknown function
 \var{u} on a given domain defined through a \Domain object \var{domain}.
 \var{u} is a \SYMBOL object.
-The general form is -div(X) + Y = 0 
-\end{classdesc}
+The general form is -div(X) + Y = 0
+
 \iffalse
-\begin{methoddesc}[NonlinearPDE]{concatenateRow}{}
+\paragraph{NonlinearPDE.concatenateRow()}
 test
-\end{methoddesc}
-\begin{methoddesc}[NonlinearPDE]{createCoefficient}{}
+
+\paragraph{NonlinearPDE.createCoefficient()}
 test
-\end{methoddesc}
-\begin{methoddesc}[NonlinearPDE]{getUnknownSymbol}{}
+
+\paragraph{NonlinearPDE.getUnknownSymbol()}
 test
-\end{methoddesc}
-\begin{methoddesc}[NonlinearPDE]{getLinearSolverOptions}{}
+
+\paragraph{NonlinearPDE.getLinearSolverOptions()}
 test
-\end{methoddesc}
-\begin{methoddesc}[NonlinearPDE]{getLinearPDE}{}
+
+\paragraph{NonlinearPDE.getLinearPDE()}
 test
-\end{methoddesc}
-\begin{methoddesc}[NonlinearPDE]{getNumSolutions}{}
+
+\paragraph{NonlinearPDE.getNumSolutions()}
 test
-\end{methoddesc}
-\begin{methoddesc}[NonlinearPDE]{getShapeOfCoefficient}{}
+
+\paragraph{NonlinearPDE.getShapeOfCoefficient()}
 test
-\end{methoddesc}
-\begin{methoddesc}[NonlinearPDE]{getCoefficient}{}
+
+\paragraph{NonlinearPDE.getCoefficient()}
 test
-\end{methoddesc}
-\begin{methoddesc}[NonlinearPDE]{getSensitivity}{}
+
+\paragraph{NonlinearPDE.getSensitivity()}
 test
-\end{methoddesc}
+
 \fi
-\begin{methoddesc}[NonlinearPDE]{getSolution}{subs}
+\paragraph{NonlinearPDE.getSolution(subs)}
 Returns the solution of the PDE. \member{subs} contatins the substitutions for
 all symbols used in the coefficients including the initial value for the
 unknown \texttt{u}.
-\end{methoddesc}
-\begin{methoddesc}[NonlinearPDE]{setOptions}{opts}
+
+\paragraph{NonlinearPDE.setOptions(opts)}
 \begin{verbatim}
   Allows setting options for the nonlinear PDE.
   The supported options are:
@@ -384,18 +389,14 @@ unknown \texttt{u}.
         simplified Newton-Raphson scheme.
 \end{verbatim}
 
-\end{methoddesc}
-\begin{methoddesc}[NonlinearPDE]{setValue}{
-\optional{X}\optional{, Y}
-\optional{, y}
-\optional{, q}\optional{, r}}
+\paragraph{NonlinearPDE.setValue(\optional{X}\optional{, Y}\optional{, y}\optional{, q}\optional{, r})}
 Assigns new values to coefficients. By default all values are assumed to be
 zero\footnote{In fact, it is assumed they are not present by assigning the
 value \code{escript.Data()}. This can be used by the solver library to reduce
 computational costs.}.
 If the new coefficient value is not a \Data object, it is converted into a
 \Data object in the appropriate \FunctionSpace.
-\end{methoddesc}
+
 
 \subsection{Symconsts class}
 Symconsts provides symbolic constants for use in symbolic expressions. These constants are preferred to floating point implementation as they can cancel perfectly when mathematical expressions are evaluated, avoiding numerical imprecision. 

@@ -194,18 +194,18 @@ This is the general class to define a linear PDE in \escript.
 We list a selection of the most important methods of the class.
 For a complete list, see the reference at \ReferenceGuide.
 
-\begin{classdesc}{LinearPDE}{domain,numEquations=0,numSolutions=0}
+\subsubsection*{class LinearPDE(domain,numEquations=0,numSolutions=0)}
 opens a linear, steady, second order PDE on the \Domain \var{domain}.
 The parameters \var{numEquations} and \var{numSolutions} give the number of
 equations and the number of solution components.
 If \var{numEquations} and \var{numSolutions} are non-positive, then the number
 of equations and the number of solutions, respectively, stay undefined until a
 coefficient is defined.
-\end{classdesc}
+
 
 \subsubsection{\LinearPDE methods}
-\begin{methoddesc}[LinearPDE]{setValue}{
-\optional{A}\optional{, B},
+\paragraph{LinearPDE.setValue(\optional{A)}
+\optional{, B},
 \optional{, C}\optional{, D}
 \optional{, X}\optional{, Y}
 \optional{, d}\optional{, y}
@@ -218,118 +218,119 @@ value \code{escript.Data()}. This can be used by the solver library to reduce
 computational costs.}.
 If the new coefficient value is not a \Data object, it is converted into a
 \Data object in the appropriate \FunctionSpace.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{getCoefficient}{name}
+
+\paragraph{LinearPDE.getCoefficient(name)}
 returns the value assigned to coefficient \var{name}. If \var{name} is not a
 valid name an exception is raised.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{getShapeOfCoefficient}{name}
+
+\paragraph{LinearPDE.getShapeOfCoefficient(name)}
 returns the shape of the coefficient \var{name} even if no value has been
 assigned to it.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{getFunctionSpaceForCoefficient}{name}
+
+\paragraph{LinearPDE.getFunctionSpaceForCoefficient(name)}
 returns the \FunctionSpace of the coefficient \var{name} even if no value has
 been assigned to it.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{setDebugOn}{}
+
+\paragraph{LinearPDE.setDebugOn()}
 switches on debug mode so more diagnostic messages will be printed.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{setDebugOff}{}
+
+\paragraph{LinearPDE.setDebugOff()}
 switches off debug mode.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{getSolverOptions}{}
+
+\paragraph{LinearPDE.getSolverOptions()}
 returns the solver options for solving the PDE. In fact, the method returns
 a \SolverOptions class object which can be used to modify the tolerance,
 the solver or the preconditioner, see \Sec{SEC Solver Options} for details.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{setSolverOptions}{\optional{options=None}}
+
+\paragraph{LinearPDE.setSolverOptions(\optional{options=None)}
+}
 sets the solver options for solving the PDE. If argument \var{options} is
 present it must be a \SolverOptions class object, see \Sec{SEC Solver Options}
 for details. Otherwise the solver options are reset to the default.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{isUsingLumping}{}
+
+\paragraph{LinearPDE.isUsingLumping()}
 returns \True if matrix lumping is set as the solver for the system of linear
 equations, \False otherwise.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{getDomain}{}
+
+\paragraph{LinearPDE.getDomain()}
 returns the \Domain of the PDE.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{getDim}{}
+
+\paragraph{LinearPDE.getDim()}
 returns the number of spatial dimensions of the PDE.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{getNumEquations}{}
+
+\paragraph{LinearPDE.getNumEquations()}
 returns the number of equations.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{getNumSolutions}{}
+
+\paragraph{LinearPDE.getNumSolutions()}
 returns the number of components of the solution.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{checkSymmetry}{verbose=\False}
+
+\paragraph{LinearPDE.checkSymmetry(verbose=\False)}
 returns \True if the PDE is symmetric, \False otherwise.
 The method is very computationally expensive and should only be called for
 testing purposes. The symmetry flag is not altered.
 If \var{verbose=True} information about where symmetry is violated is printed.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{getFlux}{u}
+
+\paragraph{LinearPDE.getFlux(u)}
 returns the flux $J_{ij}$\index{flux} for given solution \var{u} defined by
 \eqn{LINEARPDE.SYSTEM.5} and \eqn{LINEARPDE.SINGLE.5}.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{isSymmetric}{}
+
+\paragraph{LinearPDE.isSymmetric()}
 returns \True if the PDE has been indicated to be symmetric, \False otherwise.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{setSymmetryOn}{}
+
+\paragraph{LinearPDE.setSymmetryOn()}
 indicates that the PDE is symmetric which enables the use of certain solvers
 and can potentially speed up the solver.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{setSymmetryOff}{}
+
+\paragraph{LinearPDE.setSymmetryOff()}
 indicates that the PDE is not symmetric.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{setReducedOrderOn}{}
+
+\paragraph{LinearPDE.setReducedOrderOn()}
 enables the reduction of polynomial order for the solution and equation
 evaluation even if a quadratic or higher interpolation order is defined in the
 \Domain. This feature may not be supported by all PDE libraries.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{setReducedOrderOff}{}
+
+\paragraph{LinearPDE.setReducedOrderOff()}
 disables the reduction of polynomial order for the solution and equation evaluation.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{getOperator}{}
+
+\paragraph{LinearPDE.getOperator()}
 returns the \Operator of the PDE.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{getRightHandSide}{}
+
+\paragraph{LinearPDE.getRightHandSide()}
 returns the right hand side of the PDE as a \Data object.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{getSystem}{}
+
+\paragraph{LinearPDE.getSystem()}
 returns the \Operator and right hand side of the PDE as a tuple.
-\end{methoddesc}
 
-\begin{methoddesc}[LinearPDE]{getSolution}{}
+
+\paragraph{LinearPDE.getSolution()}
 returns (an approximation of) the solution of the PDE. This call will invoke
 the discretization of the PDE and the solution of the resulting system of
 linear equations. Keep in mind that this call is typically computationally
 expensive and -- depending on the PDE and the discretization -- can take a
-long time to complete. 
-\end{methoddesc}
+long time to complete.
+
 
 \subsection{The \Poisson Class}
 The \Poisson class provides an easy way to define and solve the Poisson
@@ -347,12 +348,12 @@ u=0 \mbox{ where } q>0 .
 \end{equation}
 $f$ has to be a \Scalar in the \Function and $q$ must be a \Scalar in the \SolutionFS.
 
-\begin{classdesc}{Poisson}{domain}
+\subsubsection*{class Poisson(domain)}
 opens a Poisson equation on the \Domain domain. \Poisson is derived from \LinearPDE.
-\end{classdesc}
-\begin{methoddesc}[Poisson]{setValue}{f=escript.Data(),q=escript.Data()}
+
+\paragraph{Poisson.setValue(f=escript.Data(),q=escript.Data())}
 assigns new values to \var{f} and \var{q}.
-\end{methoddesc}
+
 
 \subsection{The \Helmholtz Class}
 The \Helmholtz class defines the Helmholtz problem
@@ -372,13 +373,14 @@ $\alpha$ must be a \Scalar in the \FunctionOnBoundary, and $q$ and $r$ must be
 a \Scalar in the \SolutionFS or must be mapped or interpolated into the
 particular \FunctionSpace.
 
-\begin{classdesc}{Helmholtz}{domain}
+\subsubsection*{class Helmholtz(domain)}
 opens a Helmholtz equation on the \Domain domain. \Helmholtz is derived from \LinearPDE.
-\end{classdesc}
-\begin{methoddesc}[Helmholtz]{setValue}{ \optional{omega} \optional{, k} \optional{, f} \optional{, alpha} \optional{, g} \optional{, r} \optional{, q}}
+
+\paragraph{Helmholtz.setValue(\optional{omega)}
+\optional{, k} \optional{, f} \optional{, alpha} \optional{, g} \optional{, r} \optional{, q}}
 assigns new values to \var{omega}, \var{k}, \var{f}, \var{alpha}, \var{g},
 \var{r}, and \var{q}. By default all values are set to zero.
-\end{methoddesc}
+
 
 \subsection{The \Lame Class}
 The \Lame class defines a Lam\'e equation problem
@@ -399,13 +401,14 @@ $f$ must be a \Vector in the \FunctionOnBoundary, and $q$ and $r$ must be a
 \Vector in the \SolutionFS or must be mapped or interpolated into the
 particular \FunctionSpace.
 
-\begin{classdesc}{Lame}{domain}
+\subsubsection*{class Lame(domain)}
 opens a Lam\'e equation on the \Domain domain. \Lame is derived from \LinearPDE.
-\end{classdesc}
-\begin{methoddesc}[Lame]{setValue}{ \optional{lame_lambda} \optional{, lame_mu} \optional{, F} \optional{, sigma} \optional{, f} \optional{, r} \optional{, q}}
+
+\paragraph{Lame.setValue(\optional{lame_lambda)}
+\optional{, lame_mu} \optional{, F} \optional{, sigma} \optional{, f} \optional{, r} \optional{, q}}
 assigns new values to \var{lame_lambda}, \var{lame_mu}, \var{F}, \var{sigma},
 \var{f}, \var{r}, and \var{q}. By default all values are set to zero.
-\end{methoddesc}
+
 
 \section{Projection}
 %\declaremodule{extension}{esys.escript.pdetools}
@@ -464,7 +467,8 @@ boundary from a given displacement field \var{u}:
   normal_stress = inner(u.getDomain().getNormal(), proj(stress))
 \end{python}
 
-\begin{classdesc}{Projector}{domain\optional{, reduce=\True \optional{, fast=\True}}}
+\subsubsection*{class Projector(domain\optional{, reduce=\True \optional{, fast=\True)}
+}}
 This class defines a projector on the domain \var{domain}.
 If \var{reduce} is set to \True the projection will be returned as a
 \ReducedSolutionFS \Data object.
@@ -473,18 +477,18 @@ If \var{reduce} is set to \True lumping is used when the \eqn{PROJ.1} is
 solved, otherwise the standard PDE solver is used.
 Notice, that lumping requires significantly less computation time and memory.
 The class is callable.
-\end{classdesc}
 
-\begin{methoddesc}[Projector]{getSolverOptions}{}
+
+\paragraph{Projector.getSolverOptions()}
 returns the solver options for solving the PDE. In fact, the method returns
 a \SolverOptions class object which can be used to modify the tolerance,
 the solver or the preconditioner, see \Sec{SEC Solver Options} for details.
-\end{methoddesc}
 
-\begin{methoddesc}[Projector]{getValue}{input_data}
+
+\paragraph{Projector.getValue(input_data)}
 projects the \var{input_data}. This method is equivalent to call an instance
 of the class with argument \var{input_data}
-\end{methoddesc}
+
 
 % \section{Transport Problems}
 % \label{SEC Transport}
@@ -494,20 +498,20 @@ of the class with argument \var{input_data}
 \section{Solver Options}
 \label{SEC Solver Options}
 
-\begin{classdesc}{SolverOptions}{}
+\subsubsection*{class SolverOptions}
 This class defines the solver options for a linear or non-linear solver.
 The option also supports the handling of diagnostic information.
-\end{classdesc}
 
-\begin{methoddesc}[SolverOptions]{getSummary}{}
+
+\paragraph{SolverOptions.getSummary()}
 returns a string reporting the current settings.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getName}{key}
+
+\paragraph{SolverOptions.getName(key)}
 returns the name as a string of a given key.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setSolverMethod}{method}
+
+\paragraph{SolverOptions.setSolverMethod(method)}
 sets the solver method to be used.
 Use \var{method}=\member{SolverOptions.DIRECT} to indicate that a direct
 rather than an iterative solver should be used and use
@@ -541,13 +545,13 @@ Not all packages support all solvers. It can be assumed that a package makes a
 reasonable choice if it encounters an unknown solver.
 See Table~Reference [\ref{TAB FINLEY SOLVER OPTIONS 1}] for the solvers supported by
 \finley.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getSolverMethod}{}
-returns the key of the solver method to be used. 
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setPreconditioner}{preconditioner}
+\paragraph{SolverOptions.getSolverMethod()}
+returns the key of the solver method to be used.
+
+
+\paragraph{SolverOptions.setPreconditioner(preconditioner)}
 sets the preconditioner to be used.
 The value of \var{preconditioner} must be one of the constants:\\
  \member{SolverOptions.AMG} -- Algebraic Multi Grid\\
@@ -563,13 +567,13 @@ Not all packages support all preconditioners. It can be assumed that a package
 makes a reasonable choice if it encounters an unknown preconditioner.
 See Table~Reference [\ref{TAB FINLEY SOLVER OPTIONS 2}] for the preconditioners supported
 by \finley.
-\end{methoddesc}
-   
-\begin{methoddesc}[SolverOptions]{getPreconditioner}{}
-returns the key of the preconditioner to be used.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setPackage}{package}
+   
+\paragraph{SolverOptions.getPreconditioner()}
+returns the key of the preconditioner to be used.
+
+
+\paragraph{SolverOptions.setPackage(package)}
 sets the solver package to be used as a solver.
 The value of \var{package} must be one of the constants:\\
  \member{SolverOptions.DEFAULT} -- choose a default depending on other options\\
@@ -585,13 +589,14 @@ available, \member{SolverOptions.MKL}\footnote{If the stiffness matrix is
 non-regular \MKL may return without returning a proper error code.
 If you observe suspicious solutions when using MKL, this may be caused by a
 non-invertible operator.} and \member{SolverOptions.UMFPACK}.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getPackage}{}
+
+\paragraph{SolverOptions.getPackage()}
 returns the solver package key.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setTrilinosParameter}{\optional{ name , value}}
+
+\paragraph{SolverOptions.setTrilinosParameter(\optional{ name , value)}
+}
 sets Trilinos parameters for use by MueLu and Trilinos iterative and direct solvers.  It is important that the exact space between words is included in the names.
 The following keywords are supported:\\
 \var{"verbosity"}:  controls level of AMG output,  
@@ -644,14 +649,16 @@ The following keywords are supported:\\
 %options.setTrilinosParameter("repartition: remap parts", True)
 %options.setTrilinosParameter("repartition: rebalance P and R", False)
 \var{"xml~parameter~file"}:  name of XML file containing chosen XML parameters\\
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{resetDiagnostics}{\optional{all=False}}
+
+\paragraph{SolverOptions.resetDiagnostics(\optional{all=False)}
+}
 resets the diagnostics. If \var{all} is \True all diagnostics, including
 accumulative counters, are reset.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getDiagnostics}{\optional{ name}}
+
+\paragraph{SolverOptions.getDiagnostics(\optional{ name)}
+}
 returns the diagnostic information \var{name}. The following keywords are
 supported:\\
  \var{"num_iter"}: number of iteration steps\\
@@ -673,16 +680,15 @@ supported:\\
  \var{"time_step_backtracking_used"}: whether the time step size was reduced after convergence failure \\
  \var{"coarse_level_sparsity"}: the sparsity at coarse level (AMG only) \\
  \var{"num_coarse_unknowns"}: number of unknowns at coarse level (AMG only) .
- 
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{hasConverged}{}
+
+\paragraph{SolverOptions.hasConverged()}
 returns \True if the last solver call has been finalized successfully.
 If an exception has been thrown by the solver the status of this flag is undefined.
-\end{methoddesc}
 
 
-\begin{methoddesc}[SolverOptions]{setReordering}{ordering}
+
+\paragraph{SolverOptions.setReordering(ordering)}
 sets the key of the reordering method to be applied if supported by the solver.
 Some direct solvers support reordering to optimize compute time and storage
 use during elimination. The value of \var{ordering} must be one of the
@@ -691,217 +697,252 @@ constants:\\
  \member{SolverOptions.MINIMUM_FILL_IN} -- reorder matrix to reduce fill-in during factorization\\
  \member{SolverOptions.NESTED_DISSECTION} -- reorder matrix to improve load balancing during factorization\\
  \member{SolverOptions.NO_REORDERING} -- no matrix reordering applied.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getReordering}{}
+
+\paragraph{SolverOptions.getReordering()}
 returns the key of the reordering method to be applied if supported by the solver.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setRestart}{\optional{restart=None}}
+
+\paragraph{SolverOptions.setRestart(\optional{restart=None)}
+}
 sets the number of iterations steps after which \GMRES is to perform a restart.
 If \var{restart} is equal to \var{None} no restart is performed.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getRestart}{}
+
+\paragraph{SolverOptions.getRestart()}
 returns the number of iterations steps after which \GMRES performs a restart.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setTruncation}{\optional{truncation=20}}
+
+\paragraph{SolverOptions.setTruncation(\optional{truncation=20)}
+}
 sets the number of residuals in \GMRES to be stored for orthogonalization. 
 The more residuals are stored the faster \GMRES converges but the higher the storage needs are and the more expensive
 a single iteration step becomes.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getTruncation}{}
+
+\paragraph{SolverOptions.getTruncation()}
 returns the number of residuals in \GMRES to be stored for orthogonalization.
-\end{methoddesc}
 
 
-\begin{methoddesc}[SolverOptions]{setIterMax}{\optional{iter_max=10000}}
+
+\paragraph{SolverOptions.setIterMax(\optional{iter_max=10000)}
+}
 sets the maximum number of iteration steps.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getIterMax}{}
+
+\paragraph{SolverOptions.getIterMax()}
 returns maximum number of iteration steps.
-\end{methoddesc}
 
-%\begin{methoddesc}[SolverOptions]{setLevelMax}{\optional{level_max=10}}
+
+%\paragraph{SolverOptions.setLevelMax(\optional{level_max=10)}
+%}
 %sets the maximum number of coarsening levels to be used in the \AMG solver or
 %preconditioner.
-%\end{methoddesc}
+%
 
-%\begin{methoddesc}[SolverOptions]{getLevelMax}{}
+
+%\paragraph{SolverOptions.getLevelMax()}
 %returns the maximum number of coarsening levels to be used in an algebraic
 %multi level solver or preconditioner.
-%\end{methoddesc}
+%
 
-%\begin{methoddesc}[SolverOptions]{setCoarseningThreshold}{\optional{theta=0.25}}
+
+%\paragraph{SolverOptions.setCoarseningThreshold(\optional{theta=0.25)}
+%}
 %sets the threshold for coarsening in the \AMG solver or preconditioner.
-%\end{methoddesc}
+%
 
-%\begin{methoddesc}[SolverOptions]{getCoarseningThreshold}{}
+
+%\paragraph{SolverOptions.getCoarseningThreshold()}
 %returns the threshold for coarsening in the \AMG solver or preconditioner.
-%\end{methoddesc}
+%
 
-%\begin{methoddesc}[SolverOptions]{setDiagonalDominanceThreshold}{\optional{value=0.5}}
+
+%\paragraph{SolverOptions.setDiagonalDominanceThreshold(\optional{value=0.5)}
+%}
 %sets the threshold for diagonal dominant rows which are eliminated during \AMG  coarsening.
-%\end{methoddesc}
+%
 
-%\begin{methoddesc}[SolverOptions]{getDiagonalDominanceThreshold}{}
+
+%\paragraph{SolverOptions.getDiagonalDominanceThreshold()}
 %returns the threshold for diagonal dominant rows which are eliminated during \AMG  coarsening.
-%\end{methoddesc}
+%
 
-%\begin{methoddesc}[SolverOptions]{setMinCoarseMatrixSize}{\optional{size=500}}
+
+%\paragraph{SolverOptions.setMinCoarseMatrixSize(\optional{size=500)}
+%}
 %sets the minimum size of the coarsest level matrix in \AMG.
-%\end{methoddesc}
+%
 
-%\begin{methoddesc}[SolverOptions]{getMinCoarseMatrixSize}{}
+
+%\paragraph{SolverOptions.getMinCoarseMatrixSize()}
 %returns the minimum size of the coarsest level matrix in \AMG.
-%\end{methoddesc}
+%
 
-%\begin{methoddesc}[SolverOptions]{setSmoother}{\optional{smoother=\GAUSSSEIDEL}}
+
+%\paragraph{SolverOptions.setSmoother(\optional{smoother=\GAUSSSEIDEL)}
+%}
 %sets the \JACOBI or \GAUSSSEIDEL smoother to be used with \AMG.
-%\end{methoddesc}
+%
 
-%\begin{methoddesc}[SolverOptions]{getSmoother}{}
+
+%\paragraph{SolverOptions.getSmoother()}
 %returns the key of the smoother used in \AMG.
-%\end{methoddesc}
+%
 
-%\begin{methoddesc}[SolverOptions]{setAMGInterpolation}{\optional{method=\var{None}}}
+
+%\paragraph{SolverOptions.setAMGInterpolation(\optional{method=\var{None)}
+%}}
 %sets interpolation method for \AMG to
 %\member{CLASSIC_INTERPOLATION_WITH_FF_COUPLING},
 %\member{CLASSIC_INTERPOLATION}, or
 %\member{DIRECT_INTERPOLATION}.
-%\end{methoddesc}
+%
 
-%\begin{methoddesc}[SolverOptions]{getAMGInterpolation}{}
+
+%\paragraph{SolverOptions.getAMGInterpolation()}
 %returns the key of the interpolation method for \AMG.
-%\end{methoddesc}
+%
 
-%\begin{methoddesc}[SolverOptions]{setNumSweeps}{\optional{sweeps=2}}
+
+%\paragraph{SolverOptions.setNumSweeps(\optional{sweeps=2)}
+%}
 %sets the number of sweeps in a \JACOBI or \GAUSSSEIDEL preconditioner.
-%\end{methoddesc}
+%
 
-%\begin{methoddesc}[SolverOptions]{getNumSweeps}{}
+
+%\paragraph{SolverOptions.getNumSweeps()}
 %returns the number of sweeps in a \JACOBI or \GAUSSSEIDEL preconditioner.
-%\end{methoddesc}
+%
 
-%\begin{methoddesc}[SolverOptions]{setNumPreSweeps}{\optional{sweeps=2}}
+
+%\paragraph{SolverOptions.setNumPreSweeps(\optional{sweeps=2)}
+%}
 %sets the number of sweeps in the pre-smoothing step of \AMG.
-%\end{methoddesc}
+%
 
-%\begin{methoddesc}[SolverOptions]{getNumPreSweeps}{}
+
+%\paragraph{SolverOptions.getNumPreSweeps()}
 %returns the number of sweeps in the pre-smoothing step of \AMG.
-%\end{methoddesc}
+%
 
-%\begin{methoddesc}[SolverOptions]{setNumPostSweeps}{\optional{sweeps=2}}
+
+%\paragraph{SolverOptions.setNumPostSweeps(\optional{sweeps=2)}
+%}
 %sets the number of sweeps in the post-smoothing step of \AMG.
-%\end{methoddesc}
+%
 
-%\begin{methoddesc}[SolverOptions]{getNumPostSweeps}{}
+
+%\paragraph{SolverOptions.getNumPostSweeps()}
 %returns he number of sweeps in the post-smoothing step of \AMG.
-%\end{methoddesc}
+%
 
-\begin{methoddesc}[SolverOptions]{setTolerance}{\optional{rtol=1.e-8}}
+
+\paragraph{SolverOptions.setTolerance(\optional{rtol=1.e-8)}
+}
 sets the relative tolerance for the solver. The actual meaning of tolerance
 depends on the underlying PDE library. In most cases, the tolerance
 will only consider the error from solving the discrete problem but will
 not consider any discretization error.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getTolerance}{}
+
+\paragraph{SolverOptions.getTolerance()}
 returns the relative tolerance for the solver.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setAbsoluteTolerance}{\optional{atol=0.}}
+
+\paragraph{SolverOptions.setAbsoluteTolerance(\optional{atol=0.)}
+}
 sets the absolute tolerance for the solver. The actual meaning of tolerance
 depends on the underlying PDE library. In most cases, the tolerance
 will only consider the error from solving the discrete problem but will
 not consider any discretization error.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getAbsoluteTolerance}{}
+
+\paragraph{SolverOptions.getAbsoluteTolerance()}
 returns the absolute tolerance for the solver.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setInnerTolerance}{\optional{rtol=0.9}}
+
+\paragraph{SolverOptions.setInnerTolerance(\optional{rtol=0.9)}
+}
 sets the relative tolerance for an inner iteration scheme, for instance
 on the coarsest level in a multi-level scheme.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getInnerTolerance}{}
+
+\paragraph{SolverOptions.getInnerTolerance()}
 returns the relative tolerance for an inner iteration scheme.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setRelaxationFactor}{\optional{factor=0.3}}
+
+\paragraph{SolverOptions.setRelaxationFactor(\optional{factor=0.3)}
+}
 sets the relaxation factor used to add dropped elements in \RILU to the main diagonal.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getRelaxationFactor}{}
+
+\paragraph{SolverOptions.getRelaxationFactor()}
 returns the relaxation factor used to add dropped elements in \RILU to the main diagonal.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{isSymmetric}{}
+
+\paragraph{SolverOptions.isSymmetric()}
 returns \True if the discrete system is indicated as symmetric.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setSymmetryOn}{}
+
+\paragraph{SolverOptions.setSymmetryOn()}
 sets the symmetry flag to indicate that the coefficient matrix is symmetric.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setSymmetryOff}{}
+
+\paragraph{SolverOptions.setSymmetryOff()}
 clears the symmetry flag for the coefficient matrix.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{isVerbose}{}
+
+\paragraph{SolverOptions.isVerbose()}
 returns \True if the solver is expected to be verbose.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setVerbosityOn}{}
+
+\paragraph{SolverOptions.setVerbosityOn()}
 switches the verbosity of the solver on.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setVerbosityOff}{}
+
+\paragraph{SolverOptions.setVerbosityOff()}
 switches the verbosity of the solver off.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{adaptInnerTolerance}{}
+
+\paragraph{SolverOptions.adaptInnerTolerance()}
 returns \True if the tolerance of the inner solver is selected automatically.
 Otherwise the inner tolerance set by \member{setInnerTolerance} is used.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setInnerToleranceAdaptionOn}{}
+
+\paragraph{SolverOptions.setInnerToleranceAdaptionOn()}
 switches the automatic selection of inner tolerance on.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setInnerToleranceAdaptionOff}{}
+
+\paragraph{SolverOptions.setInnerToleranceAdaptionOff()}
 switches the automatic selection of inner tolerance off.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setInnerIterMax}{\optional{iter_max=10}}
+
+\paragraph{SolverOptions.setInnerIterMax(\optional{iter_max=10)}
+}
 sets the maximum number of iteration steps for the inner iteration.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getInnerIterMax}{}
+
+\paragraph{SolverOptions.getInnerIterMax()}
 returns the maximum number of inner iteration steps.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{acceptConvergenceFailure}{}
+
+\paragraph{SolverOptions.acceptConvergenceFailure()}
 returns \True if a failure to meet the stopping criteria within the given
 number of iteration steps is not raising in exception. This is useful
 if a solver is used in a non-linear context where the non-linear solver can
 continue even if the returned solution does not necessarily meet the stopping
 criteria. One can use the \member{hasConverged} method to check if the
 last call to the solver was successful.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setAcceptanceConvergenceFailureOn}{}
+
+\paragraph{SolverOptions.setAcceptanceConvergenceFailureOn()}
 switches the acceptance of a failure of convergence on.
-\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setAcceptanceConvergenceFailureOff}{}
+
+\paragraph{SolverOptions.setAcceptanceConvergenceFailureOff()}
 switches the acceptance of a failure of convergence off.
-\end{methoddesc}
+
     
 \begin{memberdesc}[SolverOptions]{DEFAULT}
 default method, preconditioner or package to be used to solve the PDE.

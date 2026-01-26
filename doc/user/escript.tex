@@ -416,203 +416,203 @@ simply run it again and it would resume at the point it stopped before.
 \section{\escript Classes}
 
 \subsection{The \Domain class}
-\begin{classdesc}{Domain}{}
+\subsubsection*{class Domain}
 A \Domain object is used to describe a geometric region together with
 a way of representing functions over this region.
 The \Domain class provides an abstract interface to the domain of \FunctionSpace and \Data objects.
 \Domain needs to be subclassed in order to provide a complete implementation.
-\end{classdesc}
+
 
 \vspace{1em}\noindent The following methods are available:
-\begin{methoddesc}[Domain]{getDim}{}
-    returns the number of spatial dimensions of the \Domain.
-\end{methoddesc}
+\paragraph{Domain.getDim()}
+returns the number of spatial dimensions of the \Domain.
+
 %
-\begin{methoddesc}[Domain]{dump}{filename}
-    writes the \Domain to the file \var{filename} using the \HDF\ file format.
-\end{methoddesc}
+\paragraph{Domain.dump(filename)}
+writes the \Domain to the file \var{filename} using the \HDF\ file format.
+
 %
-\begin{methoddesc}[Domain]{getX}{}
-    returns the locations in the \Domain. The \FunctionSpace of the returned
+\paragraph{Domain.getX()}
+returns the locations in the \Domain. The \FunctionSpace of the returned
     \Data object is chosen by the \Domain implementation. Typically it will be
     in the \ContinuousFunction.
-\end{methoddesc}
 
-\begin{methoddesc}[Domain]{getNumpyX}{}
-    returns the locations in the \Domain as a \numpy ndarray. The \FunctionSpace
+
+\paragraph{Domain.getNumpyX()}
+returns the locations in the \Domain as a \numpy ndarray. The \FunctionSpace
     of the returned \Data object is chosen by the \Domain implementation.
     Typically it will be in the \ContinuousFunction.
 
     Note that it is necessary to load \numpy first in the escript.
-\end{methoddesc}
+
 %
-\begin{methoddesc}[Domain]{setX}{newX}
-    assigns new locations to the \Domain. \var{newX} has to have \Shape $(d,)$
+\paragraph{Domain.setX(newX)}
+assigns new locations to the \Domain. \var{newX} has to have \Shape $(d,)$
     where $d$ is the spatial dimensionality of the domain. Typically \var{newX}
     must be in the \ContinuousFunction but the space actually to be used
     depends on the \Domain implementation. Not all domain families support
     setting locations.
-\end{methoddesc}
+
 %
-\begin{methoddesc}[Domain]{getNormal}{}
-    returns the surface normals on the boundary of the \Domain as a \Data object.
-\end{methoddesc}
+\paragraph{Domain.getNormal()}
+returns the surface normals on the boundary of the \Domain as a \Data object.
+
 %
-\begin{methoddesc}[Domain]{getSize}{}
-    returns the local sample size, i.e. the element diameter, as a \Data object.
-\end{methoddesc}
+\paragraph{Domain.getSize()}
+returns the local sample size, i.e. the element diameter, as a \Data object.
+
 %
-\begin{methoddesc}[Domain]{setTagMap}{tag_name, tag}
-    defines a mapping of the tag name \var{tag_name} to the \var{tag}.
-\end{methoddesc}
+\paragraph{Domain.setTagMap(tag_name, tag)}
+defines a mapping of the tag name \var{tag_name} to the \var{tag}.
+
 %
-\begin{methoddesc}[Domain]{getTag}{tag_name}
-    returns the tag associated with the tag name \var{tag_name}.
-\end{methoddesc}
+\paragraph{Domain.getTag(tag_name)}
+returns the tag associated with the tag name \var{tag_name}.
+
 %
-\begin{methoddesc}[Domain]{isValidTagName}{tag_name}
-    returns \True if \var{tag_name} is a valid tag name.
-\end{methoddesc}
+\paragraph{Domain.isValidTagName(tag_name)}
+returns \True if \var{tag_name} is a valid tag name.
+
 %
-\begin{methoddesc}[Domain]{__eq__}{arg}
-    (\PYTHON \var{==} operator) returns \True if the \Domain \var{arg}
+\paragraph{Domain.__eq__(arg)}
+(\PYTHON \var{==} operator) returns \True if the \Domain \var{arg}
     describes the same domain, \False otherwise.
-\end{methoddesc}
+
 %
-\begin{methoddesc}[Domain]{__ne__}{arg}
-    (\PYTHON \var{!=} operator) returns \True if the \Domain \var{arg} does
+\paragraph{Domain.__ne__(arg)}
+(\PYTHON \var{!=} operator) returns \True if the \Domain \var{arg} does
     not describe the same domain, \False otherwise.
-\end{methoddesc}
+
 %
-\begin{methoddesc}[Domain]{__str__}{}
-    (\PYTHON \var{str()} function) returns a string representation of the
+\paragraph{Domain.__str__()}
+(\PYTHON \var{str()} function) returns a string representation of the
     \Domain.
-\end{methoddesc}
+
 %
-\begin{methoddesc}[Domain]{isRootRank}{}
-    returns \True if the process is the root rank (rank 0) within the \MPI
+\paragraph{Domain.isRootRank()}
+returns \True if the process is the root rank (rank 0) within the \MPI
     process group used by the \Domain.
     If \MPI support is not enabled the return value is always \True.
-\end{methoddesc}
+
 %
-\begin{methoddesc}[Domain]{getMPISize}{}
-    returns the number of \MPI processes used for this \Domain. If \MPI
+\paragraph{Domain.getMPISize()}
+returns the number of \MPI processes used for this \Domain. If \MPI
     support is not enabled 1 is returned.
-\end{methoddesc}
+
 %
-\begin{methoddesc}[Domain]{getMPIRank}{}
-    returns the rank of the process executing the statement within the
+\paragraph{Domain.getMPIRank()}
+returns the rank of the process executing the statement within the
     \MPI process group used by the \Domain. If \MPI support is not enabled
     0 is returned.
-\end{methoddesc}
+
 %
-\begin{methoddesc}[Domain]{MPIBarrier}{}
-    executes barrier synchronization within the \MPI process group used by
+\paragraph{Domain.MPIBarrier()}
+executes barrier synchronization within the \MPI process group used by
     the \Domain. If \MPI support is not enabled, this command does nothing.
-\end{methoddesc}
+
 
 \subsection{The \FunctionSpace class}
-\begin{classdesc}{FunctionSpace}{}
+\subsubsection*{class FunctionSpace}
 \FunctionSpace objects, which are instantiated by generator functions, are
 used to define properties of \Data objects such as continuity.
 A \Data object in a particular \FunctionSpace is represented by its values at
 \DataSamplePoints which are defined by the type and the \Domain of the \FunctionSpace.
-\end{classdesc}
+
 
 \vspace{1em}\noindent The following methods are available:
 %
-\begin{methoddesc}[FunctionSpace]{getDim}{}
-    returns the spatial dimensionality of the \Domain of the \FunctionSpace.
-\end{methoddesc}
+\paragraph{FunctionSpace.getDim()}
+returns the spatial dimensionality of the \Domain of the \FunctionSpace.
+
 %
-\begin{methoddesc}[FunctionSpace]{getX}{}
-    returns the location of the \DataSamplePoints.
-\end{methoddesc}
+\paragraph{FunctionSpace.getX()}
+returns the location of the \DataSamplePoints.
+
 %
-\begin{methoddesc}[FunctionSpace]{getNormal}{}
-    If the domain of functions in the \FunctionSpace is a hyper-manifold (e.g.
+\paragraph{FunctionSpace.getNormal()}
+If the domain of functions in the \FunctionSpace is a hyper-manifold (e.g.
     the boundary of a domain) the method returns the outer normal at each of
     the \DataSamplePoints. Otherwise an exception is raised.
-\end{methoddesc}
+
 %
-\begin{methoddesc}[FunctionSpace]{getSize}{}
-    returns a \Data object measuring the spacing of the \DataSamplePoints.
+\paragraph{FunctionSpace.getSize()}
+returns a \Data object measuring the spacing of the \DataSamplePoints.
     The size may be zero.
-\end{methoddesc}
+
 %
-\begin{methoddesc}[FunctionSpace]{getDomain}{}
-    returns the \Domain of the \FunctionSpace.
-\end{methoddesc}
+\paragraph{FunctionSpace.getDomain()}
+returns the \Domain of the \FunctionSpace.
+
 %
-\begin{methoddesc}[FunctionSpace]{setTags}{new_tag, mask}
-    assigns a new tag \var{new_tag} to all data samples where \var{mask} is
+\paragraph{FunctionSpace.setTags(new_tag, mask)}
+assigns a new tag \var{new_tag} to all data samples where \var{mask} is
     positive for a least one data point.
     \var{mask} must be defined on this \FunctionSpace.
     Use the \var{setTagMap} to assign a tag name to \var{new_tag}.
-\end{methoddesc}
-%
-\begin{methoddesc}[FunctionSpace]{__eq__}{arg}
-    (\PYTHON \var{==} operator) returns \True if the \FunctionSpace \var{arg}
-    describes the same function space, \False otherwise.
-\end{methoddesc}
-%
-\begin{methoddesc}[FunctionSpace]{__ne__}{arg}
-    (\PYTHON \var{!=} operator) returns \True if the \FunctionSpace \var{arg}
-    does not describe the same function space, \False otherwise.
-\end{methoddesc}
 
-\begin{methoddesc}[Domain]{__str__}{}
-    (\PYTHON \var{str()} function) returns a string representation of the
+%
+\paragraph{FunctionSpace.__eq__(arg)}
+(\PYTHON \var{==} operator) returns \True if the \FunctionSpace \var{arg}
+    describes the same function space, \False otherwise.
+
+%
+\paragraph{FunctionSpace.__ne__(arg)}
+(\PYTHON \var{!=} operator) returns \True if the \FunctionSpace \var{arg}
+    does not describe the same function space, \False otherwise.
+
+
+\paragraph{Domain.__str__()}
+(\PYTHON \var{str()} function) returns a string representation of the
     \FunctionSpace.
-\end{methoddesc}
+
 
 \noindent The following functions provide generators for \FunctionSpace objects:
 
-\begin{funcdesc}{Function}{domain}
-    returns the \Function on the \Domain \var{domain}. \Data objects in this
+\paragraph{Function(domain)}
+returns the \Function on the \Domain \var{domain}. \Data objects in this
     type of \Function are defined over the whole geometric region defined by
     \var{domain}.
-\end{funcdesc}
+
 %
-\begin{funcdesc}{ContinuousFunction}{domain}
-    returns the \ContinuousFunction on the \Domain domain. \Data objects in
+\paragraph{ContinuousFunction(domain)}
+returns the \ContinuousFunction on the \Domain domain. \Data objects in
     this type of \Function are defined over the whole geometric region defined
     by \var{domain} and assumed to represent a continuous function.
-\end{funcdesc}
+
 %
-\begin{funcdesc}{FunctionOnBoundary}{domain}
-    returns the \FunctionOnBoundary on the \Domain domain. \Data objects in
+\paragraph{FunctionOnBoundary(domain)}
+returns the \FunctionOnBoundary on the \Domain domain. \Data objects in
     this type of \Function are defined on the boundary of the geometric region
     defined by \var{domain}.
-\end{funcdesc}
+
 %
-\begin{funcdesc}{FunctionOnContactZero}{domain}
-    returns the \FunctionOnContactZero the \Domain domain. \Data objects in
+\paragraph{FunctionOnContactZero(domain)}
+returns the \FunctionOnContactZero the \Domain domain. \Data objects in
     this type of \Function are defined on side 0 of a discontinuity  within
     the geometric region defined by \var{domain}.
     The discontinuity is defined when \var{domain} is instantiated.
-\end{funcdesc}
+
 %
-\begin{funcdesc}{FunctionOnContactOne}{domain}
-    returns the \FunctionOnContactOne on the \Domain domain. \Data objects in
+\paragraph{FunctionOnContactOne(domain)}
+returns the \FunctionOnContactOne on the \Domain domain. \Data objects in
     this type of \Function are defined on side 1 of a discontinuity within
     the geometric region defined by \var{domain}.
     The discontinuity is defined when \var{domain} is instantiated.
-\end{funcdesc}
+
 %
-\begin{funcdesc}{Solution}{domain}
-    returns the \SolutionFS on the \Domain domain. \Data objects in this type
+\paragraph{Solution(domain)}
+returns the \SolutionFS on the \Domain domain. \Data objects in this type
     of \Function are defined on the geometric region defined by \var{domain}
     and are solutions of partial differential equations\index{partial differential equation}.
-\end{funcdesc}
+
 %
-\begin{funcdesc}{ReducedSolution}{domain}
-    returns the \ReducedSolutionFS on the \Domain domain. \Data objects in
+\paragraph{ReducedSolution(domain)}
+returns the \ReducedSolutionFS on the \Domain domain. \Data objects in
     this type of \Function are defined on the geometric region defined by
     \var{domain} and are solutions of partial differential
     equations\index{partial differential equation} with a reduced smoothness
     for the solution approximation.
-\end{funcdesc}
+
 
 \subsection{The \Data Class}
 \label{SEC ESCRIPT DATA}
@@ -704,119 +704,119 @@ The following examples show slicing in action:
 
 
 \subsection{Generation of \Data objects}
-\begin{classdesc}{Data}{value=0, shape=(,), what=FunctionSpace(), expanded=\False}
+\subsubsection*{class Data(value=0, shape=(,), what=FunctionSpace(), expanded=\False)}
 creates a \Data object with \Shape \var{shape} in the \FunctionSpace \var{what}.
 The values at all \DataSamplePoints are set to the double value \var{value}.
 If \var{expanded} is \True the \Data object is represented in expanded form.
-\end{classdesc}
 
-\begin{classdesc}{Data}{value, what=FunctionSpace(), expanded=\False}
+
+\subsubsection*{class Data(value, what=FunctionSpace(), expanded=\False)}
 creates a \Data object in the \FunctionSpace \var{what}.
 The value for each data sample point is set to \var{value}, which could be a
 \numpy object, \Data object or a dictionary of \numpy or floating point
 numbers. In the latter case the keys must be integers and are used as tags.
 The \Shape of the returned object is equal to the \Shape of \var{value}.
 If \var{expanded} is \True the \Data object is represented in expanded form.
-\end{classdesc}
 
-\begin{classdesc}{Data}{}
+
+\subsubsection*{class Data}
 creates an \EmptyData object. The \EmptyData object is used to indicate that
 an argument is not present where a \Data object is required.
-\end{classdesc}
 
-\begin{funcdesc}{Scalar}{value=0., what=FunctionSpace(), expanded=\False}
+
+\paragraph{Scalar(value=0., what=FunctionSpace(), expanded=\False)}
 returns a \Data object of rank 0 (a constant) in the \FunctionSpace \var{what}.
 Values are initialized with \var{value}, a double precision quantity.
 If \var{expanded} is \True the \Data object is represented in expanded form.
-\end{funcdesc}
 
-\begin{funcdesc}{Vector}{value=0., what=FunctionSpace(), expanded=\False}
+
+\paragraph{Vector(value=0., what=FunctionSpace(), expanded=\False)}
 returns a \Data object of \Shape \var{(d,)} in the \FunctionSpace \var{what},
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
 Values are initialized with \var{value}, a double precision quantity.
 If \var{expanded} is \True the \Data object is represented in expanded form.
-\end{funcdesc}
 
-\begin{funcdesc}{Tensor}{value=0., what=FunctionSpace(), expanded=\False}
+
+\paragraph{Tensor(value=0., what=FunctionSpace(), expanded=\False)}
 returns a \Data object of \Shape \var{(d,d)} in the \FunctionSpace \var{what},
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
 Values are initialized with \var{value}, a double precision quantity.
 If \var{expanded} is \True the \Data object is represented in expanded form.
-\end{funcdesc}
 
-\begin{funcdesc}{Tensor3}{value=0., what=FunctionSpace(), expanded=\False}
+
+\paragraph{Tensor3(value=0., what=FunctionSpace(), expanded=\False)}
 returns a \Data object of \Shape \var{(d,d,d)} in the \FunctionSpace \var{what},
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
 Values are initialized with \var{value}, a double precision quantity.
 If \var{expanded} is \True the \Data object is represented in expanded form.
-\end{funcdesc}
 
-\begin{funcdesc}{Tensor4}{value=0., what=FunctionSpace(), expanded=\False}
+
+\paragraph{Tensor4(value=0., what=FunctionSpace(), expanded=\False)}
 returns a \Data object of \Shape \var{(d,d,d,d)} in the \FunctionSpace \var{what},
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
 Values are initialized with \var{value}, a double precision quantity.
 If \var{expanded} is \True the \Data object is represented in expanded form.
-\end{funcdesc}
 
-\begin{funcdesc}{ComplexData}{value, what=FunctionSpace(), expanded=\False}
+
+\paragraph{ComplexData(value, what=FunctionSpace(), expanded=\False)}
 creates a \Data object in the \FunctionSpace \var{what}.
 The value for each data sample point is set to the complex value \var{value}, which could be a
 \numpy object, \Data object or a dictionary of \numpy or floating point
 numbers. In the latter case the keys must be integers and are used as tags.
 The \Shape of the returned object is equal to the \Shape of \var{value}.
 If \var{expanded} is \True the \Data object is represented in expanded form.
-\end{funcdesc}
 
-\begin{funcdesc}{ComplexData}{value=0, shape=(,), what=FunctionSpace(), expanded=\False}
+
+\paragraph{ComplexData(value=0, shape=(,), what=FunctionSpace(), expanded=\False)}
 creates a \Data object with \Shape \var{shape} in the \FunctionSpace \var{what}.
 The values at all \DataSamplePoints are set to the complex value \var{value}.
 If \var{expanded} is \True the \Data object is represented in expanded form.
-\end{funcdesc}
 
-\begin{funcdesc}{ComplexData}{}
+
+\paragraph{ComplexData()}
 creates an \EmptyData object with complex values (i.e. with memory allocated to
 store a complex number). The \EmptyData object is used to indicate that
 an argument is not present where a \Data object is required.
-\end{funcdesc}
 
-\begin{funcdesc}{ComplexScalar}{value=0.+0.j, what=FunctionSpace(), expanded=\False}
+
+\paragraph{ComplexScalar(value=0.+0.j, what=FunctionSpace(), expanded=\False)}
 returns a \Data object of rank 0 (a constant) in the \FunctionSpace \var{what}.
 Values are initialized with complex \var{value}, a double precision quantity.
 If \var{expanded} is \True the \Data object is represented in expanded form.
-\end{funcdesc}
 
-\begin{funcdesc}{ComplexData}{value=0.+0.j, what=FunctionSpace(), expanded=\False}
+
+\paragraph{ComplexData(value=0.+0.j, what=FunctionSpace(), expanded=\False)}
 returns a \Data object of \Shape \var{(d,)} in the \FunctionSpace \var{what},
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
 Values are initialized with complex \var{value}, a double precision quantity.
 If \var{expanded} is \True the \Data object is represented in expanded form.
-\end{funcdesc}
 
-\begin{funcdesc}{ComplexTensor}{value=0.+0.j, what=FunctionSpace(), expanded=\False}
+
+\paragraph{ComplexTensor(value=0.+0.j, what=FunctionSpace(), expanded=\False)}
 returns a \Data object of \Shape \var{(d,d)} in the \FunctionSpace \var{what},
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
 Values are initialized with complex \var{value}, a double precision quantity.
 If \var{expanded} is \True the \Data object is represented in expanded form.
-\end{funcdesc}
 
-\begin{funcdesc}{ComplexTensor3}{value=0.+0.j, what=FunctionSpace(), expanded=\False}
+
+\paragraph{ComplexTensor3(value=0.+0.j, what=FunctionSpace(), expanded=\False)}
 returns a \Data object of \Shape \var{(d,d,d)} in the \FunctionSpace \var{what},
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
 Values are initialized with complex \var{value}, a double precision quantity.
 If \var{expanded} is \True the \Data object is represented in expanded form.
-\end{funcdesc}
 
-\begin{funcdesc}{ComplexTensor4}{value=0.+0.j, what=FunctionSpace(), expanded=\False}
+
+\paragraph{ComplexTensor4(value=0.+0.j, what=FunctionSpace(), expanded=\False)}
 returns a \Data object of \Shape \var{(d,d,d,d)} in the \FunctionSpace \var{what},
 where \var{d} is the spatial dimension of the \Domain of \var{what}.
 Values are initialized with complex \var{value}, a double precision quantity.
 If \var{expanded} is \True the \Data object is represented in expanded form.
-\end{funcdesc}
 
-\begin{funcdesc}{load}{filename, domain}
+
+\paragraph{load(filename, domain)}
 recovers a \Data object on \Domain \var{domain} from the file \var{filename},
 which was created by \function{dump}.
-\end{funcdesc}
+
 
 \subsection{Generating random \Data objects}
 A \Data object filled with random values can be produced using the
@@ -922,28 +922,28 @@ These are the most frequently used methods of the \Data class.
 A complete list of methods can be found in the reference guide,
 see \ReferenceGuide.
 
-\begin{methoddesc}[Data]{getFunctionSpace}{}
+\paragraph{Data.getFunctionSpace()}
 returns the \FunctionSpace of the object.
-\end{methoddesc}
 
-\begin{methoddesc}[Data]{getDomain}{}
+
+\paragraph{Data.getDomain()}
 returns the \Domain of the object.
-\end{methoddesc}
 
-\begin{methoddesc}[Data]{getShape}{}
+
+\paragraph{Data.getShape()}
 returns the \Shape of the object as a \class{tuple} of integers.
-\end{methoddesc}
 
-\begin{methoddesc}[Data]{getRank}{}
+
+\paragraph{Data.getRank()}
 returns the rank of the data on each data point\index{rank}.
-\end{methoddesc}
 
-\begin{methoddesc}[Data]{isEmpty}{}
+
+\paragraph{Data.isEmpty()}
 returns \True if the \Data object is the \EmptyData object, \False otherwise.
 Note that this is not the same as asking if the object contains no \DataSamplePoints.
-\end{methoddesc}
 
-\begin{methoddesc}[Data]{setTaggedValue}{tag_name, value}
+
+\paragraph{Data.setTaggedValue(tag_name, value)}
 assigns the \var{value} to all \DataSamplePoints which have the tag
 assigned to \var{tag_name}. \var{value} must be an object of class
 \class{numpy.ndarray} or must be convertible into a \class{numpy.ndarray} object.
@@ -953,24 +953,24 @@ If a value has already been defined for tag \var{tag_name} within the object
 it is overwritten by the new \var{value}. If the object is expanded,
 the value assigned to \DataSamplePoints with tag \var{tag_name} is replaced by
 \var{value}. If no value is assigned the tag name \var{tag_name}, no value is set.
-\end{methoddesc}
 
-\begin{methoddesc}[Data]{dump}{filename}
+
+\paragraph{Data.dump(filename)}
 dumps the \Data object to the file \var{filename}. The file stores the
 function space but not the \Domain. It is the responsibility of the user to
 save the \Domain in order to be able to recover the \Data object.
-\end{methoddesc}
 
-\begin{methoddesc}[Data]{__str__}{}
+
+\paragraph{Data.__str__()}
 returns a string representation of the object.
-\end{methoddesc}
+
 
 \subsection{Functions of \Data objects}
 This section lists the most important functions for \Data class objects.
 A complete list and a more detailed description of the functionality can be
 found on \ReferenceGuide.
 
-\begin{funcdesc}{kronecker}{d}
+\paragraph{kronecker(d)}
 returns a \RankTwo in \FunctionSpace \var{d} such that
 \begin{equation}
 \code{kronecker(d)}\left[ i,j\right] = \left\{
@@ -981,13 +981,13 @@ returns a \RankTwo in \FunctionSpace \var{d} such that
 \right.
 \end{equation}
 If \var{d} is an integer a $(d,d)$ \numpy array is returned.
-\end{funcdesc}
 
-\begin{funcdesc}{identityTensor}{d}
+
+\paragraph{identityTensor(d)}
 is a synonym for \code{kronecker} (see above).
-\end{funcdesc}
 
-\begin{funcdesc}{identityTensor4}{d}
+
+\paragraph{identityTensor4(d)}
 returns a \RankFour in \FunctionSpace \var{d} such that
 \begin{equation}
 \code{identityTensor(d)}\left[ i,j,k,l\right] = \left\{
@@ -998,9 +998,9 @@ returns a \RankFour in \FunctionSpace \var{d} such that
 \right.
 \end{equation}
 If \var{d} is an integer a $(d,d,d,d)$ \numpy array is returned.
-\end{funcdesc}
 
-\begin{funcdesc}{unitVector}{i,d}
+
+\paragraph{unitVector(i,d)}
 returns a \RankOne in \FunctionSpace \var{d} such that
 \begin{equation}
 \code{identityTensor(d)}\left[ j \right] = \left\{
@@ -1011,38 +1011,39 @@ returns a \RankOne in \FunctionSpace \var{d} such that
 \right.
 \end{equation}
 If \var{d} is an integer a $(d,)$ \numpy array is returned.
-\end{funcdesc}
 
-\begin{funcdesc}{Lsup}{a}
+
+\paragraph{Lsup(a)}
 returns the $L^{sup}$ norm of \var{arg}. This is the maximum of the absolute
 values over all components and all \DataSamplePoints of \var{a}.
-\end{funcdesc}
 
-\begin{funcdesc}{sup}{a}
+
+\paragraph{sup(a)}
 returns the maximum value over all components and all \DataSamplePoints of \var{a}.
-\end{funcdesc}
 
-\begin{funcdesc}{inf}{a}
+
+\paragraph{inf(a)}
 returns the minimum value over all components and all \DataSamplePoints of \var{a}
-\end{funcdesc}
 
-\begin{funcdesc}{minval}{a}
+
+\paragraph{minval(a)}
 returns at each data sample point the minimum value over all components.
-\end{funcdesc}
 
-\begin{funcdesc}{maxval}{a}
+
+\paragraph{maxval(a)}
 returns at each data sample point the maximum value over all components.
-\end{funcdesc}
 
-\begin{funcdesc}{length}{a}
+
+\paragraph{length(a)}
 returns the Euclidean norm at each data sample point.
 For a \RankFour \var{a} this is
 \begin{equation}
 \code{length(a)}=\sqrt{\sum_{ijkl} \var{a} \left[i,j,k,l\right]^2}
 \end{equation}
-\end{funcdesc}
 
-\begin{funcdesc}{trace}{a\optional{, axis_offset=0}}
+
+\paragraph{trace(a\optional{, axis_offset=0)}
+}
 returns the trace of \var{a}. This is the sum over components \var{axis_offset}
 and \var{axis_offset+1} with the same index.
 For instance, in the case of a \RankTwo this is
@@ -1053,9 +1054,10 @@ and for a \RankFour and \code{axis_offset=1} this is
 \begin{equation}
 \code{trace(a,1)}\left[i,j\right]=\sum_{k} \var{a} \left[i,k,k,j\right]
 \end{equation}
-\end{funcdesc}
 
-\begin{funcdesc}{transpose}{a\optional{, axis_offset=None}}
+
+\paragraph{transpose(a\optional{, axis_offset=None)}
+}
 returns the transpose of \var{a}. This swaps the first \var{axis_offset}
 components of \var{a} with the rest. If \var{axis_offset} is not
 present \code{int(r/2)} is used where \var{r} is the rank of \var{a}.
@@ -1067,35 +1069,36 @@ and for a \RankFour and \code{axis_offset=1} this is
 \begin{equation}
 \code{transpose(a,1)}\left[i,j,k,l\right]=\var{a} \left[j,k,l,i\right]
 \end{equation}
-\end{funcdesc}
 
-\begin{funcdesc}{swap_axes}{a\optional{, axis0=0 \optional{, axis1=1 }}}
+
+\paragraph{swap_axes(a\optional{, axis0=0 \optional{, axis1=1)}
+}}
 returns \var{a} but with swapped components \var{axis0} and \var{axis1}.
 The argument \var{a} must be at least of rank 2. For instance, if \var{a}
 is a \RankFour, \code{axis0=1} and \code{axis1=2}, the result is
 \begin{equation}
 \code{swap_axes(a,1,2)}\left[i,j,k,l\right]=\var{a} \left[i,k,j,l\right]
 \end{equation}
-\end{funcdesc}
 
-\begin{funcdesc}{symmetric}{a}
+
+\paragraph{symmetric(a)}
 returns the symmetric part of \var{a}. This is \code{(a+transpose(a))/2}.
-\end{funcdesc}
 
-\begin{funcdesc}{nonsymmetric}{a}
+
+\paragraph{nonsymmetric(a)}
 returns the non-symmetric part of \var{a}. This is \code{(a-transpose(a))/2}.
-\end{funcdesc}
 
-\begin{funcdesc}{inverse}{a}
+
+\paragraph{inverse(a)}
 return the inverse of \var{a} so that
 \begin{equation}
 \code{matrix_mult(inverse(a),a)=kronecker(d)}
 \end{equation}
 if \var{a} has shape \code{(d,d)}. The current implementation is restricted to
 arguments of shape \code{(2,2)} and \code{(3,3)}.
-\end{funcdesc}
 
-\begin{funcdesc}{eigenvalues}{a}
+
+\paragraph{eigenvalues(a)}
 returns the eigenvalues of \var{a} so that
 \begin{equation}
 \code{matrix_mult(a,V)=e[i]*V}
@@ -1105,9 +1108,9 @@ The eigenvalues are ordered in increasing size.
 The argument \var{a} has to be symmetric, i.e. \code{a=symmetric(a)}.
 The current implementation is restricted to arguments of shape \code{(2,2)}
 and \code{(3,3)}.
-\end{funcdesc}
 
-\begin{funcdesc}{eigenvalues_and_eigenvectors}{a}
+
+\paragraph{eigenvalues_and_eigenvectors(a)}
 returns the eigenvalues and eigenvectors of \var{a}.
 \begin{equation}
 \code{matrix_mult(a,V[:,i])=e[i]*V[:,i]}
@@ -1121,37 +1124,38 @@ if \var{a} has shape \code{(d,d)}. The eigenvalues are ordered in increasing
 size. The argument \var{a} has to be the symmetric, i.e. \code{a=symmetric(a)}.
 The current implementation is restricted to arguments of shape \code{(2,2)}
 and \code{(3,3)}.
-\end{funcdesc}
 
-\begin{funcdesc}{maximum}{*a}
+
+\paragraph{maximum(*a)}
 returns the maximum value over all arguments at all \DataSamplePoints and for each component.
 \begin{equation}
 \code{maximum(a0,a1)}\left[i,j\right]=max(\var{a0} \left[i,j\right],\var{a1} \left[i,j\right])
 \end{equation}
 at all \DataSamplePoints.
-\end{funcdesc}
 
-\begin{funcdesc}{minimum}{*a}
+
+\paragraph{minimum(*a)}
 returns the minimum value over all arguments at all \DataSamplePoints and for each component.
 \begin{equation}
 \code{minimum(a0,a1)}\left[i,j\right]=min(\var{a0} \left[i,j\right],\var{a1} \left[i,j\right])
 \end{equation}
 at all \DataSamplePoints.
-\end{funcdesc}
 
-\begin{funcdesc}{clip}{a\optional{, minval=0.}\optional{, maxval=1.}}
+
+\paragraph{clip(a\optional{, minval=0.)}
+\optional{, maxval=1.}}
 cuts back \var{a} into the range between \var{minval} and \var{maxval}.
 A value in the returned object equals \var{minval} if the corresponding value
 of \var{a} is less than \var{minval}, equals \var{maxval} if the corresponding
 value of \var{a} is greater than \var{maxval}, or corresponding value of
 \var{a} otherwise.
-\end{funcdesc}
 
-\begin{funcdesc}{cross}{a0, a1}
-returns the cross product of \var{a0} and \var{a1}. 
-\end{funcdesc}
 
-\begin{funcdesc}{inner}{a0, a1}
+\paragraph{cross(a0, a1)}
+returns the cross product of \var{a0} and \var{a1}.
+
+
+\paragraph{inner(a0, a1)}
 returns the inner product of \var{a0} and \var{a1}. For instance in the
 case of a \RankTwo:
 \begin{equation}
@@ -1161,9 +1165,9 @@ and for a \RankFour:
 \begin{equation}
 \code{inner(a)}=\sum_{ijkl}\var{a0} \left[i,j,k,l\right]  \cdot \var{a1} \left[j,i,k,l\right]
 \end{equation}
-\end{funcdesc}
 
-\begin{funcdesc}{matrix_mult}{a0, a1}
+
+\paragraph{matrix_mult(a0, a1)}
 returns the matrix product of \var{a0} and \var{a1}.
 If \var{a1} is a \RankOne this is
 \begin{equation}
@@ -1173,9 +1177,9 @@ and if \var{a1} is a \RankTwo this is
 \begin{equation}
 \code{matrix_mult(a)}\left[i,j\right]=\sum_{k}\var{a0}  \cdot \left[i,k\right]\var{a1} \left[k,j\right]
 \end{equation}
-\end{funcdesc}
 
-\begin{funcdesc}{transposed_matrix_mult}{a0, a1}
+
+\paragraph{transposed_matrix_mult(a0, a1)}
 returns the matrix product of the transposed of \var{a0} and \var{a1}.
 The function is equivalent to \code{matrix_mult(transpose(a0),a1)}.
 If \var{a1} is a \RankOne this is
@@ -1186,18 +1190,18 @@ and if \var{a1} is a \RankTwo this is
 \begin{equation}
 \code{transposed_matrix_mult(a)}\left[i,j\right]=\sum_{k}\var{a0}  \cdot \left[k,i\right]\var{a1} \left[k,j\right]
 \end{equation}
-\end{funcdesc}
 
-\begin{funcdesc}{matrix_transposed_mult}{a0, a1}
+
+\paragraph{matrix_transposed_mult(a0, a1)}
 returns the matrix product of \var{a0} and the transposed of \var{a1}.
 The function is equivalent to \code{matrix_mult(a0,transpose(a1))}.
 If \var{a1} is a \RankTwo this is
 \begin{equation}
 \code{matrix_transposed_mult(a)}\left[i,j\right]=\sum_{k}\var{a0}  \cdot \left[i,k\right]\var{a1} \left[j,k\right]
 \end{equation}
-\end{funcdesc}
 
-\begin{funcdesc}{outer}{a0, a1}
+
+\paragraph{outer(a0, a1)}
 returns the outer product of \var{a0} and \var{a1}.
 For instance, if both, \var{a0} and \var{a1} is a \RankOne then
 \begin{equation}
@@ -1207,9 +1211,9 @@ and if \var{a0} is a \RankOne and \var{a1} is a \RankThree:
 \begin{equation}
 \code{outer(a)}\left[i,j,k\right]=\var{a0} \left[i\right] \cdot \var{a1}\left[j,k\right]
 \end{equation}
-\end{funcdesc}
 
-\begin{funcdesc}{tensor_mult}{a0, a1}
+
+\paragraph{tensor_mult(a0, a1)}
 returns the tensor product of \var{a0} and \var{a1}.
 If \var{a1} is a \RankTwo this is
 \begin{equation}
@@ -1219,9 +1223,9 @@ and if \var{a1} is a \RankFour this is
 \begin{equation}
 \code{tensor_mult(a)}\left[i,j,k,l\right]=\sum_{mn}\var{a0} \left[i,j,m,n\right] \cdot \var{a1} \left[m,n,k,l\right]
 \end{equation}
-\end{funcdesc}
 
-\begin{funcdesc}{transposed_tensor_mult}{a0, a1}
+
+\paragraph{transposed_tensor_mult(a0, a1)}
 returns the tensor product of the transposed of \var{a0} and \var{a1}.
 The function is equivalent to \code{tensor_mult(transpose(a0),a1)}.
 If \var{a1} is a \RankTwo this is
@@ -1232,9 +1236,9 @@ and if \var{a1} is a \RankFour this is
 \begin{equation}
 \code{transposed_tensor_mult(a)}\left[i,j,k,l\right]=\sum_{mn}\var{a0} \left[m,n,i,j\right] \cdot \var{a1} \left[m,n,k,l\right]
 \end{equation}
-\end{funcdesc}
 
-\begin{funcdesc}{tensor_transposed_mult}{a0, a1}
+
+\paragraph{tensor_transposed_mult(a0, a1)}
 returns the tensor product of \var{a0} and the transposed of \var{a1}.
 The function is equivalent to \code{tensor_mult(a0,transpose(a1))}.
 If \var{a1} is a \RankTwo this is
@@ -1245,31 +1249,35 @@ and if \var{a1} is a \RankFour this is
 \begin{equation}
 \code{tensor_transposed_mult(a)}\left[i,j,k,l\right]=\sum_{mn}\var{a0} \left[i,j,m,n\right] \cdot \var{a1} \left[k,l,m,n\right]
 \end{equation}
-\end{funcdesc}
 
-\begin{funcdesc}{grad}{a\optional{, where=None}}
+
+\paragraph{grad(a\optional{, where=None)}
+}
 returns the gradient of \var{a}. If \var{where} is present the gradient will
 be calculated in the \FunctionSpace \var{where}, otherwise a default
 \FunctionSpace is used. In case that \var{a} is a \RankTwo one has
 \begin{equation}
 \code{grad(a)}\left[i,j,k\right]=\frac{\partial \var{a} \left[i,j\right]}{\partial x_{k}}
 \end{equation}
-\end{funcdesc}
 
-\begin{funcdesc}{curl}{a\optional{, where=None}}
+
+\paragraph{curl(a\optional{, where=None)}
+}
 returns the curl of \var{a}. If \var{where} is present the curl will
 be calculated in the \FunctionSpace \var{where}, otherwise a default
-\FunctionSpace is used. 
-\end{funcdesc}
+\FunctionSpace is used.
 
-\begin{funcdesc}{div}{a\optional{, where=None}}
+
+\paragraph{div(a\optional{, where=None)}
+}
 returns the divergence of \var{a}:
 \begin{equation}
     \code{div(a)=trace(grad(a),where)}
 \end{equation}
-\end{funcdesc}
 
-\begin{funcdesc}{integrate}{a\optional{, where=None}}
+
+\paragraph{integrate(a\optional{, where=None)}
+}
 returns the integral of \var{a} where the domain of integration is defined by
 the \FunctionSpace of \var{a}. If \var{where} is present the argument is
 interpolated into \FunctionSpace \var{where} before integration.
@@ -1284,14 +1292,15 @@ To integrate over the boundary of the domain one uses
 \end{equation}
 where $\partial \Omega$ is the surface of the spatial domain and $ds$ area or
 line integration.
-\end{funcdesc}
 
-\begin{funcdesc}{interpolate}{a, where}
+
+\paragraph{interpolate(a, where)}
 interpolates argument \var{a} into the \FunctionSpace \var{where}.
-\end{funcdesc}
 
 
-\begin{funcdesc}{jump}{a\optional{, domain=None}}
+
+\paragraph{jump(a\optional{, domain=None)}
+}
 returns the jump of \var{a} over the discontinuity in its domain or if
 \Domain \var{domain} is present in \var{domain}.
 \begin{equation}
@@ -1300,114 +1309,116 @@ returns the jump of \var{a} over the discontinuity in its domain or if
               &   & \hfill - \code{interpolate(a,FunctionOnContactZero(domain))}
 \end{array}
 \end{equation}
-\end{funcdesc}
 
-\begin{funcdesc}{L2}{a}
+
+\paragraph{L2(a)}
 returns the $L^2$-norm of \var{a} in its \FunctionSpace. This is
 \begin{equation}
 \code{L2(a)=integrate(length(a)}^2\code{)} \; .
 \end{equation}
-\end{funcdesc}
+
 
 \noindent The following functions operate ``point-wise''.
 That is, the operation is applied to each component of each point individually.
 
-\begin{funcdesc}{sin}{a}
+\paragraph{sin(a)}
 applies the sine function to \var{a}.
-\end{funcdesc}
 
-\begin{funcdesc}{cos}{a}
+
+\paragraph{cos(a)}
 applies the cosine function to \var{a}.
-\end{funcdesc}
 
-\begin{funcdesc}{tan}{a}
+
+\paragraph{tan(a)}
 applies the tangent function to \var{a}.
-\end{funcdesc}
 
-\begin{funcdesc}{asin}{a}
+
+\paragraph{asin(a)}
 applies the arc (inverse) sine function to \var{a}.
-\end{funcdesc}
 
-\begin{funcdesc}{acos}{a}
+
+\paragraph{acos(a)}
 applies the arc (inverse) cosine function to \var{a}.
-\end{funcdesc}
 
-\begin{funcdesc}{atan}{a}
+
+\paragraph{atan(a)}
 applies the arc (inverse) tangent function to \var{a}.
-\end{funcdesc}
 
-\begin{funcdesc}{sinh}{a}
+
+\paragraph{sinh(a)}
 applies the hyperbolic sine function to \var{a}.
-\end{funcdesc}
 
-\begin{funcdesc}{cosh}{a}
+
+\paragraph{cosh(a)}
 applies the hyperbolic cosine function to \var{a}.
-\end{funcdesc}
 
-\begin{funcdesc}{tanh}{a}
+
+\paragraph{tanh(a)}
 applies the hyperbolic tangent function to \var{a}.
-\end{funcdesc}
 
-\begin{funcdesc}{asinh}{a}
+
+\paragraph{asinh(a)}
 applies the arc (inverse) hyperbolic sine function to \var{a}.
-\end{funcdesc}
 
-\begin{funcdesc}{acosh}{a}
+
+\paragraph{acosh(a)}
 applies the arc (inverse) hyperbolic cosine function to \var{a}.
-\end{funcdesc}
 
-\begin{funcdesc}{atanh}{a}
+
+\paragraph{atanh(a)}
 applies the arc (inverse) hyperbolic tangent function to \var{a}.
-\end{funcdesc}
 
-\begin{funcdesc}{exp}{a}
+
+\paragraph{exp(a)}
 applies the exponential function to \var{a}.
-\end{funcdesc}
 
-\begin{funcdesc}{sqrt}{a}
+
+\paragraph{sqrt(a)}
 applies the square root function to \var{a}.
-\end{funcdesc}
 
-\begin{funcdesc}{log}{a}
+
+\paragraph{log(a)}
 takes the natural logarithm of \var{a}.
-\end{funcdesc}
 
-\begin{funcdesc}{log10}{a}
+
+\paragraph{log10(a)}
 takes the base-$10$ logarithm of \var{a}.
-\end{funcdesc}
 
-\begin{funcdesc}{sign}{a}
+
+\paragraph{sign(a)}
 applies the sign function to \var{a}. The result is $1$ where \var{a} is
 positive, $-1$ where \var{a} is negative, and $0$ otherwise.
-\end{funcdesc}
 
-\begin{funcdesc}{wherePositive}{a}
+
+\paragraph{wherePositive(a)}
 returns a function which is $1$ where \var{a} is positive and $0$ otherwise.
-\end{funcdesc}
 
-\begin{funcdesc}{whereNegative}{a}
+
+\paragraph{whereNegative(a)}
 returns a function which is $1$ where \var{a} is negative and $0$ otherwise.
-\end{funcdesc}
 
-\begin{funcdesc}{whereNonNegative}{a}
+
+\paragraph{whereNonNegative(a)}
 returns a function which is $1$ where \var{a} is non-negative and $0$ otherwise.
-\end{funcdesc}
 
-\begin{funcdesc}{whereNonPositive}{a}
+
+\paragraph{whereNonPositive(a)}
 returns a function which is $1$ where \var{a} is non-positive and $0$ otherwise.
-\end{funcdesc}
 
-\begin{funcdesc}{whereZero}{a\optional{, tol=None\optional{, rtol=1.e-8}}}
+
+\paragraph{whereZero(a\optional{, tol=None\optional{, rtol=1.e-8)}
+}}
 returns a function which is $1$ where \var{a} equals zero with tolerance
 \var{tol} and $0$ otherwise. If \var{tol} is not present, the absolute maximum
 value of \var{a} times \var{rtol} is used.
-\end{funcdesc}
 
-\begin{funcdesc}{whereNonZero}{a\optional{, tol=None\optional{, rtol=1.e-8}}}
+
+\paragraph{whereNonZero(a\optional{, tol=None\optional{, rtol=1.e-8)}
+}}
 returns a function which is $1$ where \var{a} is non-zero with tolerance
 \var{tol} and $0$ otherwise. If \var{tol} is not present, the absolute maximum
 value of \var{a} times \var{rtol} is used.
-\end{funcdesc}
+
 
 \subsection{Interpolating Data}
 \index{interpolateTable}
@@ -1580,8 +1591,8 @@ If required the object can be set up to also save the data in a format suitable
 for visualization.
 Internally the \var{DataManager} interfaces with \weipa for this.
 
-\begin{classdesc}{DataManager}{formats=[RESTART], work_dir=".", restart_prefix="restart", do_restart=\True}
-    initializes a new \var{DataManager} object which can be used to save,
+\subsubsection*{class DataManager(formats=[RESTART], work_dir=".", restart_prefix="restart", do_restart=\True)}
+initializes a new \var{DataManager} object which can be used to save,
     restore and export simulation data in a number of formats.
     All files and directories saved or restored by this object are located
     under the directory specified by \var{work_dir}.
@@ -1592,7 +1603,7 @@ Internally the \var{DataManager} interfaces with \weipa for this.
     If \var{do_restart} is \False, then all of those directories are deleted.
     The \var{restart_prefix} and \var{do_restart} parameters are ignored if
     \var{RESTART} is not specified in \var{formats}.
-\end{classdesc}
+
 
 \noindent Valid values for the \var{formats} parameter are:
 \begin{memberdesc}[DataManager]{RESTART}
@@ -1616,43 +1627,43 @@ Internally the \var{DataManager} interfaces with \weipa for this.
 \end{memberdesc}
 
 \noindent The \var{DataManager} class has the following methods:
-\begin{methoddesc}[DataManager]{addData}{**data}
-    adds \Data objects and other data to the manager. Calling this method does
+\paragraph{DataManager.addData(**data)}
+adds \Data objects and other data to the manager. Calling this method does
     not save or export the data yet so it is allowed to incrementally add data
     at various points in the simulation script if required.
     Note, that only a single domain is supported so all \Data objects have to
     be defined on the same one or an exception is raised.
-\end{methoddesc}
 
-\begin{methoddesc}[DataManager]{setDomain}{domain}
-    explicitly sets the domain for this manager.
+
+\paragraph{DataManager.setDomain(domain)}
+explicitly sets the domain for this manager.
     It is generally not required to call this method directly.
     Instead, the \var{addData} method will set the domain used by the \Data
     objects.
     An exception is raised if the domain was set to a different domain before
     (explicitly or implicitly).
-\end{methoddesc}
 
-\begin{methoddesc}[DataManager]{hasData}{}
-    returns \True if the manager has loaded simulation data for a restart.
-\end{methoddesc}
 
-\begin{methoddesc}[DataManager]{getDomain}{}
-    returns the domain as recovered from a restart.
-\end{methoddesc}
+\paragraph{DataManager.hasData()}
+returns \True if the manager has loaded simulation data for a restart.
 
-\begin{methoddesc}[DataManager]{getValue}{value_name}
-    returns a \Data object or other value with the name \var{value_name} that
+
+\paragraph{DataManager.getDomain()}
+returns the domain as recovered from a restart.
+
+
+\paragraph{DataManager.getValue(value_name)}
+returns a \Data object or other value with the name \var{value_name} that
     has been recovered after a restart.
-\end{methoddesc}
 
-\begin{methoddesc}[DataManager]{getCycle}{}
-    returns the export cycle, i.e. the number of times \var{export()} has been
+
+\paragraph{DataManager.getCycle()}
+returns the export cycle, i.e. the number of times \var{export()} has been
     called.
-\end{methoddesc}
 
-\begin{methoddesc}[DataManager]{setCheckpointFrequency}{freq}
-    sets the frequency with which checkpoint files are created. This is only
+
+\paragraph{DataManager.setCheckpointFrequency(freq)}
+sets the frequency with which checkpoint files are created. This is only
     useful if the \var{DataManager} object was created with at least one other
     format next to \var{RESTART}. The frequency is 1 by default which means
     that checkpoint files are created every time \var{export()} is called.
@@ -1660,39 +1671,39 @@ Internally the \var{DataManager} interfaces with \weipa for this.
     required at every time step. Thus, the frequency can be decreased by
     calling this method with $\var{freq}>1$ which would then create restart
     files every \var{freq} times \var{export()} is called.
-\end{methoddesc}
 
-\begin{methoddesc}[DataManager]{setTime}{time}
-    sets the simulation time stamp. This floating point number is stored in
+
+\paragraph{DataManager.setTime(time)}
+sets the simulation time stamp. This floating point number is stored in
     the metadata of exported data but not used by \var{RESTART}.
-\end{methoddesc}
 
-\begin{methoddesc}[DataManager]{setMeshLabels}{x, y, z=""}
-    sets labels for the mesh axes. These are currently only used by the \SILO
+
+\paragraph{DataManager.setMeshLabels(x, y, z="")}
+sets labels for the mesh axes. These are currently only used by the \SILO
     exporter.
-\end{methoddesc}
 
-\begin{methoddesc}[DataManager]{setMeshUnits}{x, y, z=""}
-    sets units for the mesh axes. These are currently only used by the \SILO
+
+\paragraph{DataManager.setMeshUnits(x, y, z="")}
+sets units for the mesh axes. These are currently only used by the \SILO
     exporter.
-\end{methoddesc}
 
-\begin{methoddesc}[DataManager]{setMetadataSchemaString}{schema, metadata=""}
-    sets metadata namespaces and the corresponding metadata. These are
+
+\paragraph{DataManager.setMetadataSchemaString(schema, metadata="")}
+sets metadata namespaces and the corresponding metadata. These are
     currently only used by the \VTK exporter.
     \var{schema} is a dictionary that maps prefixes to namespace names, e.g.\\
     \code{\{"gml": "http://www.opengis.net/gml"\}} and \var{metadata} is a
     string with the actual content which will be enclosed in \var{<MetaData>}
     tags.
-\end{methoddesc}
 
-\begin{methoddesc}[DataManager]{export}{}
-    executes the actual data export. Depending on the \var{formats} parameter
+
+\paragraph{DataManager.export()}
+executes the actual data export. Depending on the \var{formats} parameter
     used in the constructor all data added by \var{addData()} is written to
     disk (\var{RESTART,SILO,VTK}) or made available through the \VisIt
     simulation interface (\var{VISIT}).
     At least the domain must be set for something to be exported.
-\end{methoddesc}
+
 
 \subsection{Saving Data as CSV}
 \label{sec:savedatacsv}
@@ -1792,31 +1803,32 @@ by the \LinearPDE object defining the PDE. The user can gain access
 to the \Operator of a \LinearPDE object through the \var{getOperator}
 method.
 
-\begin{classdesc}{Operator}{}
+\subsubsection*{class Operator}
 creates an empty \Operator object.
-\end{classdesc}
 
-\begin{methoddesc}[Operator]{isEmpty}{fileName}
+
+\paragraph{Operator.isEmpty(fileName)}
 returns \True is the object is empty, \False otherwise.
-\end{methoddesc}
 
-\begin{methoddesc}[Operator]{resetValues}{}
+
+\paragraph{Operator.resetValues()}
 resets all entries in the operator.
-\end{methoddesc}
 
-\begin{methoddesc}[Operator]{solve}{rhs}
-    returns the solution \var{u} of: operator * \var{u} = \var{rhs}.
-\end{methoddesc}
 
-\begin{methoddesc}[Operator]{of}{u}
+\paragraph{Operator.solve(rhs)}
+returns the solution \var{u} of: operator * \var{u} = \var{rhs}.
+
+
+\paragraph{Operator.of(u)}
 applies the operator to the \Data object \var{u}, i.e. performs a matrix-vector
 multiplication.
-\end{methoddesc}
 
-\begin{methoddesc}[Operator]{saveMM}{fileName}\index{Matrix Market}
+
+\paragraph{Operator.saveMM(fileName)}
+\index{Matrix Market}
 saves the object to a Matrix Market format file with name \var{fileName}, see
 \url{http://math.nist.gov/MatrixMarket}
-\end{methoddesc}
+
 
 \section{Physical Units}
 \escript provides support for physical units in the SI system\index{SI units}
@@ -1853,195 +1865,195 @@ can be used print the pressure in units of atmosphere\index{atmosphere}.
 
 The following is an incomplete list of supported physical units:
 
-\begin{datadesc}{km}
+\paragraph{km}
 unit of kilometer
-\end{datadesc}
 
-\begin{datadesc}{m}
+
+\paragraph{m}
 unit of meter
-\end{datadesc}
 
-\begin{datadesc}{cm}
+
+\paragraph{cm}
 unit of centimeter
-\end{datadesc}
 
-\begin{datadesc}{mm}
+
+\paragraph{mm}
 unit of millimeter
-\end{datadesc}
 
-\begin{datadesc}{sec}
+
+\paragraph{sec}
 unit of second
-\end{datadesc}
 
-\begin{datadesc}{minute}
+
+\paragraph{minute}
 unit of minute
-\end{datadesc}
 
-\begin{datadesc}{h}
+
+\paragraph{h}
 unit of hour
-\end{datadesc}
 
-\begin{datadesc}{day}
+
+\paragraph{day}
 unit of day
-\end{datadesc}
 
-\begin{datadesc}{yr}
+
+\paragraph{yr}
 unit of year
-\end{datadesc}
 
-\begin{datadesc}{gram}
+
+\paragraph{gram}
 unit of gram
-\end{datadesc}
 
-\begin{datadesc}{kg}
+
+\paragraph{kg}
 unit of kilogram
-\end{datadesc}
 
-\begin{datadesc}{lb}
+
+\paragraph{lb}
 unit of pound
-\end{datadesc}
 
-\begin{datadesc}{ton}
+
+\paragraph{ton}
 metric ton
-\end{datadesc}
 
-\begin{datadesc}{A}
+
+\paragraph{A}
 unit of Ampere
-\end{datadesc}
 
-\begin{datadesc}{Hz}
+
+\paragraph{Hz}
 unit of Hertz
-\end{datadesc}
 
-\begin{datadesc}{N}
+
+\paragraph{N}
 unit of Newton
-\end{datadesc}
 
-\begin{datadesc}{Pa}
+
+\paragraph{Pa}
 unit of Pascal
-\end{datadesc}
 
-\begin{datadesc}{atm}
+
+\paragraph{atm}
 unit of atmosphere
-\end{datadesc}
 
-\begin{datadesc}{J}
+
+\paragraph{J}
 unit of Joule
-\end{datadesc}
 
-\begin{datadesc}{W}
+
+\paragraph{W}
 unit of Watt
-\end{datadesc}
 
-\begin{datadesc}{C}
+
+\paragraph{C}
 unit of Coulomb
-\end{datadesc}
 
-\begin{datadesc}{V}
+
+\paragraph{V}
 unit of Volt
-\end{datadesc}
 
-\begin{datadesc}{F}
+
+\paragraph{F}
 unit of Farad
-\end{datadesc}
 
-\begin{datadesc}{Ohm}
+
+\paragraph{Ohm}
 unit of Ohm
-\end{datadesc}
 
-\begin{datadesc}{K}
+
+\paragraph{K}
 unit of degrees Kelvin
-\end{datadesc}
 
-\begin{datadesc}{Celsius}
+
+\paragraph{Celsius}
 unit of degrees Celsius
-\end{datadesc}
 
-\begin{datadesc}{Fahrenheit}
+
+\paragraph{Fahrenheit}
 unit of degrees Fahrenheit
-\end{datadesc}
+
 
 \noindent Supported unit prefixes:
 
-\begin{datadesc}{Yotta}
+\paragraph{Yotta}
 prefix yotta = $10^{24}$
-\end{datadesc}
 
-\begin{datadesc}{Zetta}
+
+\paragraph{Zetta}
 prefix zetta = $10^{21}$
-\end{datadesc}
 
-\begin{datadesc}{Exa}
+
+\paragraph{Exa}
 prefix exa = $10^{18}$
-\end{datadesc}
 
-\begin{datadesc}{Peta}
+
+\paragraph{Peta}
 prefix peta = $10^{15}$
-\end{datadesc}
 
-\begin{datadesc}{Tera}
+
+\paragraph{Tera}
 prefix tera = $10^{12}$
-\end{datadesc}
 
-\begin{datadesc}{Giga}
+
+\paragraph{Giga}
 prefix giga = $10^9$
-\end{datadesc}
 
-\begin{datadesc}{Mega}
+
+\paragraph{Mega}
 prefix mega = $10^6$
-\end{datadesc}
 
-\begin{datadesc}{Kilo}
+
+\paragraph{Kilo}
 prefix kilo = $10^3$
-\end{datadesc}
 
-\begin{datadesc}{Hecto}
+
+\paragraph{Hecto}
 prefix hecto = $10^2$
-\end{datadesc}
 
-\begin{datadesc}{Deca}
+
+\paragraph{Deca}
 prefix deca = $10^1$
-\end{datadesc}
 
-\begin{datadesc}{Deci}
+
+\paragraph{Deci}
 prefix deci = $10^{-1}$
-\end{datadesc}
 
-\begin{datadesc}{Centi}
+
+\paragraph{Centi}
 prefix centi = $10^{-2}$
-\end{datadesc}
 
-\begin{datadesc}{Milli}
+
+\paragraph{Milli}
 prefix milli = $10^{-3}$
-\end{datadesc}
 
-\begin{datadesc}{Micro}
+
+\paragraph{Micro}
 prefix micro = $10^{-6}$
-\end{datadesc}
 
-\begin{datadesc}{Nano}
+
+\paragraph{Nano}
 prefix nano = $10^{-9}$
-\end{datadesc}
 
-\begin{datadesc}{Pico}
+
+\paragraph{Pico}
 prefix pico = $10^{-12}$
-\end{datadesc}
 
-\begin{datadesc}{Femto}
+
+\paragraph{Femto}
 prefix femto = $10^{-15}$
-\end{datadesc}
 
-\begin{datadesc}{Atto}
+
+\paragraph{Atto}
 prefix atto = $10^{-18}$
-\end{datadesc}
 
-\begin{datadesc}{Zepto}
+
+\paragraph{Zepto}
 prefix zepto = $10^{-21}$
-\end{datadesc}
 
-\begin{datadesc}{Yocto}
+
+\paragraph{Yocto}
 prefix yocto = $10^{-24}$
-\end{datadesc}
+
 
 \section{Utilities}
 The \class{FileWriter} class provides a mechanism to write data to a file.
@@ -2052,7 +2064,8 @@ rather than \class{open} in order to write code that will run with and without
 \MPI. It is safe to use \class{open} under \MPI to \emph{read} data which are
 global under \MPI.
 
-\begin{classdesc}{FileWriter}{fn\optional{,append=\False, \optional{createLocalFiles=\False}})}
+\subsubsection*{class FileWriter(fn\optional{,append=\False, \optional{createLocalFiles=\False)}
+})}
 Opens a file with name \var{fn} for writing. If \var{append} is set to \True
 data are appended at the end of the file.
 If running under \MPI, only the first processor (rank==0) will open the file
@@ -2060,23 +2073,23 @@ and write to it.
 If \var{createLocalFiles} is set each individual processor will create a file
 where for any processor with rank $> 0$ the file name is extended by its rank.
 This option is normally used for debugging purposes only.
-\end{classdesc}
+
 
 \vspace{1em}\noindent The following methods are available:
-\begin{methoddesc}[FileWriter]{close}{}
+\paragraph{FileWriter.close()}
 closes the file.
-\end{methoddesc}
-\begin{methoddesc}[FileWriter]{flush}{}
+
+\paragraph{FileWriter.flush()}
 flushes the internal buffer to disk.
-\end{methoddesc}
-\begin{methoddesc}[FileWriter]{write}{txt}
+
+\paragraph{FileWriter.write(txt)}
 writes string \var{txt} to the file. Note that a newline is not added.
-\end{methoddesc}
-\begin{methoddesc}[FileWriter]{writelines}{txts}
+
+\paragraph{FileWriter.writelines(txts)}
 writes the list \var{txts} of strings to the file.
 Note that newlines are not added.
 This method is equivalent to calling \var{write()} for each string.
-\end{methoddesc}
+
 \begin{memberdesc}[FileWriter]{closed}
 this member is \True if the file is closed.
 \end{memberdesc}
@@ -2092,7 +2105,7 @@ holds the line separator.
 
 \noindent The following additional functions are available in the \escript
 module:
-\begin{funcdesc}{setEscriptParamInt}{name,value}
+\paragraph{setEscriptParamInt(name,value)}
 assigns the integer value \var{value} to the internal Escript parameter
 \var{name}. This should be considered an advanced feature and it is generally
 not required to call this function. One parameter worth mentioning is
@@ -2100,35 +2113,35 @@ not required to call this function. One parameter worth mentioning is
 string. If more than \var{value} lines would be created, a condensed format is
 used instead which reports the minimum and maximum values and general
 information about the \Data object rather than all values.
-\end{funcdesc}
 
-\begin{funcdesc}{getEscriptParamInt}{name}
+
+\paragraph{getEscriptParamInt(name)}
 returns the current value of internal Escript parameter \var{name}.
-\end{funcdesc}
 
-\begin{funcdesc}{listEscriptParams}{a}
+
+\paragraph{listEscriptParams(a)}
 returns a list of valid Escript parameters and their description.
-\end{funcdesc}
 
-\begin{funcdesc}{getMPISizeWorld}{}
+
+\paragraph{getMPISizeWorld()}
 returns the number of \MPI processes in use in the \env{MPI_COMM_WORLD}
 process group. If \MPI is not used 1 is returned.
-\end{funcdesc}
 
-\begin{funcdesc}{getMPIRankWorld}{}
+
+\paragraph{getMPIRankWorld()}
 returns the rank of the current process within the \env{MPI_COMM_WORLD}
 process group. If \MPI is not used 0 is returned.
-\end{funcdesc}
 
-\begin{funcdesc}{MPIBarrierWorld}{}
+
+\paragraph{MPIBarrierWorld()}
 performs a barrier synchronization across all processes within the
 \env{MPI_COMM_WORLD} process group.
-\end{funcdesc}
 
-\begin{funcdesc}{getMPIWorldMax}{a}
+
+\paragraph{getMPIWorldMax(a)}
 returns the maximum value of the integer \var{a} across all processes within
 \env{MPI_COMM_WORLD}.
-\end{funcdesc}
+
 
 \section{Lazy Evaluation of Data}
 \label{sec:lazy}

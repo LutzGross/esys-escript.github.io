@@ -856,15 +856,10 @@ class AbstractMinimizer(object):
         :key iterMax: maximium number of iterations.
         :type iterMax: `int`
         :default iterMax: 300
-        :key relAlphaMin: minimal step size relative to serach direction.
-                          The value should be chosen such that
-                          At any iteration step `F(m + alpha * p)` is just discriminable from
-                          `F(m)` for any `alpha > relAlphaMin * |m|/|p|'.
+        :key relAlphaMin: minimal step size relative to search direction. The value should be chosen such that at any iteration step ``F(m + alpha * p)`` is just discriminable from ``F(m)`` for any ``alpha > relAlphaMin * norm(m)/norm(p)``.
         :type relAlphaMin: ``float``
         :default relAlphaMin: 1e-8
-        :key initialAlpha: initial step size alpha in line serach. Typically alpha=1 is a good initial value
-                            but a larger or smaller initial value may help to get the iteration started
-                            when only an approximation of the Hessian is available.
+        :key initialAlpha: initial step size alpha in line search. Typically alpha=1 is a good initial value but a larger or smaller initial value may help to get the iteration started when only an approximation of the Hessian is available.
         :type initialAlpha: ``float``
         :default initialAlpha: 1.
         :key scaleSearchDirection: if set the search direction is rescaled using an estimation of the norm of the Hessian

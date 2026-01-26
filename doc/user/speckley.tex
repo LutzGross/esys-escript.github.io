@@ -92,8 +92,8 @@ the script:
 \end{python}
 
 \section{Functions}
-\begin{funcdesc}{Brick}{order,n0,n1,n2,l0=1.,l1=1.,l2=1.,d0=-1,d1=-1,d2=-1,
-diracPoints=list(), diracTags=list(), comm=None}
+\paragraph{Brick(order,n0,n1,n2,l0=1.,l1=1.,l2=1.,d0=-1,d1=-1,d2=-1,
+diracPoints=list(), diracTags=list(), comm=None)}
 generates a \Domain object representing a three-dimensional brick between
 $(0,0,0)$ and $(l0,l1,l2)$ with orthogonal faces. All elements will be regular
 and of order \var{order}. The brick is filled with
@@ -115,10 +115,10 @@ each point tagged with the respective string within \var{diracTags}.
 \var{comm} is an optional \MPI communicator (from \texttt{mpi4py}) that allows using a custom
 communicator instead of \texttt{MPI\_COMM\_WORLD}. If \var{comm} is not \var{None},
 \escript must be built with \texttt{mpi4py} support enabled.
-\end{funcdesc}
 
-\begin{funcdesc}{Rectangle}{order,n0,n1,l0=1.,l1=1.,d0=-1,d1=-1,
-diracPoints=list(), diracTags=list(), comm=None}
+
+\paragraph{Rectangle(order,n0,n1,l0=1.,l1=1.,d0=-1,d1=-1,
+diracPoints=list(), diracTags=list(), comm=None)}
 generates a \Domain object representing a two-dimensional rectangle between
 $(0,0)$ and $(l0,l1)$ with orthogonal faces. All elements will be regular
 and of order \var{order}. The rectangle is filled with
@@ -137,4 +137,4 @@ each point tagged with the respective string within \var{diracTags}.
 \var{comm} is an optional \MPI communicator (from \texttt{mpi4py}) that allows using a custom
 communicator instead of \texttt{MPI\_COMM\_WORLD}. If \var{comm} is not \var{None},
 \escript must be built with \texttt{mpi4py} support enabled.
-\end{funcdesc}
+

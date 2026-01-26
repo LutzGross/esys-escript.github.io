@@ -19,18 +19,22 @@ Domain Array and Data Coupler for Multi-Domain Simulations
 This module provides infrastructure for multi-domain parallel simulations
 using MPI communicator topology and data exchange between domains.
 
-Classes:
---------
-MPIDomainArray : MPI communicator topology for domain arrays
-    Manages 2D Cartesian communicator topology with domain and subdomain
-    communicators for multi-domain simulations.
+Classes
+-------
 
-DataCoupler : Communication of Data objects between domains
-    Handles sending, receiving, broadcasting, and reduction of esys.escript.Data
-    objects between identically distributed domains.
+- **MPIDomainArray**: MPI communicator topology for domain arrays.
+  Manages 2D Cartesian communicator topology with domain and subdomain
+  communicators for multi-domain simulations.
 
-Example Usage:
---------------
+- **DataCoupler**: Communication of Data objects between domains.
+  Handles sending, receiving, broadcasting, and reduction of esys.escript.Data
+  objects between identically distributed domains.
+
+Example Usage
+-------------
+
+::
+
     from mpi4py import MPI
     from esys.escript import Rectangle, Scalar, Solution
     from esys.escript.domaincoupler import MPIDomainArray, DataCoupler
@@ -50,6 +54,7 @@ Example Usage:
         coupler.send(data, dest_domain_index=1, tag=100)
     elif domain_array.getDomainIndex() == 1:
         received = coupler.receive(Solution(domain), source_domain_index=0, tag=100)
+
 """
 
 from mpi4py import MPI

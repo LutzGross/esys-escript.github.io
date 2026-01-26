@@ -22,8 +22,8 @@ visualization software. This allows accessing the latest simulation data while
 the simulation is still running without the need to save any files.
 
 \section{The \class{EscriptDataset} class}
-\begin{classdesc}{EscriptDataset}{}
-    holds an {\it escript} dataset including a domain and data variables
+\subsubsection*{class EscriptDataset}
+holds an {\it escript} dataset including a domain and data variables
     for a single time step and offers methods to export the data in various
     formats.
     It is preferable to create a dataset object using the \var{createDataset}
@@ -32,26 +32,27 @@ the simulation is still running without the need to save any files.
 %     It is not recommended to create a dataset object directly in \PYTHON using
 %     the constructor (it is not actually exposed) but use the
 %     \var{createDataset} function from \weipa instead, see \Sec{sec:weipafuncs}.
-\end{classdesc}
+
 
 \noindent The following methods are available:
-\begin{methoddesc}[EscriptDataset]{setDomain}{domain}
-    sets the \Domain for this dataset. Note that the domain can only be set
+\paragraph{EscriptDataset.setDomain(domain)}
+sets the \Domain for this dataset. Note that the domain can only be set
     once and all \Data objects added to this dataset must be defined on the
     same domain.
-\end{methoddesc}
 
-\begin{methoddesc}[EscriptDataset]{addData}{data, name \optional{, units=""}}
+
+\paragraph{EscriptDataset.addData(data, name \optional{, units="")}
+}
     adds the \Data object \var{data} to this dataset which will be exported by
     the given \var{name}. Some export formats support data units which can be
     set through the \var{units} parameter, e.g. \code{"km/h"}.
     Before calling this method a domain must be set with \member{setDomain}
     and all \Data objects added must be defined on the same domain.
     There is no restriction, however, on the \FunctionSpace used.
-\end{methoddesc}
 
-\begin{methoddesc}[EscriptDataset]{setCycleAndTime}{cycle, time}
-    sets the cycle and time values for this dataset.
+
+\paragraph{EscriptDataset.setCycleAndTime(cycle, time)}
+sets the cycle and time values for this dataset.
     The cycle is an integer value which usually corresponds with the loop
     counter of the simulation script. That is, every time a new data file is
     created this counter is incremented.
@@ -59,21 +60,24 @@ the simulation is still running without the need to save any files.
     encodes some form of simulation time.
     Both, cycle and time may be read by analysis tools and shown alongside
     other metadata to the user.
-\end{methoddesc}
 
-\begin{methoddesc}[EscriptDataset]{setMeshLabels}{x, y \optional{, z=""}}
+
+\paragraph{EscriptDataset.setMeshLabels(x, y \optional{, z="")}
+}
     sets the labels of the X, Y, and Z axis. By default, visualization tools
     display default strings such as "X-Axis" or "X" along the axes. Some export
     formats allow overriding these with more specific strings such as "Width",
     "Horizontal Distance", etc.
-\end{methoddesc}
 
-\begin{methoddesc}[EscriptDataset]{setMeshUnits}{x, y \optional{, z=""}}
+
+\paragraph{EscriptDataset.setMeshUnits(x, y \optional{, z="")}
+}
     sets the units to be displayed along the X, Y, and Z axis in visualization
     tools (if supported). Not all export formats will use these values.
-\end{methoddesc}
 
-\begin{methoddesc}[EscriptDataset]{setMetadataSchemaString}{\optional{schema="" \optional{, metadata=""}}}
+
+\paragraph{EscriptDataset.setMetadataSchemaString(\optional{schema="" \optional{, metadata="")}
+}}
     adds custom metadata and/or XML schema strings to VTK files.
     The content of \var{schema} is added to the top-level \emph{VTKFile}
     element so care must be taken to keep the resulting file valid.
@@ -82,32 +86,33 @@ the simulation is still running without the need to save any files.
     will be written enclosed in \code{<MetaData>} tags. Thus, a valid example
     would be \code{<dataSource>something</dataSource>}.
     Note that these values are ignored by other exporters.
-\end{methoddesc}
 
-\begin{methoddesc}[EscriptDataset]{saveSilo}{filename}
-    saves the dataset in the \SILO file format to a file named \var{filename}.
+
+\paragraph{EscriptDataset.saveSilo(filename)}
+saves the dataset in the \SILO file format to a file named \var{filename}.
     The file extension \code{.silo} will be automatically added if not present.
-\end{methoddesc}
 
-\begin{methoddesc}[EscriptDataset]{saveVTK}{filename}
-    saves the dataset in the \VTK file format to a file named \var{filename}.
+
+\paragraph{EscriptDataset.saveVTK(filename)}
+saves the dataset in the \VTK file format to a file named \var{filename}.
     The file extension \code{.vtu} will be automatically added if not present.
     Certain combinations of function spaces cannot be written to a single \VTK
     file due to format restrictions. In these cases this method will save
     separate files where each file contains compatible data.
     The function space name is appended to the filename to distinguish them.
-\end{methoddesc}
+
 
 \section{Functions}\label{sec:weipafuncs}
-\begin{funcdesc}{createDataset}{domain, **data}
-    creates an \class{EscriptDataset} object, sets its domain, populates it
+\paragraph{createDataset(domain, **data)}
+creates an \class{EscriptDataset} object, sets its domain, populates it
     with the given \Data objects and returns it.
     Note that it is not possible to set units for the data variables added with
     this function. If this is required, it is recommended to call this function
     with a domain only and use the \member{addData} method subsequently.
-\end{funcdesc}
 
-\begin{funcdesc}{saveVTK}{filename \optional{, domain=None \optional{, metadata="" \optional{, metadata_schema=None}}}, **data}
+
+\paragraph{saveVTK(filename \optional{, domain=None \optional{, metadata="" \optional{, metadata_schema=None)}
+}}, **data}
     convenience function that creates a dataset with the given domain and \Data
     objects and saves it to a file in the \VTK file format.
     If \var{domain} is \code{None} the domain will be determined by the \Data
@@ -118,25 +123,27 @@ the simulation is still running without the need to save any files.
     Unlike the class method, the \var{metadata_schema} parameter should be a
     dictionary that maps namespace name to URI, e.g.\\
     \code{\{"gml":"http://www.opengis.net/gml"\}}.
-\end{funcdesc}
 
-\begin{funcdesc}{saveSilo}{filename \optional{, domain=None}, **data}
+
+\paragraph{saveSilo(filename \optional{, domain=None)}
+, **data}
     convenience function that creates a dataset with the given domain and \Data
     objects and saves it to a file in the \SILO file format.
     If \var{domain} is \code{None} the domain will be determined by the \Data
     objects.
     See the \member{setDomain}, \member{addData}, and \member{saveSilo}
     methods of the \class{EscriptDataset} class for details.
-\end{funcdesc}
 
-\begin{funcdesc}{saveVoxet}{filename, **data}
-    saves \Data objects defined on a {\it ripley} grid in the \Voxet file
+
+\paragraph{saveVoxet(filename, **data)}
+saves \Data objects defined on a {\it ripley} grid in the \Voxet file
     format suitable for import into \GOCAD\cite{GOCAD}.
     A \Voxet dataset consists of a header file (extension \verb|.vo|) and
     one property file (with no file extension) for each \Data object.
-\end{funcdesc}
 
-\begin{funcdesc}{visitInitialize}{simFile \optional{, comment=""}}
+
+\paragraph{visitInitialize(simFile \optional{, comment="")}
+}
     initializes the \VisIt simulation interface which is responsible for the
     communication with a \VisIt client.
     This function will create a file by the name given via \var{simFile}
@@ -149,10 +156,10 @@ the simulation is still running without the need to save any files.
     number matches the version number used to compile \weipa.
     Calling this function does not make any data available yet, see the
     \var{visitPublishData} function.
-\end{funcdesc}
 
-\begin{funcdesc}{visitPublishData}{dataset}
-    publishes an \class{EscriptDataset} object through the \VisIt simulation
+
+\paragraph{visitPublishData(dataset)}
+publishes an \class{EscriptDataset} object through the \VisIt simulation
     interface, checks for client requests and handles any outstanding ones.
     Before publishing any data, the \var{visitInitialize} function must be
     called to set up the interface.
@@ -163,7 +170,7 @@ the simulation is still running without the need to save any files.
     visualization requests that run your simulation. So a request for an
     expensive task by a \VisIt client will pause the simulation code while it
     is being processed.
-\end{funcdesc}
+
 
 \section{Visualizing {\it escript} Data}
 This section gives a very brief overview on how data exported through \weipa

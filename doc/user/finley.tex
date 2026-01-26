@@ -422,7 +422,8 @@ relevant options in \class{SolverOptions}.
 \end{table}
 
 \section{Functions}
-\begin{funcdesc}{ReadMesh}{fileName \optional{, \optional{integrationOrder=-1}, optimize=True, comm=None}}
+\paragraph{ReadMesh(fileName \optional{, \optional{integrationOrder=-1)}
+, optimize=True, comm=None}}
 creates a \Domain object from the FEM mesh defined in file \var{fileName}.
 The file must be in the \finley file format.
 If \var{integrationOrder} is positive, a numerical integration scheme is chosen
@@ -434,9 +435,10 @@ Set \var{optimize=False} to switch off relabeling and redistribution.
 \var{comm} is an optional \MPI communicator (from \texttt{mpi4py}) that allows using a custom
 communicator instead of \texttt{MPI\_COMM\_WORLD}. If \var{comm} is not \var{None},
 \escript must be built with \texttt{mpi4py} support enabled.
-\end{funcdesc}
 
-\begin{funcdesc}{ReadGmsh}{fileName, numDim, \optional{, \optional{integrationOrder=-1}, optimize=True\optional{, useMacroElements=False, comm=None}}}
+
+\paragraph{ReadGmsh(fileName, numDim, \optional{, \optional{integrationOrder=-1)}
+, optimize=True\optional{, useMacroElements=False, comm=None}}}
 creates a \Domain object from the FEM mesh defined in file \var{fileName} for
 a domain of dimension \var{numDim}.
 The file must be in the \gmshextern file format.
@@ -451,18 +453,19 @@ macro elements\index{macro elements}.
 \var{comm} is an optional \MPI communicator (from \texttt{mpi4py}) that allows using a custom
 communicator instead of \texttt{MPI\_COMM\_WORLD}. If \var{comm} is not \var{None},
 \escript must be built with \texttt{mpi4py} support enabled.
-\end{funcdesc}
 
-\begin{funcdesc}{load}{fileName\optional{, comm=None}}
+
+\paragraph{load(fileName\optional{, comm=None)}
+}
 recovers a \Domain object from a dump file \var{fileName} created by the
 \function{dump} method of a \Domain object.
 \var{comm} is an optional \MPI communicator (from \texttt{mpi4py}) that allows using a custom
 communicator instead of \texttt{MPI\_COMM\_WORLD}. If \var{comm} is not \var{None},
 \escript must be built with \texttt{mpi4py} support enabled.
-\end{funcdesc}
 
-\begin{funcdesc}{Rectangle}{n0,n1,order=1,l0=1.,l1=1., integrationOrder=-1, \\
-  periodic0=\False, periodic1=\False, useElementsOnFace=\False, optimize=\False, comm=None}
+
+\paragraph{Rectangle(n0,n1,order=1,l0=1.,l1=1., integrationOrder=-1, \\
+  periodic0=\False, periodic1=\False, useElementsOnFace=\False, optimize=\False, comm=None)}
 generates a \Domain object representing a two-dimensional rectangle between
 $(0,0)$ and $(l0,l1)$ with orthogonal edges.
 The rectangle is filled with \var{n0} elements along the $x_0$-axis and
@@ -493,10 +496,10 @@ running on multiple CPUs with \MPI.
 \var{comm} is an optional \MPI communicator (from \texttt{mpi4py}) that allows using a custom
 communicator instead of \texttt{MPI\_COMM\_WORLD}. If \var{comm} is not \var{None},
 \escript must be built with \texttt{mpi4py} support enabled.
-\end{funcdesc}
 
-\begin{funcdesc}{Brick}{n0,n1,n2,order=1,l0=1.,l1=1.,l2=1., integrationOrder=-1,
-  periodic0=\False, periodic1=\False, \\ periodic2=\False, useElementsOnFace=\False,useFullElementOrder=\False, optimize=\False, comm=None}
+
+\paragraph{Brick(n0,n1,n2,order=1,l0=1.,l1=1.,l2=1., integrationOrder=-1,
+  periodic0=\False, periodic1=\False, \\ periodic2=\False, useElementsOnFace=\False,useFullElementOrder=\False, optimize=\False, comm=None)}
 generates a \Domain object representing a three-dimensional brick between
 $(0,0,0)$ and $(l0,l1,l2)$ with orthogonal faces. The brick is filled with
 \var{n0} elements along the $x_0$-axis,
@@ -528,21 +531,21 @@ running on multiple CPUs with \MPI.
 \var{comm} is an optional \MPI communicator (from \texttt{mpi4py}) that allows using a custom
 communicator instead of \texttt{MPI\_COMM\_WORLD}. If \var{comm} is not \var{None},
 \escript must be built with \texttt{mpi4py} support enabled.
-\end{funcdesc}
 
-\begin{funcdesc}{GlueFaces}{meshList, tolerance=1.e-13}
+
+\paragraph{GlueFaces(meshList, tolerance=1.e-13)}
 generates a new \Domain object from the list \var{meshList} of \finley meshes.
 Nodes in face elements whose difference of coordinates is less than
 \var{tolerance} times the diameter of the domain are merged.
 The corresponding face elements are removed from the mesh.
 \function{GlueFaces} is not supported under \MPI with more than one rank.
-\end{funcdesc}
 
-\begin{funcdesc}{JoinFaces}{meshList, tolerance=1.e-13}
+
+\paragraph{JoinFaces(meshList, tolerance=1.e-13)}
 generates a new \Domain object from the list \var{meshList} of \finley meshes.
 Face elements whose node coordinates differ by less than \var{tolerance} times
 the diameter of the domain are combined to form a contact element\index{element!contact}.
 The corresponding face elements are removed from the mesh.
 \function{JoinFaces} is not supported under \MPI with more than one rank.
-\end{funcdesc}
+
 
