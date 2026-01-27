@@ -1,20 +1,45 @@
-name: Unit testing
+name: Unit Testing (Self-Hosted)
 
 on:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: self-hosted
+    timeout-minutes: 120
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Compile
-        run: scons -j1 options_file=scons/nectar_options.py werror=0 verbose=0 build_full
-      - name: Run testing
-        run: export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH; ./utest.sh `pwd`/build '-t2' > testout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-        
+      - name: Build esys-escript
+        run: |
+          scons -j4 options_file=scons/nectar_options.py werror=0 verbose=0 build_full
+
+      - name: Run unit tests
+        run: |
+          export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+          ./utest.sh $(pwd)/build '-t4' 2>&1 | tee testout.log
+
+      - name: Check test results
+        run: |
+          if grep -q "FAILED" testout.log; then
+            echo "Some tests failed!"
+            grep "FAILED" testout.log
+            exit 1
+          fi
+          echo "All tests passed!"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: testout.log
+          retention-days: 7

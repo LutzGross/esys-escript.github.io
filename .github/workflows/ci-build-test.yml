@@ -1,0 +1,183 @@
+name: CI Build and Test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "Ubuntu (no MPI)"
+            options_file: "scons/templates/debian_options.py"
+            mpi: "none"
+          - name: "Ubuntu (MPI)"
+            options_file: "scons/templates/ubuntu_options.py"
+            mpi: "OPENMPI"
+
+    name: ${{ matrix.name }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            scons cmake \
+            python3-numpy python3-scipy \
+            libboost-python-dev libboost-numpy-dev \
+            libboost-random-dev libboost-iostreams-dev \
+            libnetcdf-dev libsilo-dev libhdf5-serial-dev \
+            libsuitesparse-dev liblapacke-dev libmumps-seq-dev \
+            libmetis-dev zlib1g-dev \
+            g++ gfortran
+
+      - name: Install MPI dependencies
+        if: matrix.mpi != 'none'
+        run: |
+          sudo apt-get install -y \
+            libopenmpi-dev openmpi-bin \
+            python3-mpi4py libparmetis-dev
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy scipy sympy
+
+      - name: Configure build
+        run: |
+          # Create a custom options file based on template
+          cp ${{ matrix.options_file }} scons/ci_options.py
+
+          # Override MPI setting
+          echo "" >> scons/ci_options.py
+          echo "# CI overrides" >> scons/ci_options.py
+          echo "mpi = '${{ matrix.mpi }}'" >> scons/ci_options.py
+
+          # Disable oxley (requires p4est)
+          echo "domains = ['finley', 'ripley', 'speckley']" >> scons/ci_options.py
+
+          # Build Trilinos from source
+          echo "build_trilinos = 'make'" >> scons/ci_options.py
+
+          cat scons/ci_options.py
+
+      - name: Build esys-escript
+        run: |
+          scons -j2 options_file=scons/ci_options.py build 2>&1 | tee build.log
+          tail -50 build.log
+
+      - name: Run sanity check
+        run: |
+          export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:/usr/lib/x86_64-linux-gnu/hdf5/serial:${LD_LIBRARY_PATH}"
+
+          # Run sanity check
+          ./bin/run-escript scripts/release_sanity.py
+
+      - name: Run Python tests (no MPI)
+        if: matrix.mpi == 'none'
+        run: |
+          export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:/usr/lib/x86_64-linux-gnu/hdf5/serial:${LD_LIBRARY_PATH}"
+
+          # Run basic import tests
+          python3 -c "from esys.escript import *; print('escript OK')"
+          python3 -c "from esys.finley import Rectangle; d = Rectangle(10,10); print('finley OK')"
+          python3 -c "from esys.ripley import Rectangle; d = Rectangle(10,10); print('ripley OK')"
+          python3 -c "from esys.speckley import Rectangle; d = Rectangle(10,10); print('speckley OK')"
+
+      - name: Run Python tests (MPI)
+        if: matrix.mpi != 'none'
+        run: |
+          export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:/usr/lib/x86_64-linux-gnu/hdf5/serial:${LD_LIBRARY_PATH}"
+
+          # Run basic import tests with MPI
+          ./bin/run-escript -n 1 -c "from esys.escript import *; print('escript OK')"
+          ./bin/run-escript -n 2 -c "from esys.finley import Rectangle; d = Rectangle(10,10); print('finley MPI OK')"
+
+  build-macos:
+    runs-on: macos-latest
+    timeout-minutes: 60
+
+    name: "macOS (Homebrew)"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Homebrew dependencies
+        run: |
+          brew update
+          brew install python@3.11 scons cmake llvm
+          brew install boost boost-python3
+          brew install hdf5 suite-sparse netcdf
+          # Note: silo may not be available, skip if needed
+          brew install silo || echo "silo not available, skipping"
+
+      - name: Install Python dependencies
+        run: |
+          pip3 install numpy scipy sympy
+
+      - name: Configure build
+        run: |
+          # Use homebrew template but adjust for CI
+          cp scons/templates/homebrew_options.py scons/ci_options.py
+
+          # Disable features that may not be available in CI
+          echo "" >> scons/ci_options.py
+          echo "# CI overrides" >> scons/ci_options.py
+          echo "domains = ['finley', 'ripley', 'speckley']" >> scons/ci_options.py
+          echo "mpi = 'none'" >> scons/ci_options.py
+          # Trilinos build can be slow on macOS
+          echo "build_trilinos = 'never'" >> scons/ci_options.py
+          echo "trilinos = False" >> scons/ci_options.py
+
+          cat scons/ci_options.py
+
+      - name: Build esys-escript
+        run: |
+          export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
+          export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
+          export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
+
+          scons -j2 options_file=scons/ci_options.py build 2>&1 | tee build.log
+          tail -50 build.log
+
+      - name: Run sanity check
+        run: |
+          export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
+          export DYLD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${DYLD_LIBRARY_PATH}"
+
+          # Run sanity check
+          ./bin/run-escript scripts/release_sanity.py
+
+      - name: Run Python tests
+        run: |
+          export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
+          export DYLD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${DYLD_LIBRARY_PATH}"
+
+          # Run basic import tests
+          python3 -c "from esys.escript import *; print('escript OK')"
+          python3 -c "from esys.finley import Rectangle; d = Rectangle(10,10); print('finley OK')"
+          python3 -c "from esys.ripley import Rectangle; d = Rectangle(10,10); print('ripley OK')"
