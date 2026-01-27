@@ -2,7 +2,7 @@
 
 This guide is for **Version 6** of esys-escript.
 
-esys-escript is primarily developed on Linux systems. The current version provides some support for macOS but has not been ported to Windows.
+esys-escript is primarily developed on Linux systems. The current version provides some support for macOS. For Windows users, we recommend using WSL2 (Windows Subsystem for Linux) - see the Windows section below.
 
 For support and questions, please visit the [Issues site](https://github.com/esys-escript/esys-escript.github.io/issues).
 
@@ -219,7 +219,11 @@ scons -j4 options_file=scons/templates/ubuntu_options.py
 
 ### Linux Mint 20.3+
 
-Mint Linux is based on Ubuntu, use the same commands as Ubuntu above.
+Linux Mint is based on Ubuntu. Use the same package installation commands as Ubuntu above, then build with:
+
+```bash
+scons -j4 options_file=scons/templates/mint_options.py
+```
 
 ### Arch Linux
 
@@ -479,6 +483,57 @@ For symbolic mathematics support:
 ```bash
 sudo pkg install py39-sympy
 ```
+
+### Windows (via WSL2)
+
+**Native Windows builds are not supported.** The recommended approach for Windows users is to use WSL2 (Windows Subsystem for Linux), which provides a full Linux environment.
+
+#### Installing WSL2
+
+1. Open PowerShell as Administrator and run:
+
+```powershell
+wsl --install
+```
+
+2. Restart your computer when prompted.
+
+3. After restart, Ubuntu will be installed by default. You can also install other distributions:
+
+```powershell
+wsl --install -d Debian
+```
+
+4. Launch your Linux distribution from the Start menu and complete the initial setup (create username and password).
+
+#### Building esys-escript in WSL2
+
+Once inside WSL2, follow the standard Linux installation instructions:
+
+```bash
+# Update package lists
+sudo apt-get update
+
+# Install dependencies (same as Debian/Ubuntu)
+sudo apt-get install python3-dev python3-numpy python3-scipy python3-matplotlib
+sudo apt-get install g++ gfortran scons cmake
+sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
+sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev liblapacke-dev libmumps-seq-dev zlib1g-dev
+sudo apt-get install libmetis-dev
+
+# Clone and build
+git clone https://github.com/esys-escript/esys-escript.github.io.git esys6
+cd esys6
+scons -j4 options_file=scons/templates/debian_options.py
+```
+
+For MPI support in WSL2:
+
+```bash
+sudo apt-get install python3-mpi4py libparmetis-dev
+```
+
+**Note:** WSL2 provides near-native Linux performance and full compatibility with esys-escript. GUI applications (like VisIt or ParaView for visualization) require WSLg (included in Windows 11) or an X server on Windows 10.
 
 ## Advanced Configuration
 
