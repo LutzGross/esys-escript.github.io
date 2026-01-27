@@ -78,7 +78,18 @@ from esys.escriptcore.datamanager import DataManager
 if HAVE_SYMBOLS:
     from esys.escriptcore.symboliccore import *
 from . import minimizer
-from .domaincoupler import MPIDomainArray, DataCoupler
+
+# Import MPI domain coupler only if mpi4py is available
+try:
+    from mpi4py import MPI as _MPI
+    from .domaincoupler import MPIDomainArray, DataCoupler
+    HAVE_MPI4PY = True
+except ImportError:
+    HAVE_MPI4PY = False
+    # Provide placeholder classes for documentation purposes
+    MPIDomainArray = None
+    DataCoupler = None
+
 import logging
 logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
 
