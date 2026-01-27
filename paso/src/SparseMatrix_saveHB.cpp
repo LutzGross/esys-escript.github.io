@@ -96,7 +96,7 @@ void print_data(std::ofstream& fp, int n_perline, int width, int nval,
     if (integer) {
         const dim_t *data = reinterpret_cast<const dim_t*>(ptr);
         for(i=0; i<nval; i++) {
-            snprintf(buffer, 80, fmt, data[i]+adjust);
+            snprintf(buffer, sizeof(buffer), fmt, data[i]+adjust);
             fp << buffer;
             entries_done++;
             if (entries_done == n_perline) {
@@ -110,7 +110,7 @@ void print_data(std::ofstream& fp, int n_perline, int width, int nval,
     } else {
         const double *data = reinterpret_cast<const double*>(ptr);
         for (i=0; i<nval; i++) {
-            snprintf(buffer, 80, fmt, data[i]);
+            snprintf(buffer, sizeof(buffer), fmt, data[i]);
             fp << buffer;
             entries_done++;
             if (entries_done == n_perline) {
@@ -141,19 +141,17 @@ void generate_HB(std::ofstream& fp, dim_t *col_ptr, dim_t *row_ind,
     const std::streamsize oldwidth = fp.width();
 
     /* line 1 */
-    snprintf( buffer, 80, "%-72s%-8s", "Matrix Title", "Key" );
-    buffer[80] = '\0';
+    snprintf( buffer, sizeof(buffer), "%-72s%-8s", "Matrix Title", "Key" );
     fp << buffer << std::endl;
 
     /* line 2 */
     ptr_width = calc_digits( nz+1 );
-    fmt_str( N+1, 1, &ptr_width, &ptr_lines, &ptr_perline, 7, ptr_pfmt, 10, ptr_fmt );
+    fmt_str( N+1, 1, &ptr_width, &ptr_lines, &ptr_perline, sizeof(ptr_pfmt), ptr_pfmt, sizeof(ptr_fmt), ptr_fmt );
     ind_width = calc_digits( N );
-    fmt_str( nz, 1, &ind_width, &ind_lines, &ind_perline, 7, ind_pfmt, 10, ind_fmt );
+    fmt_str( nz, 1, &ind_width, &ind_lines, &ind_perline, sizeof(ind_pfmt), ind_pfmt, sizeof(ind_fmt), ind_fmt );
     val_width = 13;
-    fmt_str( nz, 0, &val_width, &val_lines, &val_perline, 7, val_pfmt, 10, val_fmt );
-    snprintf( buffer, 81, "%14d%14d%14d%14d%14d%10c", (ptr_lines+ind_lines+val_lines), ptr_lines, ind_lines, val_lines, 0, ' ' );
-    buffer[80] = '\0';
+    fmt_str( nz, 0, &val_width, &val_lines, &val_perline, sizeof(val_pfmt), val_pfmt, sizeof(val_fmt), val_fmt );
+    snprintf( buffer, sizeof(buffer), "%14d%14d%14d%14d%14d%10c", (ptr_lines+ind_lines+val_lines), ptr_lines, ind_lines, val_lines, 0, ' ' );
     fp << buffer << std::endl;
 
     /* line 3 */
@@ -161,8 +159,7 @@ void generate_HB(std::ofstream& fp, dim_t *col_ptr, dim_t *row_ind,
         << 0 << std::setw(10) << ' ' << std::setw(oldwidth) << std::endl;
 
     /* line 4 */
-    snprintf( buffer, 81, "%16s%16s%20s%28c", ptr_pfmt, ind_pfmt, val_pfmt, ' ');
-    buffer[80]='\0';
+    snprintf( buffer, sizeof(buffer), "%16s%16s%20s%28c", ptr_pfmt, ind_pfmt, val_pfmt, ' ');
     fp << buffer << std::endl;
 
     /* line 5 */
