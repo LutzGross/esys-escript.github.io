@@ -253,7 +253,7 @@ sudo pacman -Sy python-sympy
 Build esys-escript:
 
 ```bash
-scons -j4 options_file=scons/templates/arch_py3_options.py
+scons -j4 options_file=scons/templates/arch_options.py
 ```
 
 ### Fedora
@@ -289,7 +289,7 @@ sudo dnf install python3-sympy
 Build esys-escript:
 
 ```bash
-scons -j4 options_file=scons/templates/fedora_py3_options.py
+scons -j4 options_file=scons/templates/fedora_options.py
 ```
 
 ### OpenSUSE
@@ -325,7 +325,7 @@ sudo zypper in python3-sympy
 Build esys-escript:
 
 ```bash
-scons -j4 options_file=scons/templates/opensuse_py3_options.py
+scons -j4 options_file=scons/templates/opensuse_options.py
 ```
 
 ### CentOS 8 / Rocky Linux / AlmaLinux
@@ -368,7 +368,7 @@ sudo dnf install python3-sympy
 Build esys-escript:
 
 ```bash
-scons -j4 options_file=scons/templates/centos8_options.py
+scons -j4 options_file=scons/templates/centos8_0_options.py
 ```
 
 ### macOS with Homebrew

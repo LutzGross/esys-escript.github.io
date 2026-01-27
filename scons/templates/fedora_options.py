@@ -13,18 +13,66 @@
 ##############################################################################
 
 # This is a template configuration file for escript on Fedora Linux.
-# Refer to README_FIRST for usage instructions.
+# Refer to installation.md for usage instructions.
+#
+# Prerequisites:
+#   sudo dnf install python3-devel python3-numpy python3-scipy python3-matplotlib
+#   sudo dnf install gcc-c++ gcc-gfortran scons cmake
+#   sudo dnf install boost-devel boost-python3-devel boost-python3 boost-numpy3
+#   sudo dnf install hdf5-devel netcdf-devel suitesparse-devel lapack-devel zlib-devel metis-devel
+
+import subprocess
 
 escript_opts_version = 203
-openmp = True
-pythoncmd='/usr/bin/python3'
+
+# Python configuration - auto-detect version
+pythoncmd = '/usr/bin/python3'
+p = subprocess.run([pythoncmd, '-V'], capture_output=True, text=True)
+subversion = p.stdout.split(' ')[1].split('.')[1]
+print(f"Python subversion = {subversion}")
+
 pythonlibpath = ['/usr/lib64']
-pythonlibname = ['python3.10']
-pythonincpath = ['/usr/include/python3.10']
-boost_libs = ['boost_python310']
-boost_prefix=['/usr/include','/usr/lib64']
-netcdf_prefix=['/usr/include', '/usr/lib64']
-disable_boost_numpy=True
-umfpack=True
-umfpack_prefix=['/usr/include/suitesparse','/usr/lib64']
-netcdf=4
+pythonlibname = [f'python3.{subversion}']
+pythonincpath = [f'/usr/include/python3.{subversion}']
+
+# Boost configuration
+boost_libs = [f'boost_python3{subversion}']
+boost_prefix = ['/usr/include', '/usr/lib64']
+disable_boost_numpy = True  # Fedora boost-numpy may need separate installation
+
+# Compiler settings
+openmp = True
+werror = 0
+
+# UMFPACK direct solver
+umfpack = True
+umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib64']
+
+# NetCDF configuration
+netcdf = True
+netcdf_prefix = ['/usr/include', '/usr/lib64']
+
+# HDF5 configuration
+hdf5 = True
+hdf5_prefix = ['/usr/include', '/usr/lib64']
+hdf5_libs = ['hdf5_cpp', 'hdf5']
+
+# LAPACK configuration
+lapack = 'auto'
+
+# METIS configuration
+metis = True
+metis_prefix = ['/usr/include', '/usr/lib64']
+metis_libs = ['metis']
+
+# zlib configuration
+zlib = True
+zlib_prefix = ['/usr/include', '/usr/lib64']
+zlib_libs = ['z']
+
+# MPI disabled by default - enable for parallel support
+# sudo dnf install openmpi-devel python3-mpi4py
+mpi = 'none'
+
+# Trilinos - build from bundled source
+build_trilinos = 'make'
