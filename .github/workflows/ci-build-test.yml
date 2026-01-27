@@ -204,8 +204,19 @@ jobs:
     name: "Fedora (no MPI)"
 
     steps:
+      - name: Install git (required for checkout in container)
+        run: dnf install -y git
+
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Verify checkout
+        run: |
+          echo "=== Checking trilinos_source16 ==="
+          ls -la trilinos_source16/ | head -10 || echo "trilinos_source16 NOT FOUND"
+          echo "=== Current directory ==="
+          pwd
+          ls -la
 
       - name: Install system dependencies
         run: |
@@ -269,6 +280,9 @@ jobs:
     name: "Arch Linux (no MPI)"
 
     steps:
+      - name: Install git (required for checkout in container)
+        run: pacman -Sy --noconfirm git
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -278,7 +292,7 @@ jobs:
           pacman -S --noconfirm \
             python python-numpy python-scipy python-matplotlib python-sympy \
             gcc gcc-fortran scons cmake \
-            boost boost-libs suitesparse hdf5 netcdf lapack mumps zlib metis \
+            boost boost-libs suitesparse hdf5 netcdf lapack mumps zlib \
             git
 
       - name: Configure build
@@ -292,6 +306,9 @@ jobs:
 
           # Disable ParMETIS (Ubuntu package has broken CMake config)
           echo "parmetis = False" >> scons/ci_options.py
+
+          # Disable METIS (not in Arch official repos)
+          echo "metis = False" >> scons/ci_options.py
 
           cat scons/ci_options.py
 
@@ -334,6 +351,9 @@ jobs:
     name: "OpenSUSE Tumbleweed (no MPI)"
 
     steps:
+      - name: Install git (required for checkout in container)
+        run: zypper --non-interactive install git
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -399,6 +419,9 @@ jobs:
     name: "Rocky Linux 9 (no MPI)"
 
     steps:
+      - name: Install git (required for checkout in container)
+        run: dnf install -y git
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -410,11 +433,14 @@ jobs:
       - name: Install system dependencies
         run: |
           dnf install -y \
-            python3-devel python3-numpy python3-scipy python3-matplotlib python3-sympy \
+            python3-devel python3-numpy python3-scipy python3-matplotlib python3-pip \
             gcc gcc-c++ gcc-gfortran scons cmake \
             boost-devel boost-python3 boost-python3-devel \
             hdf5-devel netcdf-devel suitesparse suitesparse-devel lapack-devel zlib-devel metis-devel \
             git
+
+          # Install sympy via pip (not available as system package on Rocky Linux)
+          pip3 install sympy
 
       - name: Configure build
         run: |
