@@ -171,12 +171,12 @@ bool FinleyNodes::initFromFinley(const finley::NodeFile* finleyFile)
 //
 //
 
+#ifdef ESYS_HAVE_NETCDF4
 bool FinleyNodes::readFromNc(netCDF::NcFile& ncFile)
 {
-#ifdef ESYS_HAVE_NETCDF4
     NcGroupAtt att;
     NcVar var;
- 
+
     att = ncFile.getAtt("numDim");
     att.getValues(&numDims);
 
@@ -244,10 +244,8 @@ bool FinleyNodes::readFromNc(netCDF::NcFile& ncFile)
     }
 
     return true;
-#else // !ESYS_HAVE_NETCDF4
-    return false;
-#endif
 }
+#endif // ESYS_HAVE_NETCDF4
 
 //
 //

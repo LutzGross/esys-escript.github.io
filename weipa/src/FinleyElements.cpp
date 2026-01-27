@@ -219,9 +219,9 @@ bool FinleyElements::initFromFinley(const finley::ElementFile* finleyFile)
 //
 // Reads element data from given NetCDF file
 //
+#ifdef ESYS_HAVE_NETCDF4
 bool FinleyElements::readFromNc(netCDF::NcFile& ncfile)
 {
-#ifdef ESYS_HAVE_NETCDF4
     string num_str("num_");
     num_str += name;
 
@@ -318,10 +318,8 @@ bool FinleyElements::readFromNc(netCDF::NcFile& ncfile)
     }
 
     return true;
-#else // !ESYS_HAVE_NETCDF4
-    return false;
-#endif
 }
+#endif // ESYS_HAVE_NETCDF4
 
 //
 //

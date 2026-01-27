@@ -56,6 +56,3 @@ mpi = 'none'
 
 # No sympy or other optional features
 sympy = False
-
-# Disable netCDF - not needed for docs and causes header issues if not properly configured
-netcdf = False

@@ -56,8 +56,10 @@ public:
     /// \brief Initialises with finley node file.
     bool initFromFinley(const finley::NodeFile* finleyFile);
 
+#ifdef ESYS_HAVE_NETCDF4
     /// \brief Reads node data from a NetCDF file.
     bool readFromNc(netCDF::NcFile& ncFile);
+#endif
 
     /// \brief Writes node data to a Silo file.
     bool writeToSilo(DBfile* dbfile);

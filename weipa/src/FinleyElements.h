@@ -77,8 +77,10 @@ public:
     /// \brief Initialises with data from a Finley ElementFile instance.
     bool initFromFinley(const finley::ElementFile* finleyFile);
 
+#ifdef ESYS_HAVE_NETCDF4
     /// \brief Reads element data from escript/finley NetCDF file.
     bool readFromNc(netCDF::NcFile& ncfile);
+#endif
 
     /// \brief Moves "ghost" elements (whose owner does not match ownIndex)
     ///        and the corresponding data to the end of the arrays.
