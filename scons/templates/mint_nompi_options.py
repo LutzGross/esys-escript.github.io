@@ -12,7 +12,14 @@
 #
 ##############################################################################
 
-# Linux Mint configuration - based on Ubuntu/Debian.
-# This file imports ubuntu_options.py for convenience.
+# No-MPI configuration for Linux Mint.
+# Imports the full mint_options.py and disables MPI.
 
-from scons.templates.ubuntu_options import *
+from scons.templates.mint_options import *
+
+# Disable MPI
+mpi = 'none'
+mpi4py = False
+
+# ParMETIS requires MPI
+parmetis = False
