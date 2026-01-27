@@ -12,16 +12,14 @@
 #
 ##############################################################################
 
-# This is a template configuration file for escript on Debian/GNU Linux.
-# Refer to README_FIRST for usage instructions.
+# No-MPI configuration for Debian Sid (unstable).
+# Imports the full sid_options.py and disables MPI.
 
 from scons.templates.sid_options import *
 
-mpi = 'OPENMPI'
-import sysconfig
-multiarch = sysconfig.get_config_var('MULTIARCH')
-mpi_include = '/usr/lib/' + multiarch + '/openmpi/include'
-mpi_lib = '/usr/lib/' + multiarch + '/openmpi/lib'
-mpi_prefix = [mpi_include,mpi_lib]
+# Disable MPI
+mpi = 'none'
+mpi4py = False
 
-cxx_extra=' -Wno-stringop-truncation'
+# ParMETIS requires MPI
+parmetis = False
