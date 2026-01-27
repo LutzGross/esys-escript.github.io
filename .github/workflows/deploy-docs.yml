@@ -44,7 +44,7 @@ jobs:
             libboost-numpy-dev \
             libboost-random-dev \
             libboost-iostreams-dev \
-            libnetcdf-dev \
+            libnetcdf-dev libnetcdf-c++4-dev \
             libsilo-dev \
             libhdf5-serial-dev \
             libsuitesparse-dev \
@@ -99,45 +99,65 @@ jobs:
           echo "=== Build options file ==="
           cat scons/github_ubuntu_options.py
 
-      - name: Build esys-escript (minimal for docs)
+      - name: Build esys-escript
         run: |
-          # Build only what's needed for Python API documentation
-          scons -j2 options_file=scons/github_ubuntu_options.py build 2>&1 | tail -100
+          # Build esys-escript - show full output to catch errors
+          scons -j2 options_file=scons/github_ubuntu_options.py build 2>&1 | tee build.log
 
-      - name: Build all documentation
+          # Check if build succeeded
+          if [ ${PIPESTATUS[0]} -ne 0 ]; then
+            echo "Build failed! Last 50 lines:"
+            tail -50 build.log
+            exit 1
+          fi
+
+          echo "=== Build completed successfully ==="
+
+      - name: Verify esys-escript installation
         run: |
-          # Debug: Check HDF5 installation
-          echo "=== Checking HDF5 libraries ==="
-          find /usr/lib -name "*hdf5*" -type f 2>/dev/null | head -20
-          ldconfig -p | grep hdf5 | head -10
-
-          # Set up Python path
+          # Set up environment
           export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:/usr/lib/x86_64-linux-gnu/hdf5/serial:/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
 
-          # Set up library paths for runtime linking
-          # Include HDF5, SILO, and esys libraries - add both serial and standard paths
-          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/lib:${GITHUB_WORKSPACE}/esys.trilinos/lib:/usr/lib/x86_64-linux-gnu/hdf5/serial:/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
-
-          echo "=== Environment for docs build ==="
+          echo "=== Environment ==="
           echo "PYTHONPATH=$PYTHONPATH"
           echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
 
-          # Test if esys modules can be imported
           echo "=== Testing esys module import ==="
-          python3 -c "import sys; sys.path.insert(0, '${GITHUB_WORKSPACE}'); import esys.escript; print('esys.escript imported successfully')" || echo "Failed to import esys.escript"
+          python3 -c "import esys.escript; print('esys.escript imported successfully')"
 
-          # Build all documentation using the 'docs' target
-          # This includes: basedocs (pdfdocs, examples, HTML files) + sphinxdoc
-          scons -j2 options_file=scons/github_ubuntu_options.py docs 2>&1 | tail -100
+          echo "=== Listing installed modules ==="
+          ls -la esys/
+
+      - name: Build documentation
+        run: |
+          # Set up environment
+          export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:/usr/lib/x86_64-linux-gnu/hdf5/serial:/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
+
+          # Build all documentation - show full output
+          echo "=== Building documentation ==="
+          scons -j2 options_file=scons/github_ubuntu_options.py docs 2>&1 | tee docs.log
+
+          # Check if docs build succeeded
+          if [ ${PIPESTATUS[0]} -ne 0 ]; then
+            echo "Documentation build failed! Last 100 lines:"
+            tail -100 docs.log
+            exit 1
+          fi
 
           # Verify Sphinx documentation was built
           echo "=== Verifying Sphinx API documentation ==="
-          if [ -d "release/doc/sphinx_api" ]; then
-            echo "Sphinx API directory exists"
+          if [ -d "release/doc/sphinx_api" ] && [ -f "release/doc/sphinx_api/index.html" ]; then
+            echo "Sphinx API documentation built successfully"
             ls -lh release/doc/sphinx_api/*.html | head -10
             du -sh release/doc/sphinx_api
           else
-            echo "ERROR: Sphinx API directory not found!"
+            echo "ERROR: Sphinx API documentation not found!"
+            echo "Contents of release/doc/:"
+            ls -la release/doc/ || echo "release/doc/ does not exist"
+            echo "Contents of release/doc/sphinx_api/:"
+            ls -la release/doc/sphinx_api/ || echo "release/doc/sphinx_api/ does not exist"
             exit 1
           fi
 

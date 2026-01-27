@@ -19,8 +19,11 @@
 #   sudo port install python311
 #   sudo port select --set python python311
 #   sudo port select --set python3 python311
-#   sudo port install py311-numpy py311-scipy py311-matplotlib
+#   sudo port install py311-numpy py311-scipy py311-sympy py311-matplotlib
 #   sudo port install scons cmake boost hdf5 netcdf suitesparse lapack
+#   sudo port install openmpi py311-mpi4py
+#
+# For no-MPI build, use macports_nompi_options.py instead.
 
 import subprocess
 
@@ -41,6 +44,16 @@ pythonincpath = [f'{MACPORTS_PREFIX}/Library/Frameworks/Python.framework/Version
 # Compiler settings
 openmp = True
 tools_names = ['clang']
+
+# MPI configuration
+mpi = 'OPENMPI'
+mpi_prefix = [f'{MACPORTS_PREFIX}/include/openmpi-mp', f'{MACPORTS_PREFIX}/lib/openmpi-mp']
+mpi_libs = ['mpi_cxx', 'mpi']
+mpi4py = True
+
+# Solver configuration
+paso = True
+build_trilinos = 'make'
 
 # Boost configuration
 boost_prefix = MACPORTS_PREFIX
@@ -72,12 +85,8 @@ zlib = True
 zlib_prefix = MACPORTS_PREFIX
 zlib_libs = ['z']
 
-# MPI disabled by default - enable for parallel support
-# sudo port install openmpi py311-mpi4py
-mpi = 'none'
-
-# Trilinos - build from bundled source
-build_trilinos = 'make'
+# Optional features
+sympy = True
 
 # Clean up
 del MACPORTS_PREFIX

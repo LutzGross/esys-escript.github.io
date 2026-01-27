@@ -16,10 +16,13 @@
 # Refer to installation.md for usage instructions.
 #
 # Prerequisites:
-#   sudo dnf install python3-devel python3-numpy python3-scipy python3-matplotlib
+#   sudo dnf install python3-devel python3-numpy python3-scipy python3-sympy python3-matplotlib
 #   sudo dnf install gcc-c++ gcc-gfortran scons cmake
 #   sudo dnf install boost-devel boost-python3-devel boost-python3 boost-numpy3
 #   sudo dnf install hdf5-devel netcdf-devel suitesparse-devel lapack-devel zlib-devel metis-devel
+#   sudo dnf install openmpi-devel python3-mpi4py-openmpi
+#
+# For no-MPI build, use fedora_nompi_options.py instead.
 
 import subprocess
 
@@ -35,14 +38,26 @@ pythonlibpath = ['/usr/lib64']
 pythonlibname = [f'python3.{subversion}']
 pythonincpath = [f'/usr/include/python3.{subversion}']
 
+# Compiler settings
+openmp = True
+werror = 0
+
 # Boost configuration
 boost_libs = [f'boost_python3{subversion}']
 boost_prefix = ['/usr/include', '/usr/lib64']
 disable_boost_numpy = True  # Fedora boost-numpy may need separate installation
 
-# Compiler settings
-openmp = True
-werror = 0
+# MPI configuration
+# Note: On Fedora, you may need to load the MPI module first:
+#   module load mpi/openmpi-x86_64
+mpi = 'OPENMPI'
+mpi_prefix = ['/usr/include/openmpi-x86_64', '/usr/lib64/openmpi/lib']
+mpi_libs = ['mpi_cxx', 'mpi']
+mpi4py = True
+
+# Solver configuration
+paso = True
+build_trilinos = 'make'
 
 # UMFPACK direct solver
 umfpack = True
@@ -51,6 +66,7 @@ umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib64']
 # NetCDF configuration
 netcdf = True
 netcdf_prefix = ['/usr/include', '/usr/lib64']
+netcdf_libs = ['netcdf_c++4', 'netcdf']
 
 # HDF5 configuration
 hdf5 = True
@@ -70,9 +86,5 @@ zlib = True
 zlib_prefix = ['/usr/include', '/usr/lib64']
 zlib_libs = ['z']
 
-# MPI disabled by default - enable for parallel support
-# sudo dnf install openmpi-devel python3-mpi4py
-mpi = 'none'
-
-# Trilinos - build from bundled source
-build_trilinos = 'make'
+# Optional features
+sympy = True

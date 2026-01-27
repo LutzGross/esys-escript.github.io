@@ -18,14 +18,16 @@
 # Prerequisites:
 #   brew install python3 scons cmake llvm
 #   brew install boost boost-python3
-#   brew install hdf5 suite-sparse
-#   brew install open-mpi  # Optional, for MPI support
-#   pip3 install numpy scipy matplotlib
+#   brew install hdf5 suite-sparse netcdf netcdf-cxx4
+#   brew install open-mpi mpi4py
+#   pip3 install numpy scipy sympy matplotlib
 #
 # For LLVM compiler support (recommended for OpenMP):
 #   echo 'export PATH="/opt/homebrew/opt/llvm/bin:$PATH"' >> ~/.zshrc
 #   export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
 #   export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
+#
+# For no-MPI build, use homebrew_nompi_options.py instead.
 
 import os
 import subprocess
@@ -64,11 +66,6 @@ try:
 except FileNotFoundError:
     print("xcrun not found. SDKROOT is not set.")
 
-# MPI configuration - disabled by default on macOS
-# To enable MPI, install openmpi: brew install open-mpi
-# Then set mpi = 'OPENMPI' and configure mpi_prefix
-mpi = 'none'
-
 # Compiler configuration - use LLVM for OpenMP support
 # Install with: brew install llvm
 cxx = '/opt/homebrew/opt/llvm/bin/clang++'
@@ -87,13 +84,24 @@ cc_optim = ["-O3"]
 
 print(f"C++ compiler is {cxx}")
 
-# Domain configuration - oxley excluded (requires p4est)
-domains = ('finley', 'ripley', 'speckley')
-
 # OpenMP configuration
 openmp = True
 omp_flags = ["-fopenmp"]
 omp_ldflags = ["-fopenmp"]
+
+# MPI configuration
+# Install with: brew install open-mpi mpi4py
+mpi = 'OPENMPI'
+mpi_prefix = [HOMEBREW_PREFIX + '/include/openmpi', HOMEBREW_PREFIX + '/lib/openmpi']
+mpi_libs = ['mpi_cxx', 'mpi']
+mpi4py = True
+
+# Solver configuration
+paso = True
+build_trilinos = 'make'
+
+# Domain configuration - oxley excluded (requires p4est)
+domains = ('finley', 'ripley', 'speckley')
 
 # Boost configuration
 boost_prefix = HOMEBREW_PREFIX
@@ -101,33 +109,26 @@ boost_libs = [f'boost_python3{subversion}']
 compression_libs = ['boost_iostreams']
 
 # HDF5 configuration
-# Install with: brew install hdf5
 hdf5 = True
 hdf5_prefix = HOMEBREW_PREFIX
 hdf5_libs = ['hdf5_cpp', 'hdf5']
 
 # SILO configuration (for VisIt visualization)
-# Install with: brew install silo
 silo = True
 silo_prefix = HOMEBREW_PREFIX
 silo_libs = ['siloh5', 'hdf5']
 
 # NetCDF configuration
-# Install with: brew install netcdf netcdf-cxx4
 netcdf = True
 netcdf_prefix = HOMEBREW_PREFIX
 netcdf_libs = ['netcdf-cxx4', 'netcdf']
 
 # UMFPACK direct solver
-# Install with: brew install suite-sparse
 umfpack = True
 umfpack_prefix = [HOMEBREW_PREFIX + "/include/suitesparse", HOMEBREW_PREFIX + "/lib/"]
 
 # LAPACK configuration - auto-detect
 lapack = 'auto'
-
-# Trilinos - build from bundled source
-build_trilinos = 'make'
 
 # zlib - typically available on macOS
 zlib = True
@@ -136,6 +137,9 @@ zlib_libs = ['z']
 
 # Linker flags
 ld_extra = ["-L/opt/homebrew/opt/llvm/lib", "-lz", "-Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++"]
+
+# Optional features
+sympy = True
 
 # Clean up temporary variables
 del HOMEBREW_PREFIX, p, subversion, revversion, t

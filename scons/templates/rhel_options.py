@@ -12,16 +12,21 @@
 #
 ##############################################################################
 
-# This is a template configuration file for escript on CentOS 8 / Rocky Linux / AlmaLinux.
+# This is a template configuration file for escript on RHEL-compatible distributions:
+# RHEL 8/9, Rocky Linux, AlmaLinux, CentOS Stream.
 # Refer to installation.md for usage instructions.
 #
 # Prerequisites:
 #   sudo dnf install epel-release
-#   sudo dnf config-manager --set-enabled powertools
-#   sudo dnf install python3-devel python3-numpy python3-scipy python3-matplotlib
+#   sudo dnf config-manager --set-enabled powertools  # RHEL 8 / Rocky 8
+#   # or: sudo dnf config-manager --set-enabled crb   # RHEL 9 / Rocky 9
+#   sudo dnf install python3-devel python3-numpy python3-scipy python3-sympy python3-matplotlib
 #   sudo dnf install gcc gcc-c++ gcc-gfortran scons cmake
 #   sudo dnf install boost-devel boost-python3 boost-python3-devel
 #   sudo dnf install hdf5-devel netcdf-devel suitesparse suitesparse-devel lapack-devel zlib-devel metis-devel
+#   sudo dnf install openmpi-devel python3-mpi4py-openmpi
+#
+# For no-MPI build, use rhel_nompi_options.py instead.
 
 import subprocess
 
@@ -37,14 +42,26 @@ pythonlibpath = ['/usr/lib64']
 pythonlibname = [f'python3.{subversion}']
 pythonincpath = [f'/usr/include/python3.{subversion}']
 
-# Boost configuration
-boost_libs = ['boost_python3']
-boost_prefix = ['/usr/include/', '/usr/lib64']
-
 # Compiler settings
 openmp = True
 werror = 0
 cxx_extra = '-std=c++11'
+
+# Boost configuration
+boost_libs = ['boost_python3']
+boost_prefix = ['/usr/include/', '/usr/lib64']
+
+# MPI configuration
+# Note: You may need to load the MPI module first:
+#   module load mpi/openmpi-x86_64
+mpi = 'OPENMPI'
+mpi_prefix = ['/usr/include/openmpi-x86_64', '/usr/lib64/openmpi/lib']
+mpi_libs = ['mpi_cxx', 'mpi']
+mpi4py = True
+
+# Solver configuration
+paso = True
+build_trilinos = 'make'
 
 # UMFPACK direct solver
 umfpack = True
@@ -74,9 +91,5 @@ zlib_libs = ['z']
 # Compression support may need boost_iostreams
 compressed_files = False
 
-# MPI disabled by default - enable for parallel support
-# sudo dnf install openmpi-devel python3-mpi4py
-mpi = 'none'
-
-# Trilinos - build from bundled source
-build_trilinos = 'make'
+# Optional features
+sympy = True

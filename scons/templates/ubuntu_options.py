@@ -12,75 +12,10 @@
 #
 ##############################################################################
 
-# This is a template configuration file for escript on Debian/GNU Linux.
-# Refer to README_FIRST for usage instructions.
+# Ubuntu configuration - identical to Debian.
+# This file imports debian_options.py for convenience.
+#
+# See debian_options.py for prerequisites and documentation.
+# For no-MPI build, use debian_nompi_options.py instead.
 
-build_trilinos='make'
-escript_opts_version=203
-mpi='OPENMPI'
-mpi_prefix = ['/usr/include/x86_64-linux-gnu/openmpi', '/usr/lib/x86_64-linux-gnu/openmpi' ]
-openmp = 1
-paso = 1
-sympy = True
-#cxx_extra = ['-freference fixed. diagnostics-color=always', '-Wno-format-truncation']
-cxx_extra= ['-O3', '-fdiagnostics-color=always', '-fstack-protector-strong',  '-Wformat', '-Werror=format-security' ]
-pythoncmd = 'python3'
-
-# METIS configuration - graph partitioning for Trilinos
-# Install with: sudo apt-get install libmetis-dev
-metis = True
-metis_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
-metis_libs = ['metis']
-
-# ParMETIS configuration - parallel graph partitioning (requires MPI)
-# Install with: sudo apt-get install libparmetis-dev
-parmetis = True
-parmetis_prefix = ['/usr/include/parmetis', '/usr/lib/x86_64-linux-gnu']
-parmetis_libs = ['parmetis']
-
-import subprocess
-p=subprocess.run([pythoncmd,'-V'], capture_output=True, text=True)
-subversion=p.stdout.split(' ')[1].split('.')[1]
-pythonlibname = 'python3.%s'%subversion
-pythonlibpath = '/usr/lib/x86_64-linux-gnu/'
-pythonincpath = '/usr/include/python3.%s'%subversion
-#boost_libs=['boost_python3%s'%subversion,'boost_numpy3%s'%subversion,'boost_random']
-boost_libs=['boost_python3%s'%subversion, 'boost_random']
-boost_prefix=['/usr/include','/usr/lib/x86_64-linux-gnu/']
-werror=0
-
-umfpack = True
-umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
-umfpack_libs = ['umfpack', 'blas', 'amd']
-
-silo = True
-silo_libs = ['siloh5', 'hdf5']
-silo_prefix=[ '/usr/include' , '/usr/lib/x86_64-linux-gnu/hdf5/serial', '/usr/lib/x86_64-linux-gnu']
-
-
-hdf5 = True
-hdf5_libs = ['hdf5_serial_cpp']
-hdf5_prefix=[ '/usr/include/hdf5/serial' , '/usr/lib/x86_64-linux-gnu/hdf5/serial', '/usr/lib/x86_64-linux-gnu']
-
-# LAPACK configuration - uses LAPACKE (modern C interface)
-# Install with: sudo apt-get install liblapacke-dev
-lapack = 'auto'  # Auto-detect LAPACKE
-lapack_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
-lapack_libs = ['lapacke']
-
-# MUMPS configuration - sequential version (works with MPI builds)
-# Install with: sudo apt-get install libmumps-seq-dev
-mumps_seq = True
-mumps_seq_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
-mumps_seq_libs = ['dmumps_seq', 'zmumps_seq', 'mumps_common_seq', 'mpiseq_seq', 'pord_seq']
-# NetCDF configuration - version 4
-# Install with: sudo apt-get install libnetcdf-dev libnetcdf-c++4-dev
-netcdf = True
-netcdf_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
-netcdf_libs = ['netcdf_c++4', 'netcdf']
-
-# zlib configuration - required by p4est for oxley domain
-# Install with: sudo apt-get install zlib1g-dev
-zlib = True
-zlib_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
-zlib_libs = ['z']
+from debian_options import *

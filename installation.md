@@ -85,7 +85,7 @@ Alternatively, download a tagged release from [releases page](https://github.com
 scons -j4 options_file=scons/templates/<OS>_options.py
 ```
 
-Replace `<OS>` with your operating system (e.g., `debian`, `ubuntu`, `centos8`, etc.).
+Replace `<OS>` with your operating system (e.g., `debian`, `ubuntu`, `rhel`, `fedora`, etc.).
 
 4. Set up environment variables:
 
@@ -328,13 +328,16 @@ Build esys-escript:
 scons -j4 options_file=scons/templates/opensuse_options.py
 ```
 
-### CentOS 8 / Rocky Linux / AlmaLinux
+### RHEL / Rocky Linux / AlmaLinux
+
+Works with RHEL 8/9, Rocky Linux, AlmaLinux, and CentOS Stream.
 
 Enable required repositories:
 
 ```bash
 sudo dnf install epel-release
-sudo dnf config-manager --set-enabled powertools
+sudo dnf config-manager --set-enabled powertools  # RHEL 8 / Rocky 8
+# or: sudo dnf config-manager --set-enabled crb   # RHEL 9 / Rocky 9
 ```
 
 Install required packages:
@@ -368,7 +371,7 @@ sudo dnf install python3-sympy
 Build esys-escript:
 
 ```bash
-scons -j4 options_file=scons/templates/centos8_0_options.py
+scons -j4 options_file=scons/templates/rhel_options.py
 ```
 
 ### macOS with Homebrew

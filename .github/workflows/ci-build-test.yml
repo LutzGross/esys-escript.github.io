@@ -17,10 +17,10 @@ jobs:
       matrix:
         include:
           - name: "Ubuntu (no MPI)"
-            options_file: "scons/templates/debian_options.py"
+            options_file: "scons/templates/debian_nompi_options.py"
             mpi: "none"
           - name: "Ubuntu (MPI)"
-            options_file: "scons/templates/ubuntu_options.py"
+            options_file: "scons/templates/debian_options.py"
             mpi: "OPENMPI"
 
     name: ${{ matrix.name }}
@@ -66,16 +66,12 @@ jobs:
           # Create a custom options file based on template
           cp ${{ matrix.options_file }} scons/ci_options.py
 
-          # Override MPI setting
+          # CI-specific overrides
           echo "" >> scons/ci_options.py
           echo "# CI overrides" >> scons/ci_options.py
-          echo "mpi = '${{ matrix.mpi }}'" >> scons/ci_options.py
 
           # Disable oxley (requires p4est)
           echo "domains = ['finley', 'ripley', 'speckley']" >> scons/ci_options.py
-
-          # Build Trilinos from source
-          echo "build_trilinos = 'make'" >> scons/ci_options.py
 
           cat scons/ci_options.py
 
@@ -118,7 +114,7 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 60
 
-    name: "macOS (Homebrew)"
+    name: "macOS (Homebrew, no MPI)"
 
     steps:
       - name: Checkout repository
@@ -141,17 +137,13 @@ jobs:
 
       - name: Configure build
         run: |
-          # Use homebrew template but adjust for CI
-          cp scons/templates/homebrew_options.py scons/ci_options.py
+          # Use homebrew no-MPI template
+          cp scons/templates/homebrew_nompi_options.py scons/ci_options.py
 
-          # Disable features that may not be available in CI
+          # CI-specific overrides
           echo "" >> scons/ci_options.py
           echo "# CI overrides" >> scons/ci_options.py
           echo "domains = ['finley', 'ripley', 'speckley']" >> scons/ci_options.py
-          echo "mpi = 'none'" >> scons/ci_options.py
-          # Trilinos build can be slow on macOS
-          echo "build_trilinos = 'never'" >> scons/ci_options.py
-          echo "trilinos = False" >> scons/ci_options.py
 
           cat scons/ci_options.py
 
