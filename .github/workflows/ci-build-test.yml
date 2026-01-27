@@ -55,7 +55,7 @@ jobs:
         run: |
           sudo apt-get install -y \
             libopenmpi-dev openmpi-bin \
-            python3-mpi4py libparmetis-dev
+            python3-mpi4py
 
       - name: Install Python dependencies
         run: |
@@ -73,6 +73,9 @@ jobs:
 
           # Disable oxley (requires p4est)
           echo "domains = ['finley', 'ripley', 'speckley']" >> scons/ci_options.py
+
+          # Disable ParMETIS (Ubuntu package has broken CMake config)
+          echo "parmetis = False" >> scons/ci_options.py
 
           cat scons/ci_options.py
 
@@ -152,6 +155,9 @@ jobs:
           echo "# CI overrides" >> scons/ci_options.py
           echo "domains = ['finley', 'ripley', 'speckley']" >> scons/ci_options.py
 
+          # Disable ParMETIS (Ubuntu package has broken CMake config)
+          echo "parmetis = False" >> scons/ci_options.py
+
           cat scons/ci_options.py
 
       - name: Build and install esys-escript
@@ -219,6 +225,9 @@ jobs:
           echo "# CI overrides" >> scons/ci_options.py
           echo "domains = ['finley', 'ripley', 'speckley']" >> scons/ci_options.py
 
+          # Disable ParMETIS (Ubuntu package has broken CMake config)
+          echo "parmetis = False" >> scons/ci_options.py
+
           cat scons/ci_options.py
 
       - name: Build and install esys-escript
@@ -281,6 +290,9 @@ jobs:
           echo "# CI overrides" >> scons/ci_options.py
           echo "domains = ['finley', 'ripley', 'speckley']" >> scons/ci_options.py
 
+          # Disable ParMETIS (Ubuntu package has broken CMake config)
+          echo "parmetis = False" >> scons/ci_options.py
+
           cat scons/ci_options.py
 
       - name: Build and install esys-escript
@@ -342,6 +354,9 @@ jobs:
           echo "" >> scons/ci_options.py
           echo "# CI overrides" >> scons/ci_options.py
           echo "domains = ['finley', 'ripley', 'speckley']" >> scons/ci_options.py
+
+          # Disable ParMETIS (Ubuntu package has broken CMake config)
+          echo "parmetis = False" >> scons/ci_options.py
 
           cat scons/ci_options.py
 
@@ -409,6 +424,9 @@ jobs:
           echo "" >> scons/ci_options.py
           echo "# CI overrides" >> scons/ci_options.py
           echo "domains = ['finley', 'ripley', 'speckley']" >> scons/ci_options.py
+
+          # Disable ParMETIS (Ubuntu package has broken CMake config)
+          echo "parmetis = False" >> scons/ci_options.py
 
           cat scons/ci_options.py
 
