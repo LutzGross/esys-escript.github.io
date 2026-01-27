@@ -50,9 +50,10 @@ boost_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu/']
 boost_libs = [f'boost_python3{subversion}', f'boost_numpy3{subversion}', 'boost_random']
 
 # MPI configuration
+# Note: OpenMPI 5.x removed mpi_cxx and open-rte libraries; just 'mpi' is needed
 mpi = 'OPENMPI'
 mpi_prefix = ['/usr/include/x86_64-linux-gnu/openmpi', '/usr/lib/x86_64-linux-gnu/openmpi']
-mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
+mpi_libs = ['mpi']
 mpi4py = True
 
 # Solver configuration
