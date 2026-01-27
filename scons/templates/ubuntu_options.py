@@ -18,4 +18,4 @@
 # See debian_options.py for prerequisites and documentation.
 # For no-MPI build, use debian_nompi_options.py instead.
 
-from debian_options import *
+from scons.templates.debian_options import *

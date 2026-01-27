@@ -12,8 +12,7 @@
 #
 ##############################################################################
 
-# This is a template configuration file for escript on Debian/GNU Linux.
-# Refer to README_FIRST for usage instructions.
+# Debian Sid (unstable) configuration - identical to Debian.
+# This file imports debian_options.py for convenience.
 
-from scons.templates.sid_options import *
-
+from scons.templates.debian_options import *

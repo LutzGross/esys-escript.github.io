@@ -98,7 +98,7 @@ mpi4py = True
 
 # Solver configuration
 paso = True
-build_trilinos = 'make'
+build_trilinos = 'check'
 
 # Domain configuration - oxley excluded (requires p4est)
 domains = ('finley', 'ripley', 'speckley')

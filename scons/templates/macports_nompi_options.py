@@ -22,12 +22,8 @@
 #   sudo port install py311-numpy py311-scipy py311-sympy py311-matplotlib
 #   sudo port install scons cmake boost hdf5 netcdf suitesparse lapack
 
-from macports_options import *
+from scons.templates.macports_options import *
 
 # Disable MPI
 mpi = 'none'
 mpi4py = False
-
-# Don't build Trilinos (optional, but faster build without MPI)
-build_trilinos = 'never'
-trilinos = False

@@ -12,16 +12,7 @@
 #
 ##############################################################################
 
-# No-MPI configuration for Arch Linux.
-# Imports the full arch_options.py and disables MPI.
-#
-# Prerequisites (MPI packages not required):
-#   sudo pacman -Sy python python-numpy python-scipy python-sympy python-matplotlib
-#   sudo pacman -Sy gcc scons cmake
-#   sudo pacman -Sy boost boost-libs suitesparse hdf5 netcdf lapack zlib metis
+# Ubuntu Focal (20.04) no-MPI configuration.
+# Imports debian_nompi_options.py for convenience.
 
-from scons.templates.arch_options import *
-
-# Disable MPI
-mpi = 'none'
-mpi4py = False
+from scons.templates.debian_nompi_options import *

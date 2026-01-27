@@ -57,7 +57,7 @@ mpi4py = True
 
 # Solver configuration
 paso = True
-build_trilinos = 'make'
+build_trilinos = 'check'
 
 # UMFPACK direct solver
 umfpack = True

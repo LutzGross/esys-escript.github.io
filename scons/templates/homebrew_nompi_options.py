@@ -21,12 +21,8 @@
 #   brew install hdf5 suite-sparse netcdf netcdf-cxx4
 #   pip3 install numpy scipy sympy matplotlib
 
-from homebrew_options import *
+from scons.templates.homebrew_options import *
 
 # Disable MPI
 mpi = 'none'
 mpi4py = False
-
-# Don't build Trilinos (optional, but faster build without MPI)
-build_trilinos = 'never'
-trilinos = False

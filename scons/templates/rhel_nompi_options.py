@@ -24,12 +24,8 @@
 #   sudo dnf install boost-devel boost-python3 boost-python3-devel
 #   sudo dnf install hdf5-devel suitesparse suitesparse-devel lapack-devel zlib-devel metis-devel
 
-from rhel_options import *
+from scons.templates.rhel_options import *
 
 # Disable MPI
 mpi = 'none'
 mpi4py = False
-
-# Don't build Trilinos (optional, but faster build without MPI)
-build_trilinos = 'never'
-trilinos = False

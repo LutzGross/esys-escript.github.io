@@ -21,12 +21,8 @@
 #   sudo zypper in libboost_python3-devel libboost_numpy3-devel libboost_random-devel
 #   sudo zypper in hdf5-devel netcdf-devel suitesparse-devel lapack-devel zlib-devel metis-devel
 
-from opensuse_options import *
+from scons.templates.opensuse_options import *
 
 # Disable MPI
 mpi = 'none'
 mpi4py = False
-
-# Don't build Trilinos (optional, but faster build without MPI)
-build_trilinos = 'never'
-trilinos = False

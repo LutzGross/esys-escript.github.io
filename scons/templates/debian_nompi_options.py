@@ -23,7 +23,7 @@
 #   sudo apt-get install libsuitesparse-dev liblapacke-dev libmumps-seq-dev
 #   sudo apt-get install libmetis-dev zlib1g-dev
 
-from debian_options import *
+from scons.templates.debian_options import *
 
 # Disable MPI
 mpi = 'none'
@@ -31,7 +31,3 @@ mpi4py = False
 
 # ParMETIS requires MPI
 parmetis = False
-
-# Don't build Trilinos (optional, but faster build without MPI)
-build_trilinos = 'never'
-trilinos = False

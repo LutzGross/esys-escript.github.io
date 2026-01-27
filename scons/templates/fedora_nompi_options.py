@@ -21,12 +21,8 @@
 #   sudo dnf install boost-devel boost-python3-devel boost-python3 boost-numpy3
 #   sudo dnf install hdf5-devel netcdf-devel suitesparse-devel lapack-devel zlib-devel metis-devel
 
-from fedora_options import *
+from scons.templates.fedora_options import *
 
 # Disable MPI
 mpi = 'none'
 mpi4py = False
-
-# Don't build Trilinos (optional, but faster build without MPI)
-build_trilinos = 'never'
-trilinos = False

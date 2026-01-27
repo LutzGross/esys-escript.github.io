@@ -53,7 +53,7 @@ mpi4py = True
 
 # Solver configuration
 paso = True
-build_trilinos = 'make'
+build_trilinos = 'check'
 
 # Boost configuration
 boost_prefix = MACPORTS_PREFIX
