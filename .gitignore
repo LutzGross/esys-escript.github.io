@@ -10,7 +10,7 @@ release/
 lib/
 esys.trilinos/
 esys/
-include/
+/include/
 bin/
 
 # Python cache
