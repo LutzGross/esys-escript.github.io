@@ -8,6 +8,9 @@ on:
   workflow_dispatch:
 
 jobs:
+  # ==========================================================================
+  # Ubuntu/Debian builds (native runner)
+  # ==========================================================================
   build-ubuntu:
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -110,6 +113,9 @@ jobs:
           ./bin/run-escript -n 1 -c "from esys.escript import *; print('escript OK')"
           ./bin/run-escript -n 2 -c "from esys.finley import Rectangle; d = Rectangle(10,10); print('finley MPI OK')"
 
+  # ==========================================================================
+  # macOS builds (native runner)
+  # ==========================================================================
   build-macos:
     runs-on: macos-latest
     timeout-minutes: 60
@@ -173,3 +179,244 @@ jobs:
           python3 -c "from esys.escript import *; print('escript OK')"
           python3 -c "from esys.finley import Rectangle; d = Rectangle(10,10); print('finley OK')"
           python3 -c "from esys.ripley import Rectangle; d = Rectangle(10,10); print('ripley OK')"
+
+  # ==========================================================================
+  # Fedora build (Docker container)
+  # ==========================================================================
+  build-fedora:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    container:
+      image: fedora:latest
+
+    name: "Fedora (no MPI)"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          dnf install -y \
+            python3-devel python3-numpy python3-scipy python3-matplotlib python3-sympy \
+            gcc-c++ gcc-gfortran scons cmake \
+            boost-devel boost-python3-devel boost-python3 boost-numpy3 boost-iostreams boost-random \
+            hdf5-devel netcdf-devel suitesparse-devel lapack-devel MUMPS-devel zlib-devel metis-devel \
+            git
+
+      - name: Configure build
+        run: |
+          cp scons/templates/fedora_nompi_options.py scons/ci_options.py
+
+          # CI-specific overrides
+          echo "" >> scons/ci_options.py
+          echo "# CI overrides" >> scons/ci_options.py
+          echo "domains = ['finley', 'ripley', 'speckley']" >> scons/ci_options.py
+
+          cat scons/ci_options.py
+
+      - name: Build esys-escript
+        run: |
+          scons -j2 options_file=scons/ci_options.py build 2>&1 | tee build.log
+          tail -50 build.log
+
+      - name: Run sanity check
+        run: |
+          export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${LD_LIBRARY_PATH}"
+
+          ./bin/run-escript scripts/release_sanity.py
+
+      - name: Run Python tests
+        run: |
+          export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${LD_LIBRARY_PATH}"
+
+          python3 -c "from esys.escript import *; print('escript OK')"
+          python3 -c "from esys.finley import Rectangle; d = Rectangle(10,10); print('finley OK')"
+          python3 -c "from esys.ripley import Rectangle; d = Rectangle(10,10); print('ripley OK')"
+          python3 -c "from esys.speckley import Rectangle; d = Rectangle(10,10); print('speckley OK')"
+
+  # ==========================================================================
+  # Arch Linux build (Docker container)
+  # ==========================================================================
+  build-arch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    container:
+      image: archlinux:latest
+
+    name: "Arch Linux (no MPI)"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm \
+            python python-numpy python-scipy python-matplotlib python-sympy \
+            gcc gcc-fortran scons cmake \
+            boost boost-libs suitesparse hdf5 netcdf lapack mumps zlib metis \
+            git
+
+      - name: Configure build
+        run: |
+          cp scons/templates/arch_nompi_options.py scons/ci_options.py
+
+          # CI-specific overrides
+          echo "" >> scons/ci_options.py
+          echo "# CI overrides" >> scons/ci_options.py
+          echo "domains = ['finley', 'ripley', 'speckley']" >> scons/ci_options.py
+
+          cat scons/ci_options.py
+
+      - name: Build esys-escript
+        run: |
+          scons -j2 options_file=scons/ci_options.py build 2>&1 | tee build.log
+          tail -50 build.log
+
+      - name: Run sanity check
+        run: |
+          export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${LD_LIBRARY_PATH}"
+
+          ./bin/run-escript scripts/release_sanity.py
+
+      - name: Run Python tests
+        run: |
+          export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${LD_LIBRARY_PATH}"
+
+          python3 -c "from esys.escript import *; print('escript OK')"
+          python3 -c "from esys.finley import Rectangle; d = Rectangle(10,10); print('finley OK')"
+          python3 -c "from esys.ripley import Rectangle; d = Rectangle(10,10); print('ripley OK')"
+          python3 -c "from esys.speckley import Rectangle; d = Rectangle(10,10); print('speckley OK')"
+
+  # ==========================================================================
+  # OpenSUSE build (Docker container)
+  # ==========================================================================
+  build-opensuse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    container:
+      image: opensuse/tumbleweed:latest
+
+    name: "OpenSUSE Tumbleweed (no MPI)"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          zypper --non-interactive install \
+            python3-devel python3-numpy python3-scipy python3-matplotlib python3-sympy \
+            gcc gcc-c++ gcc-fortran scons cmake \
+            libboost_python3-devel libboost_numpy3-devel libboost_random-devel libboost_iostreams-devel \
+            hdf5-devel netcdf-devel suitesparse-devel lapack-devel zlib-devel metis-devel \
+            git tar gzip
+
+      - name: Configure build
+        run: |
+          cp scons/templates/opensuse_nompi_options.py scons/ci_options.py
+
+          # CI-specific overrides
+          echo "" >> scons/ci_options.py
+          echo "# CI overrides" >> scons/ci_options.py
+          echo "domains = ['finley', 'ripley', 'speckley']" >> scons/ci_options.py
+
+          cat scons/ci_options.py
+
+      - name: Build esys-escript
+        run: |
+          scons -j2 options_file=scons/ci_options.py build 2>&1 | tee build.log
+          tail -50 build.log
+
+      - name: Run sanity check
+        run: |
+          export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${LD_LIBRARY_PATH}"
+
+          ./bin/run-escript scripts/release_sanity.py
+
+      - name: Run Python tests
+        run: |
+          export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${LD_LIBRARY_PATH}"
+
+          python3 -c "from esys.escript import *; print('escript OK')"
+          python3 -c "from esys.finley import Rectangle; d = Rectangle(10,10); print('finley OK')"
+          python3 -c "from esys.ripley import Rectangle; d = Rectangle(10,10); print('ripley OK')"
+          python3 -c "from esys.speckley import Rectangle; d = Rectangle(10,10); print('speckley OK')"
+
+  # ==========================================================================
+  # Rocky Linux build (Docker container) - tests RHEL compatibility
+  # ==========================================================================
+  build-rocky:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    container:
+      image: rockylinux:9
+
+    name: "Rocky Linux 9 (no MPI)"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Enable repositories
+        run: |
+          dnf install -y epel-release
+          dnf config-manager --set-enabled crb
+
+      - name: Install system dependencies
+        run: |
+          dnf install -y \
+            python3-devel python3-numpy python3-scipy python3-matplotlib python3-sympy \
+            gcc gcc-c++ gcc-gfortran scons cmake \
+            boost-devel boost-python3 boost-python3-devel \
+            hdf5-devel netcdf-devel suitesparse suitesparse-devel lapack-devel zlib-devel metis-devel \
+            git
+
+      - name: Configure build
+        run: |
+          cp scons/templates/rhel_nompi_options.py scons/ci_options.py
+
+          # CI-specific overrides
+          echo "" >> scons/ci_options.py
+          echo "# CI overrides" >> scons/ci_options.py
+          echo "domains = ['finley', 'ripley', 'speckley']" >> scons/ci_options.py
+
+          cat scons/ci_options.py
+
+      - name: Build esys-escript
+        run: |
+          scons -j2 options_file=scons/ci_options.py build 2>&1 | tee build.log
+          tail -50 build.log
+
+      - name: Run sanity check
+        run: |
+          export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${LD_LIBRARY_PATH}"
+
+          ./bin/run-escript scripts/release_sanity.py
+
+      - name: Run Python tests
+        run: |
+          export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${LD_LIBRARY_PATH}"
+
+          python3 -c "from esys.escript import *; print('escript OK')"
+          python3 -c "from esys.finley import Rectangle; d = Rectangle(10,10); print('finley OK')"
+          python3 -c "from esys.ripley import Rectangle; d = Rectangle(10,10); print('ripley OK')"
+          python3 -c "from esys.speckley import Rectangle; d = Rectangle(10,10); print('speckley OK')"
