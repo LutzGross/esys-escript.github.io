@@ -56,7 +56,10 @@ if not os.path.isfile(options_file):
 
 default_prefix='/usr'
 mpi_flavours=('auto', 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
-all_domains = ('finley','oxley','ripley','speckley')
+# Dynamically determine available domains based on which directories exist
+# This allows release tarballs to exclude optional domains like oxley
+_possible_domains = ('finley','oxley','ripley','speckley')
+all_domains = tuple(d for d in _possible_domains if os.path.isdir(d))
 version_info=['0.0','5','6']
 build_trilinos_flavours = ( "check",      # check if rebuild needed (default - fast)
                             "make",       # same as check (for backward compatibility)
@@ -1066,7 +1069,8 @@ env.SConscript('cusplibrary/SConscript')
 env.SConscript('finley/SConscript', variant_dir=variant+'finley', duplicate=0)
 if env['p4est']:
     env.SConscript('p4est/SConscript', variant_dir=variant+'p4est', duplicate=0)
-env.SConscript('oxley/SConscript', variant_dir=variant+'oxley', duplicate=0)
+if os.path.isdir('oxley'):
+    env.SConscript('oxley/SConscript', variant_dir=variant+'oxley', duplicate=0)
 env.SConscript('ripley/SConscript', variant_dir=variant+'ripley', duplicate=0)
 env.SConscript('speckley/SConscript', variant_dir=variant+'speckley', duplicate=0)
 env.SConscript('weipa/SConscript', variant_dir=variant+'weipa', duplicate=0)

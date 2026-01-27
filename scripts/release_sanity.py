@@ -9,9 +9,16 @@ from esys.escript import *
 from esys.escript.linearPDEs import Poisson
 import esys.ripley as ripley
 import esys.finley as finley
-import esys.oxley as oxley
 import esys.speckley as speckley
 from esys.weipa import saveVTK
+
+# oxley is optional (requires p4est library)
+try:
+    import esys.oxley as oxley
+    HAS_OXLEY = True
+except ImportError:
+    HAS_OXLEY = False
+    print("Note: oxley domain not available (requires p4est)")
 
 mydomain = finley.Rectangle(l0=1.,l1=1.,n0=40, n1=20)
 # define characteristic function of Gamma^D

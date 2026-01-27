@@ -47,6 +47,7 @@
    #define MPI_INT 6
    #define MPI_DOUBLE 11
    #define MPI_COMM_WORLD 91
+   #define MPI_COMM_SELF 92
    #define MPI_COMM_NULL 0
 
    // MPI_Op replacements for non-MPI - these values are arbitrary

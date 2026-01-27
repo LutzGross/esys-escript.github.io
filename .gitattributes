@@ -1,0 +1,24 @@
+# Git attributes for esys-escript
+# Controls which files/directories are excluded from git archive (release tarballs)
+
+# Exclude oxley domain from release tarballs (requires p4est which is difficult to install)
+oxley/ export-ignore
+
+# Exclude development/CI files from release tarballs
+.github/ export-ignore
+.gitignore export-ignore
+.gitattributes export-ignore
+
+# Exclude local configuration files (but not templates/)
+scons/*_options.py export-ignore
+
+# Exclude Trilinos source (users should install system Trilinos or let build download)
+trilinos_source16/ export-ignore
+trilinos_source16-2-0/ export-ignore
+
+# Exclude removed/deprecated code
+removed_code/ export-ignore
+
+# Exclude development documentation
+CLAUDE.md export-ignore
+MPI_INITIALIZATION_EXPLAINED.md export-ignore
