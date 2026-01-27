@@ -99,10 +99,10 @@ jobs:
           echo "=== Build options file ==="
           cat scons/github_ubuntu_options.py
 
-      - name: Build esys-escript
+      - name: Build and install esys-escript
         run: |
-          # Build esys-escript - show full output to catch errors
-          scons -j2 options_file=scons/github_ubuntu_options.py build 2>&1 | tee build.log
+          # Build and install esys-escript (default target includes install)
+          scons -j2 options_file=scons/github_ubuntu_options.py 2>&1 | tee build.log
 
           # Check if build succeeded
           if [ ${PIPESTATUS[0]} -ne 0 ]; then
@@ -112,6 +112,9 @@ jobs:
           fi
 
           echo "=== Build completed successfully ==="
+          echo "=== Checking esys directory ==="
+          ls -la esys/ || echo "esys/ not found"
+          ls -la esys/escript/ || echo "esys/escript/ not found"
 
       - name: Verify esys-escript installation
         run: |

@@ -78,10 +78,15 @@ jobs:
 
           cat scons/ci_options.py
 
-      - name: Build esys-escript
+      - name: Build and install esys-escript
         run: |
-          scons -j2 options_file=scons/ci_options.py build 2>&1 | tee build.log
+          # Build and install (default target includes Python module installation)
+          scons -j2 options_file=scons/ci_options.py 2>&1 | tee build.log
           tail -50 build.log
+
+          # Verify installation
+          echo "=== Verifying esys installation ==="
+          ls -la esys/ || echo "esys/ directory not found"
 
       - name: Run sanity check
         run: |
@@ -153,14 +158,19 @@ jobs:
 
           cat scons/ci_options.py
 
-      - name: Build esys-escript
+      - name: Build and install esys-escript
         run: |
           export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
           export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
           export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
 
-          scons -j2 options_file=scons/ci_options.py build 2>&1 | tee build.log
+          # Build and install (default target includes Python module installation)
+          scons -j2 options_file=scons/ci_options.py 2>&1 | tee build.log
           tail -50 build.log
+
+          # Verify installation
+          echo "=== Verifying esys installation ==="
+          ls -la esys/ || echo "esys/ directory not found"
 
       - name: Run sanity check
         run: |
@@ -217,10 +227,15 @@ jobs:
 
           cat scons/ci_options.py
 
-      - name: Build esys-escript
+      - name: Build and install esys-escript
         run: |
-          scons -j2 options_file=scons/ci_options.py build 2>&1 | tee build.log
+          # Build and install (default target includes Python module installation)
+          scons -j2 options_file=scons/ci_options.py 2>&1 | tee build.log
           tail -50 build.log
+
+          # Verify installation
+          echo "=== Verifying esys installation ==="
+          ls -la esys/ || echo "esys/ directory not found"
 
       - name: Run sanity check
         run: |
@@ -276,10 +291,15 @@ jobs:
 
           cat scons/ci_options.py
 
-      - name: Build esys-escript
+      - name: Build and install esys-escript
         run: |
-          scons -j2 options_file=scons/ci_options.py build 2>&1 | tee build.log
+          # Build and install (default target includes Python module installation)
+          scons -j2 options_file=scons/ci_options.py 2>&1 | tee build.log
           tail -50 build.log
+
+          # Verify installation
+          echo "=== Verifying esys installation ==="
+          ls -la esys/ || echo "esys/ directory not found"
 
       - name: Run sanity check
         run: |
@@ -335,10 +355,15 @@ jobs:
 
           cat scons/ci_options.py
 
-      - name: Build esys-escript
+      - name: Build and install esys-escript
         run: |
-          scons -j2 options_file=scons/ci_options.py build 2>&1 | tee build.log
+          # Build and install (default target includes Python module installation)
+          scons -j2 options_file=scons/ci_options.py 2>&1 | tee build.log
           tail -50 build.log
+
+          # Verify installation
+          echo "=== Verifying esys installation ==="
+          ls -la esys/ || echo "esys/ directory not found"
 
       - name: Run sanity check
         run: |
@@ -399,10 +424,15 @@ jobs:
 
           cat scons/ci_options.py
 
-      - name: Build esys-escript
+      - name: Build and install esys-escript
         run: |
-          scons -j2 options_file=scons/ci_options.py build 2>&1 | tee build.log
+          # Build and install (default target includes Python module installation)
+          scons -j2 options_file=scons/ci_options.py 2>&1 | tee build.log
           tail -50 build.log
+
+          # Verify installation
+          echo "=== Verifying esys installation ==="
+          ls -la esys/ || echo "esys/ directory not found"
 
       - name: Run sanity check
         run: |
