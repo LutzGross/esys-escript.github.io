@@ -88,5 +88,5 @@ zlib_libs = ['z']
 # Optional features
 sympy = True
 
-# Clean up
-del MACPORTS_PREFIX
+# Clean up temporary variables (SCons treats all module-level variables as options)
+del MACPORTS_PREFIX, p, subversion

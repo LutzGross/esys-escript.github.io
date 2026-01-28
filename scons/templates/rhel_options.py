@@ -93,3 +93,6 @@ compressed_files = False
 
 # Optional features
 sympy = True
+
+# Clean up temporary variables (SCons treats all module-level variables as options)
+del p, subversion

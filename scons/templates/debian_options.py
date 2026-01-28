@@ -105,3 +105,6 @@ zlib_libs = ['z']
 
 # Optional features
 sympy = True
+
+# Clean up temporary variables (SCons treats all module-level variables as options)
+del p, subversion
