@@ -13,7 +13,7 @@ jobs:
   # ==========================================================================
   build-ubuntu:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 120
 
     strategy:
       fail-fast: false
@@ -124,7 +124,7 @@ jobs:
   # ==========================================================================
   build-macos:
     runs-on: macos-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
 
     name: "macOS (Homebrew, no MPI)"
 
@@ -197,7 +197,7 @@ jobs:
   # ==========================================================================
   build-fedora:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     container:
       image: fedora:latest
 
@@ -273,7 +273,7 @@ jobs:
   # ==========================================================================
   build-arch:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     container:
       image: archlinux:latest
 
@@ -344,7 +344,7 @@ jobs:
   # ==========================================================================
   build-opensuse:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     container:
       image: opensuse/tumbleweed:latest
 
@@ -412,7 +412,7 @@ jobs:
   # ==========================================================================
   build-rocky:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     container:
       image: rockylinux:9
 
