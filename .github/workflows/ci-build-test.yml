@@ -292,7 +292,7 @@ jobs:
           pacman -S --noconfirm \
             python python-numpy python-scipy python-matplotlib python-sympy \
             gcc gcc-fortran scons cmake \
-            boost boost-libs suitesparse hdf5 netcdf lapack mumps zlib \
+            boost boost-libs suitesparse hdf5 netcdf lapack zlib \
             git
 
       - name: Configure build
