@@ -1,10 +1,14 @@
 name: CI Build and Test
 
+# This workflow tests builds across multiple platforms with Trilinos.
+# Due to long build times (Trilinos takes 30-60+ minutes), this only runs:
+# - Manually via workflow_dispatch
+# - On release tags (v*)
+
 on:
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 jobs:
