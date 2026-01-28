@@ -295,7 +295,7 @@ jobs:
           pacman -Syu --noconfirm
           pacman -S --noconfirm \
             python python-numpy python-scipy python-matplotlib python-sympy \
-            gcc gcc-fortran scons cmake \
+            gcc gcc-fortran scons cmake make \
             boost boost-libs suitesparse hdf5 netcdf lapack zlib \
             git
 
