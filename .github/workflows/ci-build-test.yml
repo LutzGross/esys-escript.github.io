@@ -444,7 +444,8 @@ jobs:
             git
 
           # Install sympy via pip (not available as system package on Rocky Linux)
-          pip3 install --break-system-packages sympy
+          # Note: Rocky Linux pip doesn't need --break-system-packages
+          pip3 install sympy
 
       - name: Configure build
         run: |
