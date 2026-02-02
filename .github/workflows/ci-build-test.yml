@@ -129,7 +129,8 @@ jobs:
       - name: Install Homebrew dependencies
         run: |
           brew update
-          brew install python@3.11 scons cmake llvm
+          # Use libomp for OpenMP support with Apple's Clang (avoids LLVM arm64 bug)
+          brew install python@3.11 scons cmake libomp
           brew install boost boost-python3
           brew install hdf5 suite-sparse netcdf
           # Note: silo may not be available, skip if needed
@@ -149,17 +150,20 @@ jobs:
           echo "# CI overrides" >> scons/ci_options.py
           echo "domains = ['finley', 'ripley', 'speckley']" >> scons/ci_options.py
 
-          # Disable ParMETIS (Ubuntu package has broken CMake config)
+          # Disable ParMETIS
           echo "parmetis = False" >> scons/ci_options.py
+
+          # Use Apple's system Clang instead of Homebrew LLVM (fixes arm64 __hash_memory bug)
+          # See: https://github.com/llvm/llvm-project/issues/170970
+          echo "cc = 'clang'" >> scons/ci_options.py
+          echo "cxx = 'clang++'" >> scons/ci_options.py
+          echo "omp_flags = ['-Xpreprocessor', '-fopenmp']" >> scons/ci_options.py
+          echo "omp_ldflags = ['-lomp']" >> scons/ci_options.py
 
           cat scons/ci_options.py
 
       - name: Build and install esys-escript
         run: |
-          export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
-          export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
-          export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
-
           # Build and install (default target includes Python module installation)
           scons -j2 options_file=scons/ci_options.py 2>&1 | tee build.log
           tail -50 build.log
