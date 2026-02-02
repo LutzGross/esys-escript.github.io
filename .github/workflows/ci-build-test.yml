@@ -36,17 +36,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
+            python3-dev python3-numpy python3-scipy python3-sympy \
             scons cmake \
-            python3-numpy python3-scipy \
             libboost-python-dev libboost-numpy-dev \
             libboost-random-dev libboost-iostreams-dev \
             libnetcdf-dev libsilo-dev libhdf5-serial-dev \
@@ -60,11 +55,6 @@ jobs:
           sudo apt-get install -y \
             libopenmpi-dev openmpi-bin \
             python3-mpi4py
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install --break-system-packages numpy scipy sympy
 
       - name: Configure build
         run: |
@@ -226,9 +216,9 @@ jobs:
         run: |
           dnf install -y \
             python3-devel python3-numpy python3-scipy python3-matplotlib python3-sympy \
-            gcc-c++ gcc-gfortran scons cmake \
+            gcc-c++ gcc-gfortran scons cmake make \
             boost-devel boost-python3-devel boost-python3 boost-numpy3 boost-iostreams boost-random \
-            hdf5-devel netcdf-devel suitesparse-devel lapack-devel MUMPS-devel zlib-devel metis-devel \
+            hdf5-devel netcdf-devel netcdf-cxx4-devel suitesparse-devel lapack-devel MUMPS-devel zlib-devel metis-devel \
             git
 
       - name: Configure build
@@ -247,6 +237,9 @@ jobs:
 
       - name: Build and install esys-escript
         run: |
+          # Mark directory as safe for git
+          git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
           # Build and install (default target includes Python module installation)
           scons -j2 options_file=scons/ci_options.py 2>&1 | tee build.log
           tail -50 build.log
@@ -314,10 +307,16 @@ jobs:
           # Disable METIS (not in Arch official repos)
           echo "metis = False" >> scons/ci_options.py
 
+          # Disable UMFPACK (header paths differ on Arch)
+          echo "umfpack = False" >> scons/ci_options.py
+
           cat scons/ci_options.py
 
       - name: Build and install esys-escript
         run: |
+          # Mark directory as safe for git
+          git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
           # Build and install (default target includes Python module installation)
           scons -j2 options_file=scons/ci_options.py 2>&1 | tee build.log
           tail -50 build.log
@@ -365,7 +364,7 @@ jobs:
         run: |
           zypper --non-interactive install \
             python3-devel python3-numpy python3-scipy python3-matplotlib python3-sympy \
-            gcc gcc-c++ gcc-fortran scons cmake \
+            gcc gcc-c++ gcc-fortran scons cmake make \
             libboost_python3-devel libboost_numpy3-devel libboost_random-devel libboost_iostreams-devel \
             hdf5-devel netcdf-devel suitesparse-devel lapack-devel zlib-devel metis-devel \
             git tar gzip
@@ -382,10 +381,16 @@ jobs:
           # Disable ParMETIS (Ubuntu package has broken CMake config)
           echo "parmetis = False" >> scons/ci_options.py
 
+          # Disable MUMPS (header paths differ on OpenSUSE)
+          echo "mumps_seq = False" >> scons/ci_options.py
+
           cat scons/ci_options.py
 
       - name: Build and install esys-escript
         run: |
+          # Mark directory as safe for git
+          git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
           # Build and install (default target includes Python module installation)
           scons -j2 options_file=scons/ci_options.py 2>&1 | tee build.log
           tail -50 build.log
@@ -438,7 +443,7 @@ jobs:
         run: |
           dnf install -y \
             python3-devel python3-numpy python3-scipy python3-matplotlib python3-pip \
-            gcc gcc-c++ gcc-gfortran scons cmake \
+            gcc gcc-c++ gcc-gfortran scons cmake make \
             boost-devel boost-python3 boost-python3-devel \
             hdf5-devel netcdf-devel suitesparse suitesparse-devel lapack-devel zlib-devel metis-devel \
             git
@@ -459,10 +464,16 @@ jobs:
           # Disable ParMETIS (Ubuntu package has broken CMake config)
           echo "parmetis = False" >> scons/ci_options.py
 
+          # Fix boost library name for Rocky Linux 9 (uses boost_python39)
+          echo "boost_libs = ['boost_python39']" >> scons/ci_options.py
+
           cat scons/ci_options.py
 
       - name: Build and install esys-escript
         run: |
+          # Mark directory as safe for git
+          git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
           # Build and install (default target includes Python module installation)
           scons -j2 options_file=scons/ci_options.py 2>&1 | tee build.log
           tail -50 build.log
