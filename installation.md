@@ -385,16 +385,16 @@ scons -j4 options_file=scons/templates/rhel_options.py
 Install Homebrew from [https://brew.sh](https://brew.sh), then:
 
 ```bash
-brew install python3 numpy scipy matplotlib
-brew install scons cmake
+brew install python3 scons cmake
 brew install boost boost-python3
-brew install hdf5 netcdf suite-sparse lapack mumps
+brew install hdf5 netcdf suite-sparse lapack
+brew install libomp  # For OpenMP support with Apple Clang
 ```
 
 Some Python packages may need pip:
 
 ```bash
-pip3 install numpy scipy matplotlib
+pip3 install numpy scipy matplotlib sympy
 ```
 
 For MPI support:
@@ -411,16 +411,33 @@ pip3 install sphinx markdown
 brew install --cask mactex  # For LaTeX/PDF documentation
 ```
 
-For symbolic mathematics support:
-
-```bash
-pip3 install sympy
-```
-
 Build esys-escript:
 
 ```bash
 scons -j4 options_file=scons/templates/homebrew_options.py
+```
+
+**Important: Apple Silicon (arm64) Users**
+
+The default `homebrew_options.py` uses Homebrew's LLVM for OpenMP support. However, recent versions of Homebrew LLVM (21.x) have a [known bug](https://github.com/llvm/llvm-project/issues/170970) causing linker errors on arm64 Macs.
+
+If you encounter `__hash_memory` undefined symbol errors during the Trilinos build, use Apple's system Clang with `libomp` instead:
+
+```bash
+# Install libomp for OpenMP support
+brew install libomp
+
+# Create a custom options file
+cp scons/templates/homebrew_options.py scons/my_options.py
+
+# Edit my_options.py and change:
+#   cc = 'clang'
+#   cxx = 'clang++'
+#   omp_flags = ['-Xpreprocessor', '-fopenmp']
+#   omp_ldflags = ['-lomp']
+
+# Then build with:
+scons -j4 options_file=scons/my_options.py
 ```
 
 ### macOS with MacPorts
