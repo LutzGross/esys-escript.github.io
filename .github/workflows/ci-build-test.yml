@@ -44,7 +44,7 @@ jobs:
             scons cmake \
             libboost-python-dev libboost-numpy-dev \
             libboost-random-dev libboost-iostreams-dev \
-            libnetcdf-dev libsilo-dev libhdf5-serial-dev \
+            libnetcdf-dev libnetcdf-c++4-dev libsilo-dev libhdf5-serial-dev \
             libsuitesparse-dev liblapacke-dev libmumps-seq-dev \
             libmetis-dev zlib1g-dev \
             g++ gfortran
@@ -293,7 +293,7 @@ jobs:
           pacman -S --noconfirm \
             python python-numpy python-scipy python-matplotlib python-sympy \
             gcc gcc-fortran scons cmake make \
-            boost boost-libs suitesparse hdf5 netcdf lapack zlib \
+            boost boost-libs suitesparse hdf5 netcdf netcdf-cxx lapack zlib \
             git
 
       - name: Configure build
