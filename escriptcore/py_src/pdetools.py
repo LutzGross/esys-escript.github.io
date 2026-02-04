@@ -2017,7 +2017,7 @@ def MaskFromBoundaryTag(domain,*tags):
    """
    import warnings
    warnings.warn("MaskFromTag is depreciated, use getMaskFromBoundaryTag")
-   return getMaskFromBoundaryTag(domain)
+   return getMaskFromBoundaryTag(domain, *tags)
 
 def MaskFromTag(domain,*tags):
    """
@@ -2040,7 +2040,7 @@ def MaskFromTag(domain,*tags):
    """
    import warnings
    warnings.warn("MaskFromTag is depreciated, use getMaskFromBoundaryTag")
-   return getMaskFromBoundaryTag(domain)
+   return getMaskFromBoundaryTag(domain, *tags)
 
 def getBoundaryValuesFromVolumeTag(domain, **values):
        """
