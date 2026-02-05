@@ -812,6 +812,11 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
                     Assemble_CopyElementData<cplx_t>(m_faceElements, target, in);
                 else
                     Assemble_CopyElementData<real_t>(m_faceElements, target, in);
+            } else if (target.getFunctionSpace().getTypeCode() == FaceElements) {
+                if (in.isComplex())
+                    Assemble_CopyElementData<cplx_t>(m_faceElements, target, in);
+                else
+                    Assemble_CopyElementData<real_t>(m_faceElements, target, in);
             } else {
                 throw ValueError("No interpolation with data on face "
                          "elements with reduced integration order possible.");

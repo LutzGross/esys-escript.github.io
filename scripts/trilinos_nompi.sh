@@ -27,7 +27,7 @@ fi
 
 cmake \
       -D CMAKE_INSTALL_PREFIX=$TRI_INSTALL_PREFIX\
-      -D Trilinos_ENABLE_CXX11=ON \
+      -D CMAKE_CXX_STANDARD=20 \
       -D Trilinos_ENABLE_Fortran=OFF \
       -D CMAKE_C_COMPILER=$2 \
       -D CMAKE_C_FLAGS=" -Wno-error=implicit-function-declaration " \

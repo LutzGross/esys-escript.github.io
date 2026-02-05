@@ -965,8 +965,8 @@ void Rectangle::dump(const string& fileName) const
 
     const dim_t NN0 = m_NN[0];
     const dim_t NN1 = m_NN[1];
-    boost::scoped_ptr<double> x(new double[NN0]);
-    boost::scoped_ptr<double> y(new double[NN1]);
+    std::unique_ptr<double[]> x(new double[NN0]);
+    std::unique_ptr<double[]> y(new double[NN1]);
     double* coords[2] = { x.get(), y.get() };
 #pragma omp parallel
     {

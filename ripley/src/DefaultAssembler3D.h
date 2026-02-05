@@ -22,8 +22,8 @@ template<class Scalar = double>
 class DefaultAssembler3D : public AbstractAssembler
 {
 public:
-    DefaultAssembler3D<Scalar>(escript::const_Domain_ptr dom, const double* dx,
-                               const dim_t* NE, const dim_t* NN)
+    DefaultAssembler3D(escript::const_Domain_ptr dom, const double* dx,
+                       const dim_t* NE, const dim_t* NN)
         : AbstractAssembler(),
         m_dx(dx),
         m_NE(NE),

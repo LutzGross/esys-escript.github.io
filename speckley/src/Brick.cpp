@@ -971,9 +971,9 @@ void Brick::dump(const string& fileName) const
     }
     */
 
-    boost::scoped_ptr<double> x(new double[m_NN[0]]);
-    boost::scoped_ptr<double> y(new double[m_NN[1]]);
-    boost::scoped_ptr<double> z(new double[m_NN[2]]);
+    std::unique_ptr<double[]> x(new double[m_NN[0]]);
+    std::unique_ptr<double[]> y(new double[m_NN[1]]);
+    std::unique_ptr<double[]> z(new double[m_NN[2]]);
     double* coords[3] = { x.get(), y.get(), z.get() };
     const dim_t NN0 = m_NN[0];
     const dim_t NN1 = m_NN[1];

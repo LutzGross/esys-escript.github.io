@@ -16,11 +16,17 @@
 #define __ESYS_TRILINOSWRAP_TYPES_H__
 
 #include <escript/DataTypes.h>
+#include <escript/EsysMPI.h> // for MPI_Comm typedef (always needed)
 
-#ifndef ESYS_MPI
-#include <escript/EsysMPI.h> // for MPI_Comm typedef
-#include <Teuchos_DefaultComm.hpp>
+// Get Trilinos MPI configuration (defines HAVE_MPI if Trilinos has MPI)
+#include <Teuchos_config.h>
+
+// Only include MpiComm if both escript AND Trilinos have MPI
+#if defined(ESYS_MPI) && defined(HAVE_MPI)
+#include <Teuchos_MpiComm.hpp>
+#define TRILINOS_HAS_MPI 1
 #endif
+#include <Teuchos_DefaultComm.hpp>
 #include <Tpetra_CrsGraph.hpp>
 #include <Tpetra_RowMatrix.hpp>
 // Use standard BlockVector (experimental version deprecated in Trilinos 16.2+)
@@ -107,9 +113,12 @@ typedef BlockVectorType<cplx_t> ComplexBlockVector;
 inline
 Teuchos::RCP<const Teuchos::Comm<int> > TeuchosCommFromEsysComm(MPI_Comm comm)
 {
-#ifdef ESYS_MPI
+#ifdef TRILINOS_HAS_MPI
+    // Both escript and Trilinos have MPI - wrap the communicator
     return Teuchos::rcp(new Teuchos::MpiComm<int>(comm));
 #else
+    // Either escript or Trilinos (or both) lack MPI - use default serial comm
+    (void)comm; // suppress unused parameter warning
     return Teuchos::DefaultComm<int>::getComm();
 #endif
 }

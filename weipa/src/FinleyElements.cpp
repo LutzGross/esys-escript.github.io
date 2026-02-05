@@ -631,9 +631,26 @@ bool FinleyElements::writeToSilo(DBfile* dbfile, const string& siloPath,
     int arraylen = numElements * nodesPerElement;
     int eltype = toSiloElementType(type);
 
+    // For tet elements, we need to reorder nodes to match Silo/VTK convention.
+    // VTK expects nodes (0,1,2) to be clockwise when viewed from outside (from apex),
+    // but escript uses counterclockwise. Fix by swapping nodes 1 and 2: (0,1,2,3) -> (0,2,1,3)
+    IntVec siloNodes;
+    const int* nodeData = &nodes[0];
+    if (type == ZONETYPE_TET && nodesPerElement == 4) {
+        siloNodes.reserve(arraylen);
+        for (int i = 0; i < numElements; i++) {
+            const int* elem = &nodes[i * 4];
+            siloNodes.push_back(elem[0]);  // node 0
+            siloNodes.push_back(elem[2]);  // node 2 (swapped)
+            siloNodes.push_back(elem[1]);  // node 1 (swapped)
+            siloNodes.push_back(elem[3]);  // node 3
+        }
+        nodeData = &siloNodes[0];
+    }
+
     string varName = name + string("_zones");
     ret = DBPutZonelist2(dbfile, varName.c_str(), numElements,
-            nodeMesh->getNumDims(), &nodes[0], arraylen, 0, 0,
+            nodeMesh->getNumDims(), nodeData, arraylen, 0, 0,
             numGhostElements, &eltype, &nodesPerElement, &numElements, 1, NULL);
     if (ret == 0) {
         CoordArray& coordbase = const_cast<CoordArray&>(nodeMesh->getCoords());

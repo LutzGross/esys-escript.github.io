@@ -138,6 +138,11 @@ BOOST_PYTHON_MODULE(escriptcpp)
         " value for arg1. The values are added up and the total value is returned.\n\n"
         ":rtype: int");
   def("runMPIProgram",escript::runMPIProgram,"Spawns an external MPI program using a separate communicator.");
+#if defined(ESYS_MPI) && defined(ESYS_HAVE_MPI4PY)
+  def("haveMPI4Py", +[]() { return true; }, "Returns True if escript was built with mpi4py support.");
+#else
+  def("haveMPI4Py", +[]() { return false; }, "Returns True if escript was built with mpi4py support.");
+#endif
   def("getMachinePrecision",escript::getMachinePrecision);
   def("getMaxFloat",escript::getMaxFloat);
   def("_saveDataCSV",escript::saveDataCSV, (args("filename","arg","sep","csep"), arg("refid")=false, arg("append")=false),

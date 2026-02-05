@@ -71,6 +71,9 @@ jobs:
           # Disable ParMETIS (Ubuntu package has broken CMake config)
           echo "parmetis = False" >> scons/ci_options.py
 
+          # Force building bundled Trilinos (avoid system Trilinos version conflicts)
+          echo "build_trilinos = 'always'" >> scons/ci_options.py
+
           cat scons/ci_options.py
 
       - name: Build and install esys-escript
@@ -101,7 +104,8 @@ jobs:
           python3 -c "from esys.escript import *; print('escript OK')"
           python3 -c "from esys.finley import Rectangle; d = Rectangle(10,10); print('finley OK')"
           python3 -c "from esys.ripley import Rectangle; d = Rectangle(10,10); print('ripley OK')"
-          python3 -c "from esys.speckley import Rectangle; d = Rectangle(10,10); print('speckley OK')"
+          # Speckley Rectangle takes (order, n0, n1, ...) - order is polynomial order
+          python3 -c "from esys.speckley import Rectangle; d = Rectangle(2, 10, 10); print('speckley OK')"
 
       - name: Run Python tests (MPI)
         if: matrix.mpi != 'none'
@@ -160,6 +164,9 @@ jobs:
           echo "omp_flags = ['-Xpreprocessor', '-fopenmp']" >> scons/ci_options.py
           echo "omp_ldflags = ['-lomp']" >> scons/ci_options.py
 
+          # Force building bundled Trilinos (avoid system Trilinos version conflicts)
+          echo "build_trilinos = 'always'" >> scons/ci_options.py
+
           cat scons/ci_options.py
 
       - name: Build and install esys-escript
@@ -210,8 +217,8 @@ jobs:
 
       - name: Verify checkout
         run: |
-          echo "=== Checking trilinos_source16 ==="
-          ls -la trilinos_source16/ | head -10 || echo "trilinos_source16 NOT FOUND"
+          echo "=== Checking trilinos_source_17-0-0-rc1 ==="
+          ls -la trilinos_source_17-0-0-rc1/ | head -10 || echo "trilinos_source_17-0-0-rc1 NOT FOUND"
           echo "=== Current directory ==="
           pwd
           ls -la
@@ -234,8 +241,11 @@ jobs:
           echo "# CI overrides" >> scons/ci_options.py
           echo "domains = ['finley', 'ripley', 'speckley']" >> scons/ci_options.py
 
-          # Disable ParMETIS (Ubuntu package has broken CMake config)
+          # Disable ParMETIS
           echo "parmetis = False" >> scons/ci_options.py
+
+          # Force building bundled Trilinos (avoid system Trilinos version conflicts)
+          echo "build_trilinos = 'always'" >> scons/ci_options.py
 
           cat scons/ci_options.py
 
@@ -267,7 +277,7 @@ jobs:
           python3 -c "from esys.escript import *; print('escript OK')"
           python3 -c "from esys.finley import Rectangle; d = Rectangle(10,10); print('finley OK')"
           python3 -c "from esys.ripley import Rectangle; d = Rectangle(10,10); print('ripley OK')"
-          python3 -c "from esys.speckley import Rectangle; d = Rectangle(10,10); print('speckley OK')"
+          python3 -c "from esys.speckley import Rectangle; d = Rectangle(2, 10, 10); print('speckley OK')"
 
   # ==========================================================================
   # Arch Linux build (Docker container)
@@ -314,6 +324,9 @@ jobs:
           # Disable UMFPACK (header paths differ on Arch)
           echo "umfpack = False" >> scons/ci_options.py
 
+          # Force building bundled Trilinos (avoid system Trilinos version conflicts)
+          echo "build_trilinos = 'always'" >> scons/ci_options.py
+
           cat scons/ci_options.py
 
       - name: Build and install esys-escript
@@ -344,7 +357,7 @@ jobs:
           python3 -c "from esys.escript import *; print('escript OK')"
           python3 -c "from esys.finley import Rectangle; d = Rectangle(10,10); print('finley OK')"
           python3 -c "from esys.ripley import Rectangle; d = Rectangle(10,10); print('ripley OK')"
-          python3 -c "from esys.speckley import Rectangle; d = Rectangle(10,10); print('speckley OK')"
+          python3 -c "from esys.speckley import Rectangle; d = Rectangle(2, 10, 10); print('speckley OK')"
 
   # ==========================================================================
   # OpenSUSE build (Docker container)
@@ -388,6 +401,9 @@ jobs:
           # Disable MUMPS (header paths differ on OpenSUSE)
           echo "mumps_seq = False" >> scons/ci_options.py
 
+          # Force building bundled Trilinos (avoid system Trilinos version conflicts)
+          echo "build_trilinos = 'always'" >> scons/ci_options.py
+
           cat scons/ci_options.py
 
       - name: Build and install esys-escript
@@ -418,7 +434,7 @@ jobs:
           python3 -c "from esys.escript import *; print('escript OK')"
           python3 -c "from esys.finley import Rectangle; d = Rectangle(10,10); print('finley OK')"
           python3 -c "from esys.ripley import Rectangle; d = Rectangle(10,10); print('ripley OK')"
-          python3 -c "from esys.speckley import Rectangle; d = Rectangle(10,10); print('speckley OK')"
+          python3 -c "from esys.speckley import Rectangle; d = Rectangle(2, 10, 10); print('speckley OK')"
 
   # ==========================================================================
   # Rocky Linux build (Docker container) - tests RHEL compatibility
@@ -471,6 +487,9 @@ jobs:
           # Fix boost library name for Rocky Linux 9 (uses boost_python39)
           echo "boost_libs = ['boost_python39']" >> scons/ci_options.py
 
+          # Force building bundled Trilinos (avoid system Trilinos version conflicts)
+          echo "build_trilinos = 'always'" >> scons/ci_options.py
+
           cat scons/ci_options.py
 
       - name: Build and install esys-escript
@@ -501,4 +520,4 @@ jobs:
           python3 -c "from esys.escript import *; print('escript OK')"
           python3 -c "from esys.finley import Rectangle; d = Rectangle(10,10); print('finley OK')"
           python3 -c "from esys.ripley import Rectangle; d = Rectangle(10,10); print('ripley OK')"
-          python3 -c "from esys.speckley import Rectangle; d = Rectangle(10,10); print('speckley OK')"
+          python3 -c "from esys.speckley import Rectangle; d = Rectangle(2, 10, 10); print('speckley OK')"

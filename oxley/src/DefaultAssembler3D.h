@@ -22,7 +22,7 @@ template<class Scalar = double>
 class DefaultAssembler3D : public AbstractAssembler
 {
 public:
-    DefaultAssembler3D<Scalar>(escript::const_Domain_ptr dom)
+    DefaultAssembler3D(escript::const_Domain_ptr dom)
         : AbstractAssembler()
     {
         domain = REFCOUNTNS::static_pointer_cast<const Brick>(dom);

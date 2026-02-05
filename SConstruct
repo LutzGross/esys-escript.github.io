@@ -143,7 +143,7 @@ vars.AddVariables(
   EnumVariable('build_trilinos', 'Instructs scons to build the trilinos library.', "make", allowed_values = build_trilinos_flavours),
   ('trilinos_prefix', 'Prefix/Paths to Trilinos installation (need to be set  if build_trilinos = False).', default_prefix),
   ('trilinos_libs', 'Trilinos libraries to link with', []),
-  PathVariable('trilinos_src', 'Top-level source directory for trilinos.', Dir('trilinos_source16').abspath, PathVariable.PathIsDir),
+  PathVariable('trilinos_src', 'Top-level source directory for trilinos.', Dir('trilinos_source_17-0-0-rc1').abspath, PathVariable.PathIsDir),
   PathVariable('trilinos_build', 'Top-level build directory for trilinos.', Dir('#/build_trilinos').abspath, PathVariable.PathIsDirCreate),
   PathVariable('trilinos_install', 'Top-level install directory for trilinos when built', Dir('#/esys.trilinos').abspath, PathVariable.PathIsDirCreate),
   #('trilinos_install', 'path to install trilinos libs, default is <prefix>/lib/esys', 'default'),
@@ -431,7 +431,7 @@ env.AppendUnique(LIBPATH = [env['libinstall']])
 if not env['cxx_flags']:
     env['cxx_flags'] = env['cc_flags']
 # default compiler/linker options
-cxx_flags = [ '-std=c++17' ] # extra CXX flags
+cxx_flags = [ '-std=c++20' ] # extra CXX flags (C++20 required for Trilinos 17/Kokkos 5)
 cc_flags = [ ]
 cc_optim = []
 cc_debug = []
@@ -552,7 +552,7 @@ elif cxx_name == 'mpic++':
 elif cxx_name == 'mpiicpc':
     # note that -ffast-math is not used because it breaks isnan(),
     env['CC']= 'mpiicc'
-    cxx_flags = ['-std=c++17' ]
+    cxx_flags = ['-std=c++20' ]  # C++20 required for Trilinos 17/Kokkos 5
     cc_flags += ["-pedantic", "-Wall", "-fPIC", "-finline-functions"]
     cc_flags += ["-Wno-unknown-pragmas", "-Wno-sign-compare", "-Wno-system-headers", "-Wno-long-long", "-Wno-strict-aliasing"]
     cc_flags += ["-Wno-unused-function", "-Wno-narrowing"]

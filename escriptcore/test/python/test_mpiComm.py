@@ -23,10 +23,13 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript import *
 
-# Check if mpi4py is available
+# Check if escript was built with mpi4py support
+ESCRIPT_HAS_MPI4PY = haveMPI4Py()
+
+# Check if mpi4py Python module is available AND escript has mpi4py support
 try:
     from mpi4py import MPI
-    HAVE_MPI4PY = True
+    HAVE_MPI4PY = ESCRIPT_HAS_MPI4PY  # Only true if both module AND escript support exist
 except ImportError:
     HAVE_MPI4PY = False
     MPI = None

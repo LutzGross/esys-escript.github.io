@@ -560,6 +560,12 @@ A more complicated example that controls the number of pre and post sweeps is in
 \begin{itemize}
 \item \textbf{Solver does not converge}: Try a stronger preconditioner (AMG instead of Jacobi), or use a direct solver for debugging.
 \item \textbf{Memory issues with large problems}: Use iterative solvers instead of direct solvers; reduce AMG coarse grid size.
-\item \textbf{Kokkos finalize crash}: This is a known issue at program exit and does not affect results. The solver completes correctly before this occurs.
+\item \textbf{Kokkos finalize crash}: You may see an error message like
+  ``\texttt{SharedAllocationRecord 'Belos::MultiVecPool DV' failed decrement count}''
+  at program exit. This is a known upstream bug in Trilinos (related to issue \#4626)
+  caused by the Belos MultiVecPool optimization having incorrect reference counting
+  during Kokkos finalization. The crash occurs \emph{after} your computation has
+  completed successfully and does not affect results. The test suite handles this
+  by treating exit code 134 (SIGABRT) as success when test results are otherwise valid.
 \end{itemize}
 
