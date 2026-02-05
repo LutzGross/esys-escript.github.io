@@ -71,8 +71,9 @@ jobs:
           # Disable ParMETIS (Ubuntu package has broken CMake config)
           echo "parmetis = False" >> scons/ci_options.py
 
-          # Force building bundled Trilinos (avoid system Trilinos version conflicts)
+          # Force building bundled Trilinos 16 (v17 source not in repo yet)
           echo "build_trilinos = 'always'" >> scons/ci_options.py
+          echo "trilinos_src = 'trilinos_source16'" >> scons/ci_options.py
 
           cat scons/ci_options.py
 
@@ -164,8 +165,9 @@ jobs:
           echo "omp_flags = ['-Xpreprocessor', '-fopenmp']" >> scons/ci_options.py
           echo "omp_ldflags = ['-lomp']" >> scons/ci_options.py
 
-          # Force building bundled Trilinos (avoid system Trilinos version conflicts)
+          # Force building bundled Trilinos 16 (v17 source not in repo yet)
           echo "build_trilinos = 'always'" >> scons/ci_options.py
+          echo "trilinos_src = 'trilinos_source16'" >> scons/ci_options.py
 
           cat scons/ci_options.py
 
@@ -237,7 +239,7 @@ jobs:
             python3-devel python3-numpy python3-scipy python3-matplotlib python3-sympy \
             gcc-c++ gcc-gfortran scons cmake make \
             boost-devel boost-python3-devel boost-python3 boost-numpy3 boost-iostreams boost-random \
-            hdf5-devel netcdf-devel netcdf-cxx4-devel suitesparse-devel lapack-devel MUMPS-devel zlib-devel metis-devel \
+            hdf5-devel netcdf-devel libnetcdf_c++4-devel suitesparse-devel lapack-devel MUMPS-devel zlib-devel metis-devel \
             git
 
       - name: Configure build
@@ -252,8 +254,9 @@ jobs:
           # Disable ParMETIS
           echo "parmetis = False" >> scons/ci_options.py
 
-          # Force building bundled Trilinos (avoid system Trilinos version conflicts)
+          # Force building bundled Trilinos 16 (v17 source not in repo yet)
           echo "build_trilinos = 'always'" >> scons/ci_options.py
+          echo "trilinos_src = 'trilinos_source16'" >> scons/ci_options.py
 
           cat scons/ci_options.py
 
@@ -332,8 +335,9 @@ jobs:
           # Disable UMFPACK (header paths differ on Arch)
           echo "umfpack = False" >> scons/ci_options.py
 
-          # Force building bundled Trilinos (avoid system Trilinos version conflicts)
+          # Force building bundled Trilinos 16 (v17 source not in repo yet)
           echo "build_trilinos = 'always'" >> scons/ci_options.py
+          echo "trilinos_src = 'trilinos_source16'" >> scons/ci_options.py
 
           cat scons/ci_options.py
 
@@ -391,7 +395,7 @@ jobs:
             python3-devel python3-numpy python3-scipy python3-matplotlib python3-sympy \
             gcc gcc-c++ gcc-fortran scons cmake make \
             libboost_python3-devel libboost_numpy3-devel libboost_random-devel libboost_iostreams-devel \
-            hdf5-devel netcdf-devel netcdf-cxx4-devel suitesparse-devel lapack-devel zlib-devel metis-devel \
+            hdf5-devel netcdf-devel libnetcdf_c++4-devel suitesparse-devel lapack-devel zlib-devel metis-devel \
             git tar gzip
 
       - name: Configure build
@@ -409,8 +413,9 @@ jobs:
           # Disable MUMPS (header paths differ on OpenSUSE)
           echo "mumps_seq = False" >> scons/ci_options.py
 
-          # Force building bundled Trilinos (avoid system Trilinos version conflicts)
+          # Force building bundled Trilinos 16 (v17 source not in repo yet)
           echo "build_trilinos = 'always'" >> scons/ci_options.py
+          echo "trilinos_src = 'trilinos_source16'" >> scons/ci_options.py
 
           cat scons/ci_options.py
 
@@ -495,8 +500,9 @@ jobs:
           # Fix boost library name for Rocky Linux 9 (uses boost_python39)
           echo "boost_libs = ['boost_python39']" >> scons/ci_options.py
 
-          # Force building bundled Trilinos (avoid system Trilinos version conflicts)
+          # Force building bundled Trilinos 16 (v17 source not in repo yet)
           echo "build_trilinos = 'always'" >> scons/ci_options.py
+          echo "trilinos_src = 'trilinos_source16'" >> scons/ci_options.py
 
           cat scons/ci_options.py
 
