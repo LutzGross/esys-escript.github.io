@@ -171,6 +171,12 @@ jobs:
 
       - name: Build and install esys-escript
         run: |
+          # Set OpenMP CMake variables for Trilinos build on macOS
+          # Homebrew's libomp needs explicit paths for CMake to find it
+          OMP_PREFIX=$(brew --prefix libomp)
+          export OpenMP_ROOT="${OMP_PREFIX}"
+          export CMAKE_PREFIX_PATH="${OMP_PREFIX}:${CMAKE_PREFIX_PATH}"
+
           # Build and install (default target includes Python module installation)
           scons -j2 options_file=scons/ci_options.py 2>&1 | tee build.log
           tail -50 build.log
@@ -182,7 +188,7 @@ jobs:
       - name: Run sanity check
         run: |
           export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
-          export DYLD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${DYLD_LIBRARY_PATH}"
+          export DYLD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${DYLD_LIBRARY_PATH}"
 
           # Run sanity check
           ./bin/run-escript scripts/release_sanity.py
@@ -190,12 +196,14 @@ jobs:
       - name: Run Python tests
         run: |
           export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
-          export DYLD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${DYLD_LIBRARY_PATH}"
+          export DYLD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${DYLD_LIBRARY_PATH}"
 
           # Run basic import tests
           python3 -c "from esys.escript import *; print('escript OK')"
           python3 -c "from esys.finley import Rectangle; d = Rectangle(10,10); print('finley OK')"
           python3 -c "from esys.ripley import Rectangle; d = Rectangle(10,10); print('ripley OK')"
+          # Speckley Rectangle takes (order, n0, n1, ...) - order is polynomial order
+          python3 -c "from esys.speckley import Rectangle; d = Rectangle(2, 10, 10); print('speckley OK')"
 
   # ==========================================================================
   # Fedora build (Docker container)
@@ -383,7 +391,7 @@ jobs:
             python3-devel python3-numpy python3-scipy python3-matplotlib python3-sympy \
             gcc gcc-c++ gcc-fortran scons cmake make \
             libboost_python3-devel libboost_numpy3-devel libboost_random-devel libboost_iostreams-devel \
-            hdf5-devel netcdf-devel suitesparse-devel lapack-devel zlib-devel metis-devel \
+            hdf5-devel netcdf-devel netcdf-cxx4-devel suitesparse-devel lapack-devel zlib-devel metis-devel \
             git tar gzip
 
       - name: Configure build
