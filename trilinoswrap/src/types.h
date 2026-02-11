@@ -23,7 +23,7 @@
 
 // Only include MpiComm if both escript AND Trilinos have MPI
 #if defined(ESYS_MPI) && defined(HAVE_MPI)
-#include <Teuchos_MpiComm.hpp>
+#include <Teuchos_DefaultMpiComm.hpp>
 #define TRILINOS_HAS_MPI 1
 #endif
 #include <Teuchos_DefaultComm.hpp>

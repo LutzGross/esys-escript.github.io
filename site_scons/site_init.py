@@ -32,6 +32,9 @@ else:
     env1, env2 = '${', '}'
 
 def findLibWithHeader(env, libs, header, paths, lang='c++', try_link=True):
+    # Allow skipping link checks via environment variable (useful for Homebrew/Python 3.14+)
+    if env.get('skip_link_checks', False):
+        try_link = False
     from SCons.Script.SConscript import Configure
     inc_path=''
     lib_path=''
@@ -61,7 +64,11 @@ def findLibWithHeader(env, libs, header, paths, lang='c++', try_link=True):
 
     if try_link:
         # now try the library
-        conf=Configure(env.Clone())
+        # Clone environment but preserve CPPPATH and LIBPATH for proper linking
+        cloned_env = env.Clone()
+        cloned_env.AppendUnique(CPPPATH = env.get('CPPPATH', []))
+        cloned_env.AppendUnique(LIBPATH = env.get('LIBPATH', []))
+        conf=Configure(cloned_env)
         conf.env.AppendUnique(CPPPATH = [inc_path])
         conf.env.AppendUnique(LIBPATH = [lib_path])
         if type(libs)==str: libs=[libs]

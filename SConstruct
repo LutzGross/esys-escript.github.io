@@ -80,6 +80,7 @@ vars.AddVariables(
   PathVariable('PREFIX', 'Installation prefix  (may not contain space)', Dir('#.').abspath, PathVariable.PathIsDirCreate),
   PathVariable('build_dir', 'Top-level build directory', Dir('#/build').abspath, PathVariable.PathIsDirCreate),
   BoolVariable('verbose', 'Output full compile/link lines', False),
+  BoolVariable('skip_link_checks', 'Skip library link checks during configuration (useful for Homebrew/macOS)', False),
 # Compiler/Linker options
   ('cxx', 'Path to C++ compiler', 'default'),
   ('cc', 'Path to C compiler', 'default'),
@@ -519,32 +520,33 @@ elif cxx_name.startswith('clang++-mp'):
     omp_ldflags  = ["-fopenmp" ]
     fatalwarning = "-Werror"
     sysheaderopt = "-isystem"
-# elif cxx_name.startswith('clang++'):
-#     # Clang++ on any system
-#     cc_flags    += ["-Wall", "-fPIC", "-fdiagnostics-color=always",  "-Wno-uninitialized" ]
-#     cc_flags    += ["-Wno-unused-private-field", "-Wno-unknown-pragmas" ]
-#     #if env['trilinos'] is True:
-#     #  cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
-#     cc_optim     = ["-O3" ]  # -march=native"
-#     cc_debug     = ["-ggdb3", "-O0", "-fdiagnostics-fixit-info", "-pedantic" ]
-#     cc_debug    += ["-DDOASSERT", "-DDOPROF", "-DBOUNDS_CHECK", "-DSLOWSHARECHECK" ]
-#     omp_flags    = ["-fopenmp" ]
-#     omp_ldflags  = []
-#     fatalwarning = ["-Werror" ]
-#     sysheaderopt = ["-isystem" ]
+elif cxx_name.startswith('clang++'):
+    # Clang++ on any system (including Homebrew LLVM)
+    cc_flags    += ["-Wall", "-fPIC", "-fdiagnostics-color=always",  "-Wno-uninitialized" ]
+    cc_flags    += ["-Wno-unused-private-field", "-Wno-unknown-pragmas" ]
+    cc_flags    += ["-Wno-deprecated-declarations"]
+    #if env['trilinos'] is True:
+    #  cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
+    cc_optim     = ["-O3" ]  # -march=native"
+    cc_debug     = ["-ggdb3", "-O0", "-fdiagnostics-fixit-info", "-pedantic" ]
+    cc_debug    += ["-DDOASSERT", "-DDOPROF", "-DBOUNDS_CHECK", "-DSLOWSHARECHECK" ]
+    omp_flags    = ["-fopenmp" ]
+    omp_ldflags  = ["-fopenmp" ]
+    fatalwarning = "-Werror"
+    sysheaderopt = "-isystem"
 elif cxx_name == 'mpic++':
-    # MPIC++ on any system
-    # note that -ffast-math is not used because it breaks isnan(),
+    # MPIC++ wrapper - can wrap GCC or Clang depending on system
+    # note that -ffast-math is not used because it breaks isnan()
     cc_flags += ["-pedantic", "-Wall", "-fPIC", "-finline-functions" ]
     cc_flags += ["-Wno-unknown-pragmas", "-Wno-sign-compare", "-Wno-system-headers", "-Wno-long-long", "-Wno-strict-aliasing" ]
-    cc_flags += ["-Wno-unused-function ", "-Wno-narrowing" ]
-    cc_flags += ["-Wno-stringop-truncation", "-Wno-deprecated-declarations", "--param=max-vartrack-size=100000000" ]
-    cc_optim     = ["-O3", "-march=native"]
-    #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
-    cc_debug     = ["-g3", "-O0", "-DDOASSERT", "-DDOPROF", "-DBOUNDS_CHECK", "-DSLOWSHARECHECK", "--param=max-vartrack-size=100000000", '-D_GLIBCXX_DEBUG' ]
+    cc_flags += ["-Wno-unused-function", "-Wno-narrowing" ]
+    cc_flags += ["-Wno-deprecated-declarations" ]
+    # Removed GCC-specific flags: -Wno-stringop-truncation, --param=max-vartrack-size
+    cc_optim     = ["-O3"]  # Removed -march=native which may not work on all systems
+    cc_debug     = ["-g3", "-O0", "-DDOASSERT", "-DDOPROF", "-DBOUNDS_CHECK", "-DSLOWSHARECHECK" ]
+    # Removed -D_GLIBCXX_DEBUG which is GCC-specific
     ld_flags += ["-fPIC", "-lmpi" ]
-    if env['openmp']:
-      ld_flags += ["-lgomp" ]
+    # OpenMP library linking handled by -fopenmp linker flag (no explicit -lgomp/-lomp needed)
     omp_flags    = ["-fopenmp" ]
     omp_ldflags  = ["-fopenmp" ]
     fatalwarning = "-Werror"

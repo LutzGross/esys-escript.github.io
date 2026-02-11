@@ -92,8 +92,10 @@ omp_ldflags = ["-fopenmp"]
 # MPI configuration
 # Install with: brew install open-mpi mpi4py
 mpi = 'OPENMPI'
-mpi_prefix = [HOMEBREW_PREFIX + '/include/openmpi', HOMEBREW_PREFIX + '/lib/openmpi']
-mpi_libs = ['mpi_cxx', 'mpi']
+# OpenMPI 5.x uses the standard include/lib directories (not openmpi subdirectories)
+mpi_prefix = [HOMEBREW_PREFIX + '/include', HOMEBREW_PREFIX + '/lib']
+# OpenMPI 5.x dropped libmpi_cxx - C++ bindings are now in libmpi
+mpi_libs = ['mpi']
 mpi4py = True
 
 # Solver configuration
@@ -135,8 +137,8 @@ zlib = True
 zlib_prefix = HOMEBREW_PREFIX
 zlib_libs = ['z']
 
-# Linker flags
-ld_extra = ["-L/opt/homebrew/opt/llvm/lib", "-lz", "-Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++"]
+# Linker flags - include LLVM libc++ for macOS arm64
+ld_extra = ["-L/opt/homebrew/opt/llvm/lib", "-L/opt/homebrew/opt/llvm/lib/c++", "-lz", "-Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++"]
 
 # Optional features
 sympy = True

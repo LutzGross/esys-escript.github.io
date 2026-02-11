@@ -270,7 +270,7 @@ DataTypes::DataVectorAlt<T>::DataVectorAlt(const DataVectorAlt<T>::size_type siz
 }
 
 template <class T>
-DataTypes::DataVectorAlt<T>::~DataVectorAlt()
+DataTypes::DataVectorAlt<T>::~DataVectorAlt<T>()
 {
   // clear data members
   m_size = -1;

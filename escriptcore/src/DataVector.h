@@ -364,6 +364,7 @@ namespace DataTypes
             mess << "Error - (copySliceFrom) Invalid slice region rank: " << region.size();
             throw DataException(mess.str());
          }
+         (void)numCopy;  // Suppress unused variable warning
 
       } else {
 
@@ -421,6 +422,7 @@ namespace DataTypes
             mess << "Error - (copySliceFrom) Invalid slice region rank: " << region.size();
             throw DataException(mess.str());
          }
+         (void)numCopy;  // Suppress unused variable warning
 
       }
 
