@@ -43,6 +43,8 @@ cmake \
       -D CMAKE_C_FLAGS=" -Wno-error=implicit-function-declaration " \
       -D CMAKE_CXX_COMPILER=$3 \
       -D CMAKE_CXX_FLAGS=" -Wno-unused-parameter -Wno-error=implicit-function-declaration " \
+      -D CMAKE_EXE_LINKER_FLAGS=" -L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++ " \
+      -D CMAKE_SHARED_LINKER_FLAGS=" -L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++ " \
       -D BUILD_SHARED_LIBS=ON \
       -D TPL_ENABLE_BLAS=ON \
       -D TPL_ENABLE_Boost=ON \

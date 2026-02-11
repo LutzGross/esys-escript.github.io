@@ -15,7 +15,9 @@ scons/*_options.py export-ignore
 # Exclude Trilinos source (users should install system Trilinos or let build download)
 trilinos_source16/ export-ignore
 trilinos_source16-2-0/ export-ignore
+trilinos_source16_1_0/ export-ignore
 trilinos_source_17-0-0-rc1/ export-ignore
+trilinos_source_17-0-0/ export-ignore
 
 # Exclude removed/deprecated code
 removed_code/ export-ignore
