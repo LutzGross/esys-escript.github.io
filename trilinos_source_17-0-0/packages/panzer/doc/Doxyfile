@@ -1,0 +1,35 @@
+# Note: all relative paths are relative to package/doc!
+#
+@INCLUDE = Doxyfile.options
+TAGFILES += \
+  $(TRILINOS_HOME)/packages/common/tag_files/teuchos.tag=$(TRILINOS_HOME)/packages/teuchos/doc/html \
+  $(TRILINOS_HOME)/packages/common/tag_files/belos.tag=$(TRILINOS_HOME)/packages/belos/doc/html \
+  $(TRILINOS_HOME)/packages/common/tag_files/nox.tag=$(TRILINOS_HOME)/packages/nox/doc/html \
+  $(TRILINOS_HOME)/packages/common/tag_files/phalanx.tag=$(TRILINOS_HOME)/packages/phalanx/doc/html
+#
+# Package options
+#
+PROJECT_NAME           = "Panzer"
+OUTPUT_DIRECTORY       = .
+#
+# What and how documentation is extracted
+#
+INPUT                  = ../disc-fe/src ../adapters-stk/src ../core/src ../dof-mgr/src ../expr-eval/src ./Panzer_DoxygenDocumentation.hpp
+#FILE_PATTERNS          = *.h *c *.hpp *.cpp
+RECURSIVE              = YES
+EXCLUDE                = 
+EXCLUDE_PATTERNS       = *.x *.o *.out
+EXAMPLE_PATTERNS       =
+EXAMPLE_PATH           = ../example ../adapters-stk/example
+IMAGE_PATH             = 
+INPUT_FILTER           = 
+ALPHABETICAL_INDEX     = YES
+IGNORE_PREFIX          = 
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = YES
+#
+# Links to other packages
+#
+ALLEXTERNALS           = NO
+EXTERNAL_GROUPS        = NO
+GENERATE_TAGFILE       = $(TRILINOS_HOME)/packages/common/tag_files/panzer.tag

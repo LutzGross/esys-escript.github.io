@@ -1,0 +1,2225 @@
+<masterlist>
+
+  <general>
+
+    <parameter>
+      <name>problem: type</name>
+      <type>string</type>
+      <default>"unknown"</default>
+      <description>Type of problem to be solved. Possible values: see Table~\ref{t:problem_types}.</description>
+      <name-ML>default values</name-ML>
+      <comment-ML>needs special treatment in ML. problem types have different names in ML and MueLu</comment-ML>
+      <type-ML>string</type-ML>
+    </parameter>
+
+    <parameter>
+      <name>verbosity</name>
+      <type>string</type>
+      <default>"high"</default>
+      <description>Control of the amount of printed information. Possible values: see Table~\ref{t:verbosity_types}.</description>
+      <name-ML>ML output</name-ML>
+      <comment-ML>The ML type of this parameter is int! MLParameter interpreter transformes int to MueLu verbosity strings</comment-ML>
+      <type-ML>int</type-ML>
+      <default-ML>0</default-ML>
+      <compatibility-ML>MLParameterListInterpreter, ML2MueLuParameterTranslator</compatibility-ML>
+      <description-ML>Control of the amount of printed information. Possible values: 0-10 with 0=no output and 10=maximum verbosity.</description-ML>
+    </parameter>
+
+    <parameter>
+      <name>output filename</name>
+      <type>string</type>
+      <default>""</default>
+      <description>Write MueLu output to a file instead of std out. Empty value disables file output.</description>
+    </parameter>
+
+    <parameter>
+      <name>number of equations</name>
+      <type>int</type>
+      <default>1</default>
+      <Poisson-2D>1</Poisson-2D>
+      <Poisson-3D>1</Poisson-3D>
+      <Elasticity-2D>2</Elasticity-2D>
+      <Elasticity-3D>3</Elasticity-3D>
+      <Poisson-2D-complex>1</Poisson-2D-complex>
+      <Poisson-3D-complex>1</Poisson-3D-complex>
+      <Elasticity-2D-complex>2</Elasticity-2D-complex>
+      <Elasticity-3D-complex>3</Elasticity-3D-complex>
+      <description>Number of PDE equations at each grid node. Only constant block size is considered.</description>
+      <name-ML>PDE equations</name-ML>
+      <compatibility-ML>MLParameterListInterpreter, ML2MueLuParameterTranslator</compatibility-ML>
+      <description-ML>Number of PDE equations at each grid node. Only constant block size is considered.</description-ML>
+    </parameter>
+
+    <parameter>
+      <name>max levels</name>
+      <type>int</type>
+      <default>10</default>
+      <description>Maximum number of levels in a hierarchy.</description>
+      <compatibility-ML>MLParameterListInterpreter, ML2MueLuParameterTranslator</compatibility-ML>
+      <description-ML>Maximum number of levels in a hierarchy.</description-ML>
+    </parameter>
+
+    <parameter>
+      <name>cycle type</name>
+      <type>string</type>
+      <default>"V"</default>
+      <description>Multigrid cycle type. Possible values: "V", "W".</description>
+      <name-ML>prec type</name-ML>
+      <type-ML>string</type-ML>
+      <comment-ML>needs special treatment in ML. ML uses different namings than MueLu</comment-ML>
+      <default-ML>"MGV"</default-ML>
+      <compatibility-ML>MLParameterListInterpreter, ML2MueLuParameterTranslator</compatibility-ML>
+      <description-ML>Multigrid cycle type. Possible values: "MGV", "MGW". Other values are NOT supported by MueLu.</description-ML>
+    </parameter>
+
+    <parameter>
+      <name>W cycle start level</name>
+      <type>int</type>
+      <default>0</default>
+      <description>Level at which to start multigrid W cycle.</description>
+    </parameter>
+
+    <parameter>
+      <name>coarse grid correction scaling factor</name>
+      <type>double</type>
+      <default>1.0</default>
+      <description>Scaling factor to be applied to the coarse grid correction. This only affects the solve phase.</description>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>fuse prolongation and update</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>Fuse prolongation and update into one kernel call. Due to round-off error accumulation, this can in some cases result in slightly higher iteration counts. This only affects the solve phase.</description>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>number of vectors</name>
+      <type>int</type>
+      <default>1</default>
+      <description>Number of columns in multivectors that are cached for Hierarchy apply phase.</description>
+      <visible>true</visible>
+    </parameter>
+
+    <parameter>
+      <name>problem: symmetric</name>
+      <type>bool</type>
+      <default>true</default>
+      <ConvectionDiffusion>false</ConvectionDiffusion>
+      <description>Symmetry of a problem. This setting affects the construction of a restrictor. If set to true, the restrictor is set to be the transpose of a prolongator. If set to false, underlying multigrid algorithm makes the decision.</description>
+    </parameter>
+
+     <parameter>
+      <name>xml parameter file</name>
+      <type>string</type>
+      <default>""</default>
+      <description>An XML file from which to read additional
+      parameters.  In case of a conflict, parameters manually set on
+      the list will override parameters in the file. If the string is
+      empty a file will not be read.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+     <parameter>
+      <name>parameterlist: syntax</name>
+      <type>string</type>
+      <default>muelu</default>
+      <description>Syntax of ParameterList to use.  This should either be "muelu" or "ml." </description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+     </parameter>
+
+     <parameter>
+       <name>hierarchy label</name>
+       <type>string</type>
+       <name-ML>ML label</name-ML>
+       <default>""</default>
+       <description>Label for the hierarchy. Is applied to timer labels.</description>
+       <visible>true</visible>
+     </parameter>
+
+     <parameter>
+      <name>matvec params</name>
+      <type>\parameterlist</type>
+      <description>Pass parameters to the underlying linear algebra</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+     </parameter>
+
+     <parameter>
+      <name>half precision</name>
+      <type>bool</type>
+      <description>Build half precision preconditioner</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+      <default>false</default>
+    </parameter>
+
+  </general>
+
+  <smoothing_and_coarse>
+
+    <parameter>
+      <name>smoother: pre or post</name>
+      <comment-ML>needs special treatment in ML</comment-ML>
+      <type>string</type>
+      <default>"both"</default>
+      <description>Pre- and post-smoother combination. Possible values: "pre" (only pre-smoother), "post" (only post-smoother), "both" (both pre-and post-smoothers), "none" (no smoothing).</description>
+      <compatibility-ML>MLParameterListInterpreter, ML2MueLuParameterTranslator</compatibility-ML>
+      <description-ML>Pre- and post-smoother combination. Possible values: "pre" (only pre-smoother), "post" (only post-smoother), "both" (both pre-and post-smoothers).</description-ML>
+    </parameter>
+
+    <parameter>
+      <name>smoother: type</name>
+      <comment-ML>needs special treatment in ML</comment-ML>
+      <type>string</type>
+      <default>"RELAXATION"</default>
+      <Poisson-2D>"CHEBYSHEV"</Poisson-2D>
+      <Poisson-3D>"CHEBYSHEV"</Poisson-3D>
+      <Elasticity-2D>"CHEBYSHEV"</Elasticity-2D>
+      <Elasticity-3D>"CHEBYSHEV"</Elasticity-3D>
+      <Poisson-2D-complex>"RELAXATION"</Poisson-2D-complex>
+      <Poisson-3D-complex>"RELAXATION"</Poisson-3D-complex>
+      <Elasticity-2D-complex>"RELAXATION"</Elasticity-2D-complex>
+      <Elasticity-3D-complex>"RELAXATION"</Elasticity-3D-complex>
+      <MHD>"SCHWARZ"</MHD>
+      <ConvectionDiffusion>"RELAXATION"</ConvectionDiffusion>
+      <description>Smoother type. Possible values: see Table~\ref{tab:smoothers}.</description>
+    </parameter>
+
+    <parameter>
+      <name>smoother: pre type</name>
+      <comment-ML>needs special treatment in ML</comment-ML>
+      <type>string</type>
+      <default>"RELAXATION"</default>
+      <description>Pre-smoother type. Possible values: see Table~\ref{tab:smoothers}.</description>
+    </parameter>
+
+    <parameter>
+      <name>smoother: post type</name>
+      <comment-ML>needs special treatment in ML</comment-ML>
+      <type>string</type>
+      <default>"RELAXATION"</default>
+      <description>Post-smoother type. Possible values: see Table~\ref{tab:smoothers}.</description>
+    </parameter>
+
+    <parameter>
+      <name>smoother: params</name>
+      <comment-ML>not supported by ML</comment-ML>
+      <type>\parameterlist</type>
+      <Poisson-2D-complex>
+        <parameter>
+          <name>relaxation: type</name>
+          <type>string</type>
+          <default>Symmetric Gauss-Seidel</default>
+        </parameter>
+      </Poisson-2D-complex>
+      <Poisson-3D-complex>
+        <parameter>
+          <name>relaxation: type</name>
+          <type>string</type>
+          <default>Symmetric Gauss-Seidel</default>
+        </parameter>
+      </Poisson-3D-complex>
+      <Elasticity-2D-complex>
+        <parameter>
+          <name>relaxation: type</name>
+          <type>string</type>
+          <default>Symmetric Gauss-Seidel</default>
+        </parameter>
+      </Elasticity-2D-complex>
+      <Elasticity-3D-complex>
+        <parameter>
+          <name>relaxation: type</name>
+          <type>string</type>
+          <default>Symmetric Gauss-Seidel</default>
+        </parameter>
+      </Elasticity-3D-complex>
+      <MHD>
+        <parameter>
+          <name>schwarz: overlap level</name>
+          <type>int</type>
+          <default>1</default>
+        </parameter>
+        <parameter>
+          <name>schwarz: combine mode</name>
+          <type>string</type>
+          <default>"Zero"</default>
+        </parameter>
+        <parameter>
+          <name>schwarz: use reordering</name>
+          <type>bool</type>
+          <default>false</default>
+        </parameter>
+
+        <parameter>
+          <name>subdomain solver name</name>
+          <type>string</type>
+          <default>"RILUK"</default>/>
+        </parameter>
+        <parameter>
+          <name>subdomain solver parameters</name>
+          <comment-ML>not supported by ML</comment-ML>
+          <type>\parameterlist</type>
+
+            <parameter>
+              <name>fact: iluk level-of-fill</name>
+              <type>int</type>
+              <default>0</default>
+            </parameter>
+
+            <parameter>
+              <name>fact: absolute threshold</name>
+              <type>double</type>
+              <default>0.</default>
+            </parameter>
+
+            <parameter>
+              <name>fact: relative threshold</name>
+              <type>double</type>
+              <default>1.</default>
+            </parameter>
+
+            <parameter>
+              <name>fact: relax value</name>
+              <type>double</type>
+              <default>0.</default>
+            </parameter>
+        </parameter>
+      </MHD>
+      <ConvectionDiffusion>
+        <parameter>
+          <name>relaxation: type</name>
+          <type>string</type>
+          <default>"Gauss-Seidel"</default>
+        </parameter>
+      </ConvectionDiffusion>
+      <description>Smoother parameters. For standard smoothers, \muelu passes them directly to the appropriate package library.</description>
+    </parameter>
+
+    <parameter>
+      <name>smoother: pre params</name>
+      <comment-ML>not supported by ML</comment-ML>
+      <type>\parameterlist</type>
+      <description>Pre-smoother parameters. For standard smoothers, \muelu passes them directly to the appropriate package library.</description>
+    </parameter>
+
+    <parameter>
+      <name>smoother: post params</name>
+      <comment-ML>not supported by ML</comment-ML>
+      <type>\parameterlist</type>
+      <description>Post-smoother parameters. For standard smoothers, \muelu passes them directly to the appropriate package library.</description>
+    </parameter>
+
+    <parameter>
+      <name>smoother: overlap</name>
+      <comment-ML>needs special treatment in ML</comment-ML>
+      <type>int</type>
+      <default>0</default>
+      <description>Smoother subdomain overlap.</description>
+    </parameter>
+
+    <parameter>
+      <name>smoother: pre overlap</name>
+      <comment-ML>needs special treatment in ML</comment-ML>
+      <type>int</type>
+      <default>0</default>
+      <description>Pre-smoother subdomain overlap.</description>
+    </parameter>
+
+    <parameter>
+      <name>smoother: post overlap</name>
+      <comment-ML>needs special treatment in ML</comment-ML>
+      <type>int</type>
+      <default>0</default>
+      <description>Post-smoother subdomain overlap.</description>
+    </parameter>
+
+    <parameter>
+      <name>coarse: max size</name>
+      <type>int</type>
+      <default>2000</default>
+      <description>Maximum dimension of a coarse grid. \muelu will stop coarsening once it is achieved.</description>
+      <name-ML>max size</name-ML>
+      <default-ML>128</default-ML>
+      <comment-ML>needs special treatment in ML</comment-ML>
+      <compatibility-ML>MLParameterListInterpreter, ML2MueLuParameterTranslator</compatibility-ML>
+      <description-ML>Maximum dimension of a coarse grid. \ml will stop coarsening once it is achieved.</description-ML>
+    </parameter>
+
+    <parameter>
+      <name>coarse: type</name>
+      <comment-ML>needs special treatment in ML</comment-ML>
+      <type>string</type>
+      <default>"KLU"</default>
+      <description>Coarse solver. Possible values: see Table~\ref{tab:coarse_solvers}.</description>
+    </parameter>
+
+    <parameter>
+      <name>coarse: params</name>
+      <comment-ML>not supported by ML</comment-ML>
+      <type>\parameterlist</type>
+      <description>Coarse solver parameters. \muelu passes them directly to the appropriate package library.</description>
+    </parameter>
+
+    <parameter>
+      <name>coarse: overlap</name>
+      <comment-ML>needs special treatment in ML</comment-ML>
+      <type>int</type>
+      <default>0</default>
+      <description>Coarse solver subdomain overlap.</description>
+    </parameter>
+
+  </smoothing_and_coarse>
+
+  <aggregation>
+
+    <parameter>
+      <name>aggregation: backend</name>
+      <type>string</type>
+      <default>"default"</default>
+      <description>Aggregation scheme. Possible values: "default", "host", "kokkos"</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: type</name>
+      <type>string</type>
+      <default>"uncoupled"</default>
+      <description>Aggregation scheme. Possible values: see Table~\ref{t:aggregation}.</description>
+      <comment-ML>needs special treatment in ML</comment-ML>
+      <default-ML>Uncoupled</default-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: mode</name>
+      <type>string</type>
+      <default>"uncoupled"</default>
+      <description>Controls whether aggregates are allowed to cross processor boundaries. Possible values: "uncoupled" aggregates cannot cross processor boundaries.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: ordering</name>
+      <type>string</type>
+      <default>"natural"</default>
+      <description>Node ordering strategy. Possible values: "natural" (local index order), "graph" (filtered graph breadth-first order), "random" (random local index order).</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: phase 1 algorithm</name>
+      <type>string</type>
+      <default>"Distance2"</default>
+      <description>Look at distance2 hops when aggregating.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <!--
+    <parameter>
+      <name>aggregation: symmetrize</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Symmetrize connectivity graph for nonsymmetric matrices.</description>
+    </parameter>
+    -->
+
+    <parameter>
+      <name>aggregation: symmetrize graph after dropping</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Symmetrize the graph used for aggregation.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: use blocking</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Drop connections between different blocks. Blocks are given by a vector "BlockNumber" of scalar type LocalOrdinal that is passed via the "user data" list.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: drop scheme</name>
+      <type>string</type>
+      <default>"classical"</default>
+      <description>Connectivity dropping scheme for a graph used in
+      aggregation. Possible values: "point-wise" and "cut-drop". "signed classical sa", "classical", "distance laplacian", "signed classical", "block diagonal", "block diagonal classical", "block diagonal distance laplacian", "block diagonal signed classical", "block diagonal colored signed classical", "signed classical distance laplacian", "signed classical sa distance laplacian" are also allowed, but discouraged. Instead, the corresponding combination of "aggregation: strength-of-connection: matrix", "aggregation: strength-of-connection: measure" and "aggregation: drop scheme" should be used.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: strength-of-connection: matrix</name>
+      <type>string</type>
+      <default>"A"</default>
+      <description>The matrix that is used for constructing the graph used for aggregation. Possible values: "A" (meaning the level matrix itself) and "distance laplacian".</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: strength-of-connection: measure</name>
+      <type>string</type>
+      <default>"smoothed aggregation"</default>
+      <description>The strength measure used for constructing the graph. Possible values: "smoothed aggregation", "signed smoothed aggregation", "signed ruge-stueben", "unscaled".</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: classical scheme</name>
+      <type>string</type>
+      <default>"direct"</default>
+      <description>Prolongator formation option for classical coarsening.</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: row sum drop tol</name>
+      <type>double</type>
+      <default>-1.0</default>
+      <description>Detection threshold for mass-dominated      rows. Defaults to -1 (meaning disabled)</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: block diagonal: interleaved blocksize</name>
+      <type>int</type>
+      <default>3</default>
+      <description>Effective block size to use for
+      block-diagonalization.  This assumes the PDE is interleaved</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+
+    <parameter>
+      <name>aggregation: number of random vectors</name>
+      <type>int</type>
+      <default>10</default>
+      <description>Determines how many random vectors are smoothed when "unsupported vector smoothing" used.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+
+    <parameter>
+      <name>aggregation: number of times to pre or post smooth</name>
+      <type>int</type>
+      <default>10</default>
+      <description>Determines how many times presmoother (or postsmoother if no presmoother set) is invoked when "unsupported vector smoothing" used. Each invocation may include several smoother sweeps.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: penalty parameters</name>
+      <type>Array(double)</type>
+      <default>{12.,-.2,0,0,0} </default>
+      <description>Defines a polynomial coef[0] + coef[1]*i + coef[2]*i^2 + coef[3]*i^3 + coef[4]*i^4 that models the cost of having i nonzeros per row when  "unsupported vector smoothing" used.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: distance laplacian directional weights</name>
+      <type>Array(double)</type>
+      <default>{1,1,1}</default>
+      <description>Directional weights for the distance laplacian</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+
+    <parameter>
+      <name>aggregation: distance laplacian algo</name>
+      <type>string</type>
+      <default>"default"</default>
+      <description>Type of sub-algorithm for "distance laplacian" dropping. Possible values: "default", "unscaled cut", "scaled cut".</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: distance laplacian metric</name>
+      <type>string</type>
+      <default>unweighted</default>
+      <description>Metric used to compute the distance Laplacian. Possible values: "unweighted", "material"</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: classical algo</name>
+      <type>string</type>
+      <default>"default"</default>
+      <description>Type of sub-algorithm for "classical" dropping. Possible values: "default", "unscaled cut", "scaled cut".</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: drop tol</name>
+      <type>double</type>
+      <default>0.0</default>
+      <description>Connectivity dropping threshold for a graph used in aggregation.</description>
+      <name-ML>aggregation: threshold</name-ML>
+    </parameter>
+
+  <parameter>
+      <name>aggregation: use ml scaling of drop tol</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Enables ML-style scaling of drop tol, where the drop tol halves with each successive level.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+
+
+    <parameter>
+      <name>aggregation: min agg size</name>
+      <type>int</type>
+      <default>2</default>
+      <description>Minimum size of an aggregate.</description>
+      <visible>true</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: max agg size</name>
+      <type>int</type>
+      <default>-1</default>
+      <description>Maximum size of an aggregate (-1 means unlimited).</description>
+      <visible>true</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: compute aggregate qualities</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Whether to compute aggregate quality estimates.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+
+    <parameter>
+      <name>aggregation: brick x size</name>
+      <type>int</type>
+      <default>2</default>
+      <description>Number of points for x axis in "brick" aggregation (limited to 3).</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: brick y size</name>
+      <type>int</type>
+      <default>2</default>
+      <description>Number of points for y axis in "brick" aggregation (limited to 3).</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: brick z size</name>
+      <type>int</type>
+      <default>2</default>
+      <description>Number of points for z axis in "brick" aggregation (limited to 3).</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+   <parameter>
+      <name>aggregation: brick x Dirichlet</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Asserts that Dirichlet conditions are applied in
+        the x-direction and the Dirichlet DOFs are not aggregated.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+   <parameter>
+      <name>aggregation: brick y Dirichlet</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Asserts that Dirichlet conditions are applied in
+        the y-direction and the Dirichlet DOFs are not aggregated.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+   <parameter>
+      <name>aggregation: brick z Dirichlet</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Asserts that Dirichlet conditions are applied in
+        the z-direction and the Dirichlet DOFs are not aggregated.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: max selected neighbors</name>
+      <type>int</type>
+      <default>0</default>
+      <description>Maximum number of neighbor nodes that are already aggregated. If a new aggregate has some neighbors that are already aggregated, this node probably can be added to one of these aggregates. We don't need a new one.</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: Dirichlet threshold</name>
+      <type>double</type>
+      <default>0.0</default>
+      <description>Threshold for determining whether entries are zero during Dirichlet row detection.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: greedy Dirichlet</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Force the aggregate to be Dirichlet if any DOFs in the aggregate are Dirichlet (default is aggregates are Dirichlet only if all DOFs in the aggregate are Dirichlet).</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: deterministic</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Boolean indicating whether or not aggregation will be run deterministically in the kokkos refactored path (only used in uncoupled aggregation).</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: coloring algorithm</name>
+      <type>string</type>
+      <default>serial</default>
+      <description>Choice of distance 2 independent set or coloring algorithm used by Uncoupled Aggregation, when using kokkos refactored aggregation. See Table \ref{t:coloring_algs} for more information.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+
+    <parameter>
+      <name>aggregation: coloring: use color graph</name>
+      <type>bool</type>
+      <default>false</default>
+      <visible>false</visible>
+      <description>Have CoalesceDropFactory generate a seperate graph for SOC and for coloring</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+
+    <parameter>
+      <name>aggregation: coloring: localize color graph</name>
+      <type>bool</type>
+      <default>true</default>
+      <visible>false</visible>
+      <description>Localize the coloring graph generated by CoalesceDropFactory for SOC and for coloring</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+
+    <parameter>
+      <name>aggregation: enable phase 1</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>Turn on/off phase 1 of aggregation</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: enable phase 2a</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>Turn on/off phase 2a of aggregation</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: enable phase 2b</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>Turn on/off phase 2b of aggregation</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: enable phase 3</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>Turn on/off phase 3 of aggregation</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: match ML phase1</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Match ML's phase 1. In particular, setting this to true will ignore boundary neighbors in trying to pick root nodes.</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: match ML phase2a</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Match ML's phase 2a. In particular, setting this to true will include the root node into the tentative aggregates in phase 2a.</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: match ML phase2b</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Match ML's phase 2b.</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: phase2a agg factor</name>
+      <type>double</type>
+      <default>0.5</default>
+      <description>Agg factor for Phase 2a sizes</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: error on nodes with no on-rank neighbors</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Causes phase 3 aggregation to throw an error for
+      non-Dirichlet nodes that have no on-rank neighbors.  This only
+      works for Uncoupled Aggregation.</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: phase3 avoid singletons</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Causes phase 3 aggregation to try and group any
+      vertices that remain unaggregated with any other on-rank vertex
+      (even if it is not a neighbor) to define an aggregate.  This only
+      works for Uncoupled Aggregation.</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: allow empty prolongator columns</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Fix diagonal of coarse level operator A resulting from empty columns (rows) in the prolongation (restriction) operators caused by singleton aggregates and number of null space vectors larger than number of DOFs per node. This option might be helpful for elasticity problems with singleton aggregates.</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: preserve Dirichlet points</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Turn on/off Dirichlet points preservation</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+
+    <parameter>
+      <name>aggregation: dropping may create Dirichlet</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>If true, any matrix row has nonzero off-diagonal entries will be treated as Dirichlet if aggregation dropping leaves only the diagonal entry.</description>
+      <visible>true</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: allow user-specified singletons</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Allow special nodes to be marked for one-to-one transfer to the coarsest level. (default = off)</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: use interface aggregation</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Allow an application to prescribe root nodes to uncoupled aggregation</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: export visualization data</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Export data for visualization post-processing.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: output filename</name>
+      <type>string</type>
+      <default>""</default>
+      <description>Filename to write VTK visualization data to.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: output file: time step</name>
+      <type>int</type>
+      <default>0</default>
+      <description>Time step ID for non-linear problems.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: output file: iter</name>
+      <type>int</type>
+      <default>0</default>
+      <description>Iteration for non-linear problems.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: output file: agg style</name>
+      <type>string</type>
+      <default>Point Cloud</default>
+      <description>Style of aggregate visualization.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: output file: fine graph edges</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Whether to draw all fine node connections along with the aggregates.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: output file: coarse graph edges</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Whether to draw all coarse node connections along with the aggregates.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: output file: build colormap</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Whether to output a random colormap in a separate XML file.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: output file: aggregate qualities</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Whether to plot the aggregate quality.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: output file: material</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Whether to plot the material.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: params</name>
+      <type>\parameterlist</type>
+      <visible>false</visible>
+      <description>Sublist of options for use by aggregation.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>strength-of-connection: params</name>
+      <type>\parameterlist</type>
+      <visible>false</visible>
+      <description>Sublist of options for use by coalesce/drop.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: mesh layout</name>
+      <type>string</type>
+      <default>Global Lexicographic</default>
+      <description>Type of ordering for structured mesh aggregation. Possible values: "Global Lexicographic" and "Local Lexicographic".</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: output type</name>
+      <type>string</type>
+      <default>Aggregates</default>
+      <description>Type of object holding the aggregation data. Possible values: "Aggregates" or "CrsGraph".</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: coarsening rate</name>
+      <type>string</type>
+      <default>{3}</default>
+      <description>Coarsening rate per spatial dimensions, the string must be interpretable as an array by Teuchos.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: number of spatial dimensions</name>
+      <type>int</type>
+      <default>3</default>
+      <description>The number of spatial dimensions in the problem.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: coarsening order</name>
+      <type>int</type>
+      <default>0</default>
+      <description>The interpolation order used while constructing these aggregates, this value will be passed to the prolongator factory. There, possible values are 0 for piece-wise constant and 1 for piece-wise linear interpolation to transfer values from coarse points to fine points. </description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: pairwise: size</name>
+      <type>int</type>
+      <default>8</default>
+      <description>Target size for pairwise aggregation.  The number
+      of pairwise steps used will be log base-2 of this number.</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregation: pairwise: tie threshold</name>
+      <type>double</type>
+      <default>1e-6</default>
+      <description>Threshold for determining two potential pairwise
+      neighbors have identical values and then fall back on the
+      order.</description>
+      <visible>false</visible>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+
+  </aggregation>
+
+  <aggregate_qualities>
+
+    <parameter>
+      <name>aggregate qualities: check symmetry</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Whether to check symmetry and use nonsymmetric aggregate quality estimate if necessary.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregate qualities: good aggregate threshold</name>
+      <type>double</type>
+      <default>100.0</default>
+      <description>Maximum quality where aggregate is considered acceptable.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregate qualities: file output</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Whether to output files containing the aggregate qualities.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregate qualities: file base</name>
+      <type>string</type>
+      <default>agg_qualities</default>
+      <description>Base of filename for aggregate quality output.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregate qualities: algorithm</name>
+      <type>string</type>
+      <default>forward</default>
+      <description>Which aggregate qualtiy algorithm to use:
+      ``forward'' or ``reverse.''  The forward algorithm uses the
+      ``A'' matrix in the denominator of the generalized eigenvalue
+      problem.  The reverse algorithm uses it in the numerator.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregate qualities: zero threshold</name>
+      <type>double</type>
+      <default>1e-12</default>
+      <description>The zero threshold for the reverse algorithm.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregate qualities: percentiles</name>
+      <type>Array(double)</type>
+      <default>{}</default>
+      <description>Percentiles of aggregate qualities to report (in a [0,1] range).</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>aggregate qualities: mode</name>
+      <type>string</type>
+      <default>eigenvalue</default>
+      <description>Whether to compute eigenvalues (``eigenvalue''),
+      aggregates sizes (``size'') or
+      both (``both'').</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+
+
+  </aggregate_qualities>
+
+  <misc>
+
+    <parameter>
+      <name>export data</name>
+      <type>\parameterlist</type>
+      <description>Exporting a subset of the hierarchy data in a
+      file. Currently, the list can contain any of the following parameter
+      names (``A'', ``P'', ``R'', ``Nullspace'', ``Coordinates'', ``Aggregates'') of type \texttt{string}
+      and value ``\{levels separated by commas\}''. A
+      matrix/multivector with a name ``X'' is saved in two or three
+      three MatrixMarket files: a) data is saved in
+      \textit{X\_level.mm}; b) its row map is saved in
+      \textit{rowmap\_X\_level.mm}; c) its column map (for matrices) is saved in
+      \textit{colmap\_X\_level.mm}.</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>keep data</name>
+      <type>string</type>
+      <default>"{}"</default>
+      <description>Keep a subset of the hierarchy data after the
+      hierarchy is constructed.  This could be for disk I/O, or for
+      use in other preconditioners. Use comma-separated array in braces</description>
+      <visible>false</visible>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>print initial parameters</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>Print parameters provided for a hierarchy construction.</description>
+      <name-ML>ML print initial list</name-ML>
+      <type-ML>int</type-ML>
+      <default-ML>-2</default-ML>
+    </parameter>
+
+    <parameter>
+      <name>print unused parameters</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>Print parameters unused during a hierarchy construction.</description>
+      <name-ML>print unused</name-ML>
+      <type-ML>int</type-ML>
+      <default-ML>-2</default-ML>
+    </parameter>
+
+    <parameter>
+      <name>transpose: use implicit</name>
+      <type>bool</type>
+      <default>false</default>
+      <MHD>true</MHD>
+      <description>Use implicit transpose for the restriction operator.</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>transfers: half precision</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Replace transfer operators P and R (if explicitely constructed) with half precision versions for the solve phase..</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>nullspace: calculate rotations</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>When nullspace internally generated by muelu, calculate null space rotations in addition to translations.</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>nullspace: suppress dimension check</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Suppress safety check to ensure that nullspace dimension is at least equal or greater than the number of PDEs per mesh node.</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>restriction: scale nullspace</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Block-diagonally scale (based on number of PDEs) the nullspace for the restriction only.</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>use kokkos refactor</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Switch on the new \kokkos based version for on-node parallelism.</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>true</visible>
+    </parameter>
+
+    <parameter>
+      <name>synchronize factory timers</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Add barriers before and after Factory Build() calls.</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>rap: triple product</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Use all-at-once triple matrix product kernel</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>true</visible>
+    </parameter>
+
+  </misc>
+
+  <multigrid>
+
+    <parameter>
+      <name>multigrid algorithm</name>
+      <type>string</type>
+      <default>"sa"</default>
+      <Poisson-2D>"sa"</Poisson-2D>
+      <Poisson-3D>"sa"</Poisson-3D>
+      <Elasticity-2D>"sa"</Elasticity-2D>
+      <Elasticity-3D>"sa"</Elasticity-3D>
+      <Poisson-2D-complex>"sa"</Poisson-2D-complex>
+      <Poisson-3D-complex>"sa"</Poisson-3D-complex>
+      <Elasticity-2D-complex>"sa"</Elasticity-2D-complex>
+      <Elasticity-3D-complex>"sa"</Elasticity-3D-complex>
+      <MHD>"unsmoothed"</MHD>
+      <GMHD>"replicate"</GMHD>
+      <ConvectionDiffusion>"pg"</ConvectionDiffusion>
+      <description>Multigrid method. Possible values: see Table~\ref{t:mgs}.</description>
+      <name-ML>energy minimization: enable</name-ML>
+      <type-ML>int</type-ML>
+      <default-ML>0</default-ML>
+      <compatibility-ML>MLParameterListInterpreter, ML2MueLuParameterTranslator</compatibility-ML>
+      <description-ML>Enable energy minimization transfer operators (using Petrov-Galerkin approach).</description-ML>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>toggle: mode</name>
+      <type>string</type>
+      <default>semicoarsen</default>
+      <description>Toggling strategy for transfer operators (default=semicoarsen)</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>semicoarsen: coarsen rate</name>
+      <type>int</type>
+      <default>3</default>
+      <description>Rate at which to coarsen unknowns in the z direction.</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>true</visible>
+    </parameter>
+
+    <parameter>
+      <name>semicoarsen: piecewise constant</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>whether or not to use piecewise constant interpolation when semicoarsening.</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>true</visible>
+    </parameter>
+
+    <parameter>
+      <name>semicoarsen: piecewise linear</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>whether or not to use piecewise linear interpolation when semicoarsening.</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>true</visible>
+    </parameter>
+
+    <parameter>
+      <name>semicoarsen: calculate nonsym restriction</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>whether or not to also calculate a restriction operator when semicoarsening (intended for non-symmetric systems).</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>true</visible>
+    </parameter>
+
+    <parameter>
+      <name>semicoarsen: number of levels</name>
+      <type>int</type>
+      <default>0</default>
+      <description>Determines the maximum number of times that semicoarsening is applied.</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>linedetection: orientation</name>
+      <type>string</type>
+      <default>vertical</default>
+      <description>Line orientation: can be either 'vertical', 'horizontal' or 'coordinates'.</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>linedetection: num layers</name>
+      <type>int</type>
+      <default>-1</default>
+      <description>Line detection: number of layers on finest level. Alternatively, set the number of layers on the finest level as \"NumZLayers\" in the finest level container class.</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>sa: damping factor</name>
+      <type>double</type>
+      <default>1.33</default>
+      <description>Damping factor for smoothed aggregation.</description>
+      <name-ML>aggregation: damping factor</name-ML>
+      <default-ML>1.33</default-ML>
+      <compatibility-ML>MLParameterListInterpreter, ML2MueLuParameterTranslator</compatibility-ML>
+      <description-ML>Damping factor for smoothed aggregation.</description-ML>
+    </parameter>
+
+    <parameter>
+      <name>sa: use filtered matrix</name>
+      <type>bool</type>
+      <default>true</default>
+      <ConvectionDiffusion>true</ConvectionDiffusion>
+      <description>Matrix to use for smoothing the tentative prolongator. The two options are: to use the original matrix, and to use the filtered matrix with filtering based on filtered graph used for aggregation.</description>
+      <name-ML>aggregation aux: enable</name-ML>
+      <default-ML>false</default-ML>
+    </parameter>
+
+    <parameter>
+      <name>sa: calculate eigenvalue estimate</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Force calculation of eigenvalue estimate during prolongator smoothing.</description>
+      <visible>false</visible>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>sa: eigen-analysis type</name>
+      <type>string</type>
+      <default>power-method</default>
+      <description>Algorithm for eigen-analysis for SA.  Options: "power-method" (default) or "cg".</description>
+      <visible>false</visible>
+    </parameter>
+
+
+    <parameter>
+      <name>sa: eigenvalue estimate num iterations</name>
+      <type>int</type>
+      <default>10</default>
+      <description>Number of power iterations to use to estimate max eigenvalue. This has effect only if estimation occurs during prolongator smoothing.</description>
+      <visible>false</visible>
+      <name-ML>eigen-analysis: iterations</name-ML>
+    </parameter>
+
+    <parameter>
+      <name>sa: use rowsumabs diagonal scaling</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Use the row sums of the absolute values of the matrix as the diagonal wherever inverse(D) is required.</description>
+      <visible>false</visible>
+      <name-ML>not supported by ML</name-ML>
+    </parameter>
+
+    <parameter>
+      <name>sa: enforce constraints</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Insure that all interpolation entries are between 0 and 1 while trying to maintain the same rowsum as obtained by sa.
+Only used when tentative: calculate qr is set to false.</description>
+      <visible>false</visible>
+      <name-ML>not supported by ML</name-ML>
+    </parameter>
+
+    <parameter>
+      <name>sa: max eigenvalue</name>
+      <type>double</type>
+      <default>-1.0</default>
+      <description>If not -1, use this value for lambdaMax(Dinv A) in prolongator smoothing instead of calculating it.</description>
+      <visible>false</visible>
+      <name-ML>not supported by ML</name-ML>
+    </parameter>
+
+    <parameter>
+      <name>sa: rowsumabs diagonal replacement tolerance</name>
+      <type>double</type>
+      <default>-1.0</default>
+      <description>If not -1, use this value for deciding whether a diagonal value in prolongator smoothing is too small and should be replaced.</description>
+      <visible>false</visible>
+      <name-ML>not supported by ML</name-ML>
+    </parameter>
+
+    <parameter>
+      <name>sa: rowsumabs use automatic diagonal tolerance</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>If true, choose replacement tolerance based on matrix diagonal absolute value average.</description>
+      <visible>false</visible>
+      <name-ML>not supported by ML</name-ML>
+    </parameter>
+
+    <parameter>
+      <name>sa: rowsumabs diagonal replacement value</name>
+      <type>double</type>
+      <default>0.0</default>
+      <description>If it's determined that a diagonal entry in prolongator smoothing is too small, replace that entry with this value.</description>
+      <visible>false</visible>
+      <name-ML>not supported by ML</name-ML>
+    </parameter>
+
+    <parameter>
+      <name>sa: rowsumabs replace single entry row with zero</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>If a row has a single entry, set the inverse of the diagonal entry to be zero.</description>
+      <visible>false</visible>
+      <name-ML>not supported by ML</name-ML>
+    </parameter>
+
+    <parameter>
+      <name>replicate: npdes</name>
+      <type>int</type>
+      <default>1</default>
+      <description> Used with multigrid algorithm 'replicate' to transform scalar prolongator to one  for PDE systems with npdes dofs per node. </description>
+      <visible>false</visible>
+      <name-ML>not supported by ML</name-ML>
+    </parameter>
+
+    <parameter>
+      <name>combine: numBlks</name>
+      <type>int</type>
+      <default>1</default>
+      <description> Used with multigrid algorithm 'combine' to combine multiple sub-block prolongators into one  for PDE systems (numBlks x numBlks). </description>
+      <visible>false</visible>
+      <name-ML>not supported by ML</name-ML>
+    </parameter>
+
+    <parameter>
+      <name>combine: useMaxLevels</name>
+      <type>bool</type>
+      <default>false</default>
+      <description> Used with multigrid algorithm 'combine'. When 'true', use the maximum number of levels across all sub-block hierarchies. </description>
+      <visible>false</visible>
+      <name-ML>not supported by ML</name-ML>
+    </parameter>
+
+    <parameter>
+      <name>interp: build coarse coordinates</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>If false, skip the calculation of coarse coordinates.</description>
+      <visible>true</visible>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>transfer: params</name>
+      <type>\parameterlist</type>
+      <visible>false</visible>
+      <description>Sublist of options for use by transfer.</description>
+      <comment-ML>parameter not existing in ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>pcoarsen: element</name>
+      <type>string</type>
+      <default>""</default>
+      <description>Element class for IntrepidPCoarsening</description>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>pcoarsen: schedule</name>
+      <type>string</type>
+      <default>""</default>
+      <description>Coarsening schedule for IntrepidPCoarsening</description>
+      <visible>false</visible>
+    </parameter>
+    <parameter>
+      <name>pcoarsen: hi basis</name>
+      <type>string</type>
+      <default>""</default>
+      <description>Higher order basis for IntrepidPCoarsening</description>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>pcoarsen: lo basis</name>
+      <type>string</type>
+      <default>""</default>
+      <description>Lower order basis for IntrepidPCoarsening</description>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>smoother: neighborhood type</name>
+      <type>string</type>
+      <default>""</default>
+      <description>Valid options: node, edge, face, cell</description>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>filtered matrix: use lumping</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>Lump (add to diagonal) dropped entries during the construction of a filtered matrix. This allows user to preserve constant nullspace.</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>filtered matrix: lumping choice</name>
+      <type>string</type>
+      <default>"diag lumping"</default>
+      <description>Can be no lumping (no modification to kept entries), diag lumping (modify diagonal to maintain row sums), or distributed lumping (modify kept nonzeros in a fashion proportional to their magnitude to preserve row sums). </description>
+      <visible>false</visible>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>filtered matrix: use spread lumping</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Lump (but not necessarily to the diagonal, trying not to lose diagonal dominance more than the original matrix) dropped entries during the construction of a filtered matrix. This allows user to preserve constant nullspace. Only used when filtered matrix: use lumping is set to true. </description>
+      <visible>false</visible>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>filtered matrix: spread lumping diag dom growth factor</name>
+      <type>double</type>
+      <default>1.1</default>
+      <description>Determines how much a measure of diagonal dominance is allowed to grow when using spread lumping. Only used when filtered matrix: use lumping and filtered matrix: use spread lumping are both set to true. </description>
+      <visible>false</visible>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>filtered matrix: spread lumping diag dom cap</name>
+      <type>double</type>
+      <default>2.0</default>
+      <description>For matrix rows that are very diagonally dominant, we ignore the diag dom growth factor and instead use this simple cap as to how large the diagonal dominance measure should allowed to be after dropping. Only used when filtered matrix: use lumping and filtered matrix: use spread lumping are both set to true. </description>
+      <visible>false</visible>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>filtered matrix: use root stencil</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Use root-node based sparsification of the filtered
+      matrix. This usually reduces operator complexity in the case of small aggregates.</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>filtered matrix: Dirichlet threshold</name>
+      <type>double</type>
+      <default>-1.0</default>
+      <description>Dirichlet threshold to use for detecting zero
+      diagonals in the filtered matrix (which get replaced with a one).  Any negative number disables
+      the thresholding.</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>filtered matrix: reuse eigenvalue</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>Skip eigenvalue calculation during the construction of a filtered matrix by reusing eigenvalue estimate from the original matrix. This allows us to skip heavy computation, but may lead to poorer convergence.</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>filtered matrix: reuse graph</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>Set values to zero instead of constructing a new graph.</description>
+      <visible>false</visible>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>filtered matrix: count negative diagonals</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Counts the number of negative diagonals (involves MPI communication).</description>
+      <visible>false</visible>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+
+    <parameter>
+      <name>matrix: compute analysis</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Perform matrix analysis. Checks several matrix properties and prints statistics.</description>
+      <visible>false</visible>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>emin: iterative method</name>
+      <type>string</type>
+      <default>"cg"</default>
+      <description>Iterative method to use for energy minimization of initial prolongator in energy-minimization. Possible values: "cg" (conjugate gradient), "gmres" (generalized minimum residual), "sd" (steepest descent).</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>emin: num iterations</name>
+      <type>int</type>
+      <default>2</default>
+      <description>Number of iterations to minimize initial prolongator energy in energy-minimization.</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>emin: num reuse iterations</name>
+      <type>int</type>
+      <default>1</default>
+      <description>Number of iterations to minimize the reused prolongator energy in energy-minimization.</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>emin: pattern</name>
+      <type>string</type>
+      <default>"AkPtent"</default>
+      <description>Sparsity pattern to use for energy minimization. Possible values: "AkPtent".</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>emin: pattern order</name>
+      <type>int</type>
+      <default>1</default>
+      <description>Matrix order for the "AkPtent" pattern.</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>emin: use filtered matrix</name>
+      <type>bool</type>
+      <default>true</default>
+      <ConvectionDiffusion>true</ConvectionDiffusion>
+      <description>Matrix to use for smoothing for energy minimization. The two options are: to use the original matrix, and to use the filtered matrix with filtering based on filtered graph used for aggregation.</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>tentative: calculate qr</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>If false, skip local QR decomposition phase of smoothed aggregation.</description>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>tentative: constant column sums</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>If true, scale the column sums to one (before applying nullspace).</description>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>tentative: build coarse coordinates</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>If false, skip the calculation of coarse coordinates.</description>
+      <visible>false</visible>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+  </multigrid>
+
+  <rebalancing>
+
+    <parameter>
+      <name>repartition: enable</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Rebalancing on/off switch.</description>
+      <name-ML>repartition: enable</name-ML>
+      <type-ML>int</type-ML>
+      <default-ML>0</default-ML>
+      <compatibility-ML>MLParameterListInterpreter</compatibility-ML>
+      <description-ML>Rebalancing on/off switch. Only limited support for repartitioning. Does not use provided node coordinates.</description-ML>
+    </parameter>
+
+    <parameter>
+      <name>repartition: partitioner</name>
+      <type>string</type>
+      <default>"zoltan2"</default>
+      <description>Partitioning package to use. Possible values: "zoltan" (\zoltan{} library), "zoltan2" (\zoltantwo{} library).</description>
+      <default-ML>Zoltan</default-ML>
+      <comment-ML>needs special handling</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>repartition: params</name>
+      <type>\parameterlist</type>
+      <description>Partitioner parameters. \muelu passes them directly to the appropriate package library. In particular, this allows to choose a partitioning algorithm from \zoltan{} or \zoltan2{} or from external packages such as \parmetis{}.</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>repartition: start level</name>
+      <type>int</type>
+      <default>2</default>
+      <description>Minimum level to run partitioner. \muelu does not rebalance levels finer than this one.</description>
+      <name-ML>repartition: start level</name-ML>
+      <default-ML>1</default-ML>
+      <compatibility-ML>MLParameterListInterpreter</compatibility-ML>
+      <description-ML>Minimum level to run partitioner. \muelu does not rebalance levels finer than this one.</description-ML>
+    </parameter>
+
+    <parameter>
+      <name>repartition: use map</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Instead of using a matrix, use a map to determine rebalancing heuristics. Obviously, this cannot evaluate nonzero imbalance.</description>
+      <visible>false</visible>
+    </parameter>
+
+
+     <parameter>
+      <name>repartition: use subcommunicators in place</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Instead of repartitioning, we just removeEmptyProcessesInPlace, using a map to provide the new communicator.</description>
+      <visible>false</visible>
+    </parameter>
+
+
+    <parameter>
+      <name>repartition: node repartition level</name>
+      <type>int</type>
+      <default>-1</default>
+      <description>Level on which to run node-level repartitioning (negative means don't).</description>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>repartition: node id</name>
+      <type>int</type>
+      <default>-1</default>
+      <description>Id of the current node (only used for node-level repartitioning).</description>
+      <visible>false</visible>
+    </parameter>
+
+
+    <parameter>
+      <name>repartition: min rows per proc</name>
+      <type>int</type>
+      <default>800</default>
+      <description>Minimum number of rows per MPI process. If the actual number if smaller, then rebalancing occurs. The value is not used if "repartition: min rows per thread" is positive.</description>
+      <name-ML>repartition: min per proc</name-ML>
+      <default-ML>512</default-ML>
+      <compatibility-ML>MLParameterListInterpreter</compatibility-ML>
+      <description-ML>Minimum number of rows per MPI process. If the actual number if smaller, then rebalancing occurs.</description-ML>
+    </parameter>
+
+    <parameter>
+      <name>repartition: target rows per proc</name>
+      <type>int</type>
+      <!-- We want to be backwards compatible at the moment. If the value is
+           0, we set it to the value of `min rows per proc` in the code. -->
+      <default>0</default>
+      <description>Target number of rows per MPI process after rebalancing. If the value is set to 0, it will use the value of "repartition: min rows per proc"</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>repartition: min rows per thread</name>
+      <type>int</type>
+      <default>0</default>
+      <description>Minimum number of rows per thread. If the actual number if smaller, then rebalancing occurs. If the value is set to 0, no repartitioning based on thread count will occur.</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>repartition: target rows per thread</name>
+      <type>int</type>
+      <!-- We want to be backwards compatible at the moment. If the value is
+           0, we set it to the value of `min rows per thread` in the code. -->
+      <default>0</default>
+      <description>Target number of rows per thread after rebalancing. If the value is set to 0, it will use the value of "repartition: min rows per thread".</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>repartition: max imbalance</name>
+      <type>double</type>
+      <default>1.2</default>
+      <description>Maximum nonzero imbalance ratio. If the actual number is larger, the rebalancing occurs.</description>
+      <name-ML>repartition: max min ratio</name-ML>
+      <default-ML>1.3</default-ML>
+      <compatibility-ML>MLParameterListInterpreter</compatibility-ML>
+      <description-ML>Maximum nonzero imbalance ratio. If the actual number is larger, the rebalancing occurs.</description-ML>
+    </parameter>
+
+    <parameter>
+      <name>repartition: remap parts</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>Postprocessing for partitioning to reduce data migration.</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>repartition: remap num values</name>
+      <type>int</type>
+      <default>4</default>
+      <description>Number of maximum components from each processor used to construct partial bipartite graph.</description>
+      <visible>false</visible>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>repartition: remap accept partition</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>Whether the local rank should accept a partition.</description>
+      <visible>false</visible>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>repartition: print partition distribution</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Partition distribution printout.</description>
+      <visible>false</visible>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>repartition: rebalance P and R</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Explicit rebalancing of R and P during the setup. This speeds up the solve, but slows down the setup phases.</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>repartition: explicit via new copy rebalance P and R</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Fully explicit rebalancing of R and P during setup that makes new copy and invokes fill copy.  Slowest rebalancing option, but needed by combine mg algo.</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>repartition: rebalance Nullspace</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>Rebalancing of Nullspace during the setup.</description>
+      <visible>false</visible>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>repartition: use subcommunicators</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>Use subcommunicators on coarser levels.</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>repartition: save importer</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Mark Importer as 'Final' to keep it on the hierarchy after setup is complete.</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>repartition: put on single proc</name>
+      <type>int</type>
+      <default>0</default>
+      <description>Number of rows below which we always repartition to a single rank</description>
+      <name-ML>repartition: put on single proc</name-ML>
+      <default-ML>5000</default-ML>
+      <visible>false</visible>
+      <description-ML>Number of rows below which we always repartition to a single rank</description-ML>
+    </parameter>
+
+    <parameter>
+      <name>repartition: send type</name>
+      <type>string</type>
+      <visible>false</visible>
+      <default>""</default>
+      <description>Tpetra 'Send type' to use in repartitioning</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+  </rebalancing>
+
+  <rap>
+
+    <parameter>
+      <name>rap: relative diagonal floor</name>
+      <type>Array(double)</type>
+      <default>{}</default>
+      <description>Will boost diagonals on A matrices to the given floor.</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+
+    <parameter>
+      <name>rap: fix zero diagonals</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Set zero diagonals on coarse grids to one.</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>rap: fix zero diagonals threshold</name>
+      <type>double</type>
+      <default>0.</default>
+      <description>Threshold at which diagonal entry is considered zero.</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>rap: fix zero diagonals replacement</name>
+      <type>double</type>
+      <default>1.</default>
+      <description>Replacement value for diagonal entries that are considered zero.</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>rap: shift</name>
+      <type>double</type>
+      <default>0.0</default>
+      <description>Shift to use in the RAPShiftFactory</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>rap: shift diagonal M</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Shift for the RAPShiftFactory is stored as a
+      vector (representing the matrix diagonal)</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>rap: shift low storage</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Use the low-storage version of the rap: shift</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>rap: shift array</name>
+      <type>Array(double)</type>
+      <default>{}</default>
+      <description>Effective shift at each level to use in the RAPShiftFactory (the string must be interpretable as an array by Teuchos).</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>rap: cfl array</name>
+      <type>Array(double)</type>
+      <default>{}</default>
+      <description>Effective CFl at each level to use in the RAPShiftFactory (the string must be interpretable as an array by Teuchos).  </description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>rap: algorithm</name>
+      <type>string</type>
+      <default>galerkin</default>
+      <description>Whether to use the Galerkin RAP or the Shift version</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+  </rap>
+
+  <matrixmatrix>
+    <parameter>
+      <name>matrixmatrix: kernel params</name>
+      <type>\parameterlist</type>
+      <description>Controls the kernel algorithms for matrix-matrix operations</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+     <parameter>
+      <name>matrixmatrix: kernel params:MM_TAFC_OptimizationCoreCount </name>
+      <type>int</type>
+      <description>Core Count above which the
+optimized neighbor discovery is used for Importer construction, for some matrix
+multiplication operations.</description>
+      <default>3000 </default>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+    <parameter>
+      <name>isMatrixMatrix_TransferAndFillComplete </name>
+      <type>bool</type>
+      <description>Try to use the
+optimized neighbor discovery for Importer construction.</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <default>false</default>
+      <visible>false</visible>
+    </parameter>
+
+  </matrixmatrix>
+  <reuse>
+
+    <parameter>
+      <name>reuse: type</name>
+      <type>string</type>
+      <default>"none"</default>
+      <description>Reuse options for consecutive hierarchy construction. This speeds up the setup phase, but may lead to poorer convergence. Possible values: see Table~\ref{t:reuse_types}.</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+  </reuse>
+
+  <external>
+    <parameter>
+       <name>use external multigrid package</name>
+       <type>string</type>
+       <default>"none"</default>
+       <description>Option to utilize external multigrid package for computations, for example allows for use of AMGX</description>
+       <visible>false</visible>
+    </parameter>
+  </external>
+
+  <amgx>
+    <parameter>
+      <name>amgx:params</name>
+      <type>\parameterlist</type>
+      <description>Sublist for listing AMGX configuration parameters</description>
+      <visible>false</visible>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+  </amgx>
+
+  <tuning>
+    <parameter>
+      <name>kokkos tuning: muelu parameter mapping</name>
+      <type>\parameterlist</type>
+      <description>Sublist for Kokkos Tuning of MueLu Parameters</description>
+      <visible>false</visible>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+  </tuning>
+
+
+
+  <debug>
+
+    <parameter>
+      <name>debug: graph level</name>
+      <type>int</type>
+      <default>-2</default>
+      <description>Output dependency graph on level X (use -1 for all levels).</description>
+      <comment-ML>not supported by ML</comment-ML>
+      <visible>false</visible>
+    </parameter>
+
+  </debug>
+
+  <maxwell1>
+    <parameter>
+      <name>maxwell1: mode</name>
+      <type>string</type>
+      <default>"standard"</default>
+      <description>Specifying the order of solve of the block system. Allowed values are: "standard" (default), "refmaxwell"</description>
+      <comment-ML>not supported by ML</comment-ML>
+    </parameter>
+
+    <parameter>
+      <name>maxwell1: 11list</name>
+      <comment-ML>not supported by ML</comment-ML>
+      <type>\parameterlist</type>
+      <description>Specifies the multigrid solver for the 11 block</description>
+    </parameter>
+
+    <parameter>
+      <name>maxwell1: 22list</name>
+      <comment-ML>not supported by ML</comment-ML>
+      <type>\parameterlist</type>
+      <description>Specifies the multigrid solver for the 22 block</description>
+    </parameter>
+
+    <parameter>
+      <name>maxwell1: dump matrices</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Dump matrices to disk.</description>
+    </parameter>
+
+    <parameter>
+      <name>maxwell1: nodal smoother fix zero diagonal threshold</name>
+      <comment-ML>Hardwired to 1e-10 in ML</comment-ML>
+      <type>double</type>
+      <default>1e-10</default>
+      <description>Specifies the fix zero diagonals threshold to be used for the nodal smoothing matrices.</description>
+    </parameter>
+
+  </maxwell1>
+
+  <refmaxwell>
+    <parameter>
+      <name>refmaxwell: mode</name>
+      <type>string</type>
+      <default>"additive"</default>
+      <description>Specifying the order of solve of the block system. Allowed values are: "additive" (default), "121", "212", "1", "2"</description>
+      <name-ML>refmaxwell: mode</name-ML>
+      <type-ML>int</type-ML>
+      <default-ML>"additive"</default-ML>
+      <compatibility-ML>MLParameterListInterpreter, ML2MueLuParameterTranslator</compatibility-ML>
+      <description-ML>Specifying the order of solve of the block system. Allowed values are: "additive" (default), "121", "212"</description-ML>
+    </parameter>
+
+    <parameter>
+      <name>refmaxwell: disable addon</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>Specifing whether the addon should be built for stabilization</description>
+      <name-ML>refmaxwell: disable addon</name-ML>
+      <type-ML>bool</type-ML>
+      <default-ML>true</default-ML>
+      <compatibility-ML>MLParameterListInterpreter, ML2MueLuParameterTranslator</compatibility-ML>
+      <description-ML>Specifing whether the addon should be built for stabilization</description-ML>
+    </parameter>
+
+    <parameter>
+      <name>refmaxwell: 11list</name>
+      <comment-ML>not supported by ML</comment-ML>
+      <type>\parameterlist</type>
+      <description>Specifies the multigrid solver for the 11 block</description>
+    </parameter>
+
+    <parameter>
+      <name>refmaxwell: 22list</name>
+      <comment-ML>not supported by ML</comment-ML>
+      <type>\parameterlist</type>
+      <description>Specifies the multigrid solver for the 22 block</description>
+    </parameter>
+
+    <parameter>
+      <name>refmaxwell: use as preconditioner</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Assume zero initial guess</description>
+      <name-ML>zero starting solution</name-ML>
+      <type-ML>bool</type-ML>
+      <default-ML>false</default-ML>
+      <compatibility-ML>MLParameterListInterpreter, ML2MueLuParameterTranslator</compatibility-ML>
+      <description-ML>Assume zero initial guess</description-ML>
+    </parameter>
+
+    <parameter>
+      <name>refmaxwell: dump matrices</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Dump matrices to disk.</description>
+    </parameter>
+
+    <parameter>
+      <name>refmaxwell: subsolves on subcommunicators</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Redistribute the two subsolves to disjoint sub-communicators (so that the additive solve can occur in parallel).</description>
+    </parameter>
+
+    <parameter>
+      <name>refmaxwell: enable reuse</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Prepare for solver reuse.</description>
+    </parameter>
+
+    <parameter>
+      <name>refmaxwell: skip first (1,1) level</name>
+      <type>bool</type>
+      <default>true</default>
+      <description>Skip the first level of the (1,1) hierarchy.</description>
+      <visible>false</visible>
+    </parameter>
+
+    <parameter>
+      <name>refmaxwell: normalize nullspace</name>
+      <type>bool</type>
+      <default>false</default>
+      <description>Normalize the nullspace.</description>
+      <visible>false</visible>
+    </parameter>
+
+  </refmaxwell>
+
+
+
+</masterlist>

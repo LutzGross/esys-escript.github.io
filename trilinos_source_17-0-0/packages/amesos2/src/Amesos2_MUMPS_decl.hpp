@@ -1,0 +1,344 @@
+// @HEADER
+// *****************************************************************************
+//           Amesos2: Templated Direct Sparse Solver Package
+//
+// Copyright 2011 NTESS and the Amesos2 contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
+// @HEADER
+
+/**
+  \file   Amesos2_MUMPS_decl.hpp
+  \author Joshua Dennis Booth <jdbooth@sandia.gov>
+
+  \brief  Amesos2 MUMPS declarations.
+*/
+
+
+#ifndef AMESOS2_MUMPS_DECL_HPP
+#define AMESOS2_MUMPS_DECL_HPP
+
+#include "Amesos2_SolverTraits.hpp"
+#include "Amesos2_SolverCore.hpp"
+#include "Amesos2_MUMPS_FunctionMap.hpp"
+
+
+namespace Amesos2 {
+
+
+/** \brief Amesos2 interface to the MUMPS package.
+ *
+ * See the \ref MUMPS_parameters "summary of MUMPS parameters"
+ * supported by this MUMPS interface.
+ *
+ * Currently, special care is needed to build Trilinos with MUMPS
+ * This is due to how Tribits deals with scalapack/blacs (outdated)
+ * Therefore, the linking of blacs and scalapack needs to be done in the Trilinos_EXTRA_LINK_FILES CMake directive, e.g.,
+ * -DTrilinos_EXTRA_LINK_FLAGS="-I/local/openmpi/mpif.h -lmpi -lmpiblacs -L/local/scalapack -lblas -llapack -lscalapack"
+ * Additionally, ETI is best if ON, since MUMPS has limited supported types
+ *
+ *
+ *
+ * Serial MUMPS
+ * Note: serial mumps is supported. 
+ * However, one must link provided seqlib mpi that comes with mumps
+ * -DTrilinos_EXTRA_LIN_FLAGS="-I/../libseq -L/.../libseq -lmpiseq
+ *
+ * \ingroup amesos2_solver_interfaces
+ */
+template <class Matrix,class Vector>
+class MUMPS : public SolverCore<Amesos2::MUMPS, Matrix, Vector>
+{
+  friend class SolverCore<Amesos2::MUMPS,Matrix,Vector>; // Give our base access
+                                                          // to our private
+                                                          // implementation funcs
+public:
+
+  /// Name of this solver interface.
+  static const char* name;      // declaration. Initialization outside.
+
+  typedef MUMPS<Matrix,Vector>                                       type;
+  typedef SolverCore<Amesos2::MUMPS,Matrix,Vector>             super_type;
+
+  // Since typedef's are not inheritted, go grab them
+  typedef typename super_type::scalar_type                      scalar_type;
+  typedef typename super_type::local_ordinal_type        local_ordinal_type;
+  typedef typename super_type::global_ordinal_type      global_ordinal_type;
+  typedef typename super_type::global_size_type            global_size_type;
+
+  typedef TypeMap<Amesos2::MUMPS,scalar_type>                      type_map;
+
+  typedef typename type_map::type                                mumps_type;
+  typedef typename type_map::magnitude_type                  magnitude_type;
+  typedef typename type_map::MUMPS_STRUC_C                    MUMPS_STRUC_C;
+
+  typedef Kokkos::DefaultHostExecutionSpace                     HostExecSpaceType;
+  typedef typename HostExecSpaceType::memory_space              HostMemSpaceType;
+
+  typedef Kokkos::View<local_ordinal_type*, HostExecSpaceType>  host_ordinal_type_view;
+  typedef Kokkos::View<mumps_type*, HostExecSpaceType>          host_value_type_view;
+
+  MUMPS(Teuchos::RCP<const Matrix> A,
+          Teuchos::RCP<Vector>       X,
+          Teuchos::RCP<const Vector> B);
+   ~MUMPS( );
+
+
+private:
+
+  /**
+   * \brief Performs pre-ordering on the matrix to increase efficiency.
+   *
+   *   Come back to add support to Amesos for preordering
+ */
+  int preOrdering_impl();
+
+
+  int symbolicFactorization_impl();
+
+
+  /**
+   * \brief MUMPS specific numeric factorization
+   *
+   * \throw std::runtime_error MUMPS is not able to factor the matrix
+   */
+  int numericFactorization_impl();
+
+
+  /**
+   * \brief MUMPS specific solve.
+   *
+   * Uses the symbolic and numeric factorizations, along with the RHS
+   * vector \c B to solve the sparse system of equations.  The
+   * solution is placed in X.
+   *
+   * \throw std::runtime_error MUMPS is not able to solve the system.
+   *
+   * \callgraph
+   */
+  int solve_impl(const Teuchos::Ptr<MultiVecAdapter<Vector> >       X,
+                 const Teuchos::Ptr<const MultiVecAdapter<Vector> > B) const;
+
+
+  /**
+   * \brief Determines whether the shape of the matrix is OK for this solver.
+   */
+  bool matrixShapeOK_impl() const;
+
+  /**
+   *Currently, the following MUMPS parameters/options are recognized and acted upon:
+   *Please see MUMPS manual for details as parameters changed based on MUMPS version
+   *<ul>
+   *   <li> \c "ICNTL(1)": Output stream for error messages (default: -1, off).</li>
+   *   <li> \c "ICNTL(2)": Output stream for diagnostic printing and statistics local to each MPI process (default: off, -1).</li>
+   *   <li> \c "ICNTL(3)": Output stream for global information, collected on the host (default: -1, off).</li>
+   *   <li> \c "ICNTL(4)": Level of printing for error, warning, and diagnostic messages (default: 1).
+   *                       <=0 : No messages output.
+   *                         1 : Only error messages printed.
+   *                         2 : Errors, warnings, and main statistics printed.
+   *                         3 : Errors and warnings and terse diagnostics (only first ten entries of arrays) printed.
+   *                       >=4 : Errors, warnings and information on input, output paramete
+   *   </li>
+   *   <li> \c "ICNTL(6)": Permutes the matrix to a zero-free diagonal and/or scale the matrix (default: 7, automatic)</li>
+   *   <li> \c "ICNTL(9)": Computes the solution using transpose if not 1 (default: 1, non-transpose solve)</li>
+   *   <li> \c "ICNTL(11)": Computes statistics related to an error analysis of the linear system solved (default: 0, no analysis)</li>
+   *</ul>
+   *
+   */
+
+  void setParameters_impl(
+    const Teuchos::RCP<Teuchos::ParameterList> & parameterList );
+
+
+  /**
+   * Hooked in by Amesos2::SolverCore parent class.
+   *
+   * \return a const Teuchos::ParameterList of all valid parameters for this
+   * solver.
+   */
+  Teuchos::RCP<const Teuchos::ParameterList> getValidParameters_impl() const;
+
+
+  /**
+   * \brief Reads matrix data into internal structures
+   *
+   * \param [in] current_phase an indication of which solution phase this
+   *                           load is being performed for.
+   *
+   * \return \c true if the matrix was loaded, \c false if not
+   */
+  bool loadA_impl(EPhase current_phase);
+
+
+  int ConvertToTriplet();
+
+  void MUMPS_ERROR() const;
+
+#ifdef HAVE_MPI
+  MPI_Comm MUMPSComm;
+#endif
+
+
+  bool MUMPS_MATRIX_LOAD;
+  bool MUMPS_STRUCT;
+  mutable bool MUMPS_MATRIX_LOAD_PREORDERING;
+
+  // The following Arrays are persisting storage arrays for A, X, and B
+  /// Stores the values of the nonzero entries for MUMPS
+  host_value_type_view host_nzvals_view_;
+  /// Stores the location in \c Ai_ and Aval_ that starts row j
+  host_ordinal_type_view host_rows_view_;
+  /// Stores the row indices of the nonzero entries
+  host_ordinal_type_view host_col_ptr_view_;
+
+  /// Persisting 1D store for X
+  mutable Teuchos::Array<mumps_type> xvals_;  local_ordinal_type ldx_;
+  /// Persisting 1D store for B
+  mutable Teuchos::Array<mumps_type> bvals_;  local_ordinal_type ldb_;
+
+  mutable MUMPS_STRUC_C mumps_par;
+
+  bool is_contiguous_;
+
+};                              // End class MUMPS
+
+
+template <class Matrix,class Vector>
+class MUMPSNS : public SolverCore<Amesos2::MUMPS, Matrix, Vector>
+{
+  friend class SolverCore<Amesos2::MUMPS,Matrix,Vector>; // Give our base access
+                                                          // to our private
+                                                          // implementation funcs
+public:
+
+
+  MUMPSNS(Teuchos::RCP<const Matrix> A,
+          Teuchos::RCP<Vector>       X,
+                     Teuchos::RCP<const Vector> B);
+  /*
+  {
+    TEUCHOS_TEST_FOR_EXCEPTION(true, std::logic_error,
+                               "This solver is not support for these types.");
+
+  }
+
+  */
+   ~MUMPSNS( )
+  {}
+
+
+private:
+
+  int preOrdering_impl()
+  {
+      
+    TEUCHOS_TEST_FOR_EXCEPTION(true, std::logic_error,
+                               "This solver is not support for these types.");
+
+  }
+
+  int symbolicFactorization_impl()
+  {
+
+    TEUCHOS_TEST_FOR_EXCEPTION(true, std::logic_error,
+                               "This solver is not support for these types.");
+
+  }
+
+  int numericFactorization_impl()
+ {
+
+    TEUCHOS_TEST_FOR_EXCEPTION(true, std::logic_error,
+                               "This solver is not support for these types.");
+
+  }
+
+  int solve_impl(const Teuchos::Ptr<MultiVecAdapter<Vector> >       X,
+                 const Teuchos::Ptr<const MultiVecAdapter<Vector> > B) const
+ {
+
+    TEUCHOS_TEST_FOR_EXCEPTION(true, std::logic_error,
+                               "This solver is not support for these types.");
+
+  }
+
+  bool matrixShapeOK_impl() const
+ {
+
+    TEUCHOS_TEST_FOR_EXCEPTION(true, std::logic_error,
+                               "This solver is not support for these types.");
+
+  }
+
+  void setParameters_impl(
+    const Teuchos::RCP<Teuchos::ParameterList> & parameterList )
+ {
+
+    TEUCHOS_TEST_FOR_EXCEPTION(true, std::logic_error,
+                               "This solver is not support for these types.");
+
+  }
+
+  Teuchos::RCP<const Teuchos::ParameterList> getValidParameters_impl() const
+ {
+
+    TEUCHOS_TEST_FOR_EXCEPTION(true, std::logic_error,
+                               "This solver is not support for these types.");
+
+  }
+
+
+  bool loadA_impl(EPhase current_phase)
+ {
+
+    TEUCHOS_TEST_FOR_EXCEPTION(true, std::logic_error,
+                               "This solver is not support for these types.");
+
+  }
+
+
+  int ConvertToTriplet()
+ {
+
+    TEUCHOS_TEST_FOR_EXCEPTION(true, std::logic_error,
+                               "This solver is not support for these types.");
+
+  }
+
+
+  void MUMPS_ERROR() const
+ {
+
+    TEUCHOS_TEST_FOR_EXCEPTION(true, std::logic_error,
+                               "This solver is not support for these types.");
+
+  }
+
+
+#ifdef HAVE_MPI
+  MPI_Comm MUMPSComm;
+#endif
+
+    bool is_contiguous_;
+
+};
+
+
+
+// Specialize solver_traits struct for MUMPS
+// TODO
+template <>
+struct solver_traits<MUMPS> {
+#ifdef HAVE_TEUCHOS_COMPLEX
+  typedef Meta::make_list4<float,
+                           double,
+                           std::complex<float>,
+                           std::complex<double> > supported_scalars;
+#else
+  typedef Meta::make_list2<float, double> supported_scalars;
+#endif
+};
+
+} // end namespace Amesos2
+
+#endif  // AMESOS2_MUMPS_DECL_HPP

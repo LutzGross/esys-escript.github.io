@@ -1,0 +1,13 @@
+/*!
+
+\defgroup Piro_solver_grp Piro solvers
+
+\defgroup Piro_driver_grp Piro drivers
+
+\defgroup Piro_solve_driver_grp Piro solve drivers
+\ingroup Piro_driver_grp
+
+\defgroup Piro_analysis_driver_grp Piro analysis drivers
+\ingroup Piro_driver_grp
+
+*/

@@ -1,0 +1,23 @@
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
+
+#ifndef KOKKOSKERNELS_VERSION_INFO_HPP
+#define KOKKOSKERNELS_VERSION_INFO_HPP
+
+#include <string_view>
+
+namespace KokkosKernels {
+namespace Impl {
+
+constexpr std::string_view GIT_BRANCH       = R"branch(@GIT_BRANCH@)branch";
+constexpr std::string_view GIT_COMMIT_HASH  = "@GIT_COMMIT_HASH@";
+constexpr std::string_view GIT_CLEAN_STATUS = "@GIT_CLEAN_STATUS@";
+constexpr std::string_view GIT_COMMIT_DESCRIPTION =
+    R"message(@GIT_COMMIT_DESCRIPTION@)message";
+constexpr std::string_view GIT_COMMIT_DATE   = "@GIT_COMMIT_DATE@";
+constexpr std::string_view BENCHMARK_VERSION = "@BENCHMARK_VERSION@";
+
+}  // namespace Impl
+}  // namespace KokkosKernels
+
+#endif  // KOKKOSKERNELS_VERSION_INFO_HPP

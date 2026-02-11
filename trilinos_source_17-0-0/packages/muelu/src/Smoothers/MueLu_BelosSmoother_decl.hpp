@@ -1,0 +1,157 @@
+// @HEADER
+// *****************************************************************************
+//        MueLu: A package for multigrid based preconditioning
+//
+// Copyright 2012 NTESS and the MueLu contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
+// @HEADER
+
+#ifndef MUELU_BELOSSMOOTHER_DECL_HPP
+#define MUELU_BELOSSMOOTHER_DECL_HPP
+
+#include <Teuchos_ParameterList.hpp>
+
+#include <Xpetra_Matrix_fwd.hpp>
+#include <Xpetra_MultiVectorFactory_fwd.hpp>
+
+#include "MueLu_ConfigDefs.hpp"
+
+#if defined(HAVE_MUELU_BELOS)
+
+#include "MueLu_BelosSmoother_fwd.hpp"
+
+#include "BelosTpetraAdapter.hpp"
+#include <Tpetra_Operator.hpp>
+#include <Tpetra_MultiVector.hpp>
+
+#include "MueLu_Level_fwd.hpp"
+#include "MueLu_SmootherPrototype.hpp"
+#include "MueLu_Utilities_fwd.hpp"
+
+#include <BelosSolverManager.hpp>
+
+namespace MueLu {
+
+/*!
+  @class BelosSmoother
+  @ingroup MueLuSmootherClasses
+  @brief Class that encapsulates Belos smoothers.
+
+  This class creates an Belos preconditioner factory. The factory creates a smoother based
+  on the type and ParameterList passed into the constructor. See the constructor for more
+  information.
+  */
+
+template <class Scalar        = SmootherPrototype<>::scalar_type,
+          class LocalOrdinal  = typename SmootherPrototype<Scalar>::local_ordinal_type,
+          class GlobalOrdinal = typename SmootherPrototype<Scalar, LocalOrdinal>::global_ordinal_type,
+          class Node          = typename SmootherPrototype<Scalar, LocalOrdinal, GlobalOrdinal>::node_type>
+class BelosSmoother : public SmootherPrototype<Scalar, LocalOrdinal, GlobalOrdinal, Node> {
+#undef MUELU_BELOSSMOOTHER_SHORT
+#include "MueLu_UseShortNames.hpp"
+
+ public:
+  //! @name Constructors / destructors
+  //@{
+  // TODO: update doc for Belos.
+  /*! @brief Constructor
+
+  The options passed into BelosSmoother are those given in the Belos user's manual.
+
+  @param type smoother type
+  @param list options for the particular smoother (e.g., fill factor or damping parameter)
+
+  */
+
+#ifndef _MSC_VER
+  // Avoid error C3772: invalid friend template declaration
+  template <class Scalar2, class LocalOrdinal2, class GlobalOrdinal2, class Node2>
+  friend class BelosSmoother;
+#endif
+
+  BelosSmoother(const std::string type, const Teuchos::ParameterList& paramList = Teuchos::ParameterList());
+
+  //! Destructor
+  virtual ~BelosSmoother() = default;
+
+  //@}
+
+  void SetParameterList(const Teuchos::ParameterList& paramList);
+
+  //! Input
+  //@{
+
+  void DeclareInput(Level& currentLevel) const;
+
+  //@}
+
+  //! @name Computational methods.
+  //@{
+
+  /*! @brief Set up the smoother.
+
+  This creates the underlying Belos smoother object, copies any parameter list options
+  supplied to the constructor to the Belos object, and computes the preconditioner.
+  */
+  void Setup(Level& currentLevel);
+
+  /*! @brief Apply the preconditioner.
+
+  Solves the linear system <tt>AX=B</tt> using the constructed smoother.
+
+  @param X initial guess
+  @param B right-hand side
+  @param InitialGuessIsZero (optional) If false, some work can be avoided. Whether this actually saves any work depends on the underlying Belos implementation.
+  */
+  void Apply(MultiVector& X, const MultiVector& B, bool InitialGuessIsZero = false) const;
+
+  //@}
+
+  //! @name Utilities
+  //@{
+
+  RCP<SmootherPrototype> Copy() const;
+
+  //@}
+
+  //! @name Overridden from Teuchos::Describable
+  //@{
+
+  //! Return a simple one-line description of this object.
+  std::string description() const;
+
+  //! Print the object with some verbosity level to an FancyOStream object.
+  // using MueLu::Describable::describe; // overloading, not hiding
+  // void describe(Teuchos::FancyOStream &out, const VerbLevel verbLevel = Default) const
+  void print(Teuchos::FancyOStream& out, const VerbLevel verbLevel = Default) const;
+
+  //@}
+
+  //! For diagnostic purposes
+  // RCP<Ifpack2::Preconditioner<Scalar,LocalOrdinal,GlobalOrdinal,Node> > getPreconditioner(){return prec_;}
+
+  //! Get a rough estimate of cost per iteration
+  size_t getNodeSmootherComplexity() const;
+
+ private:
+  void SetupBelos(Level& currentLevel);
+
+ private:
+  std::string type_;
+
+  typedef Tpetra::MultiVector<SC, LO, GO, NO> tMV;
+  typedef Tpetra::Operator<SC, LO, GO, NO> tOP;
+  RCP<Belos::LinearProblem<Scalar, tMV, tOP> > tBelosProblem_;
+  RCP<Belos::SolverManager<Scalar, tMV, tOP> > tSolver_;
+
+  //! matrix, used in apply if solving residual equation
+  RCP<Matrix> A_;
+
+};  // class BelosSmoother
+
+}  // namespace MueLu
+
+#define MUELU_BELOSSMOOTHER_SHORT
+#endif  // HAVE_MUELU_BELOS
+#endif  // MUELU_BELOSSMOOTHER_DECL_HPP

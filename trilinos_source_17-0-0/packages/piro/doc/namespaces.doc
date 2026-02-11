@@ -1,0 +1,5 @@
+/*! \namespace Piro
+ *  \brief Main namespace of the %Piro package.
+ *
+ *  All Thyra-based definitions are directly located in the Piro namespace.
+ */

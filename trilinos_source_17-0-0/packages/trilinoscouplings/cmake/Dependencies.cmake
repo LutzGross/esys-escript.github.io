@@ -1,0 +1,8 @@
+SET(LIB_REQUIRED_DEP_PACKAGES)
+SET(LIB_OPTIONAL_DEP_PACKAGES Belos MueLu NOX Stokhos Tpetra Zoltan Zoltan2Core)
+SET(TEST_REQUIRED_DEP_PACKAGES)
+SET(TEST_OPTIONAL_DEP_PACKAGES Amesos2 AvatarT Ifpack2 Intrepid2 Kokkos KokkosKernels MueLu MueLu Pamgen SEACASExodus SEACASNemesis Sacado STKIO STKMesh Stokhos Stratimikos Teko TeuchosKokkosComm TeuchosKokkosCompat Tpetra Zoltan Zoltan2Core)
+SET(LIB_REQUIRED_DEP_TPLS)
+SET(LIB_OPTIONAL_DEP_TPLS)
+SET(TEST_REQUIRED_DEP_TPLS)
+SET(TEST_OPTIONAL_DEP_TPLS Avatar TASMANIAN)

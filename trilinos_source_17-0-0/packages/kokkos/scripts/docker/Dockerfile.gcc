@@ -1,0 +1,30 @@
+FROM ubuntu:24.04@sha256:7c06e91f61fa88c08cc74f7e1b7c69ae24910d745357e0dfe1d2c0322aaf20f9
+
+ARG ADDITIONAL_PACKAGES
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get upgrade -y && apt-get install -y \
+    build-essential \
+    wget \
+    git \
+    bc \
+    cmake \
+    ${ADDITIONAL_PACKAGES} \
+    && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN echo "deb http://dk.archive.ubuntu.com/ubuntu/ noble main" >> /etc/apt/sources.list && \
+    echo "deb http://dk.archive.ubuntu.com/ubuntu/ noble universe" >> /etc/apt/sources.list && \
+    apt-get update && apt-get install -y g++-10 && \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 10 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 10 && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+
+RUN KEYDUMP_URL=https://cloud1.cees.ornl.gov/download && \
+    KEYDUMP_FILE=keydump && \
+    wget --quiet ${KEYDUMP_URL}/${KEYDUMP_FILE} && \
+    wget --quiet ${KEYDUMP_URL}/${KEYDUMP_FILE}.sig && \
+    gpg --import ${KEYDUMP_FILE} && \
+    gpg --verify ${KEYDUMP_FILE}.sig ${KEYDUMP_FILE} && \
+    rm ${KEYDUMP_FILE}*

@@ -1,0 +1,21 @@
+#ifndef XPETRA_CONFIG_HPP
+#define XPETRA_CONFIG_HPP
+
+#cmakedefine HAVE_XPETRA_DEBUG
+
+/* Define whether Xpetra enables deprecated code at compile time. */
+#cmakedefine XPETRA_ENABLE_DEPRECATED_CODE
+
+#cmakedefine HAVE_XPETRA_EXPERIMENTAL
+
+#cmakedefine HAVE_XPETRA_EXPLICIT_INSTANTIATION
+
+#cmakedefine HAVE_XPETRA_PROFILING
+
+#cmakedefine HAVE_XPETRA_THYRA
+
+@XPETRA_DEPRECATED_DECLARATIONS@
+
+#cmakedefine Xpetra_SHOW_DEPRECATED_WARNINGS
+
+#endif // XPETRA_CONFIG_HPP

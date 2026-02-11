@@ -1,0 +1,26 @@
+// @HEADER
+// *****************************************************************************
+//             Xpetra: A linear algebra interface package
+//
+// Copyright 2012 NTESS and the Xpetra contributors.
+// SPDX-License-Identifier: BSD-3-Clause
+// *****************************************************************************
+// @HEADER
+
+// TAW 1/22/16: this is the template file for CMake style ETI
+
+#include "Xpetra_ConfigDefs.hpp"
+
+@CONDITION_NAME@
+
+#ifdef HAVE_XPETRA_EXPLICIT_INSTANTIATION
+
+#include "@CLASS_FILE_NAME@_def.hpp"
+
+// We need to define these typedefs as it is not possible to properly expand
+// macros with colons in them
+template class @CLASS_NAME@<@SC@,@LO@,@GO@,@NT@>;
+
+@CONDITION_NAME_END@ // @CONDITION_NAME@
+
+#endif // HAVE_XPETRA_EXPLICIT_INSTANTIATION
