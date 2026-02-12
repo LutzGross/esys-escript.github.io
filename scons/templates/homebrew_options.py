@@ -18,9 +18,13 @@
 # Prerequisites:
 #   brew install python3 scons cmake llvm
 #   brew install boost boost-python3
-#   brew install hdf5 suite-sparse netcdf netcdf-cxx4
+#   brew install hdf5 suite-sparse netcdf netcdf-cxx4 zlib metis
 #   brew install open-mpi mpi4py
-#   pip3 install numpy scipy sympy matplotlib
+#   brew install numpy scipy python-matplotlib
+#
+# Optional (sympy not available in Homebrew):
+#   For symbolic math support, install sympy in a virtual environment:
+#   python3 -m venv ~/venv && source ~/venv/bin/activate && pip install sympy
 #
 # For LLVM compiler support (recommended for OpenMP):
 #   echo 'export PATH="/opt/homebrew/opt/llvm/bin:$PATH"' >> ~/.zshrc
@@ -151,7 +155,8 @@ parmetis = False
 ld_extra = ["-L/opt/homebrew/opt/llvm/lib", "-L/opt/homebrew/opt/llvm/lib/c++", "-lz", "-Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++"]
 
 # Optional features
-sympy = True
+# sympy not available in Homebrew - requires virtual environment installation
+sympy = False
 
 # Clean up temporary variables
 del HOMEBREW_PREFIX, p, subversion, revversion, t
