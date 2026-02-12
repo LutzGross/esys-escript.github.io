@@ -28,7 +28,9 @@ Test suite for nonlinearPDEs class
 
 __author__="Jaco du Plessis"
 
-from esys.escript import NonlinearPDE, whereZero, grad, sin, cos, symmetric, matrixmult, FunctionOnBoundary, HAVE_SYMBOLS, Symbol
+from esys.escript import NonlinearPDE, whereZero, grad, sin, cos, symmetric, matrixmult, FunctionOnBoundary, HAVE_SYMBOLS
+if HAVE_SYMBOLS:
+    from esys.escript import Symbol
 import numpy
 import esys.escriptcore.utestselect as unittest
 from esys.escript.linearPDEs import IllegalCoefficient,IllegalCoefficientValue
