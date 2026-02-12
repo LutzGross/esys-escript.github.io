@@ -25,14 +25,24 @@ PARMETIS_LIB=${11}
 METIS_OPTS="-D TPL_ENABLE_METIS=${METIS_ENABLE}"
 if [ "${METIS_ENABLE}" = "ON" ] && [ -n "${METIS_INC}" ]; then
     METIS_OPTS="${METIS_OPTS} -D TPL_METIS_INCLUDE_DIRS=${METIS_INC}"
-    METIS_OPTS="${METIS_OPTS} -D TPL_METIS_LIBRARIES=${METIS_LIB}/libmetis.so"
+    # Use .dylib on macOS, .so on Linux
+    if [ "$(uname -s)" = "Darwin" ]; then
+        METIS_OPTS="${METIS_OPTS} -D TPL_METIS_LIBRARIES=${METIS_LIB}/libmetis.dylib"
+    else
+        METIS_OPTS="${METIS_OPTS} -D TPL_METIS_LIBRARIES=${METIS_LIB}/libmetis.so"
+    fi
 fi
 
 # Build ParMETIS cmake options
 PARMETIS_OPTS="-D TPL_ENABLE_ParMETIS=${PARMETIS_ENABLE}"
 if [ "${PARMETIS_ENABLE}" = "ON" ] && [ -n "${PARMETIS_INC}" ]; then
     PARMETIS_OPTS="${PARMETIS_OPTS} -D TPL_ParMETIS_INCLUDE_DIRS=${PARMETIS_INC}"
-    PARMETIS_OPTS="${PARMETIS_OPTS} -D TPL_ParMETIS_LIBRARIES=${PARMETIS_LIB}/libparmetis.so"
+    # Use .dylib on macOS, .so on Linux
+    if [ "$(uname -s)" = "Darwin" ]; then
+        PARMETIS_OPTS="${PARMETIS_OPTS} -D TPL_ParMETIS_LIBRARIES=${PARMETIS_LIB}/libparmetis.dylib"
+    else
+        PARMETIS_OPTS="${PARMETIS_OPTS} -D TPL_ParMETIS_LIBRARIES=${PARMETIS_LIB}/libparmetis.so"
+    fi
 fi
 
 cmake \

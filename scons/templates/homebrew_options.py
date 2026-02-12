@@ -137,6 +137,15 @@ zlib = True
 zlib_prefix = HOMEBREW_PREFIX
 zlib_libs = ['z']
 
+# METIS graph partitioning library (used by Trilinos)
+# Install with: brew install metis
+metis = True
+metis_prefix = [HOMEBREW_PREFIX + '/include', HOMEBREW_PREFIX + '/lib']
+metis_libs = ['metis']
+
+# ParMETIS - not available in Homebrew, would need to build from source
+parmetis = False
+
 # Linker flags - include LLVM libc++ for macOS arm64
 ld_extra = ["-L/opt/homebrew/opt/llvm/lib", "-L/opt/homebrew/opt/llvm/lib/c++", "-lz", "-Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++"]
 
