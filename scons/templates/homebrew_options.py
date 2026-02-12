@@ -18,7 +18,7 @@
 # Prerequisites:
 #   brew install python3 scons cmake llvm
 #   brew install boost boost-python3
-#   brew install hdf5 suite-sparse netcdf netcdf-cxx4 zlib metis
+#   brew install hdf5 suite-sparse netcdf netcdf-cxx4 zlib metis openblas
 #   brew install open-mpi mpi4py
 #   brew install numpy scipy python-matplotlib
 #
@@ -80,7 +80,8 @@ cxx_extra = ["-Wno-error=uninitialized",
              "-Wno-error=unused-but-set-variable",
              "-Wno-error=return-stack-address",
              "-Wno-error=inconsistent-missing-override",
-             "-Wno-error=unused-function"]
+             "-Wno-error=unused-function",
+             "-Wno-c99-extensions"]  # Allow C99 _Complex in LAPACK headers
 
 cc_extra = ["-Wno-error=unused-but-set-variable",
             "-Wno-error=deprecated-non-prototype"]
@@ -133,8 +134,12 @@ netcdf_libs = ['netcdf-cxx4', 'netcdf']
 umfpack = True
 umfpack_prefix = [HOMEBREW_PREFIX + "/include/suitesparse", HOMEBREW_PREFIX + "/lib/"]
 
-# LAPACK configuration - auto-detect
-lapack = 'auto'
+# LAPACK configuration - use LAPACKE from OpenBLAS (keg-only)
+# LAPACKE is the C interface to LAPACK, compatible with C++
+# Install with: brew install openblas
+lapack = True
+lapack_prefix = [HOMEBREW_PREFIX + '/opt/openblas/include', HOMEBREW_PREFIX + '/opt/openblas/lib']
+lapack_libs = ['openblas']  # OpenBLAS includes LAPACKE interface
 
 # zlib - keg-only in Homebrew (macOS provides system version)
 # Use Homebrew version for consistency: brew install zlib
