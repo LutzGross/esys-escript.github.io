@@ -250,7 +250,8 @@ class Test_ripleyCoupler(unittest.TestCase):
     @unittest.skipIf(not HAS_FINLEY, "Finley domains not present")
     def test_bad_domains(self):
         ranks = getMPISizeWorld()
-        f = fRectangle(2*ranks - 1, 2, l0=1., l1=2., d0=ranks)
+        # finley.Rectangle doesn't support d0/d1 subdivision parameters
+        f = fRectangle(2*ranks - 1, 2, l0=1., l1=2.)
         s = sRectangle(2, 2*ranks, 2, l0=2., d0=ranks)
         with self.assertRaises(RuntimeError): #finley is not ripley
             self.calculateVariance(f, s)
