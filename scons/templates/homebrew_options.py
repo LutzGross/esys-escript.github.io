@@ -132,9 +132,10 @@ umfpack_prefix = [HOMEBREW_PREFIX + "/include/suitesparse", HOMEBREW_PREFIX + "/
 # LAPACK configuration - auto-detect
 lapack = 'auto'
 
-# zlib - typically available on macOS
+# zlib - keg-only in Homebrew (macOS provides system version)
+# Use Homebrew version for consistency: brew install zlib
 zlib = True
-zlib_prefix = HOMEBREW_PREFIX
+zlib_prefix = [HOMEBREW_PREFIX + '/opt/zlib/include', HOMEBREW_PREFIX + '/opt/zlib/lib']
 zlib_libs = ['z']
 
 # METIS graph partitioning library (used by Trilinos)
