@@ -201,7 +201,13 @@ vlog () {
 #
 DETECTED_CPUS=$(lscpu -p=CPU,CORE 2>/dev/null | grep -v "^#" | sort -u -t, -k2,2 | wc -l)
 if [ -z "$DETECTED_CPUS" ] || [ "$DETECTED_CPUS" -eq 0 ]; then
-    DETECTED_CPUS=$(env -u OMP_NUM_THREADS nproc 2>/dev/null || nproc 2>/dev/null || echo 1)
+    if [ "$(uname)" = "Darwin" ]; then
+        # macOS: use sysctl to get physical CPU count
+        DETECTED_CPUS=$(sysctl -n hw.physicalcpu 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1)
+    else
+        # Linux: use nproc
+        DETECTED_CPUS=$(env -u OMP_NUM_THREADS nproc 2>/dev/null || nproc 2>/dev/null || echo 1)
+    fi
 fi
 
 #==============================================
