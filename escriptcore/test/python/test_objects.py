@@ -496,6 +496,7 @@ class Test_Domain(unittest.TestCase):
         if self.domain.getDim()>2: self.assertTrue(sup(x[2])<=1.)
 
    @unittest.skipIf(HAVE_NUMPY is False, "Numpy is not installed")
+   @unittest.skipIf(getMPISizeWorld()>1, "more than 1 MPI rank")
    def test_getNumpyX(self):
       if hasFeature("boostnumpy"):
          tups=self.domain.getX().toListOfTuples()

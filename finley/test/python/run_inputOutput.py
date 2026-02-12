@@ -185,6 +185,7 @@ class Test_InputOutputOnFinley(unittest.TestCase):
            # now we try some params
            m=GetMeshFromFile(os.path.join(FINLEY_TEST_MESH_PATH,'tet10_gmsh.msh'), numDim=3, integrationOrder=2)
 
+     @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
      def test_connectivity_info(self):
         if hasFeature("boostnumpy"):
            domain=Rectangle(n0=3,n1=4)
