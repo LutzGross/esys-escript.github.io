@@ -947,7 +947,11 @@ if env['launcher'] == 'default':
         else:
             hostoptionstr='--host %h'
         # default to OpenMPI version 1.10 or higher
-        env['launcher'] = "mpirun ${AGENTOVERRIDE} --gmca mpi_warn_on_fork 0 ${EE} "+hostoptionstr+" --map-by node:pe=%t -bind-to core -np %N %b"
+        # On macOS, use simpler options to avoid binding issues
+        if sys.platform == 'darwin':
+            env['launcher'] = "mpirun ${AGENTOVERRIDE} --gmca mpi_warn_on_fork 0 ${EE} "+hostoptionstr+" -np %N %b"
+        else:
+            env['launcher'] = "mpirun ${AGENTOVERRIDE} --gmca mpi_warn_on_fork 0 ${EE} "+hostoptionstr+" --map-by node:pe=%t -bind-to core -np %N %b"
         if 'orte_version' in env:
             major,minor,point = [int(i) for i in env['orte_version'].split('.')]
             if major == 1 and minor < 10:

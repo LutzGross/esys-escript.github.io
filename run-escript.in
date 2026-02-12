@@ -75,15 +75,15 @@ fi
 # if possible please express paths relative to $ESCRIPT_ROOT unless
 # they are in an unrelated location
 
-EXTRA_DYLD_LIBRARY_PATH=""
+EXTRA_DYLD_LIBRARY_PATH="$ESCRIPT_ROOT/lib/esys:$ESCRIPT_ROOT/esys.trilinos/lib"
 EXTRA_PATH=$ESCRIPT_ROOT/bin
 EXTRA_PYTHONPATH=$ESCRIPT_ROOT
 
 if [ $STDLOCATION -eq 1 ]
 then
-    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_ROOT/lib/esys
+    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_ROOT/lib/esys:$ESCRIPT_ROOT/esys.trilinos/lib
 else
-    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_ROOT/lib/esys
+    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_ROOT/lib/esys:$ESCRIPT_ROOT/esys.trilinos/lib
 fi
 
 BUILDINFO_FILE="$ESCRIPT_ROOT/lib/esys/buildvars"
@@ -243,7 +243,9 @@ EXPORT_ENV="PATH,LD_LIBRARY_PATH,PYTHONPATH"
 if [ "$(uname)" = "Darwin" ]
 then
     export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$LD_LIBRARY_PATH
-    EXPORT_ENV="$EXPORT_ENV,DYLD_LIBRARY_PATH"
+    # Fix OpenMP duplicate library issue on macOS
+    export KMP_DUPLICATE_LIB_OK=TRUE
+    EXPORT_ENV="$EXPORT_ENV,DYLD_LIBRARY_PATH,KMP_DUPLICATE_LIB_OK"
 fi
 vlog "PATH = $PATH
 LD_LIBRARY_PATH = $LD_LIBRARY_PATH
