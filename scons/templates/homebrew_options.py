@@ -18,7 +18,7 @@
 # Prerequisites:
 #   brew install python3 scons cmake llvm
 #   brew install boost boost-python3
-#   brew install hdf5 suite-sparse netcdf netcdf-cxx4 zlib metis openblas
+#   brew install hdf5 suite-sparse netcdf netcdf-cxx4 zlib metis openblas scotch
 #   brew install open-mpi mpi4py
 #   brew install numpy scipy python-matplotlib
 #
@@ -155,6 +155,13 @@ metis_libs = ['metis']
 
 # ParMETIS - not available in Homebrew, would need to build from source
 parmetis = False
+
+# Scotch/PT-Scotch graph partitioning library (alternative to ParMETIS)
+# Install with: brew install scotch
+# PT-Scotch provides parallel graph partitioning like ParMETIS
+scotch = True
+scotch_prefix = [HOMEBREW_PREFIX + '/opt/scotch/include', HOMEBREW_PREFIX + '/opt/scotch/lib']
+scotch_libs = ['ptscotch', 'ptscotcherr', 'scotch', 'scotcherr']
 
 # Linker flags - include LLVM libc++ for macOS arm64
 ld_extra = ["-L/opt/homebrew/opt/llvm/lib", "-L/opt/homebrew/opt/llvm/lib/c++", "-lz", "-Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++"]

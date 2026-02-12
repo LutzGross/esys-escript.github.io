@@ -13,6 +13,9 @@ TRI_INSTALL_PREFIX=$1
 # $9 = ParMETIS enable (ON/OFF)
 # ${10} = ParMETIS include path
 # ${11} = ParMETIS library path
+# ${12} = Scotch enable (ON/OFF)
+# ${13} = Scotch include path
+# ${14} = Scotch library path
 
 METIS_ENABLE=$6
 METIS_INC=$7
@@ -20,6 +23,9 @@ METIS_LIB=$8
 PARMETIS_ENABLE=$9
 PARMETIS_INC=${10}
 PARMETIS_LIB=${11}
+SCOTCH_ENABLE=${12}
+SCOTCH_INC=${13}
+SCOTCH_LIB=${14}
 
 # Build METIS cmake options
 METIS_OPTS="-D TPL_ENABLE_METIS=${METIS_ENABLE}"
@@ -45,6 +51,18 @@ if [ "${PARMETIS_ENABLE}" = "ON" ] && [ -n "${PARMETIS_INC}" ]; then
     fi
 fi
 
+# Build Scotch cmake options (includes PT-Scotch for parallel)
+SCOTCH_OPTS="-D TPL_ENABLE_Scotch=${SCOTCH_ENABLE}"
+if [ "${SCOTCH_ENABLE}" = "ON" ] && [ -n "${SCOTCH_INC}" ]; then
+    SCOTCH_OPTS="${SCOTCH_OPTS} -D TPL_Scotch_INCLUDE_DIRS=${SCOTCH_INC}"
+    # PT-Scotch provides both serial and parallel libraries
+    if [ "$(uname -s)" = "Darwin" ]; then
+        SCOTCH_OPTS="${SCOTCH_OPTS} -D TPL_Scotch_LIBRARIES=${SCOTCH_LIB}/libptscotch.dylib;${SCOTCH_LIB}/libptscotcherr.dylib;${SCOTCH_LIB}/libscotch.dylib;${SCOTCH_LIB}/libscotcherr.dylib"
+    else
+        SCOTCH_OPTS="${SCOTCH_OPTS} -D TPL_Scotch_LIBRARIES=${SCOTCH_LIB}/libptscotch.so;${SCOTCH_LIB}/libptscotcherr.so;${SCOTCH_LIB}/libscotch.so;${SCOTCH_LIB}/libscotcherr.so"
+    fi
+fi
+
 cmake \
       -D CMAKE_INSTALL_PREFIX=$TRI_INSTALL_PREFIX\
       -D CMAKE_CXX_STANDARD=20 \
@@ -62,6 +80,7 @@ cmake \
       -D TPL_ENABLE_SCALAPACK=OFF \
       ${METIS_OPTS} \
       ${PARMETIS_OPTS} \
+      ${SCOTCH_OPTS} \
       -D TPL_ENABLE_MUMPS=OFF \
       -D TPL_ENABLE_SuperLU=OFF \
       -D TPL_ENABLE_UMFPACK=OFF \

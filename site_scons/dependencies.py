@@ -876,6 +876,43 @@ def checkOptionalLibraries(env):
         env['buildvars']['parmetis_lib_path']=parmetis_lib_path
     env['buildvars']['parmetis']=int(env['parmetis'])
 
+    ######## Scotch/PT-Scotch
+    if not env['usempi']: env['scotch'] = False
+    scotch_inc_path=''
+    scotch_lib_path=''
+    if env['scotch']:
+        scotch_inc_path,scotch_lib_path=findLibWithHeader(env, env['scotch_libs'], 'scotch.h', env['scotch_prefix'], lang='c++')
+        env.AppendUnique(CPPPATH = [scotch_inc_path])
+        env.AppendUnique(LIBPATH = [scotch_lib_path])
+        env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], scotch_lib_path)
+
+        # Try to extract the scotch version from scotch.h
+        header=open(os.path.join(scotch_inc_path, 'scotch.h')).readlines()
+        major,minor,patch = None,None,None
+        for line in header:
+            ver=re.match(r'#define SCOTCH_VERSION\s+(\d+)',line)
+            if ver:
+                major = int(ver.group(1))
+                continue
+            ver=re.match(r'#define SCOTCH_RELEASE\s+(\d+)',line)
+            if ver:
+                minor = int(ver.group(1))
+                continue
+            ver=re.match(r'#define SCOTCH_PATCHLEVEL\s+(\d+)',line)
+            if ver:
+                patch = int(ver.group(1))
+                continue
+        if major is not None:
+            env['scotch_version'] = "%d.%d.%d"%(major,minor if minor else 0,patch if patch else 0)
+        else:
+            env['scotch_version'] = "unknown"
+
+        env.Append(CPPDEFINES = ['ESYS_HAVE_SCOTCH'])
+        env['buildvars']['scotch_inc_path']=scotch_inc_path
+        env['buildvars']['scotch_lib_path']=scotch_lib_path
+    else:
+        env['scotch_version'] = "N/A"
+    env['buildvars']['scotch']=int(env['scotch'])
 
     ######## zlib
     if env['zlib']:

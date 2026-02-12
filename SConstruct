@@ -121,6 +121,9 @@ vars.AddVariables(
     BoolVariable('parmetis', 'Enable ParMETIS (requires MPI)', False),
   ('parmetis_prefix', 'Prefix/Paths of ParMETIS installation', default_prefix),
   ('parmetis_libs', 'ParMETIS libraries to link with', ['parmetis']),
+    BoolVariable('scotch', 'Enable Scotch/PT-Scotch graph partitioning', False),
+  ('scotch_prefix', 'Prefix/Paths of Scotch installation', default_prefix),
+  ('scotch_libs', 'Scotch libraries to link with', ['ptscotch', 'ptscotcherr', 'scotch', 'scotcherr']),
   BoolVariable('mkl', 'Enable the Math Kernel Library', False),
   ('mkl_prefix', 'Prefix/Paths to MKL installation', default_prefix),
   ('mkl_libs', 'MKL libraries to link with', ['mkl_solver','mkl_em64t','guide','pthread']),
@@ -245,7 +248,7 @@ elif env['build_trilinos'] is False:
 # SCons accepts these but True/False is clearer
 bool_options = ['openmp', 'paso', 'weipa', 'sympy', 'hdf5', 'debug', 'verbose',
                 'werror', 'trilinos', 'umfpack', 'mkl', 'mumps_seq', 'silo', 'visit',
-                'metis', 'parmetis', 'zlib', 'p4est', 'mpi4py', 'longindices',
+                'metis', 'parmetis', 'scotch', 'zlib', 'p4est', 'mpi4py', 'longindices',
                 'compressed_files', 'disable_boost_numpy', 'osx_dependency_fix',
                 'stdlocationisprefix', 'mpi_no_host', 'insane', 'iknowwhatimdoing']
 for opt in bool_options:
@@ -673,9 +676,12 @@ if env['build_trilinos'] != 'never':
         metis_inc, metis_lib = get_inc_lib_paths(env['metis_prefix']) if env['metis'] else ('', '')
         parmetis_enable = 'ON' if env['parmetis'] else 'OFF'
         parmetis_inc, parmetis_lib = get_inc_lib_paths(env['parmetis_prefix']) if env['parmetis'] else ('', '')
+        scotch_enable = 'ON' if env['scotch'] else 'OFF'
+        scotch_inc, scotch_lib = get_inc_lib_paths(env['scotch_prefix']) if env['scotch'] else ('', '')
 
         SHARGS = [ env['trilinos_install'], env['CC'],  env['CXX'], OPENMPFLAG, env['trilinos_src'],
-                   metis_enable, metis_inc, metis_lib, parmetis_enable, parmetis_inc, parmetis_lib ]
+                   metis_enable, metis_inc, metis_lib, parmetis_enable, parmetis_inc, parmetis_lib,
+                   scotch_enable, scotch_inc, scotch_lib ]
 
         print("Initialization of Trilinos build using", SHARGS )
         if env['trilinos_make_sh'] == 'default':
@@ -1184,6 +1190,10 @@ def print_summary():
         print("        ParMETIS:  %s (Version %s)"%(env['parmetis_prefix'],env['parmetis_version']))
     else:
         d_list.append('parmetis')
+    if env['scotch']:
+        print("          Scotch:  %s (Version %s)"%(env['scotch_prefix'],env['scotch_version']))
+    else:
+        d_list.append('scotch')
     if env['uselapack']:
         print("          LAPACK:  YES (flavour: %s)"%env['lapack'])
     else:

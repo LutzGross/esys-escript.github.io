@@ -24,19 +24,31 @@ typedef float real_t;
 #endif
 #endif
 
+#ifdef ESYS_HAVE_SCOTCH
+#include <ptscotch.h>
+#ifndef SCOTCH_NUMIDX
+typedef SCOTCH_Num scotch_idx_t;
+#else
+typedef SCOTCH_NUMIDX scotch_idx_t;
+#endif
+// Define real_t for coordinate data if not already defined
+#ifndef REALTYPEWIDTH
+typedef float real_t;
+#endif
+#endif
+
 #include <iostream>
 #include <boost/scoped_array.hpp>
 
 namespace finley {
 
-#ifdef ESYS_HAVE_PARMETIS
-// Checks whether there is any rank which has no vertex. In case 
-// such a rank exists, we don't use parmetis since parmetis requires
-// that every rank has at least 1 vertex (at line 129 of file
-// "xyzpart.c" in parmetis 3.1.1, variable "nvtxs" would be 0 if 
-// any rank has no vertex).
+#if defined(ESYS_HAVE_PARMETIS) || defined(ESYS_HAVE_SCOTCH)
+// Checks whether there is any rank which has no vertex. In case
+// such a rank exists, we don't use graph partitioning since both
+// ParMETIS and PT-Scotch require that every rank has at least 1 vertex.
 static bool allRanksHaveNodes(escript::JMPI mpiInfo,
-                              const IndexVector& distribution)
+                              const IndexVector& distribution,
+                              const char* libname)
 {
     int ret = 1;
 
@@ -48,7 +60,7 @@ static bool allRanksHaveNodes(escript::JMPI mpiInfo,
             }
         }
         if (ret == 0) {
-            std::cerr << "INFO: ParMetis is not used since at least one rank "
+            std::cerr << "INFO: " << libname << " is not used since at least one rank "
                          "has no vertex." << std::endl;
         }
     }
@@ -57,9 +69,10 @@ static bool allRanksHaveNodes(escript::JMPI mpiInfo,
 }
 #endif
 
-/// optimizes the distribution of DOFs across processors using ParMETIS.
+/// Optimizes the distribution of DOFs across processors using graph partitioning.
+/// Uses ParMETIS if available, otherwise PT-Scotch if available, otherwise no redistribution.
 /// On return a new distribution is given and the globalDOF are relabeled
-/// accordingly but the mesh has not been redistributed yet
+/// accordingly but the mesh has not been redistributed yet.
 void FinleyDomain::optimizeDOFDistribution(IndexVector& distribution)
 {
     int mpiSize = m_mpiInfo->size;
@@ -76,8 +89,15 @@ void FinleyDomain::optimizeDOFDistribution(IndexVector& distribution)
 
     index_t* partition = new index_t[len];
 
+#if defined(ESYS_HAVE_PARMETIS) || defined(ESYS_HAVE_SCOTCH)
+    bool useGraphPartitioner = false;
 #ifdef ESYS_HAVE_PARMETIS
-    if (mpiSize > 1 && allRanksHaveNodes(m_mpiInfo, distribution)) {
+    useGraphPartitioner = (mpiSize > 1 && allRanksHaveNodes(m_mpiInfo, distribution, "ParMETIS"));
+#elif defined(ESYS_HAVE_SCOTCH)
+    useGraphPartitioner = (mpiSize > 1 && allRanksHaveNodes(m_mpiInfo, distribution, "PT-Scotch"));
+#endif
+
+    if (useGraphPartitioner) {
         boost::scoped_array<IndexList> index_list(new IndexList[myNumVertices]);
         int dim = m_nodes->numDim;
 
@@ -133,6 +153,9 @@ void FinleyDomain::optimizeDOFDistribution(IndexVector& distribution)
             index_list[i].toArray(&index[ptr[i]], 0, globalNumVertices, 0);
         }
 
+        // Partition using available library
+#ifdef ESYS_HAVE_PARMETIS
+        // Use ParMETIS geometric partitioning
         index_t wgtflag = 0;
         index_t numflag = 0;
         index_t ncon = 1;
@@ -149,18 +172,71 @@ void FinleyDomain::optimizeDOFDistribution(IndexVector& distribution)
                                  &wgtflag, &numflag, &idim, xyz, &ncon,
                                  &impiSize, &tpwgts[0], &ubvec[0], options,
                                  &edgecut, partition, &m_mpiInfo->comm);
+#elif defined(ESYS_HAVE_SCOTCH)
+        // Use PT-Scotch distributed graph partitioning
+        SCOTCH_Dgraph grafdat;
+        SCOTCH_dgraphInit(&grafdat, m_mpiInfo->comm);
+
+        // Convert index_t arrays to SCOTCH_Num arrays
+        std::vector<SCOTCH_Num> scotch_vertloctab(myNumVertices + 1);
+        std::vector<SCOTCH_Num> scotch_edgeloctab(s);
+        std::vector<SCOTCH_Num> scotch_parttab(myNumVertices);
+
+        for (index_t i = 0; i <= myNumVertices; ++i)
+            scotch_vertloctab[i] = static_cast<SCOTCH_Num>(ptr[i]);
+        for (index_t i = 0; i < s; ++i)
+            scotch_edgeloctab[i] = static_cast<SCOTCH_Num>(index[i]);
+
+        // Build distributed graph
+        SCOTCH_Num baseval = 0;  // 0-based indexing
+        SCOTCH_dgraphBuild(&grafdat,
+                          baseval,                                    // baseval
+                          static_cast<SCOTCH_Num>(myNumVertices),    // vertlocnbr
+                          static_cast<SCOTCH_Num>(myNumVertices),    // vertlocmax
+                          &scotch_vertloctab[0],                     // vertloctab
+                          NULL,                                       // vendloctab (use vertloctab[i+1])
+                          NULL,                                       // veloloctab (no vertex weights)
+                          NULL,                                       // vlblloctab (no vertex labels)
+                          static_cast<SCOTCH_Num>(s),                // edgelocnbr
+                          static_cast<SCOTCH_Num>(s),                // edgelocsiz
+                          &scotch_edgeloctab[0],                     // edgeloctab
+                          NULL,                                       // edgegsttab (let Scotch compute)
+                          NULL);                                      // edloloctab (no edge weights)
+
+        // Check graph consistency
+        SCOTCH_dgraphCheck(&grafdat);
+
+        // Create partitioning strategy (use default for now)
+        SCOTCH_Strat stradat;
+        SCOTCH_stratInit(&stradat);
+
+        // Perform partitioning
+        SCOTCH_dgraphPart(&grafdat, static_cast<SCOTCH_Num>(mpiSize),
+                         &stradat, &scotch_parttab[0]);
+
+        // Copy partition results back to index_t array
+        for (index_t i = 0; i < myNumVertices; ++i)
+            partition[i] = static_cast<index_t>(scotch_parttab[i]);
+
+        // Clean up Scotch structures
+        SCOTCH_stratExit(&stradat);
+        SCOTCH_dgraphExit(&grafdat);
+#endif
         delete[] xyz;
         delete[] index;
         delete[] ptr;
     } else {
+        // Graph partitioning not available or not applicable
+#pragma omp parallel for
         for (index_t i = 0; i < myNumVertices; ++i)
-            partition[i] = 0; // CPU 0 owns all
+            partition[i] = myRank; // CPU myRank owns all
     }
 #else
+    // No graph partitioning library available
 #pragma omp parallel for
     for (index_t i = 0; i < myNumVertices; ++i)
         partition[i] = myRank; // CPU myRank owns all
-#endif // ESYS_HAVE_PARMETIS
+#endif // ESYS_HAVE_PARMETIS || ESYS_HAVE_SCOTCH
 
     // create a new distribution and labeling of the DOF
     IndexVector new_distribution(mpiSize + 1);

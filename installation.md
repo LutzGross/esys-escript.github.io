@@ -38,7 +38,9 @@ For complete documentation including user guide and API reference, see the [main
 ### Optional Dependencies
 - METIS - Graph partitioning library used by Trilinos for matrix reordering (libmetis-dev on Debian/Ubuntu). Can be used with or without MPI.
 - MPI implementation (OpenMPI or MPICH) with python3-mpi4py for distributed parallelization
-- ParMETIS - Parallel graph partitioning for MPI builds (libparmetis-dev on Debian/Ubuntu, requires MPI and METIS)
+- **Graph Partitioning for MPI** (requires MPI and METIS):
+  - **ParMETIS** - Parallel graph partitioning for distributed mesh optimization in finley domain (libparmetis-dev on Debian/Ubuntu)
+  - **PT-Scotch** - Alternative parallel graph partitioning library (libscotch-dev or scotch package). Used by both Trilinos and finley domain when ParMETIS is not available.
 - SymPy (python3-sympy) for symbolic mathematics module - **must be present at build time** (requires version 1.2 or later)
 - python3-sphinx and python3-markdown (for building API documentation)
 - LaTeX (texlive-latex-base, texlive-latex-extra) for building user guide PDF
@@ -158,7 +160,10 @@ sudo apt-get install libmetis-dev
 For MPI support, additionally install:
 
 ```bash
-sudo apt-get install python3-mpi4py libparmetis-dev
+sudo apt-get install python3-mpi4py
+# For graph partitioning (choose one or both):
+sudo apt-get install libparmetis-dev   # ParMETIS (if available)
+sudo apt-get install libscotch-dev     # PT-Scotch (alternative)
 ```
 
 For building documentation, additionally install:
@@ -195,7 +200,10 @@ sudo apt-get install libmetis-dev
 For MPI support, additionally install:
 
 ```bash
-sudo apt-get install python3-mpi4py libparmetis-dev
+sudo apt-get install python3-mpi4py
+# For graph partitioning (choose one or both):
+sudo apt-get install libparmetis-dev   # ParMETIS (if available)
+sudo apt-get install libscotch-dev     # PT-Scotch (alternative)
 ```
 
 For building documentation, additionally install:
@@ -238,7 +246,10 @@ sudo pacman -Sy boost boost-libs suitesparse hdf5 netcdf lapack mumps zlib metis
 For MPI support:
 
 ```bash
-sudo pacman -Sy python-mpi4py parmetis
+sudo pacman -Sy python-mpi4py
+# For graph partitioning (choose one or both):
+sudo pacman -Sy parmetis  # ParMETIS (if available)
+sudo pacman -Sy scotch    # PT-Scotch (alternative)
 ```
 
 For building documentation:
@@ -274,7 +285,10 @@ sudo dnf install hdf5-devel netcdf-devel suitesparse-devel lapack-devel MUMPS-de
 For MPI support:
 
 ```bash
-sudo dnf install python3-mpi4py parmetis-devel
+sudo dnf install python3-mpi4py
+# For graph partitioning (choose one or both):
+sudo dnf install parmetis-devel  # ParMETIS (if available)
+sudo dnf install scotch-devel    # PT-Scotch (alternative)
 ```
 
 For building documentation:
@@ -310,7 +324,10 @@ sudo zypper in hdf5-devel netcdf-devel suitesparse-devel lapack-devel mumps-deve
 For MPI support:
 
 ```bash
-sudo zypper in python3-mpi4py parmetis-devel
+sudo zypper in python3-mpi4py
+# For graph partitioning (choose one or both):
+sudo zypper in parmetis-devel  # ParMETIS (if available)
+sudo zypper in scotch-devel    # PT-Scotch (alternative)
 ```
 
 For building documentation:
@@ -356,7 +373,10 @@ sudo dnf install hdf5-devel netcdf-devel suitesparse suitesparse-devel lapack-de
 For MPI support:
 
 ```bash
-sudo dnf install python3-mpi4py parmetis-devel
+sudo dnf install python3-mpi4py
+# For graph partitioning (choose one or both):
+sudo dnf install parmetis-devel  # ParMETIS (if available)
+sudo dnf install scotch-devel    # PT-Scotch (alternative)
 ```
 
 For building documentation:
@@ -385,23 +405,24 @@ scons -j4 options_file=scons/templates/rhel_options.py
 Install Homebrew from [https://brew.sh](https://brew.sh), then:
 
 ```bash
-brew install python3 scons cmake
+brew install python3 scons cmake llvm
 brew install boost boost-python3
-brew install hdf5 netcdf suite-sparse lapack
+brew install hdf5 netcdf suite-sparse openblas zlib metis scotch
 brew install libomp  # For OpenMP support with Apple Clang
 ```
 
-Some Python packages may need pip:
+Python packages via Homebrew:
 
 ```bash
-pip3 install numpy scipy matplotlib sympy
+brew install numpy scipy python-matplotlib
 ```
 
 For MPI support:
 
 ```bash
-brew install open-mpi
-pip3 install mpi4py
+brew install open-mpi mpi4py
+# PT-Scotch (scotch package) provides parallel graph partitioning
+# ParMETIS is not available in Homebrew
 ```
 
 For building documentation:
@@ -547,7 +568,10 @@ scons -j4 options_file=scons/templates/debian_options.py
 For MPI support in WSL2:
 
 ```bash
-sudo apt-get install python3-mpi4py libparmetis-dev
+sudo apt-get install python3-mpi4py
+# For graph partitioning (choose one or both):
+sudo apt-get install libparmetis-dev   # ParMETIS (if available)
+sudo apt-get install libscotch-dev     # PT-Scotch (alternative)
 ```
 
 **Note:** WSL2 provides near-native Linux performance and full compatibility with esys-escript. GUI applications (like VisIt or ParaView for visualization) require WSLg (included in Windows 11) or an X server on Windows 10.

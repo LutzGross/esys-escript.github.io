@@ -491,8 +491,8 @@ $x_0=0$ will be identical to the values on $x_0=\var{l0}$.
 Correspondingly, \var{periodic1}=\True sets periodic boundary conditions in the
 $x_1$-direction.
 If \var{optimize}=\True mesh node relabeling will be attempted to reduce the
-computation and also ParMETIS will be used to improve the mesh partition if
-running on multiple CPUs with \MPI.
+computation and also graph partitioning (ParMETIS or PT-Scotch) will be used to improve
+the mesh partition if running on multiple CPUs with \MPI.
 \var{comm} is an optional \MPI communicator (from \texttt{mpi4py}) that allows using a custom
 communicator instead of \texttt{MPI\_COMM\_WORLD}. If \var{comm} is not \var{None},
 \escript must be built with \texttt{mpi4py} support enabled.
@@ -526,8 +526,8 @@ $x_0=0$ will be identical to the values on $x_0=\var{l0}$.
 Correspondingly, \var{periodic1}=\True and \var{periodic2}=\True sets periodic
 boundary conditions in the $x_1$-direction and $x_2$-direction, respectively.
 If \var{optimize}=\True mesh node relabeling will be attempted to reduce the
-computation and also ParMETIS will be used to improve the mesh partition if
-running on multiple CPUs with \MPI.
+computation and also graph partitioning (ParMETIS or PT-Scotch) will be used to improve
+the mesh partition if running on multiple CPUs with \MPI.
 \var{comm} is an optional \MPI communicator (from \texttt{mpi4py}) that allows using a custom
 communicator instead of \texttt{MPI\_COMM\_WORLD}. If \var{comm} is not \var{None},
 \escript must be built with \texttt{mpi4py} support enabled.

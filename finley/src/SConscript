@@ -98,6 +98,8 @@ finleylibs = []
 finleylibs += env['escript_libs']
 if env['parmetis']:
     finleylibs += env['parmetis_libs']
+if env['scotch']:
+    finleylibs += env['scotch_libs']
 if env['paso']:
     finleylibs += env['paso_libs']
 if env['trilinos']:
