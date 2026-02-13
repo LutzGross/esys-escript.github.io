@@ -91,12 +91,18 @@ sphinxstuff=local.Command('stuff', [epy_dir, int_dir, env['pyinstall']],
     env['pythoncmd'] + ' doc/sphinx_api/genrst.py '+env['prefix']+' esys '+int_dir+
     ' && echo "=== Copying static RST files to build directory ===" && ' +
     'cp doc/sphinx_api/index.rst '+int_dir+'/ && ' +
-    'cp doc/sphinx_api/welcome.rst '+int_dir+'/ && ' +
+    'echo "=== Converting README.md to welcome.rst (requires pandoc) ===" && ' +
+    '(pandoc -f markdown -t rst README.md -o '+int_dir+'/welcome.rst || ' +
+    '(echo "WARNING: pandoc not found, using pre-built welcome.rst" && ' +
+    'cp doc/sphinx_api/welcome.rst '+int_dir+'/)) && ' +
     'echo "=== Converting installation.md to RST (requires pandoc) ===" && ' +
     '(pandoc -f markdown -t rst installation.md -o '+int_dir+'/installation.rst || ' +
     '(echo "WARNING: pandoc not found, using pre-built installation.rst" && ' +
     'cp doc/sphinx_api/installation.rst '+int_dir+'/)) && ' +
-    'cp doc/sphinx_api/options.rst '+int_dir+'/ && ' +
+    'echo "=== Converting options.md to RST (requires pandoc) ===" && ' +
+    '(pandoc -f markdown -t rst scons/templates/options.md -o '+int_dir+'/options.rst || ' +
+    '(echo "WARNING: pandoc not found, using pre-built options.rst" && ' +
+    'cp doc/sphinx_api/options.rst '+int_dir+'/)) && ' +
     'cp doc/sphinx_api/resources.rst '+int_dir+'/ && ' +
     'cp doc/sphinx_api/mpi4py.rst '+int_dir+'/ && ' +
     'echo "=== Building Sphinx HTML documentation ===" && ' +

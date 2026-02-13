@@ -679,7 +679,11 @@ if env['build_trilinos'] != 'never':
         scotch_enable = 'ON' if env['scotch'] else 'OFF'
         scotch_inc, scotch_lib = get_inc_lib_paths(env['scotch_prefix']) if env['scotch'] else ('', '')
 
-        SHARGS = [ env['trilinos_install'], env['CC'],  env['CXX'], OPENMPFLAG, env['trilinos_src'],
+        # Allow override of compilers for Trilinos (useful for avoiding libc++ issues on macOS)
+        trilinos_cc_compiler = env.get('trilinos_cc', env['CC'])
+        trilinos_cxx_compiler = env.get('trilinos_cxx', env['CXX'])
+
+        SHARGS = [ env['trilinos_install'], trilinos_cc_compiler,  trilinos_cxx_compiler, OPENMPFLAG, env['trilinos_src'],
                    metis_enable, metis_inc, metis_lib, parmetis_enable, parmetis_inc, parmetis_lib,
                    scotch_enable, scotch_inc, scotch_lib ]
 

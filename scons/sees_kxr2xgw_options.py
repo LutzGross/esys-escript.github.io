@@ -29,6 +29,11 @@
 
 from templates.homebrew_nompi_options import *
 
+# Use GCC for Trilinos to avoid LLVM libc++ __hash_memory symbol issues with MueLu
+# Keep LLVM clang for escript (needed for OpenMP)
+trilinos_cxx = '/opt/homebrew/bin/g++-15'
+trilinos_cc = '/opt/homebrew/bin/gcc-15'
+
 # Build Trilinos without MPI (serial version)
 trilinos = True
 build_trilinos = 'make'
