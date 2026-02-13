@@ -152,6 +152,8 @@ vars.AddVariables(
   PathVariable('trilinos_install', 'Top-level install directory for trilinos when built', Dir('#/esys.trilinos').abspath, PathVariable.PathIsDirCreate),
   #('trilinos_install', 'path to install trilinos libs, default is <prefix>/lib/esys', 'default'),
   ('trilinos_make_sh', 'path to a shell script to run trilinos make.', 'default'),
+  ('trilinos_cc', 'C compiler to use for Trilinos build (defaults to CC)', ''),
+  ('trilinos_cxx', 'C++ compiler to use for Trilinos build (defaults to CXX)', ''),
   BoolVariable('visit', 'Enable the VisIt simulation interface', False),
   ('visit_prefix', 'Prefix/Paths to VisIt installation', default_prefix),
   ('visit_libs', 'VisIt libraries to link with', ['simV2']),
@@ -680,8 +682,8 @@ if env['build_trilinos'] != 'never':
         scotch_inc, scotch_lib = get_inc_lib_paths(env['scotch_prefix']) if env['scotch'] else ('', '')
 
         # Allow override of compilers for Trilinos (useful for avoiding libc++ issues on macOS)
-        trilinos_cc_compiler = env.get('trilinos_cc', env['CC'])
-        trilinos_cxx_compiler = env.get('trilinos_cxx', env['CXX'])
+        trilinos_cc_compiler = env.get('trilinos_cc', '') or env['CC']
+        trilinos_cxx_compiler = env.get('trilinos_cxx', '') or env['CXX']
 
         SHARGS = [ env['trilinos_install'], trilinos_cc_compiler,  trilinos_cxx_compiler, OPENMPFLAG, env['trilinos_src'],
                    metis_enable, metis_inc, metis_lib, parmetis_enable, parmetis_inc, parmetis_lib,
