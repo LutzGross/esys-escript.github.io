@@ -14,24 +14,21 @@
 
 # Configuration file for escript on macOS with Homebrew
 # Host: sees-kxr2xgw (Apple Silicon)
+# Build: NO-MPI (single-process only)
 #
 # Prerequisites (install via Homebrew):
 #   brew install python3 scons cmake llvm
 #   brew install boost boost-python3
 #   brew install hdf5 suite-sparse netcdf netcdf-cxx4
-#   brew install open-mpi mpi4py
 #   pip3 install numpy scipy sympy matplotlib
 #
 # For LLVM compiler support (recommended for OpenMP):
 #   echo 'export PATH="/opt/homebrew/opt/llvm/bin:$PATH"' >> ~/.zshrc
 #
-# See scons/templates/homebrew_options.py for full configuration details
+# See scons/templates/homebrew_nompi_options.py for full configuration details
 
-from templates.homebrew_options import *
+from templates.homebrew_nompi_options import *
 
-# Override to always build Trilinos from source
+# Build Trilinos without MPI (serial version)
+trilinos = True
 build_trilinos = 'make'
-
-# Skip library link checks on macOS (Python 3.14 compatibility)
-# Libraries are verified via Homebrew and will link correctly during build
-skip_link_checks = True
