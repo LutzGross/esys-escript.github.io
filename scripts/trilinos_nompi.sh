@@ -22,7 +22,12 @@ METIS_LIB=$8
 METIS_OPTS="-D TPL_ENABLE_METIS=${METIS_ENABLE}"
 if [ "${METIS_ENABLE}" = "ON" ] && [ -n "${METIS_INC}" ]; then
     METIS_OPTS="${METIS_OPTS} -D TPL_METIS_INCLUDE_DIRS=${METIS_INC}"
-    METIS_OPTS="${METIS_OPTS} -D TPL_METIS_LIBRARIES=${METIS_LIB}/libmetis.so"
+    # Use platform-specific library extension (.dylib on macOS, .so on Linux)
+    if [ "$(uname)" = "Darwin" ]; then
+        METIS_OPTS="${METIS_OPTS} -D TPL_METIS_LIBRARIES=${METIS_LIB}/libmetis.dylib"
+    else
+        METIS_OPTS="${METIS_OPTS} -D TPL_METIS_LIBRARIES=${METIS_LIB}/libmetis.so"
+    fi
 fi
 
 cmake \
