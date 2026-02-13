@@ -92,7 +92,10 @@ sphinxstuff=local.Command('stuff', [epy_dir, int_dir, env['pyinstall']],
     ' && echo "=== Copying static RST files to build directory ===" && ' +
     'cp doc/sphinx_api/index.rst '+int_dir+'/ && ' +
     'cp doc/sphinx_api/welcome.rst '+int_dir+'/ && ' +
-    'cp doc/sphinx_api/installation.rst '+int_dir+'/ && ' +
+    'echo "=== Converting installation.md to RST (requires pandoc) ===" && ' +
+    '(pandoc -f markdown -t rst installation.md -o '+int_dir+'/installation.rst || ' +
+    '(echo "WARNING: pandoc not found, using pre-built installation.rst" && ' +
+    'cp doc/sphinx_api/installation.rst '+int_dir+'/)) && ' +
     'cp doc/sphinx_api/options.rst '+int_dir+'/ && ' +
     'cp doc/sphinx_api/resources.rst '+int_dir+'/ && ' +
     'cp doc/sphinx_api/mpi4py.rst '+int_dir+'/ && ' +
