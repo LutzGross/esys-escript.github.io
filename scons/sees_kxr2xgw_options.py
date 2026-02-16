@@ -27,13 +27,12 @@
 #
 # See scons/templates/homebrew_nompi_options.py for full configuration details
 
-from templates.homebrew_nompi_options import *
-
-# Use GCC for Trilinos to avoid LLVM libc++ __hash_memory symbol issues with MueLu
-# Keep LLVM clang for escript (needed for OpenMP)
-trilinos_cxx = '/opt/homebrew/bin/g++-15'
-trilinos_cc = '/opt/homebrew/bin/gcc-15'
+from templates.homebrew_options import *
 
 # Build Trilinos without MPI (serial version)
+# Using clang for both escript and Trilinos for ABI compatibility
+# Trilinos build script now explicitly links libc++ and libc++abi
+mpi = 'none'
+mpi4py = False
 trilinos = True
 build_trilinos = 'make'
