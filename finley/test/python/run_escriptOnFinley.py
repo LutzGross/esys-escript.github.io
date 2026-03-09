@@ -27,7 +27,8 @@ from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.finley import Rectangle, Brick, ReadMesh, ReadGmsh
 from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, \
-        Test_TableInterpolation, Test_Domain, Test_Lazy, Test_tagMap
+        Test_TableInterpolation, Test_InterpolationTable, Test_Domain, \
+        Test_Lazy, Test_tagMap
 from test_shared import Test_Shared
 
 try:
@@ -179,6 +180,23 @@ class Test_TableInterpolationOnFinley(Test_TableInterpolation):
         self.xn=3       # number of grids on x axis
         self.yn=3       # number of grids on y axis
         self.zn=3       # number of grids on z axis
+
+    def tearDown(self):
+        del self.domain
+        del self.functionspaces
+
+
+class Test_InterpolationTableOnFinley(Test_InterpolationTable):
+    def setUp(self):
+        self.domain = Brick(4, 4, 4)
+        self.functionspaces = [
+            ContinuousFunction(self.domain), Function(self.domain),
+            ReducedFunction(self.domain),
+            FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain),
+        ]
+        self.xn = 3
+        self.yn = 3
+        self.zn = 3
 
     def tearDown(self):
         del self.domain

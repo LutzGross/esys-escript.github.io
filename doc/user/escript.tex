@@ -1421,109 +1421,162 @@ value of \var{a} times \var{rtol} is used.
 
 
 \subsection{Interpolating Data}
-\index{interpolateTable}
+\index{InterpolationTable}
 \label{sec:interpolation}
-In some cases, it may be useful to produce Data objects which fit some user
-defined function.
-Manually modifying each value in the Data object is not a good idea since it
-depends on knowing the location and order of each data point in the domain.
-Instead, \escript can use an interpolation table to produce a \Data object.
+In some cases it is useful to produce \Data objects which approximate a
+user-defined function without accessing individual data points directly.
+\escript provides the \class{InterpolationTable} class for this purpose.
+It performs order-1 (linear) or order-0 (piecewise constant) interpolation
+from a regular-grid lookup table onto a mesh.
 
-The following example is available as \file{int_save.py} in the \ExampleDirectory.
-We will produce a \Data object which approximates a sine curve.
+The following examples are available as \file{int\_save.py} in the
+\ExampleDirectory.
+
+\subsubsection{Setting up the domain}
 
 \begin{python}
-  from esys.escript import saveDataCSV, sup, interpolateTable
-  import numpy
-  from esys.finley import Rectangle
+from esys.escript import InterpolationTable, saveDataCSV, sup
+import numpy
+from esys.finley import Rectangle, Brick
 
-  n=4
-  r=Rectangle(n,n)
-  x=r.getX()
-  toobig=100
+n = 4
+r = Rectangle(n, n)
+x = r.getX()   # Data with shape (2,)
+toobig = 100   # RuntimeError if any interpolated value exceeds this
 \end{python}
 
-\noindent First we produce an interpolation table:
-\begin{python}
-  sine_table=[0, 0.70710678118654746, 1, 0.70710678118654746, 0,
-             -0.70710678118654746, -1, -0.70710678118654746, 0]
-\end{python}
-%
-We wish to identify $0$ and $1$ with the ends of the curve, that is
-with the first and eighth value in the table.
+\subsubsection{1-D interpolation (order-1)}
+
+We approximate a sine curve using a nine-point table covering $[0,1]$:
 
 \begin{python}
-  numslices=len(sine_table)-1
-  minval=0.
-  maxval=1.
-  step=sup(maxval-minval)/numslices
-\end{python}
-%
-So the values $v$ from the input lie in the interval
-\var{minval} $\leq v <$ \var{maxval}.
-\var{step} represents the gap (in the input range) between entries in the table.
-By default, values of $v$ outside the table argument range (minval, maxval)
-will be pushed back into the range, i.e. if $v <$ \var{minval} the value
-\var{minval} will be used to evaluate the table.
-Similarly, for values $v>$ \var{maxval} the value \var{maxval} is used.
+sine_table = numpy.array([0, 0.70710678, 1, 0.70710678, 0,
+                          -0.70710678, -1, -0.70710678, 0])
+minval, maxval = 0., 1.
+# n-1 intervals between n sample points
+step = (maxval - minval) / (len(sine_table) - 1)
 
-Now we produce our new \Data object:
-
-\begin{python}
-  result=interpolateTable(sine_table, x[0], minval, step, toobig)
-\end{python}
-Any values which interpolate to larger than \var{toobig} will raise an
-exception. You can switch on boundary checking by adding
-\code{check_boundaries=True} to the argument list.
-
-Now consider a 2D example. We will interpolate from a plane where $\forall x,y\in[0,9]:(x,y)=x+y\cdot10$.
-
-\begin{python}
-from esys.escript import whereZero
-table2=[]
-for y in range(0,10):
-      r=[]
-      for x in range(0,10):
-	 r.append(x+y*10)
-      table2.append(r)
-xstep=(maxval-minval)/(10-1)
-ystep=(maxval-minval)/(10-1)
-
-xmin=minval
-ymin=minval
-
-result2=interpolateTable(table2, x2, (xmin, ymin), (xstep, ystep), toobig)
+interp = InterpolationTable(sine_table, origin=minval, step=step,
+                            order=1, undef=toobig)
+result = interp(x[0])    # x[0] has shape ()
 \end{python}
 
-We can check the values using \function{whereZero}.
-For example, for $x=0$:
+\noindent Alternatively, the domain extent can be given directly with
+\var{extend} instead of \var{step}:
+
 \begin{python}
-print(result2*whereZero(x[0]))
+interp = InterpolationTable(sine_table, origin=minval,
+                            extend=(maxval - minval), order=1, undef=toobig)
 \end{python}
 
-Finally let us look at a 3D example. Note that the parameter tuples should be
-$(x,y,z)$ but that in the interpolation table, $x$ is the innermost dimension.
+\noindent By default, values outside the table range are clamped to the
+nearest boundary entry.  Passing \code{check\_boundaries=True} raises a
+\exception{RuntimeError} instead.
+
+\subsubsection{1-D interpolation (order-0, cell-centred)}
+
+Order-0 (piecewise constant) uses a cell-centred convention: cell $i$
+covers $[\var{origin}+i\cdot\var{step},\; \var{origin}+(i+1)\cdot\var{step})$
+with value \code{table[i]}.
+The domain therefore spans $[\var{origin},\;\var{origin}+n\cdot\var{step}]$
+where $n$ is the length of the table, and \code{extend} gives that total width
+directly:
+
 \begin{python}
-b=Brick(n,n,n)
-x3=b.getX()
-toobig=1000000
+interp0 = InterpolationTable(sine_table, origin=minval,
+                             extend=(maxval - minval), order=0, undef=toobig)
+result0 = interp0(x[0])
+\end{python}
 
-table3=[]
-for z in range(0,10):
-   face=[]
-   for y in range(0,10):
-      r=[]
-      for x in range(0,10):
-	 r.append(x+y*10+z*100)
-      face.append(r)
-   table3.append(face);
+\subsubsection{Table indexing convention}
+\label{sec:table_indexing}
 
-zstep=(maxval-minval)/(10-1)
+\class{InterpolationTable} supports two table layouts selected by the
+\var{table\_indexing} keyword argument:
 
-zmin=minval
+\begin{description}
+  \item[\code{"ijk"} (default)] The \emph{first} numpy index runs along the
+    $x$-axis (first coordinate), the second along $y$, the third along $z$.
+    A 2-D table has shape \code{(nx, ny)}, a 3-D table \code{(nx, ny, nz)}.
+    This is the natural numpy row-major order for spatial data indexed by
+    coordinate.
+  \item[\code{"kji"}] The \emph{first} numpy index runs along the $z$-axis,
+    the second along $y$, the third along $x$.
+    A 2-D table has shape \code{(ny, nx)}, a 3-D table \code{(nz, ny, nx)}.
+    This matches the convention used by the legacy \function{interpolateTable}
+    function.
+\end{description}
 
-result3=interpolateTable(table3, x3, (xmin, ymin, zmin),
-    (xstep, ystep, zstep), toobig)
+\subsubsection{2-D interpolation}
+
+We interpolate from a plane where $(x,y)\mapsto x + y\cdot10$ for
+$x,y\in[0,9]$.
+Using the default \code{"ijk"} convention the table has shape
+\code{(nx, ny)} with \code{table[ix, iy]} holding the value at grid
+point $(x_{\min}+\var{ix}\cdot\var{dx},\; y_{\min}+\var{iy}\cdot\var{dy})$:
+
+\begin{python}
+nx = ny = 10
+xstep = ystep = (maxval - minval) / (nx - 1)
+xmin = ymin = minval
+
+# "ijk": table[ix, iy], shape (nx, ny)
+table2 = numpy.array([[ix + iy * 10 for iy in range(ny)]
+                       for ix in range(nx)], dtype=float)
+
+interp2 = InterpolationTable(table2, origin=(xmin, ymin),
+                             step=(xstep, ystep), order=1, undef=toobig)
+result2 = interp2(x)   # x has shape (2,)
+\end{python}
+
+\subsubsection{3-D interpolation}
+
+\begin{python}
+from esys.finley import Brick
+b = Brick(n, n, n)
+x3 = b.getX()   # shape (3,)
+toobig = 1000000
+
+nz = 10
+zstep = (maxval - minval) / (nz - 1)
+zmin = minval
+
+# "ijk": table[ix, iy, iz], shape (nx, ny, nz)
+table3 = numpy.array([[[ix + iy*10 + iz*100 for iz in range(nz)]
+                        for iy in range(ny)]
+                       for ix in range(nx)], dtype=float)
+
+interp3 = InterpolationTable(table3, origin=(xmin, ymin, zmin),
+                             step=(xstep, ystep, zstep),
+                             order=1, undef=toobig)
+result3 = interp3(x3)
+\end{python}
+
+\subsubsection{Accessor methods}
+
+After construction, the parameters can be queried:
+
+\begin{python}
+interp.getOrder()          # 0 or 1
+interp.getNdim()           # 1, 2, or 3
+interp.getOrigin()         # tuple of starting coordinates
+interp.getStep()           # tuple of cell sizes
+interp.getExtend()         # tuple of domain extents
+interp.getTableIndexing()  # "ijk" or "kji"
+\end{python}
+
+\subsubsection{Deprecated \function{interpolateTable}}
+
+The free function \function{interpolateTable} is deprecated and will be
+removed in a future release.  It uses the \code{"kji"} table convention.
+Replace calls of the form
+\begin{python}
+result = interpolateTable(tab, dat, start, step, undef)
+\end{python}
+with
+\begin{python}
+result = InterpolationTable(tab, start, step, order=1, undef=undef,
+                            table_indexing="kji")(dat)
 \end{python}
 
 

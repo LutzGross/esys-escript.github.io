@@ -204,6 +204,459 @@ zwidth/3), 900, True)
                    res=interpolateTable(table,points[0:1], xmin, xwidth,500)
                    self.assertTrue(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s under unified call (no tuple)."%str(fs))
 
+class Test_InterpolationTable(unittest.TestCase):
+    """
+    Tests for :class:`esys.escryptcore.interpolation.InterpolationTable`.
+
+    Subclasses must define:
+      self.functionspaces  — list of FunctionSpace objects
+      self.xn, self.yn, self.zn  — number of table grid points per axis
+    """
+    RES_TOL = 1.e-7
+
+    # ------------------------------------------------------------------
+    # Constructor validation (no domain needed)
+    # ------------------------------------------------------------------
+
+    def test_constructor_requires_step_or_extend(self):
+        t = numpy.ones((3,))
+        self.assertRaises(ValueError, InterpolationTable, t, 0.)
+
+    def test_constructor_step_and_extend_exclusive(self):
+        t = numpy.ones((3,))
+        self.assertRaises(ValueError, InterpolationTable, t, 0., step=0.5, extend=1.)
+
+    def test_constructor_invalid_order(self):
+        t = numpy.ones((3,))
+        self.assertRaises(ValueError, InterpolationTable, t, 0., step=0.5, order=2)
+
+    def test_constructor_invalid_table_indexing(self):
+        t = numpy.ones((3,))
+        self.assertRaises(ValueError, InterpolationTable, t, 0., step=0.5,
+                          table_indexing="xyz")
+
+    def test_constructor_table_rank_mismatch(self):
+        t2d = numpy.ones((3, 3))
+        self.assertRaises(ValueError, InterpolationTable, t2d, (0.,), step=(0.5,))
+
+    def test_constructor_step_length_mismatch(self):
+        t = numpy.ones((3,))
+        self.assertRaises(ValueError, InterpolationTable, t, (0., 0.), step=(0.5,))
+
+    def test_constructor_nonpositive_step(self):
+        t = numpy.ones((3,))
+        self.assertRaises(ValueError, InterpolationTable, t, 0., step=-0.5)
+
+    # ------------------------------------------------------------------
+    # Accessor methods
+    # ------------------------------------------------------------------
+
+    def test_getOrder(self):
+        t = numpy.ones((3,))
+        self.assertEqual(InterpolationTable(t, 0., step=0.5, order=0).getOrder(), 0)
+        self.assertEqual(InterpolationTable(t, 0., step=0.5, order=1).getOrder(), 1)
+
+    def test_getNdim(self):
+        t1 = numpy.ones((3,))
+        t2 = numpy.ones((3, 3))
+        t3 = numpy.ones((3, 3, 3))
+        self.assertEqual(InterpolationTable(t1, (0.,), step=(0.5,)).getNdim(), 1)
+        self.assertEqual(InterpolationTable(t2, (0., 0.), step=(0.5, 0.5)).getNdim(), 2)
+        self.assertEqual(
+            InterpolationTable(t3, (0., 0., 0.), step=(0.5, 0.5, 0.5)).getNdim(), 3)
+
+    def test_getOrigin(self):
+        t = numpy.ones((3,))
+        self.assertEqual(InterpolationTable(t, 1.5, step=0.5).getOrigin(), (1.5,))
+
+    def test_getStep(self):
+        t = numpy.ones((3,))
+        self.assertEqual(InterpolationTable(t, 0., step=0.25).getStep(), (0.25,))
+
+    def test_getTableIndexing(self):
+        t = numpy.ones((3,))
+        self.assertEqual(InterpolationTable(t, 0., step=0.5).getTableIndexing(), "ijk")
+        self.assertEqual(
+            InterpolationTable(t, 0., step=0.5, table_indexing="kji").getTableIndexing(),
+            "kji")
+
+    def test_getExtend_order1(self):
+        # n=5 sample points, step=0.25 -> extend = 0.25*(5-1) = 1.0
+        t = numpy.ones((5,))
+        it = InterpolationTable(t, 0., step=0.25, order=1)
+        self.assertAlmostEqual(it.getExtend()[0], 1., places=12)
+
+    def test_getExtend_order0(self):
+        # n=5 cells, step=0.2 -> extend = 0.2*5 = 1.0
+        t = numpy.ones((5,))
+        it = InterpolationTable(t, 0., step=0.2, order=0)
+        self.assertAlmostEqual(it.getExtend()[0], 1., places=12)
+
+    def test_extend_roundtrip_order1(self):
+        t = numpy.ones((5,))
+        it = InterpolationTable(t, 0., extend=1., order=1)
+        self.assertAlmostEqual(it.getStep()[0], 0.25, places=12)   # 1/(5-1)
+        self.assertAlmostEqual(it.getExtend()[0], 1., places=12)
+
+    def test_extend_roundtrip_order0(self):
+        t = numpy.ones((5,))
+        it = InterpolationTable(t, 0., extend=1., order=0)
+        self.assertAlmostEqual(it.getStep()[0], 0.2, places=12)    # 1/5
+        self.assertAlmostEqual(it.getExtend()[0], 1., places=12)
+
+    def test_extend_roundtrip_2d_nonsquare(self):
+        """Non-square 2-D table: extend/step must be axis-specific."""
+        # "ijk": table[ix, iy], shape (nx=4, ny=6)
+        t = numpy.ones((4, 6))
+        it = InterpolationTable(t, (0., 0.), extend=(3., 5.), order=1,
+                                table_indexing="ijk")
+        self.assertAlmostEqual(it.getStep()[0], 3. / (4 - 1), places=12)  # x
+        self.assertAlmostEqual(it.getStep()[1], 5. / (6 - 1), places=12)  # y
+        self.assertAlmostEqual(it.getExtend()[0], 3., places=12)
+        self.assertAlmostEqual(it.getExtend()[1], 5., places=12)
+
+    def test_extend_roundtrip_2d_nonsquare_kji(self):
+        """Non-square 2-D table "kji": table[iy, ix], shape (ny=6, nx=4)."""
+        t = numpy.ones((6, 4))
+        it = InterpolationTable(t, (0., 0.), extend=(3., 5.), order=1,
+                                table_indexing="kji")
+        self.assertAlmostEqual(it.getStep()[0], 3. / (4 - 1), places=12)  # x
+        self.assertAlmostEqual(it.getStep()[1], 5. / (6 - 1), places=12)  # y
+        self.assertAlmostEqual(it.getExtend()[0], 3., places=12)
+        self.assertAlmostEqual(it.getExtend()[1], 5., places=12)
+
+    # ------------------------------------------------------------------
+    # ijk vs kji produce the same interpolated values
+    # ------------------------------------------------------------------
+
+    def test_ijk_kji_equivalent_2d(self):
+        for fs in self.functionspaces:
+            points = fs.getX()
+            if points.getShape() not in ((2,), (3,)):
+                continue
+            x, y = points[0], points[1]
+            xmin, xmax = float(inf(x)), float(sup(x))
+            ymin, ymax = float(inf(y)), float(sup(y))
+            if xmax <= xmin or ymax <= ymin:
+                continue
+            nx, ny = self.xn, self.yn
+            dx = (xmax - xmin) / (nx - 1)
+            dy = (ymax - ymin) / (ny - 1)
+            # "ijk": table[ix, iy] shape (nx, ny)
+            t_ijk = numpy.random.rand(nx, ny)
+            # "kji": transpose shape (ny, nx)
+            t_kji = t_ijk.T
+            it_ijk = InterpolationTable(t_ijk, (xmin, ymin), step=(dx, dy),
+                                        order=1, table_indexing="ijk")
+            it_kji = InterpolationTable(t_kji, (xmin, ymin), step=(dx, dy),
+                                        order=1, table_indexing="kji")
+            res_ijk = it_ijk(points[0:2])
+            res_kji = it_kji(points[0:2])
+            self.assertTrue(Lsup(res_ijk - res_kji) < self.RES_TOL,
+                            "ijk vs kji mismatch for %s" % str(fs))
+
+    # ------------------------------------------------------------------
+    # 1-D order-1 interpolation accuracy
+    # ------------------------------------------------------------------
+
+    def test_1d_order1_accuracy(self):
+        for fs in self.functionspaces:
+            x = fs.getX()[0]
+            xmin, xmax = float(inf(x)), float(sup(x))
+            if xmax <= xmin:
+                continue
+            n = self.xn
+            step = (xmax - xmin) / (n - 1)
+            v0, v1 = 2., 3.
+            table = numpy.array([v0 + v1 * step * i for i in range(n)])
+            it = InterpolationTable(table, origin=xmin, step=step, order=1)
+            ref = v0 + v1 * (x - xmin)
+            res = it(x)
+            lsupref = Lsup(ref)
+            if lsupref > 0:
+                self.assertTrue(Lsup(res - ref) / lsupref < self.RES_TOL,
+                                "1D order-1 failed for %s" % str(fs))
+
+    def test_1d_order1_with_extend(self):
+        for fs in self.functionspaces:
+            x = fs.getX()[0]
+            xmin, xmax = float(inf(x)), float(sup(x))
+            if xmax <= xmin:
+                continue
+            n = self.xn
+            step = (xmax - xmin) / (n - 1)
+            v0, v1 = 1., 2.
+            table = numpy.array([v0 + v1 * step * i for i in range(n)])
+            it_step = InterpolationTable(table, origin=xmin, step=step, order=1)
+            it_ext = InterpolationTable(table, origin=xmin,
+                                        extend=(xmax - xmin), order=1)
+            self.assertTrue(Lsup(it_step(x) - it_ext(x)) < self.RES_TOL,
+                            "extend vs step mismatch for 1D order-1, fs=%s" % str(fs))
+
+    def test_1d_scalar_x(self):
+        """Scalar Data (shape ()) dispatches to 1-D interpolation."""
+        t = numpy.array([0., 1., 2., 3., 4.])
+        it = InterpolationTable(t, origin=0., step=1., order=1)
+        d = Data(1.5)
+        self.assertTrue(Lsup(it(d) - 1.5) < self.RES_TOL)
+
+    def test_1d_shape1_x(self):
+        """Data with shape (1,) dispatches to 1-D interpolation."""
+        t = numpy.array([0., 1., 2., 3., 4.])
+        it = InterpolationTable(t, origin=0., step=1., order=1)
+        d = Data([2.0])   # shape (1,)
+        self.assertTrue(Lsup(it(d) - 2.0) < self.RES_TOL)
+
+    # ------------------------------------------------------------------
+    # 1-D order-0 (piecewise constant / cell-centred)
+    # ------------------------------------------------------------------
+
+    def test_1d_order0_cell_centres(self):
+        """Value at each cell centre must exactly match the table entry."""
+        vals = numpy.array([10., 20., 30., 40.])
+        step, origin = 0.25, 0.
+        it = InterpolationTable(vals, origin=origin, step=step, order=0)
+        for i, v in enumerate(vals):
+            centre = origin + (i + 0.5) * step
+            res = it(Data(centre))
+            self.assertAlmostEqual(float(Lsup(res)), v, places=10,
+                                   msg="order-0 cell %d wrong" % i)
+
+    def test_1d_order0_with_extend(self):
+        vals = numpy.array([10., 20., 30., 40.])
+        it_step = InterpolationTable(vals, origin=0., step=0.25, order=0)
+        it_ext = InterpolationTable(vals, origin=0., extend=1., order=0)
+        self.assertAlmostEqual(it_step.getStep()[0], it_ext.getStep()[0], places=12)
+
+    def test_1d_order0_accuracy(self):
+        for fs in self.functionspaces:
+            x = fs.getX()[0]
+            xmin, xmax = float(inf(x)), float(sup(x))
+            if xmax <= xmin:
+                continue
+            vals = numpy.array([1., 5., 3., 7.])
+            step = (xmax - xmin) / len(vals)
+            it = InterpolationTable(vals, origin=xmin, step=step, order=0)
+            res = it(x)
+            self.assertTrue(float(inf(res)) >= vals.min() - self.RES_TOL,
+                            "order-0 result below minimum for %s" % str(fs))
+            self.assertTrue(float(sup(res)) <= vals.max() + self.RES_TOL,
+                            "order-0 result above maximum for %s" % str(fs))
+
+    # ------------------------------------------------------------------
+    # 2-D order-1 interpolation accuracy
+    # ------------------------------------------------------------------
+
+    def test_2d_order1_accuracy(self):
+        for fs in self.functionspaces:
+            points = fs.getX()
+            if points.getShape() not in ((2,), (3,)):
+                continue
+            x, y = points[0], points[1]
+            xmin, xmax = float(inf(x)), float(sup(x))
+            ymin, ymax = float(inf(y)), float(sup(y))
+            if xmax <= xmin or ymax <= ymin:
+                continue
+            nx, ny = self.xn, self.yn
+            dx = (xmax - xmin) / (nx - 1)
+            dy = (ymax - ymin) / (ny - 1)
+            v0, v1, v2, v3 = 1., 3., 5., 7.
+            # "ijk" convention: table[ix, iy], shape (nx, ny)
+            table = numpy.array([[v0 + v1*dx*i + v2*dy*j + v3*dx*dy*i*j
+                                   for j in range(ny)]
+                                  for i in range(nx)])
+            it = InterpolationTable(table, origin=(xmin, ymin), step=(dx, dy),
+                                    order=1, table_indexing="ijk")
+            ref = v0 + v1*(x - xmin) + v2*(y - ymin) + v3*(x - xmin)*(y - ymin)
+            res = it(points[0:2])
+            lsupref = Lsup(ref)
+            if lsupref > 0:
+                self.assertTrue(Lsup(res - ref) / lsupref < self.RES_TOL,
+                                "2D order-1 failed for %s" % str(fs))
+
+    def test_2d_order1_with_extend(self):
+        for fs in self.functionspaces:
+            points = fs.getX()
+            if points.getShape() not in ((2,), (3,)):
+                continue
+            x, y = points[0], points[1]
+            xmin, xmax = float(inf(x)), float(sup(x))
+            ymin, ymax = float(inf(y)), float(sup(y))
+            if xmax <= xmin or ymax <= ymin:
+                continue
+            nx, ny = self.xn, self.yn
+            dx = (xmax - xmin) / (nx - 1)
+            dy = (ymax - ymin) / (ny - 1)
+            table = numpy.ones((nx, ny))
+            it_step = InterpolationTable(table, origin=(xmin, ymin),
+                                         step=(dx, dy), order=1)
+            it_ext = InterpolationTable(table, origin=(xmin, ymin),
+                                        extend=(xmax - xmin, ymax - ymin), order=1)
+            res_step = it_step(points[0:2])
+            res_ext = it_ext(points[0:2])
+            self.assertTrue(Lsup(res_step - res_ext) < self.RES_TOL,
+                            "2D extend vs step mismatch for %s" % str(fs))
+
+    # ------------------------------------------------------------------
+    # 2-D order-0 accuracy
+    # ------------------------------------------------------------------
+
+    def test_2d_order0_accuracy(self):
+        for fs in self.functionspaces:
+            points = fs.getX()
+            if points.getShape() not in ((2,), (3,)):
+                continue
+            x = points[0]
+            xmin, xmax = float(inf(x)), float(sup(x))
+            if xmax <= xmin:
+                continue
+            nx, ny = self.xn, self.yn
+            dx = dy = (xmax - xmin) / nx
+            # "ijk": table[ix, iy], shape (nx, ny)
+            table = numpy.arange(nx * ny, dtype=float).reshape(nx, ny)
+            it = InterpolationTable(table, origin=(xmin, xmin),
+                                    step=(dx, dy), order=0)
+            res = it(points[0:2])
+            self.assertTrue(float(inf(res)) >= -self.RES_TOL,
+                            "2D order-0 result below 0 for %s" % str(fs))
+            self.assertTrue(float(sup(res)) <= nx * ny - 1 + self.RES_TOL,
+                            "2D order-0 result above max for %s" % str(fs))
+
+    # ------------------------------------------------------------------
+    # 3-D order-1 interpolation accuracy
+    # ------------------------------------------------------------------
+
+    def test_3d_order1_accuracy(self):
+        for fs in self.functionspaces:
+            points = fs.getX()
+            if points.getShape() != (3,):
+                continue
+            x, y, z = points[0], points[1], points[2]
+            xmin, xmax = float(inf(x)), float(sup(x))
+            ymin, ymax = float(inf(y)), float(sup(y))
+            zmin, zmax = float(inf(z)), float(sup(z))
+            if xmax <= xmin or ymax <= ymin or zmax <= zmin:
+                continue
+            nx, ny, nz = self.xn, self.yn, self.zn
+            dx = (xmax - xmin) / (nx - 1)
+            dy = (ymax - ymin) / (ny - 1)
+            dz = (zmax - zmin) / (nz - 1)
+            v0, v1, v2 = 1., 3., 5.
+            # "ijk": table[ix, iy, iz], shape (nx, ny, nz)
+            table = numpy.zeros((nx, ny, nz))
+            for i in range(nx):
+                for j in range(ny):
+                    for k in range(nz):
+                        table[i, j, k] = v0 + v1*dx*i + v2*dy*j
+            it = InterpolationTable(table, origin=(xmin, ymin, zmin),
+                                    step=(dx, dy, dz), order=1,
+                                    table_indexing="ijk")
+            ref = v0 + v1*(x - xmin) + v2*(y - ymin)
+            res = it(points)
+            lsupref = Lsup(ref)
+            if lsupref > 0:
+                self.assertTrue(Lsup(res - ref) / lsupref < self.RES_TOL,
+                                "3D order-1 failed for %s" % str(fs))
+
+    # ------------------------------------------------------------------
+    # Boundary checking
+    # ------------------------------------------------------------------
+
+    def test_check_boundaries_lower(self):
+        """check_boundaries=True raises when coord falls below origin."""
+        for fs in self.functionspaces:
+            x = fs.getX()[0]
+            xmin, xmax = float(inf(x)), float(sup(x))
+            if xmax <= xmin:
+                continue
+            table = numpy.array([0., 1., 2.])
+            step = (xmax - xmin) / (len(table) - 1)
+            # shift origin so that some mesh points are below it
+            it = InterpolationTable(table, origin=xmin + step, step=step,
+                                    order=1, check_boundaries=True)
+            self.assertRaises(RuntimeError, it, x)
+            break
+
+    def test_check_boundaries_upper_order1(self):
+        """check_boundaries=True raises when coord > last sample point."""
+        for fs in self.functionspaces:
+            x = fs.getX()[0]
+            xmin, xmax = float(inf(x)), float(sup(x))
+            if xmax <= xmin:
+                continue
+            table = numpy.array([0., 1., 2.])
+            # make step small so that xmax exceeds last sample
+            step = (xmax - xmin) / (3 * (len(table) - 1))
+            it = InterpolationTable(table, origin=xmin, step=step,
+                                    order=1, check_boundaries=True)
+            self.assertRaises(RuntimeError, it, x)
+            break
+
+    def test_check_boundaries_upper_order0(self):
+        """check_boundaries=True raises when coord >= origin + n*step."""
+        for fs in self.functionspaces:
+            x = fs.getX()[0]
+            xmin, xmax = float(inf(x)), float(sup(x))
+            if xmax <= xmin:
+                continue
+            table = numpy.array([0., 1., 2.])
+            # make step small so that xmax >= origin + n*step
+            step = (xmax - xmin) / (3 * len(table))
+            it = InterpolationTable(table, origin=xmin, step=step,
+                                    order=0, check_boundaries=True)
+            self.assertRaises(RuntimeError, it, x)
+            break
+
+    # ------------------------------------------------------------------
+    # undef threshold
+    # ------------------------------------------------------------------
+
+    def test_undef_threshold(self):
+        table = numpy.array([0., 1., 2.e51])
+        it = InterpolationTable(table, origin=0., step=1., order=0)
+        self.assertRaises(RuntimeError, it, Data(2.))
+
+    # ------------------------------------------------------------------
+    # TypeError / ValueError for bad inputs
+    # ------------------------------------------------------------------
+
+    def test_type_error_not_data(self):
+        t = numpy.ones((3,))
+        it = InterpolationTable(t, origin=0., step=0.5)
+        self.assertRaises(TypeError, it, 0.5)
+        self.assertRaises(TypeError, it, numpy.array([0.5]))
+
+    def test_value_error_wrong_ndim(self):
+        """x with shape (2,) must fail for a 1-D table."""
+        t = numpy.ones((3,))
+        it = InterpolationTable(t, origin=0., step=0.5)
+        self.assertRaises(ValueError, it, Data([0.5, 0.5]))
+
+    # ------------------------------------------------------------------
+    # interpolate() alias
+    # ------------------------------------------------------------------
+
+    def test_interpolate_alias(self):
+        t = numpy.array([0., 1., 2.])
+        it = InterpolationTable(t, origin=0., step=1., order=1)
+        d = Data(1.)
+        self.assertTrue(Lsup(it.interpolate(d) - it(d)) < self.RES_TOL)
+
+    # ------------------------------------------------------------------
+    # Deprecated interpolateTable issues DeprecationWarning
+    # ------------------------------------------------------------------
+
+    def test_deprecated_interpolateTable_warning(self):
+        import warnings
+        t = numpy.array([0., 1., 2.])
+        d = Data(1.)
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            interpolateTable(t, d, 0., 1., 100)
+            dep = [x for x in w if issubclass(x.category, DeprecationWarning)]
+            self.assertTrue(len(dep) >= 1, "DeprecationWarning not issued")
+
+
 class Test_saveCSV(unittest.TestCase):
    def setUp(self):
         self.workdir=ESCRIPT_WORKDIR

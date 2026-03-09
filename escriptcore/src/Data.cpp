@@ -5352,7 +5352,7 @@ Data::interpolateFromTable1DOrder0(const WrappedArray& table, real_t Amin,
                     {
                         lerror=1;
                     }
-                    else if (a>Amin+Astep*twidth)
+                    else if (a>=Amin+Astep*(twidth+1))
                     {
                         lerror=4;
                     }
@@ -5481,7 +5481,7 @@ Data::interpolateFromTable2DOrder0(const WrappedArray& table, real_t Amin,
                     {
                         lerror=1;
                     }
-                    else if ((a>Amin+Astep*twx) || (b>Bmin+Bstep*twy))
+                    else if ((a>=Amin+Astep*(twx+1)) || (b>=Bmin+Bstep*(twy+1)))
                     {
                         lerror=4;
                     }
@@ -5628,7 +5628,7 @@ Data::interpolateFromTable3DOrder0(const WrappedArray& table, real_t Amin,
                     {
                         lerror=1;
                     }
-                    else if ((a>Amin+Astep*twx) || (b>Bmin+Bstep*twy) || (c>Cmin+Cstep*twz))
+                    else if ((a>=Amin+Astep*(twx+1)) || (b>=Bmin+Bstep*(twy+1)) || (c>=Cmin+Cstep*(twz+1)))
                     {
                         lerror=4;
                     }

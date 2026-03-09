@@ -28,7 +28,8 @@ mpi4py = True
 build_trilinos = 'make'  # Use smart dependency checking
 
 # Include oxley with sc_MPI_COMM_WORLD for p4est/p8est integration
-domains = ['finley', 'ripley', 'speckley', 'oxley']
+#domains = ['finley', 'ripley', 'speckley', 'oxley']
+domains = ['finley', 'ripley', 'speckley' ]
 
 # Override cxx_extra to avoid duplicate optimization flags with MPI
 cxx_extra = ['-fdiagnostics-color=always', '-fstack-protector-strong', '-Wformat', '-Werror=format-security']

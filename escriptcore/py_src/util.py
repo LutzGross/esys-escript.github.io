@@ -152,7 +152,8 @@ def interpolateTable(tab, dat, start, step, undef=1.e50, check_boundaries=False)
         "interpolateTable is deprecated; use InterpolationTable instead.",
         DeprecationWarning, stacklevel=2)
     return InterpolationTable(tab, start, step, order=1, undef=undef,
-                              check_boundaries=check_boundaries)(dat)
+                              check_boundaries=check_boundaries,
+                              table_indexing="kji")(dat)
 
 
 def saveDataCSV(filename, append=False, refid=False, sep=", ", csep="_", **data):

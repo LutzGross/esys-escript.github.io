@@ -11,6 +11,7 @@
 #
 ##############################################################################
 
+
 """
 Provides :class:`InterpolationTable`, a class-based interface for
 interpolating scalar values from a regular-grid lookup table onto a mesh.
@@ -34,15 +35,21 @@ class InterpolationTable:
     ========================  ===========  =======================
     ``()``                    1-D          1  — shape ``(nx,)``
     ``(1,)``                  1-D          1  — shape ``(nx,)``
-    ``(2,)``                  2-D          2  — shape ``(nx, ny)``
-    ``(3,)``                  3-D          3  — shape ``(nx, ny, nz)``
+    ``(2,)``                  2-D          2
+    ``(3,)``                  3-D          3
     ========================  ===========  =======================
 
     The returned `Data` object is always **scalar** (shape ``()``).
 
-    **Table indexing convention**: ``table[ix, iy, iz]`` where *ix* is the
-    index along the x-axis (first coordinate), *iy* along the y-axis
-    (second), and *iz* along the z-axis (third).
+    **Table indexing convention** (controlled by *table_indexing*):
+
+    * ``"ijk"`` *(default)* — natural numpy order: the first index varies
+      along the x-axis, the second along y, the third along z.
+      Shapes: ``(nx,)`` / ``(nx, ny)`` / ``(nx, ny, nz)``.
+
+    * ``"kji"`` — legacy / C++ order: the first index varies along the
+      z-axis, the second along y, the third along x.
+      Shapes: ``(nx,)`` / ``(ny, nx)`` / ``(nz, ny, nx)``.
 
     Example usage::
 
@@ -54,13 +61,17 @@ class InterpolationTable:
         dom = Rectangle(20, 20)
         x = Function(dom).getX()   # shape (2,)
 
-        # 2-D scalar table, order-1 (linear) interpolation
+        # 2-D scalar table, "ijk" convention: shape (nx, ny)
         t = np.random.rand(5, 5)
         interp = InterpolationTable(t, origin=(0., 0.), step=(0.25, 0.25))
-        result = interp(x)          # scalar Data on Function(dom)
+        result = interp(x)
 
-        # 2-D scalar table, order-0 (piecewise constant) interpolation
-        interp0 = InterpolationTable(t, origin=(0., 0.), step=(0.25, 0.25), order=0)
+        # Equivalent using total extent (covers [0,1] x [0,1])
+        interp = InterpolationTable(t, origin=(0., 0.), extend=(1., 1.))
+        result = interp(x)
+
+        # Order-0 (piecewise constant) interpolation
+        interp0 = InterpolationTable(t, origin=(0., 0.), extend=(1., 1.), order=0)
         result0 = interp0(x)
 
     :param table: lookup table as a numpy array of rank 1, 2, or 3
@@ -68,10 +79,20 @@ class InterpolationTable:
     :param origin: coordinate(s) of the first table entry; a single float
         for 1-D or a tuple for 2-D / 3-D
     :type origin: ``float`` or ``tuple`` of ``float``
-    :param step: cell size(s); all values must be strictly positive
+    :param step: cell size(s), i.e. the spacing between adjacent table
+        entries; all values must be strictly positive.  Exactly one of
+        *step* and *extend* must be supplied.
     :type step: ``float`` or ``tuple`` of ``float``
-    :param order: interpolation order — 0 for piecewise constant (nearest
-        neighbour), 1 for linear (default)
+    :param extend: total extent of the table domain along each coordinate
+        axis.  For order-1: distance from the first to the last sample
+        point along axis *i* (``step[i] = extend[i] / (n_i - 1)``).
+        For order-0: total domain width along axis *i*
+        (``step[i] = extend[i] / n_i``), where *n_i* is the number of
+        cells along that axis.  Exactly one of *step* and *extend* must
+        be supplied.
+    :type extend: ``float`` or ``tuple`` of ``float``
+    :param order: interpolation order — 0 for piecewise constant, 1 for
+        linear (default)
     :type order: ``int``
     :param undef: upper threshold; result values above this trigger a
         ``RuntimeError``
@@ -80,36 +101,80 @@ class InterpolationTable:
         a coordinate lies outside the table extent; otherwise the nearest
         boundary value is used
     :type check_boundaries: ``bool``
+    :param table_indexing: indexing convention for the table array.
+        ``"ijk"`` (default) — first index = x-axis, natural numpy order.
+        ``"kji"`` — first index = z-axis, legacy C++ order.
+    :type table_indexing: ``str``
     """
 
-    def __init__(self, table, origin, step, order=1, undef=1.e50,
-                 check_boundaries=False):
+    def __init__(self, table, origin, step=None, extend=None, order=1,
+                 undef=1.e50, check_boundaries=False, table_indexing="ijk"):
         if not isinstance(table, np.ndarray):
             table = np.array(table, dtype=float)
         if np.isscalar(origin):
             origin = (origin,)
-        if np.isscalar(step):
-            step = (step,)
         ndim = len(origin)
-        if len(step) != ndim:
-            raise ValueError("origin and step must have the same length")
         if ndim < 1 or ndim > 3:
             raise ValueError("ndim (length of origin) must be 1, 2, or 3")
         if table.ndim != ndim:
             raise ValueError(
                 "table rank {} does not match coordinate dimension {} "
                 "(set by length of origin)".format(table.ndim, ndim))
-        if any(s <= 0 for s in step):
-            raise ValueError("All step sizes must be strictly positive")
         if order not in (0, 1):
             raise ValueError("order must be 0 or 1")
-        self._table = np.ascontiguousarray(table, dtype=float)
+        if table_indexing not in ("ijk", "kji"):
+            raise ValueError("table_indexing must be 'ijk' or 'kji'")
+
+        # n[i] = number of table entries along coordinate axis i (0=x,1=y,2=z)
+        if table_indexing == "ijk":
+            self._n = tuple(int(table.shape[i]) for i in range(ndim))
+            # Transpose to internal "kji" storage for C++ workers.
+            # 1-D: no change; 2-D: axes (0,1)->(1,0); 3-D: (0,1,2)->(2,1,0)
+            if ndim == 1:
+                self._table = np.ascontiguousarray(table, dtype=float)
+            elif ndim == 2:
+                self._table = np.ascontiguousarray(table.T, dtype=float)
+            else:
+                self._table = np.ascontiguousarray(
+                    table.transpose(2, 1, 0), dtype=float)
+        else:  # "kji"
+            self._n = tuple(int(table.shape[ndim - 1 - i]) for i in range(ndim))
+            self._table = np.ascontiguousarray(table, dtype=float)
+
+        # Resolve step / extend using n[i] (entries along axis i)
+        if step is None and extend is None:
+            raise ValueError("Exactly one of 'step' or 'extend' must be provided")
+        if step is not None and extend is not None:
+            raise ValueError("Only one of 'step' or 'extend' may be provided, not both")
+        if extend is not None:
+            if np.isscalar(extend):
+                extend = (extend,)
+            if len(extend) != ndim:
+                raise ValueError("extend must have the same length as origin")
+            if order == 0:
+                # n cells each of width step; domain is [origin, origin+extend]
+                step = tuple(float(e) / self._n[i]
+                             for i, e in enumerate(extend))
+            else:
+                # n-1 intervals between n sample points
+                step = tuple(float(e) / (self._n[i] - 1)
+                             for i, e in enumerate(extend))
+        else:
+            if np.isscalar(step):
+                step = (step,)
+            if len(step) != ndim:
+                raise ValueError("step must have the same length as origin")
+            step = tuple(float(s) for s in step)
+
+        if any(s <= 0 for s in step):
+            raise ValueError("All step sizes must be strictly positive")
         self._origin = tuple(float(v) for v in origin)
-        self._step = tuple(float(v) for v in step)
+        self._step = step
         self._ndim = ndim
         self._order = order
         self._undef = float(undef)
         self._check_boundaries = check_boundaries
+        self._table_indexing = table_indexing
 
     # ------------------------------------------------------------------
     # Internal C++ dispatch
@@ -209,25 +274,43 @@ class InterpolationTable:
         return self(x)
 
     # ------------------------------------------------------------------
-    # Read-only properties
+    # Read-only accessors
     # ------------------------------------------------------------------
 
-    @property
-    def order(self):
-        """Interpolation order (0 or 1)."""
+    def getOrder(self):
+        """Return the interpolation order (0 or 1)."""
         return self._order
 
-    @property
-    def ndim(self):
-        """Number of coordinate dimensions (1, 2, or 3)."""
+    def getNdim(self):
+        """Return the number of coordinate dimensions (1, 2, or 3)."""
         return self._ndim
 
-    @property
-    def origin(self):
-        """Tuple of starting coordinates."""
+    def getOrigin(self):
+        """Return the tuple of starting coordinates."""
         return self._origin
 
-    @property
-    def step(self):
-        """Tuple of cell sizes."""
+    def getStep(self):
+        """Return the tuple of cell sizes."""
         return self._step
+
+    def getTableIndexing(self):
+        """Return the table indexing convention (``'ijk'`` or ``'kji'``)."""
+        return self._table_indexing
+
+    def getExtend(self):
+        """Return the tuple of domain extents along each coordinate axis.
+
+        For order-1: ``extend[i] = step[i] * (n_i - 1)``
+        (distance from first to last sample point along axis *i*).
+
+        For order-0: ``extend[i] = step[i] * n_i``
+        (total domain width; domain along axis *i* is
+        ``[origin[i], origin[i] + extend[i]]``).
+
+        Here *n_i* is the number of table entries along coordinate axis *i*
+        (independent of the *table_indexing* convention).
+        """
+        if self._order == 0:
+            return tuple(s * self._n[i] for i, s in enumerate(self._step))
+        else:
+            return tuple(s * (self._n[i] - 1) for i, s in enumerate(self._step))
