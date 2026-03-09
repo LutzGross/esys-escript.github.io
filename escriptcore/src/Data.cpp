@@ -963,19 +963,34 @@ Data::maskWorker(Data& other2, Data& mask2, S sentinel)
     unsigned int otherrank=other2.getDataPointRank();
     unsigned int maskrank=mask2.getDataPointRank();    
 
-    if ((selfrank>0) && (otherrank>0) &&(maskrank==0))
+    if ((selfrank>0) && (otherrank>0) && (maskrank==0) && !isTagged())
     {
-        if (mvec[0]>0)          // copy whole object if scalar is >0
+        // Scalar mask applied per data point (Expanded or Constant).
+        // mvec has one entry per data point; self/ovec have psize entries per data point.
+        size_t psize = getDataPointSize();
+        size_t num_dp = getNumDataPoints();
+        #pragma omp parallel for schedule(static)
+        for (size_t pt = 0; pt < num_dp; ++pt)
         {
-            copy(other2);
+            if (mvec[pt] > 0)
+            {
+                size_t offset = pt * psize;
+                for (size_t comp = 0; comp < psize; ++comp)
+                    self[offset + comp] = ovec[offset + comp];
+            }
         }
         return;
     }
     if (isTagged())               // so all objects involved will also be tagged
     {
         // note the !
-        if (!((getDataPointShape()==mask2.getDataPointShape()) && 
-                ((other2.getDataPointShape()==mask2.getDataPointShape()) || (otherrank==0))))
+        // Valid combinations:
+        //   1. all same shape
+        //   2. mask same shape as self, other is scalar
+        //   3. mask is scalar, other same shape as self  (new)
+        if (!((getDataPointShape()==mask2.getDataPointShape() &&
+                (other2.getDataPointShape()==mask2.getDataPointShape() || otherrank==0)) ||
+              (maskrank==0 && getDataPointShape()==other2.getDataPointShape())))
         {
             throw DataException("copyWithMask, shape mismatch.");
         }
@@ -1003,7 +1018,7 @@ Data::maskWorker(Data& other2, Data& mask2, S sentinel)
         // now we know that *this has all the required tags but they aren't guaranteed to be in
         // the same order
 
-        // There are two possibilities: 1. all objects have the same rank. 2. other is a scalar
+        // Three cases: 1. all same rank. 2. scalar mask, vector self & other. 3. scalar other.
         if ((selfrank==otherrank) && (otherrank==maskrank))
         {
             for (i=tlookup.begin();i!=tlookup.end();i++)
@@ -1028,6 +1043,30 @@ Data::maskWorker(Data& other2, Data& mask2, S sentinel)
                 {
                     self[j+tptr->getDefaultOffset()]=ovec[j+optr->getDefaultOffset()];
                 }
+            }
+        }
+        else if ((selfrank==otherrank) && (maskrank==0))
+        {
+            // Case 2: scalar mask, vector self and other.
+            // mvec has one scalar value per tag block; copy all psize components when mask > 0.
+            for (i=tlookup.begin();i!=tlookup.end();i++)
+            {
+                DataTypes::RealVectorType::size_type toff=tptr->getOffsetForTag(i->first);
+                DataTypes::RealVectorType::size_type moff=mptr->getOffsetForTag(i->first);
+                DataTypes::RealVectorType::size_type ooff=optr->getOffsetForTag(i->first);
+                if (mvec[moff] > 0)
+                {
+                    for (int j=0; j<getDataPointSize(); ++j)
+                        self[j+toff] = ovec[j+ooff];
+                }
+            }
+            // default value
+            if (mvec[mptr->getDefaultOffset()] > 0)
+            {
+                DataTypes::RealVectorType::size_type tdef=tptr->getDefaultOffset();
+                DataTypes::RealVectorType::size_type odef=optr->getDefaultOffset();
+                for (int j=0; j<getDataPointSize(); ++j)
+                    self[j+tdef] = ovec[j+odef];
             }
         }
         else    // other is a scalar
@@ -1407,6 +1446,7 @@ Data::toListOfTuples(bool scalarastuple)
             {
                 for (count=0;count<npoints;++count)
                 {
+
                     res[count]=vec[count];
                 }
             }
