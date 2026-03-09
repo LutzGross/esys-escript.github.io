@@ -29,6 +29,7 @@ from test_types import Test_addition_types
 from test_util_interpolation import Test_Util_Interpolation_Dirac
 from test_util_integrals import Test_Util_Integration_Dirac
 from test_util_NaN_funcs import Test_util_NaN_funcs
+from test_util_base import Test_util_base
 # from test_copyWithData import Test_copyWithMask
 
 from esys.escript import FunctionOnBoundary, getMPISizeWorld, HAVE_SYMBOLS
@@ -421,6 +422,24 @@ class Test_3D_Point_Order2_Integration(Test_Util_Integration_Dirac):
         self.domain=Brick(n0=5,n1=5,n2=5,order=2, diracPoints=Stations,diracTags=StationsTags)
     def tearDown(self):
         del self.domain, self.taglist
+
+class Test_DiameterOnFinley2D(Test_util_base):
+    def setUp(self):
+        self.workdir = ESCRIPT_WORKDIR
+        self.domain = Rectangle(NE, NE+1, 2)
+        self.functionspace = FunctionOnBoundary(self.domain)
+    def tearDown(self):
+        del self.functionspace
+        del self.domain
+
+class Test_DiameterOnFinley3D(Test_util_base):
+    def setUp(self):
+        self.workdir = ESCRIPT_WORKDIR
+        self.domain = Brick(NE, NE, NE)
+        self.functionspace = FunctionOnBoundary(self.domain)
+    def tearDown(self):
+        del self.functionspace
+        del self.domain
 
 # TODO
 # class Test_copyWithMask_rectangle(Test_copyWithMask):
