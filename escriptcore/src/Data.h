@@ -858,7 +858,41 @@ If false, the result is a list of scalars [1, 2, ...]
   Data
   interpolateFromTable1DP(boost::python::object table, DataTypes::real_t Amin, DataTypes::real_t Astep,
                         DataTypes::real_t undef,bool check_boundaries);
-  
+
+  // Order-0 (piecewise constant / nearest-neighbour) interpolation workers
+  Data
+  interpolateFromTable1DOrder0(const WrappedArray& table, DataTypes::real_t Amin, DataTypes::real_t Astep,
+                               DataTypes::real_t undef, bool check_boundaries);
+
+  Data
+  interpolateFromTable2DOrder0(const WrappedArray& table, DataTypes::real_t Amin, DataTypes::real_t Astep,
+                               DataTypes::real_t undef, Data& B, DataTypes::real_t Bmin,
+                               DataTypes::real_t Bstep, bool check_boundaries);
+
+  Data
+  interpolateFromTable3DOrder0(const WrappedArray& table, DataTypes::real_t Amin, DataTypes::real_t Astep,
+                               DataTypes::real_t undef, Data& B, DataTypes::real_t Bmin,
+                               DataTypes::real_t Bstep, Data& C, DataTypes::real_t Cmin,
+                               DataTypes::real_t Cstep, bool check_boundaries);
+
+  Data
+  interpolateFromTable1DOrder0P(boost::python::object table, DataTypes::real_t Amin,
+                                DataTypes::real_t Astep, DataTypes::real_t undef,
+                                bool check_boundaries);
+
+  Data
+  interpolateFromTable2DOrder0P(boost::python::object table, DataTypes::real_t Amin,
+                                DataTypes::real_t Astep, Data& B, DataTypes::real_t Bmin,
+                                DataTypes::real_t Bstep, DataTypes::real_t undef,
+                                bool check_boundaries);
+
+  Data
+  interpolateFromTable3DOrder0P(boost::python::object table, DataTypes::real_t Amin,
+                                DataTypes::real_t Astep, Data& B, DataTypes::real_t Bmin,
+                                DataTypes::real_t Bstep, Data& C, DataTypes::real_t Cmin,
+                                DataTypes::real_t Cstep, DataTypes::real_t undef,
+                                bool check_boundaries);
+
   Data
   nonuniforminterp(boost::python::object in, boost::python::object out, bool check_boundaries);
 

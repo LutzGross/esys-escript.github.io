@@ -5266,6 +5266,427 @@ Data::interpolateFromTable3D(const WrappedArray& table, real_t Amin,
     return res;
 }
 
+// ============ Order-0 (piecewise constant) P-wrappers ============
+
+Data
+Data::interpolateFromTable1DOrder0P(bp::object table, real_t Amin, real_t Astep,
+                                    real_t undef, bool check_boundaries)
+{
+    WrappedArray t(table);
+    return interpolateFromTable1DOrder0(t, Amin, Astep, undef, check_boundaries);
+}
+
+Data
+Data::interpolateFromTable2DOrder0P(bp::object table, real_t Amin, real_t Astep,
+                                    Data& B, real_t Bmin, real_t Bstep,
+                                    real_t undef, bool check_boundaries)
+{
+    WrappedArray t(table);
+    return interpolateFromTable2DOrder0(t, Amin, Astep, undef, B, Bmin, Bstep, check_boundaries);
+}
+
+Data
+Data::interpolateFromTable3DOrder0P(bp::object table, real_t Amin, real_t Astep,
+                                    Data& B, real_t Bmin, real_t Bstep,
+                                    Data& C, real_t Cmin, real_t Cstep,
+                                    real_t undef, bool check_boundaries)
+{
+    WrappedArray t(table);
+    return interpolateFromTable3DOrder0(t, Amin, Astep, undef, B, Bmin, Bstep, C, Cmin, Cstep, check_boundaries);
+}
+
+// ============ Order-0 1D implementation ============
+
+Data
+Data::interpolateFromTable1DOrder0(const WrappedArray& table, real_t Amin,
+                                   real_t Astep, real_t undef, bool check_boundaries)
+{
+    table.convertArray(); // critical! Calling getElt on an unconverted array is not thread safe
+    int error=0;
+    if (getDataPointRank()!=0)
+    {
+        throw DataException("Input to 1D interpolation must be scalar");
+    }
+    if (table.getRank()!=1)
+    {
+        throw DataException("Table for 1D interpolation must be 1D");
+    }
+    if (Astep<=0)
+    {
+        throw DataException("Astep must be positive");
+    }
+    if (!isExpanded())
+    {
+        expand();
+    }
+    Data res(0, DataTypes::scalarShape, getFunctionSpace(), true);
+    int numpts=getNumDataPoints();
+    int twidth=table.getShape()[0]-1;
+    bool haserror=false;
+    const RealVectorType* adat=0;
+    RealVectorType* rdat=0;
+    try
+    {
+        adat=&(getReady()->getVectorRO());
+        rdat=&(res.getReady()->getVectorRW());
+    } catch (DataException& d)
+    {
+        haserror=true;
+        error=3;
+    }
+    if (!haserror)
+    {
+        int l=0;
+#pragma omp parallel for private(l) schedule(static)
+        for (l=0;l<numpts; ++l)
+        {
+            int lerror=0;
+#pragma omp flush(haserror)
+            if (!haserror)
+            {
+                real_t a=(*adat)[l];
+                int x=static_cast<int>(((a-Amin)/Astep));
+                if (check_boundaries)
+                {
+                    if ((a<Amin) || (x<0))
+                    {
+                        lerror=1;
+                    }
+                    else if (a>Amin+Astep*twidth)
+                    {
+                        lerror=4;
+                    }
+                }
+                if (!lerror)
+                {
+                    if (x<0) x=0;
+                    if (x>twidth) x=twidth;
+                    try {
+                        real_t e=table.getElt(x);
+                        if (e>undef)
+                        {
+                            lerror=2;
+                        }
+                        else
+                        {
+                            (*rdat)[l]=e;
+                        }
+                    }
+                    catch (DataException& d)
+                    {
+                        lerror=3;
+                    }
+                }
+                if (lerror!=0)
+                {
+#pragma omp critical
+                    {
+                        haserror=true;
+                        error=lerror;
+                    }
+                }
+            }
+        }
+    }
+#ifdef ESYS_MPI
+    int rerror=0;
+    MPI_Allreduce( &error, &rerror, 1, MPI_INT, MPI_MAX, get_MPIComm() );
+    error=rerror;
+#endif
+    if (error)
+    {
+        switch (error)
+        {
+            case 1: throw DataException("Value below lower table range.");
+            case 2: throw DataException("Interpolated value too large");
+            case 4: throw DataException("Value greater than upper table range.");
+            default:
+                throw DataException("Unknown error in interpolation");
+        }
+    }
+    return res;
+}
+
+// ============ Order-0 2D implementation ============
+
+Data
+Data::interpolateFromTable2DOrder0(const WrappedArray& table, real_t Amin,
+                                   real_t Astep, real_t undef, Data& B, real_t Bmin,
+                                   real_t Bstep, bool check_boundaries)
+{
+    table.convertArray(); // critical! Calling getElt on an unconverted array is not thread safe
+    int error=0;
+    if ((getDataPointRank()!=0) || (B.getDataPointRank()!=0))
+    {
+        throw DataException("Inputs to 2D interpolation must be scalar");
+    }
+    if (table.getRank()!=2)
+    {
+        throw DataException("Table for 2D interpolation must be 2D");
+    }
+    if ((Astep<=0) || (Bstep<=0))
+    {
+        throw DataException("All step components must be strictly positive.");
+    }
+    if (getFunctionSpace()!=B.getFunctionSpace())
+    {
+        Data n=B.interpolate(getFunctionSpace());
+        return interpolateFromTable2DOrder0(table, Amin, Astep, undef,
+                n, Bmin, Bstep, check_boundaries);
+    }
+    if (!isExpanded())
+    {
+        expand();
+    }
+    if (!B.isExpanded())
+    {
+        B.expand();
+    }
+    Data res(0, DataTypes::scalarShape, getFunctionSpace(), true);
+    int numpts=getNumDataPoints();
+    const RealVectorType* adat=0;
+    const RealVectorType* bdat=0;
+    RealVectorType* rdat=0;
+    const DataTypes::ShapeType& ts=table.getShape();
+    try
+    {
+        adat=&(getReady()->getVectorRO());
+        bdat=&(B.getReady()->getVectorRO());
+        rdat=&(res.getReady()->getVectorRW());
+    }
+    catch (DataException& e)
+    {
+        error=3;
+    }
+    if (!error)
+    {
+        int twx=ts[1]-1;        // table width x
+        int twy=ts[0]-1;        // table width y
+        bool haserror=false;
+        int l=0;
+#pragma omp parallel for private(l) shared(res,rdat,adat,bdat) schedule(static)
+        for (l=0; l<numpts; ++l)
+        {
+#pragma omp flush(haserror)
+           if (!haserror)
+           {
+                int lerror=0;
+                real_t a=(*adat)[l];
+                real_t b=(*bdat)[l];
+                int x=static_cast<int>(((a-Amin)/Astep));
+                int y=static_cast<int>(((b-Bmin)/Bstep));
+                if (check_boundaries)
+                {
+                    if ((a<Amin) || (b<Bmin) || (x<0) || (y<0))
+                    {
+                        lerror=1;
+                    }
+                    else if ((a>Amin+Astep*twx) || (b>Bmin+Bstep*twy))
+                    {
+                        lerror=4;
+                    }
+                }
+                if (lerror==0)
+                {
+                    if (x<0) x=0;
+                    if (y<0) y=0;
+                    if (x>twx) x=twx;
+                    if (y>twy) y=twy;
+                    try
+                    {
+                        real_t e=table.getElt(y,x);
+                        if (e>undef)
+                        {
+                            lerror=2;
+                        }
+                        else
+                        {
+                            (*rdat)[l]=e;
+                        }
+                    }
+                    catch (DataException& d)
+                    {
+                        lerror=3;
+                    }
+                }
+                if (lerror!=0)
+                {
+#pragma omp critical
+                    {
+                        error=lerror;
+                    }
+                }
+           }
+        }
+    }
+#ifdef ESYS_MPI
+    int rerror=0;
+    MPI_Allreduce( &error, &rerror, 1, MPI_INT, MPI_MAX, get_MPIComm() );
+    error=rerror;
+#endif
+    if (error)
+    {
+        switch (error)
+        {
+            case 1: throw DataException("Value below lower table range.");
+            case 2: throw DataException("Interpolated value too large");
+            case 4: throw DataException("Value greater than upper table range.");
+            default:
+                throw DataException("Unknown error in interpolation");
+        }
+    }
+    return res;
+}
+
+// ============ Order-0 3D implementation ============
+
+Data
+Data::interpolateFromTable3DOrder0(const WrappedArray& table, real_t Amin,
+                                   real_t Astep, real_t undef, Data& B, real_t Bmin,
+                                   real_t Bstep, Data& C, real_t Cmin, real_t Cstep,
+                                   bool check_boundaries)
+{
+    table.convertArray(); // critical! Calling getElt on an unconverted array is not thread safe
+    int error=0;
+    if ((getDataPointRank()!=0) || (B.getDataPointRank()!=0) || (C.getDataPointRank()!=0))
+    {
+        throw DataException("Inputs to 3D interpolation must be scalar");
+    }
+    if (table.getRank()!=3)
+    {
+        throw DataException("Table for 3D interpolation must be 3D");
+    }
+    if ((Astep<=0) || (Bstep<=0) || (Cstep<=0))
+    {
+        throw DataException("All step components must be strictly positive.");
+    }
+    if (getFunctionSpace()!=B.getFunctionSpace())
+    {
+        Data n=B.interpolate(getFunctionSpace());
+        return interpolateFromTable3DOrder0(table, Amin, Astep, undef,
+                n, Bmin, Bstep, C, Cmin, Cstep, check_boundaries);
+    }
+    if (getFunctionSpace()!=C.getFunctionSpace())
+    {
+        Data n=C.interpolate(getFunctionSpace());
+        return interpolateFromTable3DOrder0(table, Amin, Astep, undef,
+                B, Bmin, Bstep, n, Cmin, Cstep, check_boundaries);
+    }
+    if (!isExpanded())
+    {
+        expand();
+    }
+    if (!B.isExpanded())
+    {
+        B.expand();
+    }
+    if (!C.isExpanded())
+    {
+        C.expand();
+    }
+    Data res(0, DataTypes::scalarShape, getFunctionSpace(), true);
+    int numpts=getNumDataPoints();
+    const RealVectorType* adat=0;
+    const RealVectorType* bdat=0;
+    const RealVectorType* cdat=0;
+    RealVectorType* rdat=0;
+    const DataTypes::ShapeType& ts=table.getShape();
+    try
+    {
+        adat=&(getReady()->getVectorRO());
+        bdat=&(B.getReady()->getVectorRO());
+        cdat=&(C.getReady()->getVectorRO());
+        rdat=&(res.getReady()->getVectorRW());
+    }
+    catch (DataException& e)
+    {
+        error=3;
+    }
+    if (!error)
+    {
+        int twx=ts[2]-1;        // table width x
+        int twy=ts[1]-1;        // table width y
+        int twz=ts[0]-1;        // table width z
+        bool haserror=false;
+        int l=0;
+#pragma omp parallel for private(l) shared(res,rdat,adat,bdat,cdat) schedule(static)
+        for (l=0; l<numpts; ++l)
+        {
+#pragma omp flush(haserror)
+           if (!haserror)
+           {
+                int lerror=0;
+                real_t a=(*adat)[l];
+                real_t b=(*bdat)[l];
+                real_t c=(*cdat)[l];
+                int x=static_cast<int>(((a-Amin)/Astep));
+                int y=static_cast<int>(((b-Bmin)/Bstep));
+                int z=static_cast<int>(((c-Cmin)/Cstep));
+                if (check_boundaries)
+                {
+                    if ((a<Amin) || (b<Bmin) || (c<Cmin) || (x<0) || (y<0) || (z<0))
+                    {
+                        lerror=1;
+                    }
+                    else if ((a>Amin+Astep*twx) || (b>Bmin+Bstep*twy) || (c>Cmin+Cstep*twz))
+                    {
+                        lerror=4;
+                    }
+                }
+                if (lerror==0)
+                {
+                    if (x<0) x=0;
+                    if (y<0) y=0;
+                    if (z<0) z=0;
+                    if (x>twx) x=twx;
+                    if (y>twy) y=twy;
+                    if (z>twz) z=twz;
+                    try
+                    {
+                        real_t e=table.getElt(z,y,x);
+                        if (e>undef)
+                        {
+                            lerror=2;
+                        }
+                        else
+                        {
+                            (*rdat)[l]=e;
+                        }
+                    }
+                    catch (DataException& d)
+                    {
+                        lerror=3;
+                    }
+                }
+                if (lerror!=0)
+                {
+#pragma omp critical
+                    {
+                        error=lerror;
+                    }
+                }
+           }
+        }
+    }
+#ifdef ESYS_MPI
+    int rerror=0;
+    MPI_Allreduce( &error, &rerror, 1, MPI_INT, MPI_MAX, get_MPIComm() );
+    error=rerror;
+#endif
+    if (error)
+    {
+        switch (error)
+        {
+            case 1: throw DataException("Value below lower table range.");
+            case 2: throw DataException("Interpolated value too large");
+            case 4: throw DataException("Value greater than upper table range.");
+            default:
+                throw DataException("Unknown error in interpolation");
+        }
+    }
+    return res;
+}
+
 Data Data::nonuniforminterp(boost::python::object in, boost::python::object out, bool check_boundaries)
 {
     WrappedArray win(in);

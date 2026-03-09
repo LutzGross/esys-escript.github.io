@@ -48,6 +48,7 @@ warnings.filterwarnings('ignore', category=DeprecationWarning, message='inspect.
 
 from . import escriptcpp as escore
 from .escriptcpp import C_GeneralTensorProduct, Data
+from .interpolation import InterpolationTable
 from .escriptcpp import getVersion, getMPIRankWorld, getMPIWorldMax, hasFeature
 #from .escriptcpp import printParallelThreadCounts
 from .escriptcpp import listEscriptParams
@@ -128,60 +129,30 @@ def interpolateTable(tab, dat, start, step, undef=1.e50, check_boundaries=False)
     """
     Interpolates values from a lookup table.
 
+    .. deprecated::
+       Use :class:`~esys.escriptcore.interpolation.InterpolationTable` instead.
+       This function delegates to ``InterpolationTable`` with ``order=1``.
+
     :param tab: the lookup table array
     :type tab: ``numpy.ndarray``
-    :param dat: input data to interpolate
-    :type dat: `Data` or ``numpy.ndarray``
+    :param dat: coordinate data — scalar `Data` for 1-D or vector `Data` for 2-D/3-D
+    :type dat: `Data`
     :param start: starting coordinate(s) for the table
     :type start: ``float`` or ``tuple`` of ``float``
     :param step: step size(s) for the table
     :type step: ``float`` or ``tuple`` of ``float``
-    :param undef: value to use for undefined/out-of-bounds results
+    :param undef: upper bound on interpolated values
     :type undef: ``float``
-    :param check_boundaries: if ``True``, check that input is within table bounds
+    :param check_boundaries: if ``True``, raise an error for out-of-bounds coordinates
     :type check_boundaries: ``bool``
     :return: interpolated values
-    :rtype: `Data` or ``numpy.ndarray``
-
-    .. deprecated::
-       This function is deprecated and is known to contain bugs.
+    :rtype: `Data`
     """
-    print("WARNING: This function is deprecated and is known to contain bugs.")
-    try:
-        dim=len(start)
-    except TypeError:
-        start=(start,)
-        dim=1
-    try:
-        slen=len(step)
-    except TypeError:
-        step=(step,)
-        slen=1
-    if dim<1 or dim>3:
-        raise ValueError("Length of start list must be between 1 and 3.")
-    if dim!=slen:
-        raise ValueError("Length of start and step must be the same.")
-    dshape=dat.getShape()
-    if len(dshape)==0:
-        datdim=0
-        firstdim=dat
-    else:
-        datdim=dshape[0]
-        firstdim=dat[0]
-    #So now we know firstdim is a scalar
-    if (dim==1 and datdim>1) or (dim>1 and datdim!=dim):
-        print((dim, datdim))
-        raise ValueError("The dimension of dat must be equal to the length of start.")
-    if dim==3:
-        d1=dat[1]
-        d2=dat[2]
-        return firstdim._interpolateTable3d(tab, start[0], step[0], d1, start[1], step[1], d2, start[2], step[2], undef, check_boundaries)
-    if dim==2:
-        d1=dat[1]
-        return firstdim.interpolateTable(tab, start[0], step[0], d1, start[1], step[1], undef, check_boundaries)
-#   return d1.interpolateTable(tab, start[1], step[1], firstdim, start[0], step[0], undef, check_boundaries)
-    else:
-        return firstdim.interpolateTable(tab, start[0], step[0], undef, check_boundaries)
+    warnings.warn(
+        "interpolateTable is deprecated; use InterpolationTable instead.",
+        DeprecationWarning, stacklevel=2)
+    return InterpolationTable(tab, start, step, order=1, undef=undef,
+                              check_boundaries=check_boundaries)(dat)
 
 
 def saveDataCSV(filename, append=False, refid=False, sep=", ", csep="_", **data):

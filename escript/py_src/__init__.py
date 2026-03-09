@@ -73,6 +73,7 @@ if esys_paths[-(len(esys_packages)+1)] == 'site-packages':
 from esys.escriptcore.escriptcpp import *
 from esys.escriptcore.start import HAVE_SYMBOLS
 from esys.escriptcore.util import *
+from esys.escriptcore.interpolation import InterpolationTable
 from esys.escriptcore.nonlinearPDE import NonlinearPDE
 from esys.escriptcore.datamanager import DataManager
 if HAVE_SYMBOLS:

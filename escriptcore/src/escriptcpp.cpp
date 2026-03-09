@@ -619,6 +619,21 @@ args("arg"), "assigns new location to the domain\n\n"
         ":rtype: `Data`"
 */
 )
+    .def("_interpolateTable1dOrder0", &escript::Data::interpolateFromTable1DOrder0P,
+        (arg("table"), arg("Amin"), arg("Astep"),
+         arg("undef")=1.e50, arg("check_boundaries")=false),
+        "Piecewise-constant (order-0) 1D table interpolation. For internal use; use InterpolationTable instead.")
+    .def("_interpolateTable2dOrder0", &escript::Data::interpolateFromTable2DOrder0P,
+        (arg("table"), arg("Amin"), arg("Astep"),
+         arg("B"), arg("Bmin"), arg("Bstep"),
+         arg("undef")=1.e50, arg("check_boundaries")=false),
+        "Piecewise-constant (order-0) 2D table interpolation. For internal use; use InterpolationTable instead.")
+    .def("_interpolateTable3dOrder0", &escript::Data::interpolateFromTable3DOrder0P,
+        (arg("table"), arg("Amin"), arg("Astep"),
+         arg("B"), arg("Bmin"), arg("Bstep"),
+         arg("C"), arg("Cmin"), arg("Cstep"),
+         arg("undef")=1.e50, arg("check_boundaries")=false),
+        "Piecewise-constant (order-0) 3D table interpolation. For internal use; use InterpolationTable instead.")
     .def("nonuniformInterpolate", &escript::Data::nonuniforminterp, "1D interpolation with non equally spaced points",
       (arg("in"), arg("out"), arg("check_boundaries")),
         "Creates a Data object by linear interpolation of the function F(in)->out\n\n"
