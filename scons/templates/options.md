@@ -195,7 +195,7 @@ Each option is followed by a brief explanation.
 
 - `parmetis_prefix = '/usr/local'`:
   Prefix or paths to parMETIS headers and libraries. See note above.
-  Example: `parmetis_prefix = ['/usr/include/parmetis', '/usr/lib/x86_64-linux-gnu']`
+  Example: `parmetis_prefix = ['/usr/include', '/usr/lib']`
 
 - `parmetis_libs = ['parmetis']`:
   parMETIS library/libraries to link against.

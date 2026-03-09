@@ -4,6 +4,7 @@ from esys.escript.linearPDEs import LinearSinglePDE, SolverOptions
 from esys.finley import ReadGmsh
 from esys.escript.pdetools import Locator
 
+mkDir("output")
 print("read in mesh")   
 domain=ReadGmsh("simplemesh.msh", 3,  optimize=True )
 

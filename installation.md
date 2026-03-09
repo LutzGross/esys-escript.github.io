@@ -42,7 +42,7 @@ For complete documentation including user guide and API reference, see the [main
   - **ParMETIS** - Parallel graph partitioning for distributed mesh optimization in finley domain (libparmetis-dev on Debian/Ubuntu)
   - **PT-Scotch** - Alternative parallel graph partitioning library (libscotch-dev or scotch package). Used by both Trilinos and finley domain when ParMETIS is not available.
 - SymPy (python3-sympy) for symbolic mathematics module - **must be present at build time** (requires version 1.2 or later)
-- python3-sphinx and python3-markdown (for building API documentation)
+- python3-sphinx, python3-markdown, and pandoc (for building API documentation)
 - LaTeX (texlive-latex-base, texlive-latex-extra) for building user guide PDF
 - CppUnit (for running tests)
 
@@ -122,7 +122,7 @@ The options file must include `escript_opts_version = 203` to be accepted by the
 To build the documentation, install additional dependencies:
 
 ```bash
-sudo apt-get install python3-sphinx python3-markdown
+sudo apt-get install python3-sphinx python3-markdown pandoc
 ```
 
 For the user guide PDF, also install LaTeX:
@@ -153,7 +153,7 @@ Install required packages:
 sudo apt-get install python3-dev python3-numpy python3-scipy python3-matplotlib
 sudo apt-get install g++ gfortran scons cmake
 sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
-sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev liblapacke-dev libmumps-seq-dev zlib1g-dev
+sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libnetcdf-c++4-dev libsuitesparse-dev liblapacke-dev libmumps-seq-dev zlib1g-dev
 sudo apt-get install libmetis-dev
 ```
 
@@ -169,7 +169,7 @@ sudo apt-get install libscotch-dev     # PT-Scotch (alternative)
 For building documentation, additionally install:
 
 ```bash
-sudo apt-get install python3-sphinx python3-markdown
+sudo apt-get install python3-sphinx python3-markdown pandoc
 sudo apt-get install texlive-latex-base texlive-latex-extra texlive-fonts-recommended
 ```
 
@@ -193,7 +193,7 @@ Install required packages:
 sudo apt-get install python3-dev python3-numpy python3-scipy python3-matplotlib
 sudo apt-get install g++ gfortran scons cmake
 sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
-sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev liblapacke-dev libmumps-seq-dev zlib1g-dev
+sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libnetcdf-c++4-dev libsuitesparse-dev liblapacke-dev libmumps-seq-dev zlib1g-dev
 sudo apt-get install libmetis-dev
 ```
 
@@ -209,7 +209,7 @@ sudo apt-get install libscotch-dev     # PT-Scotch (alternative)
 For building documentation, additionally install:
 
 ```bash
-sudo apt-get install python3-sphinx python3-markdown
+sudo apt-get install python3-sphinx python3-markdown pandoc
 sudo apt-get install texlive-latex-base texlive-latex-extra texlive-fonts-recommended
 ```
 
@@ -255,7 +255,7 @@ sudo pacman -Sy scotch    # PT-Scotch (alternative)
 For building documentation:
 
 ```bash
-sudo pacman -Sy python-sphinx python-markdown
+sudo pacman -Sy python-sphinx python-markdown pandoc
 sudo pacman -Sy texlive-core texlive-latexextra
 ```
 
@@ -294,7 +294,7 @@ sudo dnf install scotch-devel    # PT-Scotch (alternative)
 For building documentation:
 
 ```bash
-sudo dnf install python3-sphinx python3-markdown
+sudo dnf install python3-sphinx python3-markdown pandoc
 sudo dnf install texlive-scheme-basic texlive-latex texlive-latex-extra
 ```
 
@@ -333,7 +333,7 @@ sudo zypper in scotch-devel    # PT-Scotch (alternative)
 For building documentation:
 
 ```bash
-sudo zypper in python3-Sphinx python3-Markdown
+sudo zypper in python3-Sphinx python3-Markdown pandoc
 sudo zypper in texlive-latex texlive-latex-extra
 ```
 
@@ -382,7 +382,7 @@ sudo dnf install scotch-devel    # PT-Scotch (alternative)
 For building documentation:
 
 ```bash
-sudo dnf install python3-sphinx python3-markdown
+sudo dnf install python3-sphinx python3-markdown pandoc
 sudo dnf install texlive-scheme-basic texlive-latex
 ```
 
@@ -429,6 +429,7 @@ For building documentation:
 
 ```bash
 pip3 install sphinx markdown
+brew install pandoc
 brew install --cask mactex  # For LaTeX/PDF documentation
 ```
 
@@ -484,7 +485,7 @@ sudo port install openmpi py311-mpi4py
 For building documentation:
 
 ```bash
-sudo port install py311-sphinx py311-markdown
+sudo port install py311-sphinx py311-markdown pandoc
 sudo port install texlive  # For LaTeX/PDF documentation
 ```
 
@@ -512,7 +513,7 @@ sudo pkg install scons cmake boost-python-libs hdf5 netcdf suitesparse lapack mu
 For building documentation:
 
 ```bash
-sudo pkg install py39-sphinx py39-markdown
+sudo pkg install py39-sphinx py39-markdown pandoc
 sudo pkg install texlive-full  # For LaTeX/PDF documentation
 ```
 
@@ -556,8 +557,12 @@ sudo apt-get update
 sudo apt-get install python3-dev python3-numpy python3-scipy python3-matplotlib
 sudo apt-get install g++ gfortran scons cmake
 sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
-sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev liblapacke-dev libmumps-seq-dev zlib1g-dev
+sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libnetcdf-c++4-dev libsuitesparse-dev liblapacke-dev libmumps-seq-dev zlib1g-dev
 sudo apt-get install libmetis-dev
+
+# For building documentation (optional)
+sudo apt-get install python3-sphinx python3-markdown pandoc
+sudo apt-get install texlive-latex-base texlive-latex-extra texlive-fonts-recommended
 
 # Clone and build
 git clone https://github.com/esys-escript/esys-escript.github.io.git esys6

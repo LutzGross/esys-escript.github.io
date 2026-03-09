@@ -32,6 +32,7 @@ from esys.weipa import saveVTK
 if not HAVE_FINLEY:
     print("Finley module not available")
 else:
+    mkDir("output")
     # ... generate domain ...
     print("read in mesh")
     domain = ReadGmsh("inclusion.msh", 2, optimize=True)

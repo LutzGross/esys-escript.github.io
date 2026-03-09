@@ -30,6 +30,7 @@ from esys.weipa import saveVTK
 if not HAVE_FINLEY:
     print("Finley module not available")
 else:
+    mkDir("output")
     xc=[0.02,0.002]
     r=0.001
     qc=50.e6

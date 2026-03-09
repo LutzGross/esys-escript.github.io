@@ -36,6 +36,7 @@ except ImportError:
 if not HAVE_FINLEY:
     print("Finley module not available")
 else:
+    mkDir("output")
     mydomain=Rectangle(30,30, l0=3, l1=2, 
                 diracPoints=[(1.,1.), (2.,1.)],  diracTags=['in', 'out'])
     # fix the solution on the boundary

@@ -30,6 +30,7 @@ from esys.weipa import saveVTK
 if not HAVE_FINLEY:
     print("Finley module not available")
 else:
+    mkDir("output")
     # generate domain:
     mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
     # define characteristic function of Gamma^D

@@ -63,24 +63,37 @@ struct Msh4Entities {
 
 inline bool get_line(std::vector<char>& line, FILE* file)
 {
-    int capacity = 1024;
+    const size_t CHUNK_SIZE = 1024;
+    const size_t MAX_LINE = 1024 * 1024; // 1MB max line length
+
     line.clear();
-    line.resize(capacity);
-    char *tmp = &line[0];
-    char *res = NULL;
-    //not terribly efficient, but any line longer than 1024
-    //is probably already bad
-    while ((res = fgets(tmp, 1023, file)) == tmp
-            && strchr(tmp, '\n') == NULL) {
-        capacity += 1024;
-        line.resize(capacity);
-        tmp = strchr(&line[0], '\0'); //this bit is awful, O(n) instead of O(1)
-        if (capacity > 1024) { //madness
-            res = NULL;
-            break;
+    line.resize(CHUNK_SIZE);
+
+    size_t offset = 0;
+    while (true) {
+        // Read into current position
+        char* read_pos = line.data() + offset;
+        size_t space_left = line.size() - offset;
+
+        if (fgets(read_pos, static_cast<int>(space_left), file) == NULL) {
+            return offset > 0; // Return true if we read something before EOF
         }
+
+        // Check if we got a complete line (has newline)
+        if (strchr(read_pos, '\n') != NULL) {
+            return true;
+        }
+
+        // Line incomplete - need more space
+        offset = line.size() - 1; // Position at null terminator
+
+        if (line.size() >= MAX_LINE) {
+            // Line too long - treat as error
+            return false;
+        }
+
+        line.resize(line.size() + CHUNK_SIZE);
     }
-    return res == tmp; //true if line read, false if EOF without or without \n
 }
 
 inline char* next_space(char** position, int count)

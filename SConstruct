@@ -676,10 +676,13 @@ if env['build_trilinos'] != 'never':
 
         metis_enable = 'ON' if env['metis'] else 'OFF'
         metis_inc, metis_lib = get_inc_lib_paths(env['metis_prefix']) if env['metis'] else ('', '')
-        parmetis_enable = 'ON' if env['parmetis'] else 'OFF'
-        parmetis_inc, parmetis_lib = get_inc_lib_paths(env['parmetis_prefix']) if env['parmetis'] else ('', '')
-        scotch_enable = 'ON' if env['scotch'] else 'OFF'
-        scotch_inc, scotch_lib = get_inc_lib_paths(env['scotch_prefix']) if env['scotch'] else ('', '')
+        # ParMETIS and PT-Scotch require MPI
+        parmetis_for_trilinos = env['parmetis'] and env['mpi'] != 'none'
+        parmetis_enable = 'ON' if parmetis_for_trilinos else 'OFF'
+        parmetis_inc, parmetis_lib = get_inc_lib_paths(env['parmetis_prefix']) if parmetis_for_trilinos else ('', '')
+        scotch_for_trilinos = env['scotch'] and env['mpi'] != 'none'
+        scotch_enable = 'ON' if scotch_for_trilinos else 'OFF'
+        scotch_inc, scotch_lib = get_inc_lib_paths(env['scotch_prefix']) if scotch_for_trilinos else ('', '')
 
         # Allow override of compilers for Trilinos (useful for avoiding libc++ issues on macOS)
         trilinos_cc_compiler = env.get('trilinos_cc', '') or env['CC']

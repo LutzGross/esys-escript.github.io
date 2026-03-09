@@ -392,37 +392,40 @@ def checkNumpy(env):
             else:
                 conf.env['CPPPATH'] = cpp_path_old
     elif env['IS_OSX']:
-        # make a copy of CPPPATH so it can be restored if header check fails
         cpp_path_old = conf.env.get('CPPPATH', []).copy()
-        pypth = env['pythoncmd'][:env['pythoncmd'].index('bin')-1]
-        conf.env.Append(CPPPATH=[
-            f'{pypth}/lib/python{env["python_version"][:env["python_version"].find(".",2)]}/site-packages/numpy/core/include'])
         if conf.CheckCXXHeader(['Python.h', 'numpy/ndarrayobject.h']):
             numpy_h = True
         else:
-            conf.env['CPPPATH'] = cpp_path_old
+            try:
+                import subprocess
+                numpy_inc = subprocess.check_output(
+                    [env['pythoncmd'], '-c', 'import numpy; print(numpy.get_include())'],
+                    text=True).strip()
+                conf.env.Append(CPPPATH=[numpy_inc])
+                if conf.CheckCXXHeader(['Python.h', 'numpy/ndarrayobject.h']):
+                    numpy_h = True
+                else:
+                    conf.env['CPPPATH'] = cpp_path_old
+            except Exception:
+                conf.env['CPPPATH'] = cpp_path_old
     else:
         cpp_path_old = conf.env.get('CPPPATH', []).copy()
         if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
             numpy_h = True
         else:
-            conf.env.Append(CPPPATH=['/usr/lib/x86_64-linux-gnu/python3-numpy/numpy/_core/include'])
-            if conf.CheckCXXHeader(['Python.h', 'numpy/ndarrayobject.h']):
-                numpy_h = True
-            else:
-                # Extract Python prefix from pythoncmd
-                if 'bin' in env['pythoncmd']:
-                    pypth = env['pythoncmd'][:env['pythoncmd'].index('bin')-1]
-                else:
-                    # pythoncmd is just the command name, use sys.prefix
-                    import sys
-                    pypth = sys.prefix
-                conf.env.Append(CPPPATH=[
-                    f'{pypth}/lib/python{env["python_version"][:env["python_version"].find(".",2)]}/site-packages/numpy/_core/include'])
+            # Ask numpy for its include directory
+            try:
+                import subprocess
+                numpy_inc = subprocess.check_output(
+                    [env['pythoncmd'], '-c', 'import numpy; print(numpy.get_include())'],
+                    text=True).strip()
+                conf.env.Append(CPPPATH=[numpy_inc])
                 if conf.CheckCXXHeader(['Python.h', 'numpy/ndarrayobject.h']):
                     numpy_h = True
                 else:
                     conf.env['CPPPATH'] = cpp_path_old
+            except Exception:
+                conf.env['CPPPATH'] = cpp_path_old
     conf.env['numpy_h'] = numpy_h
     if numpy_h:
         conf.env.Append(CPPDEFINES = ['ESYS_HAVE_NUMPY_H'])

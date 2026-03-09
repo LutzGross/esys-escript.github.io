@@ -444,7 +444,7 @@ class LinearProblem(object):
    problem will be solved to get the unknown *u*.
 
    """
-   def __init__(self,domain,numEquations=None,numSolutions=None,isComplex=False,debug=False):
+   def __init__(self, domain, numEquations=None, numSolutions=None, isComplex=False, debug=False):
      """
      Initializes a linear problem.
 
@@ -497,8 +497,6 @@ class LinearProblem(object):
                self.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
      except:
           pass
-     # set number of equations in trilinos
-     self.getSolverOptions().setTrilinosParameter("number of equations", numEquations)
      # initialize things:
      self.resetAllCoefficients()
      self.initializeSystem()
@@ -633,7 +631,6 @@ class LinearProblem(object):
             raise UndefinedPDEError("Number of equations is undefined. Please specify argument numEquations.")
          else:
             self.__numEquations=self.__numSolutions
-            self.getSolverOptions().setTrilinosParameter("number of equations", self.__numEquations)
      return self.__numEquations
 
    def getNumSolutions(self):
@@ -719,6 +716,8 @@ class LinearProblem(object):
        self.__solver_options.setHermitian(self.__herm)
        self.__solver_options.setDim(self.getDim())
        self.__solver_options.setOxleyDomain(self.hasOxley())
+       if self.__numEquations is not None:
+           self.__solver_options.setTrilinosParameter("number of equations", self.__numEquations)
 
    def getSolverOptions(self):
        """
@@ -727,6 +726,9 @@ class LinearProblem(object):
        :rtype: `SolverOptions`
        """
        self.__solver_options.setSymmetry(self.__sym)
+       self.__solver_options.setHermitian(self.__herm)
+       if self.__numEquations is not None:
+           self.__solver_options.setTrilinosParameter("number of equations", self.__numEquations)
        return self.__solver_options
 
    def isUsingLumping(self):
@@ -788,9 +790,8 @@ class LinearProblem(object):
 
       :return: True if a symmetric PDE is indicated, False otherwise
       :rtype: ``bool``
-      :note: the method is equivalent to use getSolverOptions().isSymmetric()
       """
-      self.getSolverOptions().isSymmetric()
+      return self.__sym
 
    def setSymmetryOn(self):
       """
@@ -816,6 +817,7 @@ class LinearProblem(object):
       :type flag: ``bool``
       :note: The method overwrites the symmetry flag set by the solver options
       """
+      self.__sym=flag
       self.getSolverOptions().setSymmetry(flag)
 
    # ==========================================================================
@@ -827,9 +829,8 @@ class LinearProblem(object):
 
       :return: True if a Hermitian PDE is indicated, False otherwise
       :rtype: ``bool``
-      :note: the method is equivalent to use getSolverOptions().isHermitian()
       """
-      self.getSolverOptions().isHermitian()
+      return self.__herm
 
    def setHermitianOn(self):
       """
@@ -855,6 +856,7 @@ class LinearProblem(object):
       :type flag: ``bool``
       :note: The method overwrites the Hermitian flag set by the solver options
       """
+      self.__herm=flag
       self.getSolverOptions().setHermitian(flag)
 
    # ==========================================================================

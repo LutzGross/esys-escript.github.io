@@ -30,7 +30,7 @@ except ImportError:
     HAVE_FINLEY = False
 
 if HAVE_FINLEY:
-
+    mkDir("output")
     #... set some parameters ...
     lam=1.
     mu=0.1

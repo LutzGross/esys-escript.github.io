@@ -43,6 +43,7 @@ Mu0=4*np.pi*1e-7
 # ... mesh resolution:
 h0, h1=L0/NE0, L1/NE1
 
+mkDir("output")
 # create Domain:
 domain = Rectangle(n0=NE0, n1=NE1, l0=L0, l1=L1)
 

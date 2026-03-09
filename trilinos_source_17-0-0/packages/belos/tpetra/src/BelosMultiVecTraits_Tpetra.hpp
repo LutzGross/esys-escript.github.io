@@ -28,6 +28,7 @@
 #endif
 #include <map>
 #include <utility>
+#include <iostream>
 #include <vector>
 
 #ifdef HAVE_BELOS_TSQR
@@ -104,7 +105,11 @@ class MultiVecPool
 {
 public:
   MultiVecPool() {
-    Kokkos::push_finalize_hook([this]() { this->availableDVs.clear(); });
+    // esys-escript patch: disabled finalize hook to prevent double-free crash
+    // during Kokkos shutdown. Pool memory is reclaimed by OS at process exit.
+    // See https://github.com/trilinos/Trilinos/issues/11976
+    // Kokkos::push_finalize_hook([this]() { this->availableDVs.clear(); });
+    std::cout << "INFO: Belos MultiVecPool created (esys-escript: finalize hook disabled)" << std::endl;
   }
 
   using MV = ::Tpetra::MultiVector<Scalar, LO, GO, Node>;

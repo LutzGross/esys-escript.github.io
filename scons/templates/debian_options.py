@@ -77,7 +77,9 @@ metis_libs = ['metis']
 
 # ParMETIS parallel graph partitioning (requires MPI)
 parmetis = True
-parmetis_prefix = ['/usr/include/parmetis', '/usr/lib/x86_64-linux-gnu']
+# Note: On Ubuntu 24.04+, parmetis headers and libs are in /usr/include and /usr/lib
+# (no longer in /usr/include/parmetis or /usr/lib/x86_64-linux-gnu)
+parmetis_prefix = ['/usr/include', '/usr/lib']
 parmetis_libs = ['parmetis']
 
 # LAPACK configuration
