@@ -656,6 +656,66 @@ class Test_InterpolationTable(unittest.TestCase):
             dep = [x for x in w if issubclass(x.category, DeprecationWarning)]
             self.assertTrue(len(dep) >= 1, "DeprecationWarning not issued")
 
+    def test_complex_x_rejected(self):
+        """Complex coordinate data must raise TypeError."""
+        t = numpy.array([0., 1., 2.])
+        fs = self.functionspaces[0]
+        x = Data((1+0j), fs)
+        interp = InterpolationTable(t, origin=0., step=0.5)
+        self.assertRaises(TypeError, interp, x)
+
+    def test_complex_table_1d_order1(self):
+        """1D order-1 with complex table returns correct real and imag parts."""
+        # table: real part = linear ramp, imag part = constant 2
+        t_real = numpy.array([0., 1., 2., 3., 4.], dtype=float)
+        t_imag = numpy.array([2., 2., 2., 2., 2.], dtype=float)
+        t_cplx = t_real + 1j * t_imag
+        interp = InterpolationTable(t_cplx, origin=0., step=1.)
+        fs = self.functionspaces[0]
+        # evaluate at x = 1.5 (via constant Data)
+        x = Data(1.5, fs)
+        result = interp(x)
+        self.assertTrue(result.isComplex(), "result should be complex Data")
+        vals = result.toListOfTuples(scalarastuple=False)
+        for v in vals:
+            self.assertAlmostEqual(v.real, 1.5, places=10)
+            self.assertAlmostEqual(v.imag, 2.0, places=10)
+
+    def test_complex_table_2d_order1(self):
+        """2D order-1 with complex table returns correct complex result."""
+        nx, ny = 5, 5
+        # real part: ix + iy, imag part: -(ix + iy)
+        t_real = numpy.array([[float(ix + iy) for iy in range(ny)]
+                               for ix in range(nx)])   # shape (nx, ny) ijk
+        t_cplx = t_real + 1j * (-t_real)
+        interp = InterpolationTable(t_cplx, origin=(0., 0.), step=(0.25, 0.25),
+                                    order=1, table_indexing="ijk")
+        fs = self.functionspaces[0]
+        points = fs.getX()
+        if points.getShape() not in ((2,), (3,)):
+            return  # skip for unsupported shapes
+        x = points[0:2]   # always pass shape-(2,) to a 2D table
+        result = interp(x)
+        self.assertTrue(result.isComplex(), "result should be complex Data")
+        # real and imaginary parts must be negatives of each other
+        r_real = result.real()
+        r_imag = result.imag()
+        err = Lsup(r_real + r_imag)
+        self.assertLess(err, 1e-10, "real and imag parts should be negatives")
+
+    def test_complex_table_integer_input(self):
+        """Integer arrays are promoted to float even for complex-looking input."""
+        t = numpy.array([0, 1, 2, 3])   # integer dtype, real
+        interp = InterpolationTable(t, origin=0., step=1.)
+        self.assertFalse(interp._is_complex)
+
+    def test_is_complex_accessor(self):
+        """_is_complex reflects whether the stored table is complex."""
+        t_real = numpy.array([0., 1., 2.])
+        t_cplx = numpy.array([0.+1j, 1.+2j, 2.+3j])
+        self.assertFalse(InterpolationTable(t_real, origin=0., step=1.)._is_complex)
+        self.assertTrue(InterpolationTable(t_cplx, origin=0., step=1.)._is_complex)
+
 
 class Test_saveCSV(unittest.TestCase):
    def setUp(self):
