@@ -24,7 +24,7 @@ mpi4py = False
 
 # Disable Trilinos (requires MPI for full functionality)
 trilinos = True
-build_trilinos = 'check'
+build_trilinos = 'make'
 
 # Domains without oxley (matching release tarball)
 domains = ['finley', 'ripley', 'speckley']
