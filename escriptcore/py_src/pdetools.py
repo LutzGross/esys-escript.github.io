@@ -526,7 +526,8 @@ class NegativeNorm(SolverSchemeException):
    """
    pass
 
-def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, initial_guess=True, verbose=False):
+def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, initial_guess=True,
+        return_history = False, verbose=False):
    """
    Solver for
 
@@ -572,11 +573,14 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
    :type rtol: non-negative ``float``
    :param iter_max: maximum number of iteration steps
    :type iter_max: ``int``
-   :return: the solution approximation and the corresponding residual
+   :param return_history: if set the convergence history is returned
+   :type return_history: ``bool``
+   :return: the solution approximation and the corresponding residual and history (if return_history=True)
    :rtype: ``tuple``
    :warning: ``r`` and ``x`` are altered.
    """
    iter=0
+   history = []
    rhat=Msolve(r)
    d = rhat
    rhat_dot_r = bilinearform(rhat, r)
@@ -589,7 +593,7 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
 
    if verbose: print(("PCG: initial residual norm = %e (absolute tolerance = %e)"%(norm_r0, atol2)))
 
-
+   history.append(norm_r0)
    while not math.sqrt(rhat_dot_r) <= atol2:
        iter+=1
        if iter  >= iter_max: raise MaxIterReached("maximum number of %s steps reached."%iter_max)
@@ -609,9 +613,13 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
 
        rhat_dot_r = rhat_dot_r_new
        if rhat_dot_r<0: raise NegativeNorm("negative norm.")
+       history.append(math.sqrt(rhat_dot_r))
        if verbose: print(("PCG: iteration step %s: residual norm = %e"%(iter, math.sqrt(rhat_dot_r))))
    if verbose: print(("PCG: tolerance reached after %s steps."%iter))
-   return x,r,math.sqrt(rhat_dot_r)
+   if return_history:
+       return x, r, history
+   else:
+        return x,r
 
 class Defect(object):
     """
