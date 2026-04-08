@@ -584,16 +584,24 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
    rhat=Msolve(r)
    d = rhat
    rhat_dot_r = bilinearform(rhat, r)
-   if rhat_dot_r<0: raise NegativeNorm("negative norm.")
+   if rhat_dot_r<0: raise NegativeNorm(f"negative norm {rhat_dot_r}.")
    norm_r0=math.sqrt(rhat_dot_r)
-   atol2=atol+rtol*norm_r0
-   if atol2<=0:
-      raise ValueError("Non-positive tolerance.")
+   history.append(norm_r0)
+   if abs(norm_r0) <= atol:
+       if verbose: print(f"PCG: initial residual norm is zero (={norm_r0})")
+       if return_history:
+           return x, r, history
+       else:
+           return x, r
+   atol2 = atol + rtol * norm_r0
    atol2=max(atol2, 100. * util.EPSILON * norm_r0)
+   if atol2<=0:
+      raise ValueError(f"Non-positive {atol2} tolerance.")
+
 
    if verbose: print(("PCG: initial residual norm = %e (absolute tolerance = %e)"%(norm_r0, atol2)))
 
-   history.append(norm_r0)
+
    while not math.sqrt(rhat_dot_r) <= atol2:
        iter+=1
        if iter  >= iter_max: raise MaxIterReached("maximum number of %s steps reached."%iter_max)
@@ -612,7 +620,7 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
        d=rhat
 
        rhat_dot_r = rhat_dot_r_new
-       if rhat_dot_r<0: raise NegativeNorm("negative norm.")
+       if rhat_dot_r<0: raise NegativeNorm(f"negative norm {rhat_dot_r}.")
        history.append(math.sqrt(rhat_dot_r))
        if verbose: print(("PCG: iteration step %s: residual norm = %e"%(iter, math.sqrt(rhat_dot_r))))
    if verbose: print(("PCG: tolerance reached after %s steps."%iter))
@@ -719,7 +727,7 @@ class Defect(object):
             else:
                epsnew /= normv
         F1=self.eval(x0 + epsnew * v)
-        return (F1-F0)/epsnew
+        return (F1 - F0)/epsnew
 
 ######################################
 def NewtonGMRES(defect, x, iter_max=100, sub_iter_max=20, atol=0,rtol=1.e-4, subtol_max=0.5, gamma=0.9, verbose=False):
@@ -1308,8 +1316,8 @@ def TFQMR(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
   v = Aprod(y1)
   u1 = v
 
-  theta = 0.0;
-  eta = 0.0;
+  theta = 0.0
+  eta = 0.0
   rho=bilinearform(r,r)
   if rho < 0: raise NegativeNorm("negative norm.")
   tau = math.sqrt(rho)
