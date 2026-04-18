@@ -258,11 +258,11 @@ class Test_Silo_import(unittest.TestCase):
                 import Silo
             except ImportError as e:
                 if "No module named Silo" not in str(e):
-                    raise unittest.SkipTest("Silo module broken")
+                    raise unittest.SkipTest("python3-silo module broken")
 
 @unittest.skipIf(getMPISizeWorld()>1, "MPI size > 1")
 @unittest.skipIf(not HAVE_FINLEY, "finley module not available")
-@unittest.skipIf(not HAVE_SILO, "Silo module not available")
+@unittest.skipIf(not HAVE_SILO, "python3-silo module not available (install python3-silo)")
 class Test_Finley_SaveSilo(SiloSaver):
 
   # === Finley hex 2D order 1 with contacts ===================================
@@ -1328,7 +1328,7 @@ class Test_Finley_SaveSilo(SiloSaver):
                                                data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
 
 @unittest.skipIf(getMPISizeWorld()>1, "MPI size > 1")
-@unittest.skipIf(not HAVE_SILO, "Silo module not available")
+@unittest.skipIf(not HAVE_SILO, "python3-silo module not available (install python3-silo)")
 class Test_Ripley_SaveSilo(SiloSaver):
 
   # === Ripley 2D =============================================================
@@ -1421,7 +1421,7 @@ class Test_Ripley_SaveSilo(SiloSaver):
 
 @unittest.skipIf(getMPISizeWorld()>1, "MPI size > 1")
 @unittest.skipIf(not HAVE_OXLEY, "ripley module not available")
-@unittest.skipIf(not HAVE_SILO, "Silo module not available")
+@unittest.skipIf(not HAVE_SILO, "python3-silo module not available (install python3-silo)")
 class Test_Oxley_SaveSilo(SiloSaver):
 
   # === Oxley 2D =============================================================
