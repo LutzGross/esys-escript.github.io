@@ -448,7 +448,8 @@ class Test_pdetools_noLumping(unittest.TestCase):
           return out
 
       tol=1.e-4
-      x,r,a_norm=PCG(b*1.,Ap,x_ref*0.,Ms,dot, atol=0, rtol=tol, iter_max=12)
+      x,r,history=PCG(b*1.,Ap,x_ref*0.,Ms,dot, atol=0, rtol=tol, iter_max=12, return_history=True)
+      a_norm=history[-1]
       self.assertLess(Lsup(x-x_ref), Lsup(x_ref)*tol*10.)
       self.assertLess(Lsup(r-(b-dot(A,x))), Lsup(b)*EPSILON*100.)
 

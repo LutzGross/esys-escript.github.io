@@ -1910,7 +1910,7 @@ class HomogeneousSaddlePointProblem(object):
                 if self.verbose: print(("HomogeneousSaddlePointProblem: step %s: rtol_p= %e"%(correction_step,rtol_p)))
                 # now we solve for the pressure increment dp from B*A^{-1}B^* dp = Bv1
                 if usePCG:
-                    dp,r,a_norm=PCG(ArithmeticTuple(v1,Bv1),self.__Aprod_PCG,0*p,self.__Msolve_PCG,self.__inner_PCG,atol=0, rtol=rtol_p,iter_max=max_iter, verbose=self.verbose)
+                    dp,r=PCG(ArithmeticTuple(v1,Bv1),self.__Aprod_PCG,0*p,self.__Msolve_PCG,self.__inner_PCG,atol=0, rtol=rtol_p,iter_max=max_iter, verbose=self.verbose)
                     v2=r[0]
                     Bv2=r[1]
                 else:
