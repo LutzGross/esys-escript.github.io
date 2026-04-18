@@ -202,6 +202,9 @@ void BlockCrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
                    "tolerance of " << sb.getTolerance() << "." << std::endl;
             }
         }
+        if (result != Belos::Converged) {
+            throw TrilinosAdapterException("Belos iterative solver did not converge.");
+        }
         double solverTime = 0.;
         for (auto t: problem->getTimers()) {
             solverTime += t->totalElapsedTime();

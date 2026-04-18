@@ -175,7 +175,8 @@ Platform-Specific Instructions
 Debian 12+
 ----------
 
-Install required packages:
+The default options file (``debian_options.py``) builds with MPI enabled.
+Install all required packages:
 
 .. code-block:: bash
 
@@ -183,12 +184,8 @@ Install required packages:
    sudo apt-get install g++ gfortran scons cmake
    sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
    sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev liblapacke-dev libmumps-seq-dev zlib1g-dev
-
-For MPI support, additionally install:
-
-.. code-block:: bash
-
-   sudo apt-get install python3-mpi4py libparmetis-dev
+   sudo apt-get install libmetis-dev libparmetis-dev
+   sudo apt-get install libopenmpi-dev openmpi-bin python3-mpi4py
 
 For building documentation, additionally install:
 
@@ -209,11 +206,16 @@ Build esys-escript:
 
    scons -j4 options_file=scons/templates/debian_options.py
 
+To build **without MPI**, use ``debian_nompi_options.py`` instead and
+``libopenmpi-dev``, ``openmpi-bin``, ``python3-mpi4py``, and ``libparmetis-dev``
+can be omitted.
+
 
 Ubuntu 24.04+
 -------------
 
-Install required packages:
+The default options file (``ubuntu_options.py``) builds with MPI enabled.
+Install all required packages:
 
 .. code-block:: bash
 
@@ -221,12 +223,8 @@ Install required packages:
    sudo apt-get install g++ gfortran scons cmake
    sudo apt-get install libboost-numpy-dev libboost-python-dev libboost-random-dev libboost-iostreams-dev
    sudo apt-get install libhdf5-serial-dev libsilo-dev libnetcdf-dev libsuitesparse-dev liblapacke-dev libmumps-seq-dev zlib1g-dev
-
-For MPI support, additionally install:
-
-.. code-block:: bash
-
-   sudo apt-get install python3-mpi4py libparmetis-dev
+   sudo apt-get install libmetis-dev libparmetis-dev
+   sudo apt-get install libopenmpi-dev openmpi-bin python3-mpi4py
 
 For building documentation, additionally install:
 
@@ -247,6 +245,10 @@ Build esys-escript:
 
    scons -j4 options_file=scons/templates/ubuntu_options.py
 
+To build **without MPI**, use ``debian_nompi_options.py`` instead and
+``libopenmpi-dev``, ``openmpi-bin``, ``python3-mpi4py``, and ``libparmetis-dev``
+can be omitted.
+
 
 Linux Mint 20.3+
 ----------------
@@ -257,19 +259,15 @@ Mint Linux is based on Ubuntu, use the same commands as Ubuntu above.
 Arch Linux
 ----------
 
-Install required packages:
+The default options file (``arch_options.py``) builds with MPI enabled.
+Install all required packages:
 
 .. code-block:: bash
 
    sudo pacman -Sy python python-numpy python-scipy python-matplotlib
    sudo pacman -Sy gcc scons cmake
-   sudo pacman -Sy boost boost-libs suitesparse hdf5 netcdf lapack mumps zlib
-
-For MPI support:
-
-.. code-block:: bash
-
-   sudo pacman -Sy python-mpi4py parmetis
+   sudo pacman -Sy boost boost-libs suitesparse hdf5 netcdf lapack mumps zlib metis
+   sudo pacman -Sy openmpi python-mpi4py
 
 For building documentation:
 
@@ -288,26 +286,29 @@ Build esys-escript:
 
 .. code-block:: bash
 
-   scons -j4 options_file=scons/templates/arch_py3_options.py
+   scons -j4 options_file=scons/templates/arch_options.py
+
+To build **without MPI**, use ``arch_nompi_options.py`` instead and
+``openmpi`` and ``python-mpi4py`` can be omitted.
 
 
 Fedora
 ------
 
-Install required packages:
+The default options file (``fedora_options.py``) builds with MPI enabled.
+Install all required packages:
 
 .. code-block:: bash
 
    sudo dnf install python3-devel python3-numpy python3-scipy python3-matplotlib
    sudo dnf install gcc-c++ gcc-gfortran scons cmake
    sudo dnf install boost-devel boost-python3-devel boost-python3 boost-numpy3 boost-iostreams boost-random
-   sudo dnf install hdf5-devel netcdf-devel suitesparse-devel lapack-devel MUMPS-devel zlib-devel
+   sudo dnf install hdf5-devel netcdf-devel suitesparse-devel lapack-devel MUMPS-devel zlib-devel metis-devel
+   sudo dnf install openmpi-devel python3-mpi4py-openmpi
 
-For MPI support:
-
-.. code-block:: bash
-
-   sudo dnf install python3-mpi4py parmetis-devel
+.. note::
+   On Fedora, activate the MPI environment before building:
+   ``module load mpi/openmpi-x86_64``
 
 For building documentation:
 
@@ -326,26 +327,25 @@ Build esys-escript:
 
 .. code-block:: bash
 
-   scons -j4 options_file=scons/templates/fedora_py3_options.py
+   scons -j4 options_file=scons/templates/fedora_options.py
+
+To build **without MPI**, use ``fedora_nompi_options.py`` instead and
+``openmpi-devel`` and ``python3-mpi4py-openmpi`` can be omitted.
 
 
 OpenSUSE
 --------
 
-Install required packages:
+The default options file (``opensuse_options.py``) builds with MPI enabled.
+Install all required packages:
 
 .. code-block:: bash
 
    sudo zypper in python3-devel python3-numpy python3-scipy python3-matplotlib
    sudo zypper in gcc gcc-c++ gcc-fortran scons cmake
    sudo zypper in libboost_python3-devel libboost_numpy3-devel libboost_random-devel libboost_iostreams-devel
-   sudo zypper in hdf5-devel netcdf-devel suitesparse-devel lapack-devel mumps-devel zlib-devel
-
-For MPI support:
-
-.. code-block:: bash
-
-   sudo zypper in python3-mpi4py parmetis-devel
+   sudo zypper in hdf5-devel netcdf-devel suitesparse-devel lapack-devel mumps-devel zlib-devel metis-devel
+   sudo zypper in openmpi-devel python3-mpi4py
 
 For building documentation:
 
@@ -364,11 +364,16 @@ Build esys-escript:
 
 .. code-block:: bash
 
-   scons -j4 options_file=scons/templates/opensuse_py3_options.py
+   scons -j4 options_file=scons/templates/opensuse_options.py
+
+To build **without MPI**, use ``opensuse_nompi_options.py`` instead and
+``openmpi-devel`` and ``python3-mpi4py`` can be omitted.
 
 
 CentOS 8 / Rocky Linux / AlmaLinux
 ----------------------------------
+
+The default options file (``rhel_options.py``) builds with MPI enabled.
 
 Enable required repositories:
 
@@ -377,20 +382,19 @@ Enable required repositories:
    sudo dnf install epel-release
    sudo dnf config-manager --set-enabled powertools
 
-Install required packages:
+Install all required packages:
 
 .. code-block:: bash
 
    sudo dnf install python3-devel python3-numpy python3-scipy python3-matplotlib
    sudo dnf install gcc gcc-c++ gcc-gfortran scons cmake
    sudo dnf install boost-devel boost-python3 boost-python3-devel
-   sudo dnf install hdf5-devel netcdf-devel suitesparse suitesparse-devel lapack-devel MUMPS-devel zlib-devel
+   sudo dnf install hdf5-devel netcdf-devel suitesparse suitesparse-devel lapack-devel MUMPS-devel zlib-devel metis-devel
+   sudo dnf install openmpi-devel python3-mpi4py-openmpi
 
-For MPI support:
-
-.. code-block:: bash
-
-   sudo dnf install python3-mpi4py parmetis-devel
+.. note::
+   On RHEL-based systems, activate the MPI environment before building:
+   ``module load mpi/openmpi-x86_64``
 
 For building documentation:
 
@@ -409,7 +413,10 @@ Build esys-escript:
 
 .. code-block:: bash
 
-   scons -j4 options_file=scons/templates/centos8_options.py
+   scons -j4 options_file=scons/templates/rhel_options.py
+
+To build **without MPI**, use ``rhel_nompi_options.py`` instead and
+``openmpi-devel`` and ``python3-mpi4py-openmpi`` can be omitted.
 
 
 macOS with Homebrew
@@ -419,6 +426,7 @@ macOS with Homebrew
 
    macOS support is limited. Requires Xcode Command Line Tools.
 
+The default options file (``homebrew_options.py``) builds with MPI enabled.
 Install Homebrew from https://brew.sh, then:
 
 .. code-block:: bash
@@ -426,20 +434,14 @@ Install Homebrew from https://brew.sh, then:
    brew install python3 numpy scipy matplotlib
    brew install scons cmake
    brew install boost boost-python3
-   brew install hdf5 netcdf suite-sparse lapack mumps
+   brew install hdf5 netcdf suite-sparse lapack mumps metis
+   brew install open-mpi
 
 Some Python packages may need pip:
 
 .. code-block:: bash
 
-   pip3 install numpy scipy matplotlib
-
-For MPI support:
-
-.. code-block:: bash
-
-   brew install open-mpi
-   pip3 install mpi4py
+   pip3 install numpy scipy matplotlib mpi4py
 
 For building documentation:
 
@@ -460,6 +462,9 @@ Build esys-escript:
 
    scons -j4 options_file=scons/templates/homebrew_options.py
 
+To build **without MPI**, use ``homebrew_nompi_options.py`` instead and
+``open-mpi`` and ``mpi4py`` can be omitted.
+
 
 macOS with MacPorts
 -------------------
@@ -468,6 +473,7 @@ macOS with MacPorts
 
    macOS support is limited. Requires Xcode Command Line Tools.
 
+The default options file (``macports_options.py``) builds with MPI enabled.
 Install MacPorts from https://www.macports.org, then:
 
 .. code-block:: bash
@@ -477,11 +483,6 @@ Install MacPorts from https://www.macports.org, then:
    sudo port select --set python3 python311
    sudo port install py311-numpy py311-scipy py311-matplotlib
    sudo port install scons cmake boost hdf5 netcdf suitesparse lapack mumps
-
-For MPI support:
-
-.. code-block:: bash
-
    sudo port install openmpi py311-mpi4py
 
 For building documentation:
@@ -502,6 +503,9 @@ Build esys-escript:
 .. code-block:: bash
 
    scons -j4 options_file=scons/templates/macports_options.py
+
+To build **without MPI**, use ``macports_nompi_options.py`` instead and
+``openmpi`` and ``py311-mpi4py`` can be omitted.
 
 
 FreeBSD
