@@ -13,6 +13,7 @@
 *****************************************************************************/
 
 #include <fstream>
+#include <type_traits>
 
 #include "BlockCrsMatrixWrapper.h"
 #include "BelosWrapper.h"
@@ -164,8 +165,16 @@ void BlockCrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
             m_solver = problem;
             RCP<OpType<ST> > prec = createPreconditioner<ST>(A, sb);
             if (!prec.is_null()) {
-                // Trilinos BiCGStab does not support left preconditioners
-                if (sb.getSolverMethod() == escript::SO_METHOD_BICGSTAB)
+                // Trilinos BiCGStab does not support left preconditioners.
+                // For complex types, GMRES/ITERATIVE also fall back to
+                // BiCGStab (Belos GMRES has a NaN bug with complex types),
+                // so they also need right preconditioning.
+                const auto m = sb.getSolverMethod();
+                const bool usesBiCGStab = (m == escript::SO_METHOD_BICGSTAB)
+                    || (std::is_same_v<ST, cplx_t> &&
+                        (m == escript::SO_METHOD_GMRES ||
+                         m == escript::SO_METHOD_ITERATIVE));
+                if (usesBiCGStab)
                     problem->setRightPrec(prec);
                 else
                     problem->setLeftPrec(prec);

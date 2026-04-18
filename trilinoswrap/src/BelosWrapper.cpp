@@ -22,6 +22,7 @@
 #include <BelosTpetraAdapter.hpp>
 
 #include <boost/python/dict.hpp>
+#include <type_traits>
 
 using Teuchos::RCP;
 
@@ -73,7 +74,16 @@ RCP<SolverType<ST> > createSolver(const escript::SolverBuddy& sb)
             extractParamIfSet<int>("Num Blocks", pyParams, *solverParams);
             extractParamIfSet<int>("Maximum Restarts", pyParams, *solverParams);
             extractParamIfSet<std::string>("Orthogonalization", pyParams, *solverParams);
-            solver = factory.create("GMRES", solverParams);
+            // Both Belos PseudoBlockGmresSolMgr and BlockGmresSolMgr have a
+            // known bug with complex scalar types: they produce NaN at
+            // iteration 0 when the initial residual is a purely real complex
+            // vector (zero imaginary parts). Fall back to BICGSTAB for
+            // complex types, which handles this case correctly.
+            if constexpr (std::is_same_v<ST, cplx_t>) {
+                solver = factory.create("BICGSTAB", solverParams);
+            } else {
+                solver = factory.create("GMRES", solverParams);
+            }
             break;
         case escript::SO_METHOD_LSQR:
             // Trilinos breaks when using this combination of methods and packages
