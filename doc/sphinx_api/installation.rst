@@ -200,6 +200,12 @@ For symbolic mathematics support, additionally install:
 
    sudo apt-get install python3-sympy
 
+For running the test suite, additionally install:
+
+.. code-block:: bash
+
+   sudo apt-get install python3-silo
+
 Build esys-escript:
 
 .. code-block:: bash
@@ -238,6 +244,12 @@ For symbolic mathematics support, additionally install:
 .. code-block:: bash
 
    sudo apt-get install python3-sympy
+
+For running the test suite, additionally install:
+
+.. code-block:: bash
+
+   sudo apt-get install python3-silo
 
 Build esys-escript:
 
@@ -282,6 +294,12 @@ For symbolic mathematics support:
 
    sudo pacman -Sy python-sympy
 
+For running the test suite, additionally install:
+
+.. code-block:: bash
+
+   sudo pacman -Sy python-silo
+
 Build esys-escript:
 
 .. code-block:: bash
@@ -323,6 +341,12 @@ For symbolic mathematics support:
 
    sudo dnf install python3-sympy
 
+For running the test suite, additionally install:
+
+.. code-block:: bash
+
+   sudo dnf install python3-silo
+
 Build esys-escript:
 
 .. code-block:: bash
@@ -359,6 +383,12 @@ For symbolic mathematics support:
 .. code-block:: bash
 
    sudo zypper in python3-sympy
+
+For running the test suite, additionally install:
+
+.. code-block:: bash
+
+   sudo zypper in python3-silo
 
 Build esys-escript:
 
@@ -408,6 +438,12 @@ For symbolic mathematics support:
 .. code-block:: bash
 
    sudo dnf install python3-sympy
+
+For running the test suite, additionally install:
+
+.. code-block:: bash
+
+   sudo dnf install python3-silo
 
 Build esys-escript:
 
