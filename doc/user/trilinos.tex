@@ -127,7 +127,16 @@ u=pde.getSolution()
 saveSilo("asimple", u=u)    
 \end{python}
 
-This script uses default Trilinos solver PCG with Jacobi preconditioner. (It takes 271 iterations to reach the default tolerance of $10^{-8}$).  Tolerance and solver output can be controlled by adding to the basic listing.
+This script uses the default Trilinos solver PCG with Jacobi preconditioner for real symmetric PDEs.
+(It takes 271 iterations to reach the default tolerance of $10^{-8}$).
+The default solver selection depends on the PDE type:
+\begin{itemize}
+  \item \textbf{Real symmetric PDEs}: PCG with Jacobi preconditioner
+  \item \textbf{Real non-symmetric PDEs}: GMRES with Jacobi preconditioner
+  \item \textbf{Complex PDEs} (\verb|isComplex=True|): BiCGStab with Jacobi preconditioner
+    (PCG and GMRES are not supported for complex scalar types in Belos)
+\end{itemize}
+Tolerance and solver output can be controlled by adding to the basic listing.
  \begin{python}[caption=tolerance , label=tolerance ]
 options = pde.getSolverOptions()  
 options.setTolerance(1e-8)        
@@ -146,9 +155,10 @@ Table~\ref{tab:solver_summary} provides a quick reference for the most commonly 
 \hline
 \multicolumn{3}{|c|}{\textit{Solver Methods}} \\
 \hline
-PCG & \verb|SolverOptions.PCG| & Preconditioned Conjugate Gradient \\
-GMRES & \verb|SolverOptions.GMRES| & Generalized Minimal Residual \\
-BiCGStab & \verb|SolverOptions.BICGSTAB| & BiConjugate Gradient Stabilized \\
+PCG & \verb|SolverOptions.PCG| & Preconditioned Conjugate Gradient (real PDEs only) \\
+GMRES & \verb|SolverOptions.GMRES| & Generalized Minimal Residual (real PDEs only) \\
+BiCGStab & \verb|SolverOptions.BICGSTAB| & BiConjugate Gradient Stabilized (real and complex) \\
+TFQMR & \verb|SolverOptions.TFQMR| & Transpose-Free QMR (real and complex) \\
 Direct & \verb|SolverOptions.DIRECT| & Direct solver (KLU2 default) \\
 Direct SuperLU & \verb|SolverOptions.DIRECT_SUPERLU| & SuperLU direct solver \\
 \hline
@@ -544,6 +554,11 @@ A more complicated example that controls the number of pre and post sweeps is in
 \begin{itemize}
 \item For symmetric positive definite problems (e.g., Laplace, heat conduction), use \textbf{PCG with AMG} preconditioner for best performance.
 \item For non-symmetric problems (e.g., convection-dominated), use \textbf{GMRES} or \textbf{BiCGStab}.
+\item For \textbf{complex-valued PDEs} (\verb|isComplex=True|), use \textbf{BiCGStab} or \textbf{TFQMR}.
+  The default solver is automatically set to BiCGStab for complex PDEs.
+  PCG and GMRES are not supported for complex scalar types in the Belos solver library
+  (PCG is not designed for complex Hermitian systems, and GMRES has a known upstream bug
+  with complex vectors).
 \item For small to medium problems (up to $\sim$50,000 unknowns), \textbf{direct solvers} (KLU2) are often fastest.
 \item For large problems, iterative solvers with AMG preconditioning scale much better than direct solvers.
 \end{itemize}
@@ -559,6 +574,10 @@ A more complicated example that controls the number of pre and post sweeps is in
 \subsection{Common Issues}
 \begin{itemize}
 \item \textbf{Solver does not converge}: Try a stronger preconditioner (AMG instead of Jacobi), or use a direct solver for debugging.
+\item \textbf{PCG or GMRES fails for complex PDEs}: Belos PCG (CG) is not designed for complex Hermitian
+  systems, and Belos GMRES has a known upstream bug with complex scalar types. For complex PDEs,
+  use \verb|SolverOptions.BICGSTAB| or \verb|SolverOptions.TFQMR| instead. The default solver
+  is automatically set to BiCGStab when \verb|isComplex=True|.
 \item \textbf{Memory issues with large problems}: Use iterative solvers instead of direct solvers; reduce AMG coarse grid size.
 \item \textbf{Kokkos finalize crash}: You may see an error message like
   ``\texttt{SharedAllocationRecord 'Belos::MultiVecPool DV' failed decrement count}''

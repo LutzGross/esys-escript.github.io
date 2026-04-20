@@ -50,7 +50,12 @@ RCP<SolverType<ST> > createSolver(const escript::SolverBuddy& sb)
     const bp::dict& pyParams = sb.getTrilinosParameters();
 
     if (method == escript::SO_DEFAULT) {
-        if (sb.isSymmetric() || sb.isHermitian()) {
+        if constexpr (std::is_same_v<ST, cplx_t>) {
+            // Belos CG and GMRES do not support complex scalar types:
+            // CG is not designed for complex Hermitian systems, and GMRES
+            // has a known NaN bug with complex vectors. Default to BICGSTAB.
+            method = escript::SO_METHOD_BICGSTAB;
+        } else if (sb.isSymmetric() || sb.isHermitian()) {
             method = escript::SO_METHOD_PCG;
         } else {
             method = escript::SO_METHOD_GMRES;
@@ -74,16 +79,7 @@ RCP<SolverType<ST> > createSolver(const escript::SolverBuddy& sb)
             extractParamIfSet<int>("Num Blocks", pyParams, *solverParams);
             extractParamIfSet<int>("Maximum Restarts", pyParams, *solverParams);
             extractParamIfSet<std::string>("Orthogonalization", pyParams, *solverParams);
-            // Both Belos PseudoBlockGmresSolMgr and BlockGmresSolMgr have a
-            // known bug with complex scalar types: they produce NaN at
-            // iteration 0 when the initial residual is a purely real complex
-            // vector (zero imaginary parts). Fall back to BICGSTAB for
-            // complex types, which handles this case correctly.
-            if constexpr (std::is_same_v<ST, cplx_t>) {
-                solver = factory.create("BICGSTAB", solverParams);
-            } else {
-                solver = factory.create("GMRES", solverParams);
-            }
+            solver = factory.create("GMRES", solverParams);
             break;
         case escript::SO_METHOD_LSQR:
             // Trilinos breaks when using this combination of methods and packages

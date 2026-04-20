@@ -37,7 +37,6 @@ http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://github.com/LutzGross/esys-escript.github.io"
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-
 from . import escriptcpp as escore
 from . import linearPDEs
 from . import util

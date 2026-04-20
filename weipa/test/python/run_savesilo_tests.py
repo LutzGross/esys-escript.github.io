@@ -209,7 +209,7 @@ class SiloSaver(unittest.TestCase): #requires subclassing
                 for i2 in range(len(coords2)):
                     if self.numericCompareL2(coords1[i1], coords2[i2]):
                         indexList.append(i2)
-                self.assertNotEquals(len(indexList), 0,
+                self.assertNotEqual(len(indexList), 0,
                                  "Node with coordinates %s missing in '%s'"%(str(coords1[i1]),elementName))
                 #nodeMap1to2[i1]=indexList
 
@@ -1420,7 +1420,7 @@ class Test_Ripley_SaveSilo(SiloSaver):
                                            data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
 
 @unittest.skipIf(getMPISizeWorld()>1, "MPI size > 1")
-@unittest.skipIf(not HAVE_OXLEY, "ripley module not available")
+@unittest.skipIf(not HAVE_OXLEY, "oxley module not available")
 @unittest.skipIf(not HAVE_SILO, "python3-silo module not available (install python3-silo)")
 class Test_Oxley_SaveSilo(SiloSaver):
 
