@@ -195,11 +195,11 @@ class SiloSaver(unittest.TestCase): #requires subclassing
             self.assertEqual(len(cy1), len(cy2))
             if cz2 is not None:
                 self.assertEqual(len(cz1), len(cz2))
-                coords1=zip(cx1,cy1,cz1)
-                coords2=zip(cx2,cy2,cz2)
+                coords1=list(zip(cx1,cy1,cz1))
+                coords2=list(zip(cx2,cy2,cz2))
             else:
-                coords1=zip(cx1,cy1)
-                coords2=zip(cx2,cy2)
+                coords1=list(zip(cx1,cy1))
+                coords2=list(zip(cx2,cy2))
 
             # Find mapping of nodes in file 1 to file 2 (they may be
             # permuted)
