@@ -594,31 +594,6 @@ non-invertible operator.} and \member{SolverOptions.UMFPACK}.
 \paragraph{SolverOptions.getPackage()}
 returns the solver package key.
 
-\paragraph{domain.setDefaultSolverPackage(package)}
-\label{DOMAIN DEFAULT PACKAGE}
-sets the default solver package for the domain.
-The value of \var{package} must be one of \member{SolverOptions.DEFAULT},
-\member{SolverOptions.PASO} or \member{SolverOptions.TRILINOS}.
-Setting the package at the domain level keeps the matrix type stable regardless
-of which solver method is selected per solve.  In particular, changing the
-iterative solver method (e.g.\ from \PCG to \GMRES) will never trigger an
-unnecessary rebuild of the system matrix.
-
-If \member{SolverOptions.DEFAULT} is used (the default), the package is chosen
-automatically: \TRILINOS is used for direct and complex-valued problems; \PASO
-is used otherwise (when available).
-
-Example usage:
-\begin{python}
-from esys.escript import SolverOptions
-from esys.finley import Rectangle
-domain = Rectangle(20, 20, 1)
-domain.setDefaultSolverPackage(SolverOptions.TRILINOS)
-\end{python}
-
-\paragraph{domain.getDefaultSolverPackage()}
-returns the default solver package set for the domain, or
-\member{SolverOptions.DEFAULT} if none has been explicitly set.
 
 \paragraph{SolverOptions.setTrilinosParameter(\optional{ name , value)}
 }

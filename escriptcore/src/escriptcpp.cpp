@@ -270,19 +270,6 @@ args("options"),
         ":rtype: int")
        .def("getTransportTypeId",&escript::AbstractContinuousDomain::getTransportTypeId,
 args("solver", "preconditioner", "package", "symmetry"))
-       .def("setDefaultSolverPackage",&escript::AbstractContinuousDomain::setDefaultSolverPackage,
-args("package"),
-        "Set the default solver package for this domain.\n\n"
-        "The package is used when SolverOptions leaves the package at SO_DEFAULT. "
-        "Valid values are ``SolverOptions.DEFAULT``, ``SolverOptions.PASO``, "
-        "``SolverOptions.TRILINOS``. Setting the package at the domain level avoids "
-        "unexpected operator rebuilds when the solver method changes between solves.\n\n"
-        ":param package: solver package identifier\n"
-        ":type package: `int`")
-       .def("getDefaultSolverPackage",&escript::AbstractContinuousDomain::getDefaultSolverPackage,
-        "Returns the default solver package set for this domain, or ``SolverOptions.DEFAULT`` "
-        "if none has been set.\n\n"
-        ":rtype: `int`")
 
       .def("addPDEToSystem",&escript::AbstractContinuousDomain::addPDEToSystem,
 args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact", "d_dirac", "y_dirac"),

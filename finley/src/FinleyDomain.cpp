@@ -1745,12 +1745,6 @@ int FinleyDomain::getSystemMatrixTypeId(const bp::object& options) const
         }
     }
 #endif
-    // honour the domain-level default before falling back to build-time defaults
-    if (package == escript::SO_DEFAULT) {
-        int domDefault = getDefaultSolverPackage();
-        if (domDefault != escript::SO_DEFAULT)
-            package = domDefault;
-    }
 #ifdef ESYS_HAVE_PASO
     if (package == escript::SO_DEFAULT)
         package = escript::SO_PACKAGE_PASO;

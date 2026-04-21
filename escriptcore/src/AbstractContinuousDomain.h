@@ -304,22 +304,6 @@ class ESCRIPT_DLL_API AbstractContinuousDomain : public AbstractDomain
 
   /**
      \brief
-     Set the default solver package for this domain.
-     The package is used when the solver options leave the package at SO_DEFAULT.
-     Valid values are SO_DEFAULT (auto), SO_PACKAGE_PASO, SO_PACKAGE_TRILINOS.
-     This allows the solver backend to be fixed at the domain level rather than
-     per-solve, avoiding unexpected operator rebuilds when the solver method changes.
-  */
-  void setDefaultSolverPackage(int package);
-
-  /**
-     \brief
-     Returns the default solver package for this domain, or SO_DEFAULT if not set.
-  */
-  int getDefaultSolverPackage() const;
-
-  /**
-     \brief
      Return the number of data points summed across all MPI processes
   */
   virtual DataTypes::dim_t getNumDataPointsGlobal() const;
@@ -342,10 +326,6 @@ class ESCRIPT_DLL_API AbstractContinuousDomain : public AbstractDomain
      \param full
   */
   virtual void Print_Mesh_Info(const bool full=false) const;
-
- private:
-  /// Default solver package; SO_DEFAULT means use the build-time fallback.
-  int m_defaultSolverPackage = 0; // 0 == SO_DEFAULT
 };
 
 } // end of namespace

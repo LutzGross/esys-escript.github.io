@@ -141,19 +141,9 @@ int AbstractContinuousDomain::getSystemMatrixTypeId(const boost::python::object&
    return 0;
 }
 
-int AbstractContinuousDomain::getTransportTypeId(int solver, int precondioner, int package, bool symmetry) const
+int AbstractContinuousDomain::getTransportTypeId(int solver, int precondioner, int package, bool symmetry) const 
 {
    return 0;
-}
-
-void AbstractContinuousDomain::setDefaultSolverPackage(int package)
-{
-    m_defaultSolverPackage = package;
-}
-
-int AbstractContinuousDomain::getDefaultSolverPackage() const
-{
-    return m_defaultSolverPackage;
 }
 
 void AbstractContinuousDomain::addPDEToSystem(
