@@ -1,12 +1,13 @@
 from esys.escript import *
+from esys.escript import SolverFramework
 from esys.weipa import saveVTK, saveSilo
 from esys.escript.linearPDEs import LinearSinglePDE, SolverOptions
 from esys.finley import ReadGmsh
 from esys.escript.pdetools import Locator
 
 mkDir("output")
-print("read in mesh")   
-domain=ReadGmsh("simplemesh.msh", 3,  optimize=True )
+print("read in mesh")
+domain=ReadGmsh("simplemesh.msh", 3, optimize=True, framework=SolverFramework.trilinos())
 
 pde = LinearSinglePDE(domain, isComplex=False)
 pde.setSymmetryOn()
@@ -15,7 +16,6 @@ x = domain.getX()
 pde.setValue(A=kronecker(3), Y=1, q=whereZero(x[0]-inf(x[0])))
 
 options = pde.getSolverOptions()
-options.setPackage(SolverOptions.TRILINOS)
 options.setSolverMethod(SolverOptions.PCG)
 options.setPreconditioner(SolverOptions.AMG)
 options.setTrilinosParameter("multigrid algorithm", "sa")

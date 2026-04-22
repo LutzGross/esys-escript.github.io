@@ -25,7 +25,7 @@ from .finleycpp import __Brick_driver, __Rectangle_driver, __ReadMesh_driver, __
 
 
 def ReadMesh(filename, integrationOrder=-1, reducedIntegrationOrder=-1, optimize=True,
-             diracPoints=[], diracTags=[], comm=None):
+             diracPoints=[], diracTags=[], comm=None, framework=None):
     """
     Read a mesh from a file. For MPI parallel runs fan out the mesh to multiple processes.
 
@@ -36,13 +36,17 @@ def ReadMesh(filename, integrationOrder=-1, reducedIntegrationOrder=-1, optimize
     :param diracPoints: Dirac point coordinates
     :param diracTags: Dirac point tags
     :param comm: MPI communicator (optional, defaults to MPI_COMM_WORLD)
+    :param framework: solver framework to use (optional SolverFramework instance)
     :return: Domain object
     """
-    return __ReadMesh_driver(filename, integrationOrder, reducedIntegrationOrder,
-                             optimize, diracPoints, diracTags, comm)
+    dom = __ReadMesh_driver(filename, integrationOrder, reducedIntegrationOrder,
+                            optimize, diracPoints, diracTags, comm)
+    if framework is not None:
+        dom.setFramework(framework)
+    return dom
 
 def ReadGmsh(fileName, numDim, integrationOrder=-1, reducedIntegrationOrder=-1, optimize=True,
-             useMacroElements=False, diracPoints=[], diracTags=[], comm=None):
+             useMacroElements=False, diracPoints=[], diracTags=[], comm=None, framework=None):
     """
     Read a gmsh mesh file.
 
@@ -55,15 +59,19 @@ def ReadGmsh(fileName, numDim, integrationOrder=-1, reducedIntegrationOrder=-1, 
     :param diracPoints: Dirac point coordinates
     :param diracTags: Dirac point tags
     :param comm: MPI communicator (optional, defaults to MPI_COMM_WORLD)
+    :param framework: solver framework to use (optional SolverFramework instance)
     :return: Domain object
     """
-    return __ReadGmsh_driver(fileName, numDim, integrationOrder, reducedIntegrationOrder,
-                             optimize, useMacroElements, diracPoints, diracTags, comm)
+    dom = __ReadGmsh_driver(fileName, numDim, integrationOrder, reducedIntegrationOrder,
+                            optimize, useMacroElements, diracPoints, diracTags, comm)
+    if framework is not None:
+        dom.setFramework(framework)
+    return dom
 
 
 def Rectangle(n0=1, n1=1, order=1, l0=1.0, l1=1.0, periodic0=False, periodic1=False, integrationOrder=-1,
                reducedIntegrationOrder=-1, useElementsOnFace=None, useFullElementOrder=False, optimize=False,
-               diracPoints=[], diracTags=[], comm=None):
+               diracPoints=[], diracTags=[], comm=None, framework=None):
     """
     Creates a rectangular mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].
 
@@ -82,6 +90,7 @@ def Rectangle(n0=1, n1=1, order=1, l0=1.0, l1=1.0, periodic0=False, periodic1=Fa
     :param diracPoints: Dirac point coordinates
     :param diracTags: Dirac point tags
     :param comm: MPI communicator (optional, defaults to MPI_COMM_WORLD)
+    :param framework: solver framework to use (optional SolverFramework instance)
     :return: Domain object
     """
     faceon = useElementsOnFace
@@ -91,14 +100,17 @@ def Rectangle(n0=1, n1=1, order=1, l0=1.0, l1=1.0, periodic0=False, periodic1=Fa
         else:
             faceon = True
 
-    return __Rectangle_driver((n0, n1), order, (l0, l1), (periodic0, periodic1),
-                              integrationOrder, reducedIntegrationOrder,
-                              faceon, useFullElementOrder, optimize,
-                              diracPoints, diracTags, comm)
+    dom = __Rectangle_driver((n0, n1), order, (l0, l1), (periodic0, periodic1),
+                             integrationOrder, reducedIntegrationOrder,
+                             faceon, useFullElementOrder, optimize,
+                             diracPoints, diracTags, comm)
+    if framework is not None:
+        dom.setFramework(framework)
+    return dom
 
 def Brick(n0=1, n1=1, n2=1, order=1, l0=1.0, l1=1.0, l2=1.0, periodic0=False, periodic1=False, periodic2=False,
           integrationOrder=-1, reducedIntegrationOrder=-1, useElementsOnFace=None, useFullElementOrder=False,
-          optimize=False, diracPoints=[], diracTags=[], comm=None):
+          optimize=False, diracPoints=[], diracTags=[], comm=None, framework=None):
     """
     Creates a rectangular mesh with n0 x n1 x n2 elements over the brick [0,l0] x [0,l1] x [0,l2].
 
@@ -120,6 +132,7 @@ def Brick(n0=1, n1=1, n2=1, order=1, l0=1.0, l1=1.0, l2=1.0, periodic0=False, pe
     :param diracPoints: Dirac point coordinates
     :param diracTags: Dirac point tags
     :param comm: MPI communicator (optional, defaults to MPI_COMM_WORLD)
+    :param framework: solver framework to use (optional SolverFramework instance)
     :return: Domain object
     """
     faceon = useElementsOnFace
@@ -129,7 +142,10 @@ def Brick(n0=1, n1=1, n2=1, order=1, l0=1.0, l1=1.0, l2=1.0, periodic0=False, pe
         else:
             faceon = True
 
-    return __Brick_driver((n0, n1, n2), order, (l0, l1, l2), (periodic0, periodic1, periodic2),
-                          integrationOrder, reducedIntegrationOrder,
-                          faceon, useFullElementOrder, optimize,
-                          diracPoints, diracTags, comm)
+    dom = __Brick_driver((n0, n1, n2), order, (l0, l1, l2), (periodic0, periodic1, periodic2),
+                         integrationOrder, reducedIntegrationOrder,
+                         faceon, useFullElementOrder, optimize,
+                         diracPoints, diracTags, comm)
+    if framework is not None:
+        dom.setFramework(framework)
+    return dom

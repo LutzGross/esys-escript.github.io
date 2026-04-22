@@ -23,6 +23,7 @@
 #include "FunctionSpace.h"
 #include "FunctionSpaceFactory.h"
 #include "SolverOptions.h"
+#include "SolverFramework.h"
 #include "TestDomain.h"
 #include "Utils.h"
 
@@ -100,6 +101,7 @@ bool block_cmp_domains(const escript::AbstractDomain&, boost::python::object o)
     boost::python::throw_error_already_set();
     return false;
 }
+
 }
 
 BOOST_PYTHON_MODULE(escriptcpp)
@@ -270,6 +272,15 @@ args("options"),
         ":rtype: int")
        .def("getTransportTypeId",&escript::AbstractContinuousDomain::getTransportTypeId,
 args("solver", "preconditioner", "package", "symmetry"))
+       .def("setFramework", &escript::AbstractContinuousDomain::setFramework, arg("framework"),
+        "Attach a SolverFramework to this domain.  Must be called before the\n"
+        "domain is first used for solving.  Raises an exception if called\n"
+        "a second time.\n\n"
+        ":param framework: the solver backend to use\n"
+        ":type framework: `SolverFramework`")
+       .def("getFramework", &escript::AbstractContinuousDomain::getFramework,
+        "Returns the SolverFramework attached to this domain.\n\n"
+        ":rtype: `SolverFramework`")
 
       .def("addPDEToSystem",&escript::AbstractContinuousDomain::addPDEToSystem,
 args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact", "d_dirac", "y_dirac"),
@@ -1073,12 +1084,59 @@ args("source", "q", "r","factor"),
      .def("getSafeTimeStepSize",&escript::AbstractTransportProblem::getSafeTimeStepSize)
      .def("getUnlimitedTimeStepSize",&escript::AbstractTransportProblem::getUnlimitedTimeStepSize);
 
+  // -------------------------------------------------------------------
+  // SolverFramework
+  // -------------------------------------------------------------------
+  auto sf_class = class_<escript::SolverFramework, std::shared_ptr<escript::SolverFramework>,
+         boost::noncopyable>("SolverFramework",
+    "Represents a solver backend (PASO or TRILINOS) attached to a domain.\n\n"
+    "Use the static factory methods to create an instance and pass it to a\n"
+    "domain constructor to fix the solver backend for all solves on that domain::\n\n"
+    "    from esys.escript import SolverFramework\n"
+    "    pkg = SolverFramework.trilinos()\n"
+    "    domain = Rectangle(20, 20, 1, framework=pkg)\n\n"
+    "When no framework is provided to the domain constructor, the process-wide\n"
+    "default framework is used (Trilinos if available, Paso otherwise).",
+    no_init)
+    .def("getType", &escript::SolverFramework::getType,
+      "Returns the framework type identifier "
+      "(``SolverFramework.PASO`` or ``SolverFramework.TRILINOS``).\n\n:rtype: int")
+    .def("getName", &escript::SolverFramework::getName,
+      "Returns the framework name as a string (``'TRILINOS'`` or ``'PASO'``).\n\n"
+      ":rtype: str")
+    .def("isTrilinos", &escript::SolverFramework::isTrilinos,
+      "Returns True if this is the Trilinos backend.\n\n:rtype: bool")
+    .def("isPaso", &escript::SolverFramework::isPaso,
+      "Returns True if this is the Paso backend.\n\n:rtype: bool")
+    .def("__repr__", &escript::SolverFramework::getName)
+    .def("trilinos", &escript::SolverFramework::trilinos,
+      "Returns a SolverFramework for the Trilinos backend.\n\n"
+      ":rtype: SolverFramework\n"
+      ":raises EsysException: if Trilinos is not available in this build.")
+    .staticmethod("trilinos")
+    .def("paso", &escript::SolverFramework::paso,
+      "Returns a SolverFramework for the Paso backend.\n\n"
+      ":rtype: SolverFramework\n"
+      ":raises EsysException: if Paso is not available in this build.")
+    .staticmethod("paso")
+    .def("isAvailable", &escript::SolverFramework::isAvailable, args("type"),
+      "Returns True if the given package type is available in this build.\n\n"
+      ":param type: package type integer constant\n"
+      ":rtype: bool")
+    .staticmethod("isAvailable")
+    .def("getDefault", &escript::SolverFramework::getDefault,
+      "Returns the process-wide default SolverFramework "
+      "(Trilinos when available, Paso otherwise).\n\n"
+      ":rtype: SolverFramework")
+    .staticmethod("getDefault")
+    ;
+  sf_class.attr("PASO") = escript::SolverFramework::PASO;
+  sf_class.attr("TRILINOS") = escript::SolverFramework::TRILINOS;
+
   enum_<escript::SolverOptions>("SolverOptions")
     .value("DEFAULT", escript::SO_DEFAULT)
 
     .value("MKL", escript::SO_PACKAGE_MKL)
-    .value("PASO", escript::SO_PACKAGE_PASO)
-    .value("TRILINOS", escript::SO_PACKAGE_TRILINOS)
     .value("UMFPACK", escript::SO_PACKAGE_UMFPACK)
     .value("MUMPS", escript::SO_PACKAGE_MUMPS)
 
@@ -1191,12 +1249,13 @@ args("source", "q", "r","factor"),
         ":note: Not all packages support all solvers. It can be assumed that a package makes a reasonable choice if it encounters an unknown solver method.")
     .def("getSolverMethod", &escript::SolverBuddy::getSolverMethod,"Returns key of the solver method to be used.\n\n"
         ":rtype: in the list `DEFAULT`, `DIRECT`, `CHOLEVSKY`, `PCG`, `CR`, `CGS`, `BICGSTAB`, `GMRES`, `PRES20`, `ROWSUM_LUMPING`, `HRZ_LUMPING`, `MINRES`, `ITERATIVE`, `NONLINEAR_GMRES`, `TFQMR`")
-    .def("setPackage", &escript::SolverBuddy::setPackage, args("package"),"Sets the solver package to be used as a solver.\n\n"
+    .def("setPackage", &escript::SolverBuddy::setPackage, args("package"),
+        "Sets the direct-solver sub-library to use within the Paso framework.\n\n"
         ":param package: key of the solver package to be used.\n"
-        ":type package: in `DEFAULT`, `PASO`, `CUSP`, `MKL`, `UMFPACK`, `MUMPS`, `TRILINOS`\n"
-        ":note: Not all packages are support on all implementation. An exception may be thrown on some platforms if a particular package is requested.")
+        ":type package: in `DEFAULT`, `MKL`, `UMFPACK`, `MUMPS`\n"
+        ":note: Not all packages are supported on all platforms. An exception may be thrown if a particular package is not available.")
     .def("getPackage", &escript::SolverBuddy::getPackage,"Returns the solver package key\n\n"
-        ":rtype: in the list `DEFAULT`, `PASO`, `CUSP`, `MKL`, `UMFPACK`, `MUMPS`, `TRILINOS`")
+        ":rtype: in the list `DEFAULT`, `MKL`, `UMFPACK`, `MUMPS`")
     .def("setReordering", &escript::SolverBuddy::setReordering, args("ordering"),"Sets the key of the reordering method to be applied if supported by the solver. Some direct solvers support reordering to optimize compute time and storage use during elimination.\n\n"
         ":param ordering: selects the reordering strategy.\n"
         ":type ordering: in 'NO_REORDERING', 'MINIMUM_FILL_IN', 'NESTED_DISSECTION', 'DEFAULT_REORDERING'")

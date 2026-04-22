@@ -1726,34 +1726,23 @@ int FinleyDomain::getSystemMatrixTypeId(const bp::object& options) const
 {
     const escript::SolverBuddy& sb = bp::extract<escript::SolverBuddy>(options);
 
-    int package = sb.getPackage();
+    // Framework is fixed by the domain's SolverFramework attribute.
+    // Complex PDEs and parallel direct solvers still force Trilinos
+    // (these require Trilinos capabilities regardless of domain default).
+    auto fw = getFramework();
+    bool useTrilinos = fw->isTrilinos();
     escript::SolverOptions method = sb.getSolverMethod();
 #ifdef ESYS_HAVE_TRILINOS
     bool isDirect = escript::isDirectSolver(method);
-#endif
-
-    // the configuration of finley should have taken care that we have either
-    // paso or trilinos so here's how we prioritize
-#if defined(ESYS_HAVE_PASO) && defined(ESYS_HAVE_TRILINOS)
-    // we have Paso & Trilinos so use Trilinos for parallel direct solvers and
-    // for complex problems
-    if (package == escript::SO_DEFAULT) {
+    if (!useTrilinos) {
         if ((method == escript::SO_METHOD_DIRECT && getMPISize() > 1)
                 || isDirect
                 || sb.isComplex()) {
-            package = escript::SO_PACKAGE_TRILINOS;
+            useTrilinos = true;
         }
     }
 #endif
-#ifdef ESYS_HAVE_PASO
-    if (package == escript::SO_DEFAULT)
-        package = escript::SO_PACKAGE_PASO;
-#endif
-#ifdef ESYS_HAVE_TRILINOS
-    if (package == escript::SO_DEFAULT)
-        package = escript::SO_PACKAGE_TRILINOS;
-#endif
-    if (package == escript::SO_PACKAGE_TRILINOS) {
+    if (useTrilinos) {
 #ifdef ESYS_HAVE_TRILINOS
         int type = (int)SMT_TRILINOS;
         if (sb.isComplex())

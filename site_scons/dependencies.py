@@ -123,7 +123,6 @@ def get_external_python_sympy(env,bin):
         #    env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
         else:
             env['sympy']=True
-            env['warnings'].append("Found sympy version %s" % spVer)
         return env
     else:
         return env
@@ -464,11 +463,10 @@ def checkOptionalModules(env):
     if env['sympy']:
         if detectModule(env, 'sympy'):
             env['sympy'] = True
-            env['warnings'].append("Found sympy.")
         else:
             env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
             env['sympy']=False
-            env['warnings'].append("Could not find sympy")
+            env['warnings'].append("sympy not found.")
     else:
         env['sympy']=False
         env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])

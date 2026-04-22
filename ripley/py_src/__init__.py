@@ -25,6 +25,59 @@ __url__="https://github.com/LutzGross/esys-escript.github.io"
 
 import esys.escript       # This is just to ensure required libraries are loaded
 from .ripleycpp import *
+from .ripleycpp import Rectangle as _Rectangle, Brick as _Brick
 from .MultiResolutionDomain import *
+
+
+def Rectangle(n0=10, n1=10, l0=1.0, l1=1.0, d0=-1, d1=-1,
+              diracPoints=[], diracTags=[], comm=None, framework=None):
+    """
+    Creates a rectangular mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].
+
+    :param n0: number of elements in direction 0
+    :param n1: number of elements in direction 1
+    :param l0: length of side 0 or coordinate range of side 0
+    :param l1: length of side 1 or coordinate range of side 1
+    :param d0: number of subdivisions in direction 0
+    :param d1: number of subdivisions in direction 1
+    :param diracPoints: Dirac point coordinates
+    :param diracTags: Dirac point tags
+    :param comm: MPI communicator (optional, from mpi4py)
+    :param framework: solver framework to use (optional SolverFramework instance)
+    :return: Domain object
+    """
+    dom = _Rectangle(n0=n0, n1=n1, l0=l0, l1=l1, d0=d0, d1=d1,
+                     diracPoints=diracPoints, diracTags=diracTags, comm=comm)
+    if framework is not None:
+        dom.setFramework(framework)
+    return dom
+
+
+def Brick(n0=10, n1=10, n2=10, l0=1.0, l1=1.0, l2=1.0, d0=-1, d1=-1, d2=-1,
+          diracPoints=[], diracTags=[], comm=None, framework=None):
+    """
+    Creates a hexagonal mesh with n0 x n1 x n2 elements over the brick [0,l0] x [0,l1] x [0,l2].
+
+    :param n0: number of elements in direction 0
+    :param n1: number of elements in direction 1
+    :param n2: number of elements in direction 2
+    :param l0: length of side 0 or coordinate range of side 0
+    :param l1: length of side 1 or coordinate range of side 1
+    :param l2: length of side 2 or coordinate range of side 2
+    :param d0: number of subdivisions in direction 0
+    :param d1: number of subdivisions in direction 1
+    :param d2: number of subdivisions in direction 2
+    :param diracPoints: Dirac point coordinates
+    :param diracTags: Dirac point tags
+    :param comm: MPI communicator (optional, from mpi4py)
+    :param framework: solver framework to use (optional SolverFramework instance)
+    :return: Domain object
+    """
+    dom = _Brick(n0=n0, n1=n1, n2=n2, l0=l0, l1=l1, l2=l2, d0=d0, d1=d1, d2=d2,
+                 diracPoints=diracPoints, diracTags=diracTags, comm=comm)
+    if framework is not None:
+        dom.setFramework(framework)
+    return dom
+
 
 __nodocorecursion=['ripleycpp']

@@ -107,8 +107,22 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
             throw ValueError("AssembleParameters: number of columns in matrix "
                    "does not match the number of degrees of freedom in mesh");
         }
-    }
+    } else
 #endif
+    // For non-Paso system matrices (e.g. Trilinos): use the function space
+    // stored in the matrix to select full vs. reduced DOF/Jacobians.
+    // This is needed for macro elements where numSub > 1 and the Jacobian
+    // quadrature counts differ between full and reduced integration.
+    if (sm != NULL) {
+        if (sm->getRowFunctionSpace().getTypeCode() == ReducedDegreesOfFreedom) {
+            row_DOF_UpperBound = nodes->getNumReducedDegreesOfFreedom();
+            row_DOF = nodes->borrowTargetReducedDegreesOfFreedom();
+            row_jac = ef->borrowJacobians(nodes, true, reducedOrder);
+            col_DOF_UpperBound = row_DOF_UpperBound;
+            col_DOF = row_DOF;
+            col_jac = row_jac;
+        }
+    }
 
     // get the information from right hand side
     if (!rhs.isEmpty()) {

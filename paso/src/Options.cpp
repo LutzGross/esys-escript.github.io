@@ -363,10 +363,6 @@ int Options::mapEscriptOption(int escriptOption)
 
         case escript::SO_PACKAGE_MKL:
             return PASO_MKL;
-        case escript::SO_PACKAGE_PASO:
-            return PASO_PASO;
-        case escript::SO_PACKAGE_TRILINOS:
-            return PASO_TRILINOS;
         case escript::SO_PACKAGE_UMFPACK:
             return PASO_UMFPACK;
         case escript::SO_PACKAGE_MUMPS:

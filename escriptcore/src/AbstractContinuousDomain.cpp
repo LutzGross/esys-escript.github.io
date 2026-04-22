@@ -14,6 +14,7 @@
 
 #include "AbstractContinuousDomain.h"
 #include "Data.h"
+#include "EsysException.h"
 
 using namespace boost::python;
 
@@ -141,9 +142,25 @@ int AbstractContinuousDomain::getSystemMatrixTypeId(const boost::python::object&
    return 0;
 }
 
-int AbstractContinuousDomain::getTransportTypeId(int solver, int precondioner, int package, bool symmetry) const 
+int AbstractContinuousDomain::getTransportTypeId(int solver, int precondioner, int package, bool symmetry) const
 {
    return 0;
+}
+
+void AbstractContinuousDomain::setFramework(std::shared_ptr<SolverFramework> pkg)
+{
+    if (m_frameworkSet)
+        throw EsysException("AbstractContinuousDomain::setFramework: "
+                            "solver framework has already been set for this domain.");
+    m_solverFramework = pkg;
+    m_frameworkSet = true;
+}
+
+std::shared_ptr<SolverFramework> AbstractContinuousDomain::getFramework() const
+{
+    if (!m_solverFramework)
+        m_solverFramework = SolverFramework::getDefault();
+    return m_solverFramework;
 }
 
 void AbstractContinuousDomain::addPDEToSystem(

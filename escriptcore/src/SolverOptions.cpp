@@ -88,8 +88,7 @@ std::string SolverBuddy::getSummary() const
         << "Inner tolerance = " << getInnerTolerance() << std::endl
         << "Adapt innner tolerance = " << adaptInnerTolerance() << std::endl;
 
-    if (getPackage() == SO_DEFAULT || getPackage() == SO_PACKAGE_PASO ||
-            getPackage() == SO_PACKAGE_TRILINOS) {
+    if (getPackage() == SO_DEFAULT) {
         out << "Solver method = " << getName(getSolverMethod()) << std::endl;
         if (getSolverMethod() == SO_METHOD_GMRES) {
             out << "Truncation  = " << getTruncation() << std::endl
@@ -126,8 +125,6 @@ const char* SolverBuddy::getName(int key) const
         case SO_TARGET_GPU: return "GPU";
 
         case SO_PACKAGE_MKL: return "MKL";
-        case SO_PACKAGE_PASO: return "PASO";
-        case SO_PACKAGE_TRILINOS: return "TRILINOS";
         case SO_PACKAGE_UMFPACK: return "UMFPACK";
         case SO_PACKAGE_MUMPS: return "MUMPS";
 
@@ -446,36 +443,9 @@ void SolverBuddy::setPackage(int package)
     SolverOptions pack = static_cast<SolverOptions>(package);
     switch (pack) {
         case SO_DEFAULT:
-        // Default to trilinos if it is available, else use PASO
-        // This should always work because escript cannot be compiled
-        // unless at least one of these is available
-#ifdef ESYS_HAVE_TRILINOS
-            this->package = SO_PACKAGE_TRILINOS;
+            this->package = SO_DEFAULT;
             setSolverMethod(getSolverMethod());
             break;
-#else
-            this->package = SO_PACKAGE_PASO;
-            setSolverMethod(getSolverMethod());
-            break;
-#endif
-        // Set to PASO iff escript was compiled with PASO
-        case SO_PACKAGE_PASO:
-#ifdef ESYS_HAVE_PASO
-            this->package = SO_PACKAGE_PASO;
-            setSolverMethod(getSolverMethod());
-            break;
-#else
-            throw ValueError("escript was not compiled with PASO enabled");
-#endif
-        // Set to Trilinos iff escript was compiled with Trilinos
-        case SO_PACKAGE_TRILINOS:
-#ifdef ESYS_HAVE_TRILINOS
-            this->package = SO_PACKAGE_TRILINOS;
-            setSolverMethod(getSolverMethod());
-            break;
-#else
-            throw ValueError("escript was not compiled with Trilinos enabled");
-#endif
         // Set to MKL iff escript was compiled with MKL
         case SO_PACKAGE_MKL:
 #ifdef ESYS_HAVE_MKL

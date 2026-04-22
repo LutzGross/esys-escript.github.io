@@ -111,8 +111,6 @@ class FinleyOptions(Options):
                       SolverOptions.MKL:  "MKL",
                       SolverOptions.UMFPACK: "UMFPACK",
                       SolverOptions.MUMPS: "MUMPS",
-                      SolverOptions.TRILINOS: "TRILINOS",
-                      SolverOptions.PASO:  "PASO",
                       SolverOptions.RILU: "RILU",
                       SolverOptions.AMG:  "AMG"
                   }
@@ -126,9 +124,7 @@ class FinleyOptions(Options):
        else:
              if not name=="": name+="+"
              name+=self.strmap[preconditioner]
-       if package==None: 
-             package==SolverOptions.PASO
-       else:
+       if package is not None:
              if not name=="": name+=" with "
              name+=self.strmap[package]
        if tolerance==None: 

@@ -86,7 +86,6 @@ RCP<SolverType<ST> > createSolver(const escript::SolverBuddy& sb)
             // so switch to another method
             //#ifdef ESYS_TRILINOS_14
             if (sb.getSolverMethod() == escript::SO_METHOD_LSQR
-                && sb.getPackage() == escript::SO_PACKAGE_TRILINOS
                 && sb.getPreconditioner() == escript::SO_PRECONDITIONER_AMG
                 )
             {

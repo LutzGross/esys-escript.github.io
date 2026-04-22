@@ -48,6 +48,7 @@ sources = """
     pyerr.cpp
     Random.cpp
     SolverOptions.cpp
+    SolverFramework.cpp
     Taipan.cpp
     TestDomain.cpp
     Utils.cpp
@@ -95,6 +96,7 @@ headers = """
     Pointers.h
     Random.h
     SolverOptions.h
+    SolverFramework.h
     SystemMatrixException.h
     Taipan.h
     TestDomain.h

@@ -21,6 +21,7 @@
 #include "AbstractSystemMatrix.h"
 #include "AbstractTransportProblem.h"
 #include "DataTypes.h"
+#include "SolverFramework.h"
 
 #ifdef ESYS_HAVE_TRILINOS
 #include <trilinoswrap/CrsMatrixWrapper.h>
@@ -326,6 +327,27 @@ class ESCRIPT_DLL_API AbstractContinuousDomain : public AbstractDomain
      \param full
   */
   virtual void Print_Mesh_Info(const bool full=false) const;
+
+  /**
+     \brief
+     Attaches a SolverFramework to this domain.  Must be called before the
+     domain is first used for solving (i.e. before the first call to
+     getSystemMatrixTypeId or newSystemMatrix).  Raises an exception if
+     called a second time.
+  */
+  void setFramework(std::shared_ptr<SolverFramework> pkg);
+
+  /**
+     \brief
+     Returns the SolverFramework attached to this domain.  If setFramework()
+     has not been called, returns the process-wide default framework
+     (SolverFramework::getDefault()).
+  */
+  std::shared_ptr<SolverFramework> getFramework() const;
+
+ private:
+  mutable std::shared_ptr<SolverFramework> m_solverFramework;
+  bool m_frameworkSet = false;
 };
 
 } // end of namespace

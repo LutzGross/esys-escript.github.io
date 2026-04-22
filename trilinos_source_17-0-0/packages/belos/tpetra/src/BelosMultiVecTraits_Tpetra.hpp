@@ -109,7 +109,6 @@ public:
     // during Kokkos shutdown. Pool memory is reclaimed by OS at process exit.
     // See https://github.com/trilinos/Trilinos/issues/11976
     // Kokkos::push_finalize_hook([this]() { this->availableDVs.clear(); });
-    std::cout << "INFO: Belos MultiVecPool created (esys-escript: finalize hook disabled)" << std::endl;
   }
 
   using MV = ::Tpetra::MultiVector<Scalar, LO, GO, Node>;
