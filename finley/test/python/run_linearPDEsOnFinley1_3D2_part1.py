@@ -38,6 +38,7 @@ NE=10 # number of element in each spatial direction (must be even)
 class Test_LinearPDEOnFinleyHex3DOrder2(Test_LinearPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
+   ORDER=2
    def setUp(self):
         self.domain = Brick(NE,NE,NE,2)
         self.order = 2

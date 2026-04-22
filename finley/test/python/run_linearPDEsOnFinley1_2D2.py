@@ -55,6 +55,7 @@ class Test_AssemblageOnFinleyHex2DOrder2(Test_assemblage_2Do2):
 class Test_LinearPDEOnFinleyHex2DOrder2(Test_LinearPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
+   ORDER=2
    def setUp(self):
         self.domain = Rectangle(NE,NE,2)
         self.order = 2

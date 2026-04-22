@@ -102,6 +102,7 @@ class Test_AssemblageOnFinleyTet2DOrder2(Test_assemblage_2Do2):
 class Test_LinearPDEOnFinleyTet2DOrder2(Test_LinearPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
+   ORDER=2
    def setUp(self):
         self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
         self.order = 2
@@ -174,6 +175,7 @@ class Test_AssemblageOnFinleyTet3DOrder2(Test_assemblage_3Do2):
 class Test_LinearPDEOnFinleyTet3DOrder2(Test_LinearPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
+   ORDER=2
    def setUp(self):
         self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=True)
         self.order = 2
