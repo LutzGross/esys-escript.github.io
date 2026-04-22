@@ -987,9 +987,6 @@ class MinimizerLBFGS(AbstractMinimizer):
         iterCount = 0
         alpha = self._initialAlpha
         H_scale = None
-        if self._restart < self._iterMax+2:
-            self._restart = self._iterMax * 3
-            self.logger.info("MinimizerLBFGS: Restart is currently disabled.")
         self._result = m
         args_m = self.getCostFunction().getArgumentsAndCount(m)
         grad_Fm = self.getCostFunction().getGradientAndCount(m, *args_m)
@@ -1003,12 +1000,12 @@ class MinimizerLBFGS(AbstractMinimizer):
 
         non_curable_break_down = False
         converged = False
+        iterCount_last_break_down = -1
         while not converged and not non_curable_break_down and iterCount < self._iterMax:
             k = 0
             break_down = False
             s_and_y = []
             self.__initializeHessian=True
-            iterCount_last_break_down = -1
 
             while not converged and not break_down and k < self._restart and iterCount < self._iterMax:
                 self.logger.info("********** iteration %3d **********" % iterCount)
@@ -1126,6 +1123,9 @@ class MinimizerLBFGS(AbstractMinimizer):
                     iterCount_last_break_down = iterCount
                     self.logger.debug("Break down detected in step %d. Iteration is restarted." % iterCount)
             if not k < self._restart:
+                # Scheduled restart (not breakdown): reset breakdown counter so a
+                # breakdown in the next cycle isn't mistaken for consecutive failure.
+                iterCount_last_break_down = -1
                 self.logger.debug("Iteration is restarted after %d steps." % iterCount)
 
         # case handling for inner iteration:

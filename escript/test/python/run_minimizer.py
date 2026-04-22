@@ -202,6 +202,20 @@ class Test_MinimizerBFGS(unittest.TestCase):
         solve.setCallback(CB)
         self.assertRaises(ValueError, solve.run, np.zeros((F.dimension,)))
 
+    def testRESTART(self):
+        """
+        Verify that a small restart interval still converges to the correct
+        solution.  With restart=3 the L-BFGS history is flushed every 3 steps,
+        exercising the scheduled-restart path.
+        """
+        F = MinDist(**self.TEST3)
+        solve = MinimizerLBFGS(F, m_tol=1e-7, grad_tol=None, iterMax=200)
+        solve.setOptions(restart=3)
+        m0 = np.zeros((F.dimension,))
+        solve.run(m0)
+        m = solve.getResult()
+        self.assertTrue(np.allclose(m, F.m_true))
+
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
 
