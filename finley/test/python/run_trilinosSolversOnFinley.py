@@ -29,6 +29,7 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 
 from esys.escript import Data, Solution, Vector, hasFeature
+from esys.escript import SolverFramework
 from esys.finley import Rectangle, Brick
 from esys.escript.linearPDEs import SolverOptions
 
@@ -51,8 +52,7 @@ class SimpleSolveOnTrilinosOrder2(SimpleSolveTestCaseOrder2):
 ## direct
 class Test_SimpleSolveFinleyRect_Order1_Trilinos_Direct(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.DIRECT
 
     def tearDown(self):
@@ -61,8 +61,7 @@ class Test_SimpleSolveFinleyRect_Order1_Trilinos_Direct(SimpleSolveOnTrilinos):
 ## direct
 class Test_SimpleSolveFinleyRect_Order2_Trilinos_Direct(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.DIRECT
 
     def tearDown(self):
@@ -72,8 +71,7 @@ class Test_SimpleSolveFinleyRect_Order2_Trilinos_Direct(SimpleSolveOnTrilinosOrd
 
 class Test_SimpleSolveFinleyRect_Order1_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
 
@@ -82,8 +80,7 @@ class Test_SimpleSolveFinleyRect_Order1_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTr
 
 class Test_SimpleSolveFinleyRect_Order2_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
 
@@ -93,8 +90,7 @@ class Test_SimpleSolveFinleyRect_Order2_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTr
 ## direct
 class Test_SimpleSolveFinleyBrick_Order1_Trilinos_Direct(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.DIRECT
 
     def tearDown(self):
@@ -103,8 +99,7 @@ class Test_SimpleSolveFinleyBrick_Order1_Trilinos_Direct(SimpleSolveOnTrilinos):
 ## direct
 class Test_SimpleSolveFinleyBrick_Order2_Trilinos_Direct(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.DIRECT
 
     def tearDown(self):
@@ -112,8 +107,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Trilinos_Direct(SimpleSolveOnTrilinos):
         
 class Test_SimpleSolveFinleyBrick_Order1_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
 
@@ -122,8 +116,7 @@ class Test_SimpleSolveFinleyBrick_Order1_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnT
 
 class Test_SimpleSolveFinleyBrick_Order2_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
         self.REL_TOL=5.e-6
@@ -134,8 +127,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnT
 
 class Test_SimpleSolveFinleyRect_Order1_Trilinos_PCG_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
 
@@ -144,8 +136,7 @@ class Test_SimpleSolveFinleyRect_Order1_Trilinos_PCG_Jacobi(SimpleSolveOnTrilino
 
 class Test_SimpleSolveFinleyRect_Order2_Trilinos_PCG_Jacobi(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
 
@@ -154,8 +145,7 @@ class Test_SimpleSolveFinleyRect_Order2_Trilinos_PCG_Jacobi(SimpleSolveOnTrilino
 
 class Test_SimpleSolveFinleyBrick_Order1_Trilinos_PCG_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
 
@@ -164,8 +154,7 @@ class Test_SimpleSolveFinleyBrick_Order1_Trilinos_PCG_Jacobi(SimpleSolveOnTrilin
 
 class Test_SimpleSolveFinleyBrick_Order2_Trilinos_PCG_Jacobi(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
 
@@ -176,8 +165,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Trilinos_PCG_Jacobi(SimpleSolveOnTrilin
 
 class Test_SimpleSolveFinleyRect_Order1_Trilinos_TFQMR_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.JACOBI
 
@@ -186,8 +174,7 @@ class Test_SimpleSolveFinleyRect_Order1_Trilinos_TFQMR_Jacobi(SimpleSolveOnTrili
 
 class Test_SimpleSolveFinleyRect_Order2_Trilinos_TFQMR_Jacobi(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.JACOBI
 
@@ -196,8 +183,7 @@ class Test_SimpleSolveFinleyRect_Order2_Trilinos_TFQMR_Jacobi(SimpleSolveOnTrili
 
 class Test_SimpleSolveFinleyBrick_Order1_Trilinos_TFQMR_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.JACOBI
 
@@ -206,8 +192,7 @@ class Test_SimpleSolveFinleyBrick_Order1_Trilinos_TFQMR_Jacobi(SimpleSolveOnTril
 
 class Test_SimpleSolveFinleyBrick_Order2_Trilinos_TFQMR_Jacobi(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.JACOBI
 
@@ -218,8 +203,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Trilinos_TFQMR_Jacobi(SimpleSolveOnTril
 
 class Test_SimpleSolveFinleyRect_Order1_Trilinos_MINRES_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
 
@@ -228,8 +212,7 @@ class Test_SimpleSolveFinleyRect_Order1_Trilinos_MINRES_Jacobi(SimpleSolveOnTril
 
 class Test_SimpleSolveFinleyRect_Order2_Trilinos_MINRES_Jacobi(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
 
@@ -238,8 +221,7 @@ class Test_SimpleSolveFinleyRect_Order2_Trilinos_MINRES_Jacobi(SimpleSolveOnTril
 
 class Test_SimpleSolveFinleyBrick_Order1_Trilinos_MINRES_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
 
@@ -248,8 +230,7 @@ class Test_SimpleSolveFinleyBrick_Order1_Trilinos_MINRES_Jacobi(SimpleSolveOnTri
 
 class Test_SimpleSolveFinleyBrick_Order2_Trilinos_MINRES_Jacobi(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
 
@@ -260,8 +241,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Trilinos_MINRES_Jacobi(SimpleSolveOnTri
 
 class Test_SimpleSolveFinleyRect_Order1_Trilinos_BICGSTAB_GaussSeidel(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.GAUSS_SEIDEL
 
@@ -270,8 +250,7 @@ class Test_SimpleSolveFinleyRect_Order1_Trilinos_BICGSTAB_GaussSeidel(SimpleSolv
 
 class Test_SimpleSolveFinleyRect_Order2_Trilinos_BICGSTAB_GaussSeidel(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.GAUSS_SEIDEL
 
@@ -280,8 +259,7 @@ class Test_SimpleSolveFinleyRect_Order2_Trilinos_BICGSTAB_GaussSeidel(SimpleSolv
 
 class Test_SimpleSolveFinleyBrick_Order1_Trilinos_BICGSTAB_GaussSeidel(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.GAUSS_SEIDEL
 
@@ -290,8 +268,7 @@ class Test_SimpleSolveFinleyBrick_Order1_Trilinos_BICGSTAB_GaussSeidel(SimpleSol
 
 class Test_SimpleSolveFinleyBrick_Order2_Trilinos_BICGSTAB_GaussSeidel(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.GAUSS_SEIDEL
         self.REL_TOL=5.e-6
@@ -304,8 +281,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Trilinos_BICGSTAB_GaussSeidel(SimpleSol
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveFinleyRect_Order1_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
 
@@ -315,8 +291,7 @@ class Test_SimpleSolveFinleyRect_Order1_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveFinleyRect_Order2_Trilinos_PCG_AMG(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
 
@@ -326,8 +301,7 @@ class Test_SimpleSolveFinleyRect_Order2_Trilinos_PCG_AMG(SimpleSolveOnTrilinosOr
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveFinleyBrick_Order1_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
 
@@ -337,8 +311,7 @@ class Test_SimpleSolveFinleyBrick_Order1_Trilinos_PCG_AMG(SimpleSolveOnTrilinos)
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveFinleyBrick_Order2_Trilinos_PCG_AMG(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
 
@@ -349,8 +322,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Trilinos_PCG_AMG(SimpleSolveOnTrilinosO
 
 class Test_SimpleSolveFinleyRect_Order1_Trilinos_TFQMR_GaussSeidel(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.GAUSS_SEIDEL
 
@@ -359,8 +331,7 @@ class Test_SimpleSolveFinleyRect_Order1_Trilinos_TFQMR_GaussSeidel(SimpleSolveOn
 
 class Test_SimpleSolveFinleyRect_Order2_Trilinos_TFQMR_GaussSeidel(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.GAUSS_SEIDEL
 
@@ -369,8 +340,7 @@ class Test_SimpleSolveFinleyRect_Order2_Trilinos_TFQMR_GaussSeidel(SimpleSolveOn
 
 class Test_SimpleSolveFinleyBrick_Order1_Trilinos_TFQMR_GaussSeidel(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.GAUSS_SEIDEL
 
@@ -379,8 +349,7 @@ class Test_SimpleSolveFinleyBrick_Order1_Trilinos_TFQMR_GaussSeidel(SimpleSolveO
 
 class Test_SimpleSolveFinleyBrick_Order2_Trilinos_TFQMR_GaussSeidel(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.GAUSS_SEIDEL
 
@@ -392,8 +361,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Trilinos_TFQMR_GaussSeidel(SimpleSolveO
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveFinleyRect_Order1_Trilinos_MINRES_AMG(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.AMG
 
@@ -403,8 +371,7 @@ class Test_SimpleSolveFinleyRect_Order1_Trilinos_MINRES_AMG(SimpleSolveOnTrilino
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveFinleyRect_Order2_Trilinos_MINRES_AMG(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.AMG
 
@@ -414,8 +381,7 @@ class Test_SimpleSolveFinleyRect_Order2_Trilinos_MINRES_AMG(SimpleSolveOnTrilino
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveFinleyBrick_Order1_Trilinos_MINRES_AMG(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.AMG
 
@@ -425,8 +391,7 @@ class Test_SimpleSolveFinleyBrick_Order1_Trilinos_MINRES_AMG(SimpleSolveOnTrilin
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveFinleyBrick_Order2_Trilinos_MINRES_AMG(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.AMG
 
@@ -437,8 +402,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Trilinos_MINRES_AMG(SimpleSolveOnTrilin
 
 class Test_SimpleSolveFinleyRect_Order1_Trilinos_BICGSTAB_RILU(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.RILU
 
@@ -447,8 +411,7 @@ class Test_SimpleSolveFinleyRect_Order1_Trilinos_BICGSTAB_RILU(SimpleSolveOnTril
 
 class Test_SimpleSolveFinleyRect_Order2_Trilinos_BICGSTAB_RILU(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.RILU
 
@@ -457,8 +420,7 @@ class Test_SimpleSolveFinleyRect_Order2_Trilinos_BICGSTAB_RILU(SimpleSolveOnTril
 
 class Test_SimpleSolveFinleyBrick_Order1_Trilinos_BICGSTAB_RILU(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.RILU
 
@@ -467,8 +429,7 @@ class Test_SimpleSolveFinleyBrick_Order1_Trilinos_BICGSTAB_RILU(SimpleSolveOnTri
 
 class Test_SimpleSolveFinleyBrick_Order2_Trilinos_BICGSTAB_RILU(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.RILU
 
@@ -479,8 +440,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Trilinos_BICGSTAB_RILU(SimpleSolveOnTri
 
 class Test_SimpleSolveFinleyRect_Order1_Trilinos_PCG_RILU(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.RILU
 
@@ -489,8 +449,7 @@ class Test_SimpleSolveFinleyRect_Order1_Trilinos_PCG_RILU(SimpleSolveOnTrilinos)
 
 class Test_SimpleSolveFinleyRect_Order2_Trilinos_PCG_RILU(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.RILU
 
@@ -499,8 +458,7 @@ class Test_SimpleSolveFinleyRect_Order2_Trilinos_PCG_RILU(SimpleSolveOnTrilinosO
 
 class Test_SimpleSolveFinleyBrick_Order1_Trilinos_PCG_RILU(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.RILU
 
@@ -509,8 +467,7 @@ class Test_SimpleSolveFinleyBrick_Order1_Trilinos_PCG_RILU(SimpleSolveOnTrilinos
 
 class Test_SimpleSolveFinleyBrick_Order2_Trilinos_PCG_RILU(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.RILU
 
@@ -521,8 +478,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Trilinos_PCG_RILU(SimpleSolveOnTrilinos
 
 class Test_SimpleSolveFinleyRect_Order1_Trilinos_TFQMR_RILU(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
 
@@ -531,8 +487,7 @@ class Test_SimpleSolveFinleyRect_Order1_Trilinos_TFQMR_RILU(SimpleSolveOnTrilino
 
 class Test_SimpleSolveFinleyRect_Order2_Trilinos_TFQMR_RILU(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
 
@@ -541,8 +496,7 @@ class Test_SimpleSolveFinleyRect_Order2_Trilinos_TFQMR_RILU(SimpleSolveOnTrilino
 
 class Test_SimpleSolveFinleyBrick_Order1_Trilinos_TFQMR_RILU(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
 
@@ -551,8 +505,7 @@ class Test_SimpleSolveFinleyBrick_Order1_Trilinos_TFQMR_RILU(SimpleSolveOnTrilin
 
 class Test_SimpleSolveFinleyBrick_Order2_Trilinos_TFQMR_RILU(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
 
@@ -563,8 +516,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Trilinos_TFQMR_RILU(SimpleSolveOnTrilin
 
 class Test_SimpleSolveFinleyRect_Order1_Trilinos_MINRES_RILU(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.RILU
 
@@ -573,8 +525,7 @@ class Test_SimpleSolveFinleyRect_Order1_Trilinos_MINRES_RILU(SimpleSolveOnTrilin
 
 class Test_SimpleSolveFinleyRect_Order2_Trilinos_MINRES_RILU(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.RILU
 
@@ -583,8 +534,7 @@ class Test_SimpleSolveFinleyRect_Order2_Trilinos_MINRES_RILU(SimpleSolveOnTrilin
 
 class Test_SimpleSolveFinleyBrick_Order1_Trilinos_MINRES_RILU(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.RILU
 
@@ -593,8 +543,7 @@ class Test_SimpleSolveFinleyBrick_Order1_Trilinos_MINRES_RILU(SimpleSolveOnTrili
 
 class Test_SimpleSolveFinleyBrick_Order2_Trilinos_MINRES_RILU(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.RILU
 
@@ -605,8 +554,7 @@ class Test_SimpleSolveFinleyBrick_Order2_Trilinos_MINRES_RILU(SimpleSolveOnTrili
 
 class Test_SimpleSolveFinleyRect_Order1_Trilinos_PCG_ILUT(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
 
@@ -615,8 +563,7 @@ class Test_SimpleSolveFinleyRect_Order1_Trilinos_PCG_ILUT(SimpleSolveOnTrilinos)
 
 class Test_SimpleSolveFinleyRect_Order2_Trilinos_PCG_ILUT(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
 
@@ -625,8 +572,7 @@ class Test_SimpleSolveFinleyRect_Order2_Trilinos_PCG_ILUT(SimpleSolveOnTrilinosO
 
 class Test_SimpleSolveFinleyBrick_Order1_Trilinos_PCG_ILUT(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
 
@@ -635,8 +581,7 @@ class Test_SimpleSolveFinleyBrick_Order1_Trilinos_PCG_ILUT(SimpleSolveOnTrilinos
 
 class Test_SimpleSolveFinleyBrick_Order2_Trilinos_PCG_ILUT(SimpleSolveOnTrilinosOrder2):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
 

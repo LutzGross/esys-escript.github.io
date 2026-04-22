@@ -29,6 +29,7 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 
 from esys.escript import getMPISizeWorld, hasFeature, sqrt
+from esys.escript import SolverFramework
 from esys.ripley import Rectangle, Brick
 from esys.escript.linearPDEs import SolverOptions
 
@@ -59,9 +60,9 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
 @unittest.skipIf(mpiSize > 1, "UMFPACK runs on single rank only.")
 class Test_SimpleSolveRipley2D_UMFPACK(SimpleSolveTestCase):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.UMFPACK
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.paso())
         self.method = SolverOptions.DIRECT
+        self.package = SolverOptions.UMFPACK
 
     def tearDown(self):
         del self.domain
@@ -70,9 +71,9 @@ class Test_SimpleSolveRipley2D_UMFPACK(SimpleSolveTestCase):
 @unittest.skipIf(mpiSize > 1, "UMFPACK runs on single rank only.")
 class Test_SimpleSolveRipley3D_UMFPACK(SimpleSolveTestCase):
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.UMFPACK
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.paso())
         self.method = SolverOptions.DIRECT
+        self.package = SolverOptions.UMFPACK
 
     def tearDown(self):
         del self.domain

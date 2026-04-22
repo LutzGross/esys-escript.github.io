@@ -29,6 +29,7 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 
 from esys.escript import getMPISizeWorld, hasFeature, sqrt
+from esys.escript import SolverFramework
 from esys.ripley import MultiResolutionDomain
 from esys.escript.linearPDEs import SolverOptions
 
@@ -69,8 +70,7 @@ class SimpleSolveOnTrilinos(SimpleSolveTestCase):
 ## direct
 class Test_SimpleSolveMultiRes2D_Trilinos_Direct(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.trilinos())
         self.method = SolverOptions.DIRECT
 
     def tearDown(self):
@@ -79,8 +79,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_Direct(SimpleSolveOnTrilinos):
 @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_SimpleSolveMultiRes3D_Trilinos_Direct(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.trilinos())
         self.method = SolverOptions.DIRECT
 
     def tearDown(self):
@@ -91,8 +90,7 @@ class Test_SimpleSolveMultiRes3D_Trilinos_Direct(SimpleSolveOnTrilinos):
 
 class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.trilinos())
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
 
@@ -103,8 +101,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinos)
 class Test_SimpleSolveMultiRes3D_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.trilinos())
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
 
@@ -115,8 +112,7 @@ class Test_SimpleSolveMultiRes3D_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinos)
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.trilinos())
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
 
@@ -126,8 +122,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi(SimpleSolveOnTrilinos):
 @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_SimpleSolveMultiRes3D_Trilinos_GMRES_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.trilinos())
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
 
@@ -138,8 +133,7 @@ class Test_SimpleSolveMultiRes3D_Trilinos_GMRES_Jacobi(SimpleSolveOnTrilinos):
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
 
@@ -149,8 +143,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi(SimpleSolveOnTrilinos):
 @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_SimpleSolveMultiRes3D_Trilinos_PCG_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
 
@@ -161,8 +154,7 @@ class Test_SimpleSolveMultiRes3D_Trilinos_PCG_Jacobi(SimpleSolveOnTrilinos):
 
 class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.trilinos())
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
 
@@ -172,8 +164,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi(SimpleSolveOnTrilinos):
 @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_SimpleSolveMultiRes3D_Trilinos_MINRES_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.trilinos())
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
 
@@ -184,8 +175,7 @@ class Test_SimpleSolveMultiRes3D_Trilinos_MINRES_Jacobi(SimpleSolveOnTrilinos):
 
 class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.trilinos())
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
 
@@ -195,8 +185,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU(SimpleSolveOnTrilinos):
 @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_SimpleSolveMultiRes3D_Trilinos_TFQMR_RILU(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.trilinos())
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
 
@@ -209,8 +198,7 @@ class Test_SimpleSolveMultiRes3D_Trilinos_TFQMR_RILU(SimpleSolveOnTrilinos):
 class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.trilinos())
         self.method = SolverOptions.LSQR
         self.preconditioner = SolverOptions.AMG
 
@@ -222,8 +210,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG(SimpleSolveOnTrilinos):
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
 
@@ -234,8 +221,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveMultiRes3D_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
 
@@ -246,8 +232,7 @@ class Test_SimpleSolveMultiRes3D_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
 
@@ -257,8 +242,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT(SimpleSolveOnTrilinos):
 @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_SimpleSolveMultiRes3D_Trilinos_PCG_ILUT(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
 

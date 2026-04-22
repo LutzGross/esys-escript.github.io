@@ -52,7 +52,7 @@ except KeyError:
 FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 
 # paso and trilinos are different
-TOL = 1.e-7 if hasFeature('paso') else 5.e-7
+TOL = 5.e-7 if hasFeature('trilinos') else 1.e-7
 
 class Test_AssemblageOnFinleyTet2DOrder1(Test_assemblage_2Do1):
    RES_TOL=1.e-7

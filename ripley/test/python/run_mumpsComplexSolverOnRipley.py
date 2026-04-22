@@ -29,6 +29,7 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 
 from esys.escript import getMPISizeWorld, hasFeature, sqrt
+from esys.escript import SolverFramework
 from esys.ripley import Rectangle, Brick
 from esys.escript.linearPDEs import SolverOptions
 
@@ -65,18 +66,18 @@ class ComplexSolveOnMumps(ComplexSolveTestCase):
 
 class Test_ComplexSolveRipley2D_Mumps_Direct(ComplexSolveOnMumps):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.MUMPS
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.paso())
         self.method = SolverOptions.DIRECT
+        self.package = SolverOptions.MUMPS
 
     def tearDown(self):
         del self.domain
 
 class Test_ComplexSolveRipley3D_Mumps_Direct(ComplexSolveOnMumps):
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.MUMPS
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.paso())
         self.method = SolverOptions.DIRECT
+        self.package = SolverOptions.MUMPS
 
     def tearDown(self):
         del self.domain

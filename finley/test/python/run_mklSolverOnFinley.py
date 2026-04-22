@@ -29,6 +29,7 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 
 from esys.escript import getMPISizeWorld, Data, Solution, Vector, hasFeature
+from esys.escript import SolverFramework
 from esys.finley import Rectangle, Brick
 from esys.escript.linearPDEs import SolverOptions
 
@@ -48,9 +49,9 @@ mpiSize=getMPISizeWorld()
 @unittest.skipIf(mpiSize > 1, "MKL runs on single rank only.")
 class Test_SimpleSolveFinleyRect_Order1_PasoMKL(SimpleSolveTestCase):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.MKL
+        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE, framework=SolverFramework.paso())
         self.method = SolverOptions.DIRECT
+        self.package = SolverOptions.MKL
 
     def tearDown(self):
         del self.domain
@@ -59,9 +60,9 @@ class Test_SimpleSolveFinleyRect_Order1_PasoMKL(SimpleSolveTestCase):
 @unittest.skipIf(mpiSize > 1, "MKL runs on single rank only.")
 class Test_SimpleSolveFinleyRect_Order2_PasoMKL(SimpleSolveTestCaseOrder2):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.MKL
+        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE, framework=SolverFramework.paso())
         self.method = SolverOptions.DIRECT
+        self.package = SolverOptions.MKL
 
     def tearDown(self):
         del self.domain
@@ -70,9 +71,9 @@ class Test_SimpleSolveFinleyRect_Order2_PasoMKL(SimpleSolveTestCaseOrder2):
 @unittest.skipIf(mpiSize > 1, "MKL runs on single rank only.")
 class Test_SimpleSolveFinleyBrick_Order1_PasoMKL(SimpleSolveTestCase):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.MKL
+        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE, framework=SolverFramework.paso())
         self.method = SolverOptions.DIRECT
+        self.package = SolverOptions.MKL
 
     def tearDown(self):
         del self.domain
@@ -81,9 +82,9 @@ class Test_SimpleSolveFinleyBrick_Order1_PasoMKL(SimpleSolveTestCase):
 @unittest.skipIf(mpiSize > 1, "MKL runs on single rank only.")
 class Test_SimpleSolveFinleyBrick_Order2_PasoMKL(SimpleSolveTestCaseOrder2):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.MKL
+        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE, framework=SolverFramework.paso())
         self.method = SolverOptions.DIRECT
+        self.package = SolverOptions.MKL
 
     def tearDown(self):
         del self.domain

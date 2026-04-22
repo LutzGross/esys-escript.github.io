@@ -29,6 +29,7 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 
 from esys.escript import getMPISizeWorld, hasFeature, sqrt
+from esys.escript import SolverFramework
 from esys.ripley import Rectangle, Brick
 from esys.escript.linearPDEs import SolverOptions
 
@@ -61,8 +62,7 @@ class ComplexSolveOnTrilinos(ComplexSolveTestCase):
 ## direct
 class Test_ComplexSolveRipley2D_Trilinos_Direct(ComplexSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.trilinos())
         self.method = SolverOptions.DIRECT
 
     def tearDown(self):
@@ -70,8 +70,7 @@ class Test_ComplexSolveRipley2D_Trilinos_Direct(ComplexSolveOnTrilinos):
 
 class Test_ComplexSolveRipley3D_Trilinos_Direct(ComplexSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.trilinos())
         self.method = SolverOptions.DIRECT
 
     def tearDown(self):
@@ -80,8 +79,7 @@ class Test_ComplexSolveRipley3D_Trilinos_Direct(ComplexSolveOnTrilinos):
 
 class Test_ComplexSolveRipley2D_Trilinos_BICGSTAB_Jacobi(ComplexSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.trilinos())
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
 
@@ -91,8 +89,7 @@ class Test_ComplexSolveRipley2D_Trilinos_BICGSTAB_Jacobi(ComplexSolveOnTrilinos)
 class Test_ComplexSolveRipley3D_Trilinos_BICGSTAB_Jacobi(ComplexSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.trilinos())
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
 
@@ -103,8 +100,7 @@ class Test_ComplexSolveRipley3D_Trilinos_BICGSTAB_Jacobi(ComplexSolveOnTrilinos)
 
 class Test_ComplexSolveRipley2D_Trilinos_GMRES_Jacobi(ComplexSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.trilinos())
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
 
@@ -113,8 +109,7 @@ class Test_ComplexSolveRipley2D_Trilinos_GMRES_Jacobi(ComplexSolveOnTrilinos):
 
 class Test_ComplexSolveRipley3D_Trilinos_GMRES_Jacobi(ComplexSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.trilinos())
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
 
@@ -125,8 +120,7 @@ class Test_ComplexSolveRipley3D_Trilinos_GMRES_Jacobi(ComplexSolveOnTrilinos):
 
 class Test_ComplexSolveRipley2D_Trilinos_PCG_Jacobi(ComplexSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
 
@@ -135,8 +129,7 @@ class Test_ComplexSolveRipley2D_Trilinos_PCG_Jacobi(ComplexSolveOnTrilinos):
 
 class Test_ComplexSolveRipley3D_Trilinos_PCG_Jacobi(ComplexSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
 
@@ -148,8 +141,7 @@ class Test_ComplexSolveRipley3D_Trilinos_PCG_Jacobi(ComplexSolveOnTrilinos):
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_ComplexSolveRipley2D_Trilinos_PCG_AMG(ComplexSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
 
@@ -162,8 +154,7 @@ class Test_ComplexSolveRipley2D_Trilinos_PCG_AMG(ComplexSolveOnTrilinos):
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_ComplexSolveRipley3D_Trilinos_PCG_AMG(ComplexSolveOnTrilinos):
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
 
@@ -177,8 +168,7 @@ class Test_ComplexSolveRipley3D_Trilinos_PCG_AMG(ComplexSolveOnTrilinos):
 
 class Test_ComplexSolveRipley2D_Trilinos_PCG_ILUT(ComplexSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
 
@@ -188,8 +178,7 @@ class Test_ComplexSolveRipley2D_Trilinos_PCG_ILUT(ComplexSolveOnTrilinos):
 class Test_ComplexSolveRipley3D_Trilinos_PCG_ILUT(ComplexSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.trilinos())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
 

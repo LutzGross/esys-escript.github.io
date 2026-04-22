@@ -61,7 +61,6 @@ class SimpleSolveOnPaso(SimpleSolveTestCase):
 class Test_SimpleSolveOxley2D_Paso_DIRECT(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.PASO
         self.method = SolverOptions.DIRECT
         # self.preconditioner = SolverOptions.JACOBI
 
@@ -71,7 +70,6 @@ class Test_SimpleSolveOxley2D_Paso_DIRECT(SimpleSolveOnPaso):
 # class Test_SimpleSolveOxley3D_Paso_DIRECT(SimpleSolveOnPaso):
 #     def setUp(self):
 #         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-#         self.package = SolverOptions.PASO
 #         self.method = SolverOptions.BICGSTAB
 #         self.preconditioner = SolverOptions.JACOBI
 
@@ -82,7 +80,6 @@ class Test_SimpleSolveOxley2D_Paso_DIRECT(SimpleSolveOnPaso):
 class Test_SimpleSolveOxley2D_Paso_BICGSTAB_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.PASO
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
 
@@ -92,7 +89,6 @@ class Test_SimpleSolveOxley2D_Paso_BICGSTAB_Jacobi(SimpleSolveOnPaso):
 # class Test_SimpleSolveOxley3D_Paso_BICGSTAB_Jacobi(SimpleSolveOnPaso):
 #     def setUp(self):
 #         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-#         self.package = SolverOptions.PASO
 #         self.method = SolverOptions.BICGSTAB
 #         self.preconditioner = SolverOptions.JACOBI
 
@@ -102,7 +98,6 @@ class Test_SimpleSolveOxley2D_Paso_BICGSTAB_Jacobi(SimpleSolveOnPaso):
 class Test_SimpleSolveOxley2D_Paso_PCG_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.PASO
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
 
@@ -112,7 +107,6 @@ class Test_SimpleSolveOxley2D_Paso_PCG_Jacobi(SimpleSolveOnPaso):
 # class Test_SimpleSolveOxley3D_Paso_PCG_Jacobi(SimpleSolveOnPaso):
 #     def setUp(self):
 #         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-#         self.package = SolverOptions.PASO
 #         self.method = SolverOptions.PCG
 #         self.preconditioner = SolverOptions.JACOBI
 
@@ -122,7 +116,6 @@ class Test_SimpleSolveOxley2D_Paso_PCG_Jacobi(SimpleSolveOnPaso):
 class Test_SimpleSolveOxley2D_Paso_MINRES_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.PASO
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
 
@@ -132,7 +125,6 @@ class Test_SimpleSolveOxley2D_Paso_MINRES_Jacobi(SimpleSolveOnPaso):
 # class Test_SimpleSolveOxley3D_Paso_MINRES_Jacobi(SimpleSolveOnPaso):
 #     def setUp(self):
 #         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-#         self.package = SolverOptions.PASO
 #         self.method = SolverOptions.MINRES
 #         self.preconditioner = SolverOptions.JACOBI
 
@@ -142,7 +134,6 @@ class Test_SimpleSolveOxley2D_Paso_MINRES_Jacobi(SimpleSolveOnPaso):
 class Test_SimpleSolveOxley2D_Paso_TFQMR_RILU(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.PASO
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
 
@@ -152,7 +143,6 @@ class Test_SimpleSolveOxley2D_Paso_TFQMR_RILU(SimpleSolveOnPaso):
 # class Test_SimpleSolveOxley3D_Paso_TFQMR_RILU(SimpleSolveOnPaso):
 #     def setUp(self):
 #         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-#         self.package = SolverOptions.PASO
 #         self.method = SolverOptions.TFQMR
 #         self.preconditioner = SolverOptions.RILU
 

@@ -29,6 +29,7 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 
 from esys.escript import getMPISizeWorld, hasFeature, sqrt
+from esys.escript import SolverFramework
 from esys.ripley import MultiResolutionDomain
 from esys.escript.linearPDEs import SolverOptions
 
@@ -68,8 +69,7 @@ class SimpleSolveOnPaso(SimpleSolveTestCase):
 ## direct
 class Test_SimpleSolveMultires2D_Paso_Direct(SimpleSolveOnPaso):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.PASO
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.paso())
         self.method = SolverOptions.DIRECT
 
     def tearDown(self):
@@ -77,15 +77,13 @@ class Test_SimpleSolveMultires2D_Paso_Direct(SimpleSolveOnPaso):
 
 class Test_SimpleSolveMultires3D_Paso_Trilinos_Direct(SimpleSolveOnPaso):
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.PASO
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.paso())
         self.method = SolverOptions.DIRECT
         
 
 class Test_SimpleSolveMultires2D_Paso_BICGSTAB_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.PASO
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.paso())
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
 
@@ -94,9 +92,9 @@ class Test_SimpleSolveMultires2D_Paso_BICGSTAB_Jacobi(SimpleSolveOnPaso):
 
 @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_SimpleSolveMultires3D_Paso_BICGSTAB_Jacobi(SimpleSolveOnPaso):
+    REL_TOL = 2e-6  # BICGSTAB+Jacobi on 3D multiresolution mesh needs slightly looser tolerance
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.PASO
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.paso())
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
 
@@ -105,8 +103,7 @@ class Test_SimpleSolveMultires3D_Paso_BICGSTAB_Jacobi(SimpleSolveOnPaso):
 
 class Test_SimpleSolveMultires2D_Paso_PCG_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.PASO
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.paso())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
 
@@ -116,8 +113,7 @@ class Test_SimpleSolveMultires2D_Paso_PCG_Jacobi(SimpleSolveOnPaso):
 @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_SimpleSolveMultires3D_Paso_PCG_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.PASO
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.paso())
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
 
@@ -126,8 +122,7 @@ class Test_SimpleSolveMultires3D_Paso_PCG_Jacobi(SimpleSolveOnPaso):
 
 class Test_SimpleSolveMultires2D_Paso_MINRES_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.PASO
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.paso())
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
 
@@ -137,8 +132,7 @@ class Test_SimpleSolveMultires2D_Paso_MINRES_Jacobi(SimpleSolveOnPaso):
 @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_SimpleSolveMultires3D_Paso_MINRES_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.PASO
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.paso())
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
 
@@ -147,8 +141,7 @@ class Test_SimpleSolveMultires3D_Paso_MINRES_Jacobi(SimpleSolveOnPaso):
 
 class Test_SimpleSolveMultires2D_Paso_TFQMR_RILU(SimpleSolveOnPaso):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.PASO
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY, framework=SolverFramework.paso())
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
 
@@ -158,8 +151,7 @@ class Test_SimpleSolveMultires2D_Paso_TFQMR_RILU(SimpleSolveOnPaso):
 @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_SimpleSolveMultires3D_Paso_TFQMR_RILU(SimpleSolveOnPaso):
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.PASO
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.paso())
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
 

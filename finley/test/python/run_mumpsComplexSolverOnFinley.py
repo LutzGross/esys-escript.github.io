@@ -29,6 +29,7 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 
 from esys.escript import Data, Solution, Vector, hasFeature, getMPISizeWorld
+from esys.escript import SolverFramework
 from esys.finley import Rectangle, Brick
 from esys.escript.linearPDEs import SolverOptions
 
@@ -55,9 +56,9 @@ class ComplexSolveOnMumpsOrder2(ComplexSolveTestCaseOrder2):
 ## direct
 class Test_ComplexSolveFinleyRect_Order1_Mumps_Direct(ComplexSolveOnMumps):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.MUMPS
+        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE, framework=SolverFramework.paso())
         self.method = SolverOptions.DIRECT
+        self.package = SolverOptions.MUMPS
 
     def tearDown(self):
         del self.domain
@@ -65,9 +66,9 @@ class Test_ComplexSolveFinleyRect_Order1_Mumps_Direct(ComplexSolveOnMumps):
 ## direct
 class Test_ComplexSolveFinleyRect_Order2_Mumps_Direct(ComplexSolveOnMumpsOrder2):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.MUMPS
+        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE, framework=SolverFramework.paso())
         self.method = SolverOptions.DIRECT
+        self.package = SolverOptions.MUMPS
 
     def tearDown(self):
         del self.domain
@@ -75,9 +76,9 @@ class Test_ComplexSolveFinleyRect_Order2_Mumps_Direct(ComplexSolveOnMumpsOrder2)
 ## direct
 class Test_ComplexSolveFinleyBrick_Order1_Mumps_Direct(ComplexSolveOnMumps):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.MUMPS
+        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE, framework=SolverFramework.paso())
         self.method = SolverOptions.DIRECT
+        self.package = SolverOptions.MUMPS
 
     def tearDown(self):
         del self.domain
@@ -85,9 +86,9 @@ class Test_ComplexSolveFinleyBrick_Order1_Mumps_Direct(ComplexSolveOnMumps):
 ## direct
 class Test_ComplexSolveFinleyBrick_Order2_Mumps_Direct(ComplexSolveOnMumpsOrder2):
     def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.MUMPS
+        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE, framework=SolverFramework.paso())
         self.method = SolverOptions.DIRECT
+        self.package = SolverOptions.MUMPS
 
     def tearDown(self):
         del self.domain

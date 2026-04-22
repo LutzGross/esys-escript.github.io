@@ -31,6 +31,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 from esys.escript.util import Lsup,kronecker,interpolate,whereZero, outer, swap_axes
 from esys.escript import Function,FunctionOnBoundary,FunctionOnContactZero,Solution,ReducedSolution,Vector,ContinuousFunction,Scalar, ReducedFunction,ReducedFunctionOnBoundary,ReducedFunctionOnContactZero,Data, Tensor4, Tensor, canInterpolate, getMPISizeWorld, hasFeature
 from esys.escript.linearPDEs import SolverBuddy, LinearPDE,IllegalCoefficientValue,Poisson, IllegalCoefficientFunctionSpace, TransportPDE, IllegalCoefficient, Helmholtz, LameEquation, SolverOptions
+from esys.escript import SolverFramework
 import numpy
 import esys.escriptcore.utestselect as unittest
 
@@ -534,14 +535,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         # else:
         #     self.assertTrue(sb.getPackage() == so.PASO, "initial solver package is wrong.")
 
-        if no_paso:
-            with self.assertRaises(ValueError) as package:
-                sb.setPackage(so.PASO)
-            self.assertTrue('not compiled' in str(package.exception))
-        else:
-            sb.setPackage(so.PASO)
-            self.assertTrue(sb.getPackage() == so.PASO, "PASO is not set.")
-
         if no_mkl:
             with self.assertRaises(ValueError) as package:
                 sb.setPackage(so.MKL)
@@ -565,14 +558,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         else:
             sb.setPackage(so.MUMPS)
             self.assertTrue(sb.getPackage() == so.MUMPS, "MUMPS is not set.")
-
-        if HAVE_TRILINOS is False:
-            with self.assertRaises(ValueError) as package:
-                sb.setPackage(so.TRILINOS)
-            self.assertTrue('not compiled' in str(package.exception))
-        else:
-            sb.setPackage(so.TRILINOS)
-            self.assertTrue(sb.getPackage() == so.TRILINOS, "Trilinos is not set.")
 
         self.assertRaises(ValueError,sb.setSolverMethod,-1)
 
@@ -1781,7 +1766,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_DIRECT_PASO(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        mypde.getSolverOptions().setPackage(SolverOptions.PASO)
         if hasFeature("umfpack") or hasFeature("mkl") or hasFeature("mumps"):
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             mypde.getSolverOptions().setVerbosity(self.VERBOSE)
@@ -1795,7 +1779,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_DIRECT_TRILINOS(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        mypde.getSolverOptions().setPackage(SolverOptions.TRILINOS)
         mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
@@ -1855,7 +1838,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
         mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        if not hasFeature('paso'):
+        if hasFeature('trilinos'):
             mypde.getSolverOptions().setNumSweeps(350)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
@@ -2183,7 +2166,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             D[i,i]+=i
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.getSolverOptions().setPackage(SolverOptions.PASO)
         mypde.setValue(A=A,D=D,Y=Y)
         if hasFeature("umfpack") or hasFeature("mkl") or hasFeature("mumps"):
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
@@ -2205,7 +2187,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             D[i,i]+=i
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.getSolverOptions().setPackage(SolverOptions.TRILINOS)
         mypde.setValue(A=A,D=D,Y=Y)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
@@ -3661,3 +3642,47 @@ class Test_TransportPDE(Test_linearPDEs):
         u=mypde.getSolution(0.1)
         self.assertTrue(u.getFunctionSpace() == Solution(self.domain), "wrong function space")
         self.assertTrue(self.check(u,10.+dt),'solution is wrong.')
+
+
+class Test_SolverFramework(unittest.TestCase):
+    """Tests for the SolverFramework class."""
+
+    @unittest.skipUnless(hasFeature("trilinos"), "Trilinos not available")
+    def test_trilinos_factory(self):
+        pkg = SolverFramework.trilinos()
+        self.assertIsInstance(pkg, SolverFramework)
+        self.assertTrue(pkg.isTrilinos())
+        self.assertFalse(pkg.isPaso())
+
+    @unittest.skipUnless(not hasFeature("trilinos"), "Trilinos is available — skip unavailable test")
+    def test_trilinos_unavailable_raises(self):
+        self.assertRaises(Exception, SolverFramework.trilinos)
+
+    @unittest.skipUnless(hasFeature("paso"), "Paso not available")
+    def test_paso_factory(self):
+        pkg = SolverFramework.paso()
+        self.assertIsInstance(pkg, SolverFramework)
+        self.assertTrue(pkg.isPaso())
+        self.assertFalse(pkg.isTrilinos())
+
+    @unittest.skipUnless(not hasFeature("paso"), "Paso is available — skip unavailable test")
+    def test_paso_unavailable_raises(self):
+        self.assertRaises(Exception, SolverFramework.paso)
+
+    def test_getDefault_returns_framework(self):
+        pkg = SolverFramework.getDefault()
+        self.assertIsNotNone(pkg)
+        self.assertIsInstance(pkg, SolverFramework)
+
+    def test_getDefault_consistent(self):
+        pkg1 = SolverFramework.getDefault()
+        pkg2 = SolverFramework.getDefault()
+        self.assertEqual(pkg1.isTrilinos(), pkg2.isTrilinos())
+
+    def test_getDefault_preferred_backend(self):
+        pkg = SolverFramework.getDefault()
+        if hasFeature("trilinos"):
+            self.assertTrue(pkg.isTrilinos())
+        else:
+            self.assertTrue(pkg.isPaso())
+

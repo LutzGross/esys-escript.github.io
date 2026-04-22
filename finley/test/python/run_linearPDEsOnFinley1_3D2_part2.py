@@ -35,7 +35,7 @@ from esys.finley import Brick
 NE=10 # number of element in each spatial direction (must be even)
 
 # trilinos and paso are different
-TOL = 1.e-7 if hasFeature('paso') else 5.e-7
+TOL = 5.e-7 if hasFeature('trilinos') else 1.e-7
 
 class Test_PDEToolsOnFinleyHex3DOrder2(Test_pdetools):
    RES_TOL=TOL

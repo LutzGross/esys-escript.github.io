@@ -26,6 +26,7 @@ Generic base class for PDE solving tests
 
 from esys.escript import Data, Function, Lsup, Solution, Tensor4, Vector, \
                          grad, inner, kronecker, matrixmult, whereZero, hasFeature
+from esys.escript import SolverFramework
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
 import esys.escriptcore.utestselect as unittest
 import numpy
@@ -60,7 +61,8 @@ class SolveTestCaseTemplate(unittest.TestCase):
 
         self.setCoefficients(pde, system)
         so = pde.getSolverOptions()
-        so.setPackage(self.package)
+        if self.package is not None:
+            so.setPackage(self.package)
         so.setSolverMethod(self.method)
         so.setPreconditioner(self.preconditioner)
         so.setTolerance(self.SOLVER_TOL)
@@ -336,7 +338,7 @@ class ComplexSolveTestCase(SolveTestCaseOrder1):
 
     @unittest.skipIf(not HAVE_SOLVER_COMPLEX, "No solver available")
     def test_singlecomplex(self):
-        if (self.package == SolverOptions.TRILINOS
+        if (self.domain.getFramework().isTrilinos()
                 and self.method in self._TRILINOS_COMPLEX_UNSUPPORTED):
             self.skipTest("Belos %s does not support complex scalar types (Trilinos limitation)"
                           % self.method.name)
@@ -351,7 +353,7 @@ class ComplexSolveTestCase(SolveTestCaseOrder1):
 
     @unittest.skipIf(not HAVE_SOLVER_COMPLEX, "No solver available")
     def test_systemcomplex(self):
-        if (self.package == SolverOptions.TRILINOS
+        if (self.domain.getFramework().isTrilinos()
                 and self.method in self._TRILINOS_COMPLEX_UNSUPPORTED):
             self.skipTest("Belos %s does not support complex scalar types (Trilinos limitation)"
                           % self.method.name)
@@ -376,7 +378,7 @@ class ComplexSolveTestCaseOrder2(SolveTestCaseOrder2):
 
     @unittest.skipIf(not HAVE_SOLVER_COMPLEX, "No solver available")
     def test_singlecomplex(self):
-        if (self.package == SolverOptions.TRILINOS
+        if (self.domain.getFramework().isTrilinos()
                 and self.method in self._TRILINOS_COMPLEX_UNSUPPORTED):
             self.skipTest("Belos %s does not support complex scalar types (Trilinos limitation)"
                           % self.method.name)
@@ -391,7 +393,7 @@ class ComplexSolveTestCaseOrder2(SolveTestCaseOrder2):
 
     @unittest.skipIf(not HAVE_SOLVER_COMPLEX, "No solver available")
     def test_systemcomplex(self):
-        if (self.package == SolverOptions.TRILINOS
+        if (self.domain.getFramework().isTrilinos()
                 and self.method in self._TRILINOS_COMPLEX_UNSUPPORTED):
             self.skipTest("Belos %s does not support complex scalar types (Trilinos limitation)"
                           % self.method.name)

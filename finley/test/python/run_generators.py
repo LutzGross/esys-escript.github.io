@@ -809,6 +809,41 @@ class Test_IntegrationOnFinley(unittest.TestCase):
       my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=10)
       self.__test_3DT(my_dom,10,1./sqrt(EPSILON))
 
+class Test_SolverFrameworkOnFinley(unittest.TestCase):
+    """Tests for the framework= argument on finley domain constructors."""
+
+    @unittest.skipUnless(hasFeature("trilinos"), "Trilinos not available")
+    def test_rectangle_with_trilinos_framework(self):
+        pkg = SolverFramework.trilinos()
+        dom = Rectangle(4, 4, framework=pkg)
+        self.assertIs(dom.getFramework(), pkg)
+
+    @unittest.skipUnless(hasFeature("paso"), "Paso not available")
+    def test_rectangle_with_paso_framework(self):
+        pkg = SolverFramework.paso()
+        dom = Rectangle(4, 4, framework=pkg)
+        self.assertIs(dom.getFramework(), pkg)
+
+    def test_rectangle_default_framework(self):
+        dom = Rectangle(4, 4)
+        pkg = dom.getFramework()
+        self.assertIsNotNone(pkg)
+        self.assertIsInstance(pkg, SolverFramework)
+        self.assertEqual(pkg.getName(), SolverFramework.getDefault().getName())
+
+    @unittest.skipUnless(hasFeature("trilinos"), "Trilinos not available")
+    def test_brick_with_trilinos_framework(self):
+        pkg = SolverFramework.trilinos()
+        dom = Brick(4, 4, 4, framework=pkg)
+        self.assertIs(dom.getFramework(), pkg)
+
+    @unittest.skipUnless(hasFeature("trilinos"), "Trilinos not available")
+    def test_setFramework_immutable(self):
+        pkg = SolverFramework.trilinos()
+        dom = Rectangle(4, 4, framework=pkg)
+        self.assertRaises(Exception, dom.setFramework, pkg)
+
+
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
 
