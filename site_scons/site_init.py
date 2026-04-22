@@ -139,7 +139,10 @@ def write_launcher(env):
         if IS_WINDOWS:
             with open(launchscript+'.cmd', 'w') as cmdfile:
                 cmdfile.write('@echo off\n')
-                cmdfile.write('python %~dp0\\'+launchscript+' %*')
+                # Use %~dp0 (directory of this .cmd file) so the path works
+                # regardless of where escript is installed, and quote it to
+                # handle installation paths that contain spaces.
+                cmdfile.write('python "%~dp0run-escript.py" %*\n')
             with open(launchscript+'.py', 'w') as cmdfile:
                 cmdfile.write('import esys.escript.run_escript\n')
                 cmdfile.write('esys.escript.run_escript.main()')
