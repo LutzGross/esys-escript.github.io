@@ -1121,6 +1121,10 @@ class MinimizerLBFGS(AbstractMinimizer):
                     self.logger.warning(">>>>> Incurable break down detected in step %d." % iterCount)
                 else:
                     iterCount_last_break_down = iterCount
+                    # Reset alpha: the line search may have reduced alpha to a
+                    # near-zero value before failing; carrying it into the next
+                    # restart cycle would cause an immediate second failure.
+                    alpha = self._initialAlpha
                     self.logger.debug("Break down detected in step %d. Iteration is restarted." % iterCount)
             if not k < self._restart:
                 # Scheduled restart (not breakdown): reset breakdown counter so a
