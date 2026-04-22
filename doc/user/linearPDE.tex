@@ -574,21 +574,17 @@ returns the key of the preconditioner to be used.
 
 
 \paragraph{SolverOptions.setPackage(package)}
-sets the solver package to be used as a solver.
+selects a third-party direct solver sub-library.
 The value of \var{package} must be one of the constants:\\
  \member{SolverOptions.DEFAULT} -- choose a default depending on other options\\
- \member{SolverOptions.CUSP} -- CUDA sparse linear algebra package\\
  \member{SolverOptions.MKL} -- Intel MKL direct solver\\
- \member{SolverOptions.PASO} -- built-in PASO solver library\\
- \member{SolverOptions.TRILINOS} -- Trilinos solver package (chapter \Refe{TRILINOS})\\
+ \member{SolverOptions.MUMPS} -- MUMPS parallel direct solver\\
  \member{SolverOptions.UMFPACK} -- direct solver from the UMFPACK library.\\
-Not all packages are supported on all implementations. An exception may be
-thrown on some platforms if a particular package is requested.
-Currently \finley supports \member{SolverOptions.TRILINOS} (default when available),
-\member{SolverOptions.PASO}, \member{SolverOptions.MKL}\footnote{If the stiffness matrix is
-non-regular \MKL may return without returning a proper error code.
-If you observe suspicious solutions when using MKL, this may be caused by a
-non-invertible operator.} and \member{SolverOptions.UMFPACK}.
+Not all packages are supported on all implementations.  An exception is thrown
+if a requested package was not compiled in.
+Note: to select the \emph{solver framework} (Trilinos or Paso) use
+\member{SolverFramework} when creating the domain
+(see \member{SolverFramework.trilinos()} and \member{SolverFramework.paso()}).
 
 
 \paragraph{SolverOptions.getPackage()}
@@ -958,11 +954,6 @@ available when the Intel compilation environment was used to build \escript.}.
 the \UMFPACK library, \Refe{UMFPACK}. Note that \UMFPACK is not parallelized.
 \end{memberdesc}
 
-\begin{memberdesc}[SolverOptions]{PASO}
-\PASO built-in solver library, see \Sec{chap:finley}.
-When Trilinos is not available, \PASO is used as the default package.
-\end{memberdesc}
-
 \begin{memberdesc}[SolverOptions]{ITERATIVE}
 the default iterative method and preconditioner. The actual method used
 depends on the PDE solver library and the chosen solver package.
@@ -1081,10 +1072,6 @@ if this is supported. In any case, it is advisable to apply reordering on the
 mesh to minimize fill-in.
 \end{memberdesc}
 
-\begin{memberdesc}[SolverOptions]{TRILINOS}
-the Trilinos library~\cite{TRILINOS} is used as a solver.
-\end{memberdesc}
-
 \begin{memberdesc}[SolverOptions]{NO_PRECONDITIONER}
 no preconditioner is applied.
 \end{memberdesc}
@@ -1097,6 +1084,48 @@ classic interpolation in \AMG, see \cite{AMG}
 \end{memberdesc}
 \begin{memberdesc}[SolverOptions]{CLASSIC_INTERPOLATION_WITH_FF_COUPLING}
 classic interpolation with enforced FF coupling in \AMG, see \cite{AMG}
+\end{memberdesc}
+
+\section{Solver Framework}
+\label{SEC Solver Framework}
+
+\subsubsection*{class SolverFramework}
+\class{SolverFramework} selects the underlying solver backend (Trilinos or Paso)
+used by a domain.  It is passed to the domain constructor via the
+\var{framework} keyword argument:
+\begin{python}
+from esys.escript import SolverFramework
+from esys.finley import ReadGmsh
+domain = ReadGmsh("mesh.msh", 3, optimize=True,
+                  framework=SolverFramework.trilinos())
+\end{python}
+Once set, the framework is fixed for the lifetime of the domain.
+The solver method and preconditioner are still controlled through
+\class{SolverOptions} as before.
+
+\paragraph{SolverFramework.trilinos()}
+returns a \class{SolverFramework} object for the Trilinos backend.
+Raises \exception{RuntimeError} if Trilinos was not compiled in.
+
+\paragraph{SolverFramework.paso()}
+returns a \class{SolverFramework} object for the built-in Paso backend.
+Raises \exception{RuntimeError} if Paso was not compiled in.
+
+\paragraph{SolverFramework.getDefault()}
+returns the process-wide default framework.
+When both backends are compiled in, Trilinos is the default.
+
+\paragraph{SolverFramework.isAvailable(type)}
+returns \True if the framework identified by \var{type}
+(\member{SolverFramework.PASO} or \member{SolverFramework.TRILINOS}) was
+compiled in.
+
+\begin{memberdesc}[SolverFramework]{PASO}
+integer constant identifying the \PASO backend.
+\end{memberdesc}
+
+\begin{memberdesc}[SolverFramework]{TRILINOS}
+integer constant identifying the Trilinos backend, see Chapter~\ref{TRILINOS}.
 \end{memberdesc}
 
 \input{lumping}

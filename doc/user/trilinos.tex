@@ -115,9 +115,9 @@ from esys.escript import *
 from esys.weipa import saveVTK, saveSilo
 from esys.escript.linearPDEs import LinearSinglePDE
 from esys.finley import ReadGmsh
-  
-domain=ReadGmsh("simplemesh.msh", 3,  optimize=True )
-       
+
+domain=ReadGmsh("simplemesh.msh", 3, optimize=True)
+
 pde = LinearSinglePDE(domain, isComplex=False)
 pde.setSymmetryOn()
 x = domain.getX()
@@ -127,6 +127,9 @@ u=pde.getSolution()
 saveSilo("asimple", u=u)    
 \end{python}
 
+When Trilinos is compiled in it is used as the default backend, so no explicit \class{SolverFramework} is needed here.
+To select Trilinos explicitly (or to force it when multiple backends are available), pass
+\code{framework=SolverFramework.trilinos()} to the domain constructor.
 This script uses the default Trilinos solver PCG with Jacobi preconditioner for real symmetric PDEs.
 (It takes 271 iterations to reach the default tolerance of $10^{-8}$).
 The default solver selection depends on the PDE type:
@@ -179,24 +182,21 @@ There are a number of options that can be set for solving the PDE.  The simplest
 
 To choose the default Trilinos direct solver, set the tolerance for the PDE solver to $10^{-8}$,  use the Trilinos suite of solvers and output information about the solvers, we add code to listing \ref{basic}.
 \begin{python}[caption=default Direct , label=defaultdirect ]
-options = pde.getSolverOptions()  
-options.setSolverMethod(SolverOptions.DIRECT)         
-options.setPackage(SolverOptions.TRILINOS)
-options.setVerbosityOn()        
+options = pde.getSolverOptions()
+options.setSolverMethod(SolverOptions.DIRECT)
+options.setVerbosityOn()
 \end{python}
 The default Trilinos Direct solver is the Amesos2 LU factorisation KLU. It is a serial, unsymmetric sparse, partial-pivoting, direct matrix solver.  The last line above ensures that the output includes details of the methods used.
 
 
 To use SUPERLU the code that needs to be added to listing \ref{basic} is 
 \begin{python}[caption=SuperLU, label=superLU ]
-options = pde.getSolverOptions()  
-options.setTolerance(1e-8)        
-options.setPackage(SolverOptions.TRILINOS)
+options = pde.getSolverOptions()
+options.setTolerance(1e-8)
 options.setSolverMethod(SolverOptions.DIRECT_SUPERLU)
-options.setVerbosityOn()        
+options.setVerbosityOn()
 \end{python}
-Trilinos is the default solver package so the setPackage line is not really necessary. If Trilions is not installed with SuperLU a direct fall back solver will be
-chosen.
+If Trilinos is not installed with SuperLU a direct fall back solver will be chosen.
 
 \section{Preconditioned Conjugate Gradient}
 If we want to use preconditioned conjugate gradient, then we remove the DIRECT solver line and add the line
@@ -296,11 +296,13 @@ Recall $\mathbf{R}_h^H$ is the restriction operator and $\mathbf{P}^h_H$ is the 
 
 \begin{python}[caption=basic Trilinos PCG-AMG defaults only script, label=basicAMG ]
 from esys.escript import *
+from esys.escript import SolverFramework
 from esys.weipa import saveVTK, saveSilo
 from esys.escript.linearPDEs import LinearSinglePDE
 from esys.finley import ReadGmsh
 
-domain=ReadGmsh("simplemesh.msh", 3,  optimize=True )
+domain=ReadGmsh("simplemesh.msh", 3, optimize=True,
+                framework=SolverFramework.trilinos())
 
 pde = LinearSinglePDE(domain, isComplex=False)
 pde.setSymmetryOn()
@@ -308,12 +310,11 @@ x = domain.getX()
 pde.setValue(A=kronecker(3), Y=1, q=whereZero(x[0]-inf(x[0])))
 
 options = pde.getSolverOptions()
-options.setPackage(SolverOptions.TRILINOS)
 options.setSolverMethod(SolverOptions.PCG)
 options.setPreconditioner(SolverOptions.AMG)
 
-u=pde.getSolution()    
-saveSilo("asimple",u=u)    
+u=pde.getSolution()
+saveSilo("asimple",u=u)
 \end{python}
 
 Only two grids were used for the simple mesh.  The first coarse grid, replaces, if possible, 27 fine grid nodes represented by  one coarse grid node.  In 2D this would be 9 fine grid nodes represented with one coarse grid node. The ratio of the fine to coarse grid in this example is 19.21.  For a finer mesh, with mtop = 2 and mbase=1 in the geo file, 3 levels of grids and the coarsest grid is solved with a direct method.  AMG-PCG took 11 iterations to reach tolerance.
@@ -460,11 +461,13 @@ options.setTrilinosParameter("repartition: rebalance P and R", False)
 All the previous commands can be placed into an XML file.  The XML file option allows the user to choose parameters for the programs that MUELU calls, so more control is possible on the iterative solvers.
 \begin{python}
 from esys.escript import *
+from esys.escript import SolverFramework
 from esys.weipa import saveVTK, saveSilo
 from esys.escript.linearPDEs import LinearSinglePDE
 from esys.finley import ReadGmsh
 
-domain=ReadGmsh("simplemesh.msh", 3,  optimize=True )
+domain=ReadGmsh("simplemesh.msh", 3, optimize=True,
+                framework=SolverFramework.trilinos())
 
 pde = LinearSinglePDE(domain, isComplex=False)
 pde.setSymmetryOn()
@@ -472,13 +475,12 @@ x = domain.getX()
 pde.setValue(A=kronecker(3), Y=1, q=whereZero(x[0]-inf(x[0])))
 
 options = pde.getSolverOptions()
-options.setPackage(SolverOptions.TRILINOS)
 options.setSolverMethod(SolverOptions.PCG)
 options.setPreconditioner(SolverOptions.AMG)
 options.setTrilinosParameter("xml parameter file", "simplebob.xml")
 
-u=pde.getSolution()    
-saveSilo("asimple",u=u) 
+u=pde.getSolution()
+saveSilo("asimple",u=u)
 \end{python}
 
 It is possible to specify how many sweeps of the iterative solvers for pre and post smoothing and we could choose cycles with different numbers of pre and post sweeps.  Amesos2 provides direct solvers including superLU and Mumps. MueLu passes parameters directly to solver library.  To specify CHEBYSHEV parameters, for example, an XML file must be used.
