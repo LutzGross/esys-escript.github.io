@@ -75,6 +75,7 @@ class Test_SimpleSolveMultires2D_Paso_Direct(SimpleSolveOnPaso):
     def tearDown(self):
         del self.domain
 
+@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_SimpleSolveMultires3D_Paso_Trilinos_Direct(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.paso())

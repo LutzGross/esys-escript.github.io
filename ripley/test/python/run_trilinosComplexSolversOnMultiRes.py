@@ -76,6 +76,7 @@ class Test_ComplexSolveMultiRes2D_Trilinos_Direct(ComplexSolveOnTrilinos):
     def tearDown(self):
         del self.domain
 
+@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_ComplexSolveMultiRes3D_Trilinos_Direct(ComplexSolveOnTrilinos):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.trilinos())
@@ -94,6 +95,7 @@ class Test_ComplexSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi(ComplexSolveOnTrilino
     def tearDown(self):
         del self.domain
 
+@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_ComplexSolveMultiRes3D_Trilinos_BICGSTAB_Jacobi(ComplexSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
@@ -115,6 +117,7 @@ class Test_ComplexSolveMultiRes2D_Trilinos_GMRES_Jacobi(ComplexSolveOnTrilinos):
     def tearDown(self):
         del self.domain
 
+@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_ComplexSolveMultiRes3D_Trilinos_GMRES_Jacobi(ComplexSolveOnTrilinos):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.trilinos())
@@ -135,6 +138,7 @@ class Test_ComplexSolveMultiRes2D_Trilinos_PCG_Jacobi(ComplexSolveOnTrilinos):
     def tearDown(self):
         del self.domain
 
+@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_ComplexSolveMultiRes3D_Trilinos_PCG_Jacobi(ComplexSolveOnTrilinos):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.trilinos())
@@ -160,6 +164,7 @@ class Test_ComplexSolveMultiRes2D_Trilinos_PCG_AMG(ComplexSolveOnTrilinos):
         del self.domain
 
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
+@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_ComplexSolveMultiRes3D_Trilinos_PCG_AMG(ComplexSolveOnTrilinos):
     def setUp(self):
         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb, framework=SolverFramework.trilinos())
@@ -183,6 +188,7 @@ class Test_ComplexSolveMultiRes2D_Trilinos_PCG_ILUT(ComplexSolveOnTrilinos):
     def tearDown(self):
         del self.domain
 
+@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 class Test_ComplexSolveMultiRes3D_Trilinos_PCG_ILUT(ComplexSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
