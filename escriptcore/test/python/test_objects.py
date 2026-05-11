@@ -676,10 +676,10 @@ class Test_InterpolationTable(unittest.TestCase):
         x = Data(1.5, fs)
         result = interp(x)
         self.assertTrue(result.isComplex(), "result should be complex Data")
-        vals = result.toListOfTuples(scalarastuple=False)
-        for v in vals:
-            self.assertAlmostEqual(v.real, 1.5, places=10)
-            self.assertAlmostEqual(v.imag, 2.0, places=10)
+        self.assertLess(Lsup(result.real() - 1.5), self.RES_TOL,
+                        "real part should be 1.5")
+        self.assertLess(Lsup(result.imag() - 2.0), self.RES_TOL,
+                        "imag part should be 2.0")
 
     def test_complex_table_2d_order1(self):
         """2D order-1 with complex table returns correct complex result."""
