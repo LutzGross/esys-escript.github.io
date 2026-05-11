@@ -249,12 +249,10 @@ void BlockCrsMatrixWrapper<ST>::nullifyRowsAndCols(
     using local_inds_host_view_type = typename Tpetra::BlockCrsMatrix<ST,LO,GO,NT>::local_inds_host_view_type;
     using values_host_view_type = typename Tpetra::BlockCrsMatrix<ST,LO,GO,NT>::values_host_view_type;
     for (LO lrb = 0; lrb < static_cast<LO>(mat.getLocalNumRows()); lrb++) {
-        LO numIndices = 0;
         local_inds_host_view_type indices;
         values_host_view_type values;
-        GO row_number = (GO) lrb;
-        numIndices=mat.getNumEntriesInGlobalRow(row_number);
         mat.getLocalRowView(lrb, indices, values);
+        const LO numIndices = static_cast<LO>(indices.extent(0));
 //#else
  //   for (LO lrb = 0; lrb < mat.getNodeNumRows(); lrb++) {
  //       LO numIndices = 0;
