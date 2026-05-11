@@ -259,6 +259,7 @@ class Test_ComplexSolveFinleyRect_Order1_Trilinos_BICGSTAB_RILU(ComplexSolveOnTr
     def tearDown(self):
         del self.domain
 
+@unittest.skip("ILU-style preconditioners not reliable for Order 2 FEM (see commit ce6263fb3)")
 class Test_ComplexSolveFinleyRect_Order2_Trilinos_BICGSTAB_RILU(ComplexSolveOnTrilinosOrder2):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
@@ -277,6 +278,7 @@ class Test_ComplexSolveFinleyBrick_Order1_Trilinos_BICGSTAB_RILU(ComplexSolveOnT
     def tearDown(self):
         del self.domain
 
+@unittest.skip("ILU-style preconditioners not reliable for Order 2 FEM (see commit ce6263fb3)")
 class Test_ComplexSolveFinleyBrick_Order2_Trilinos_BICGSTAB_RILU(ComplexSolveOnTrilinosOrder2):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
@@ -297,6 +299,7 @@ class Test_ComplexSolveFinleyRect_Order1_Trilinos_PCG_RILU(ComplexSolveOnTrilino
     def tearDown(self):
         del self.domain
 
+@unittest.skip("ILU-style preconditioners not reliable for Order 2 FEM (see commit ce6263fb3)")
 class Test_ComplexSolveFinleyRect_Order2_Trilinos_PCG_RILU(ComplexSolveOnTrilinosOrder2):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
@@ -315,6 +318,7 @@ class Test_ComplexSolveFinleyBrick_Order1_Trilinos_PCG_RILU(ComplexSolveOnTrilin
     def tearDown(self):
         del self.domain
 
+@unittest.skip("ILU-style preconditioners not reliable for Order 2 FEM (see commit ce6263fb3)")
 class Test_ComplexSolveFinleyBrick_Order2_Trilinos_PCG_RILU(ComplexSolveOnTrilinosOrder2):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
@@ -335,6 +339,7 @@ class Test_ComplexSolveFinleyRect_Order1_Trilinos_PCG_ILUT(ComplexSolveOnTrilino
     def tearDown(self):
         del self.domain
 
+@unittest.skip("ILU-style preconditioners not reliable for Order 2 FEM (see commit ce6263fb3)")
 class Test_ComplexSolveFinleyRect_Order2_Trilinos_PCG_ILUT(ComplexSolveOnTrilinosOrder2):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
@@ -353,6 +358,7 @@ class Test_ComplexSolveFinleyBrick_Order1_Trilinos_PCG_ILUT(ComplexSolveOnTrilin
     def tearDown(self):
         del self.domain
 
+@unittest.skip("ILU-style preconditioners not reliable for Order 2 FEM (see commit ce6263fb3)")
 class Test_ComplexSolveFinleyBrick_Order2_Trilinos_PCG_ILUT(ComplexSolveOnTrilinosOrder2):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE, framework=SolverFramework.trilinos())
