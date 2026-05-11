@@ -541,28 +541,29 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                         break;
 
                     case Points:
-                        if (getMPISize()==1) {
-                            if (in.isComplex()) {
-                                throw NotImplementedError("DOF To Dirac is not implemented for complex Data");
-                            }
-                            else
-                            {
-                                const dim_t numComp = in.getDataPointSize();
-                                const int nDirac = m_diracPoints.size();
-                                target.requireWrite();
-                                #pragma omp parallel for
-                                for (int i = 0; i < nDirac; i++) {
-                                    const index_t dof = getDofOfNode(m_diracPoints[i].node);
-                                    const double* src = in.getSampleDataRO(dof);
-                                    copy(src, src+numComp, target.getSampleDataRW(i));
-                                }
-                            }
-                        } 
+                        if (in.isComplex()) {
+                            throw NotImplementedError("DOF To Dirac is not implemented for complex Data");
+                        }
                         else
                         {
-                            throw NotImplementedError("DOF To Dirac is not implemented for for MPI");
+                            // Interpolate DOF -> Nodes first (handles ghost
+                            // node fill via MPI exchange when needed), then
+                            // copy Nodes -> Points.  This avoids having to
+                            // map Dirac host nodes (which may be ghosts)
+                            // back to DOFs under MPI.
+                            escript::Data nodesIn(in, (inFS==DegreesOfFreedom ?
+                                        escript::continuousFunction(*this)
+                                      : escript::reducedContinuousFunction(*this)));
+                            const dim_t numComp = nodesIn.getDataPointSize();
+                            const dim_t nDirac = m_diracPoints.size();
+                            target.requireWrite();
+                            #pragma omp parallel for
+                            for (int i = 0; i < nDirac; i++) {
+                                const double* src = nodesIn.getSampleDataRO(m_diracPoints[i].node);
+                                copy(src, src+numComp, target.getSampleDataRW(i));
+                            }
                         }
-                        break;                    
+                        break;
                     default:
                         throw NotImplementedError(msg.str());
                 }
