@@ -470,25 +470,24 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                         interpolateNodesOnFaces(target, in, true);
                         break;
                     case Points:
-                        if (getMPISize()==1) {
-                            if (in.isComplex()) {
-                                throw NotImplementedError("Nodes To Dirac is not implemented for complex Data");
-                            }
-                            else
-                            {
-                                const dim_t numComp = in.getDataPointSize();
-                                const dim_t nDirac = m_diracPoints.size();
-                                target.requireWrite();
-                                #pragma omp parallel for
-                                for (int i = 0; i < nDirac; i++) {
-                                    const double* src = in.getSampleDataRO(m_diracPoints[i].node);
-                                    copy(src, src+numComp, target.getSampleDataRW(i));
-                                }
-                            }
-                        } 
+                        if (in.isComplex()) {
+                            throw NotImplementedError("Nodes To Dirac is not implemented for complex Data");
+                        }
                         else
                         {
-                            throw NotImplementedError("Nodes To Dirac is not implemented for for MPI");
+                            // Each rank's m_diracPoints contains only points
+                            // whose host node is local to this rank (see
+                            // addPoints()/findNode()).  The input Data on
+                            // Nodes carries data for all local nodes, so the
+                            // same per-rank loop works under MPI as well.
+                            const dim_t numComp = in.getDataPointSize();
+                            const dim_t nDirac = m_diracPoints.size();
+                            target.requireWrite();
+                            #pragma omp parallel for
+                            for (int i = 0; i < nDirac; i++) {
+                                const double* src = in.getSampleDataRO(m_diracPoints[i].node);
+                                copy(src, src+numComp, target.getSampleDataRW(i));
+                            }
                         }
                         break;
                     default:
