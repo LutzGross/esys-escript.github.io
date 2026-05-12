@@ -53,18 +53,6 @@ if getMPISizeWorld() > 1:
 else:
     USING_MPI = False
 
-def _skip_ilu_for_order2(func):
-    """Skip ILU-family preconditioner tests for Order 2 FEM.
-    ILU-style preconditioners are not reliable for higher-order elements
-    because the matrices are less diagonally dominant."""
-    import functools
-    @functools.wraps(func)
-    def wrapper(self, *args, **kwargs):
-        if getattr(self, 'ORDER', 1) >= 2:
-            self.skipTest("ILU-style preconditioners not reliable for Order 2 FEM")
-        return func(self, *args, **kwargs)
-    return wrapper
-
 class Test_linearPDEs(unittest.TestCase):
     TOL=1.e-6
     SOLVER_TOL=1.e-10
@@ -1751,7 +1739,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @_skip_ilu_for_order2
     def test_PCG_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1760,7 +1747,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @_skip_ilu_for_order2
     def test_PCG_ILUT(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1769,7 +1755,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @_skip_ilu_for_order2
     def test_PCG_RILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1817,7 +1802,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @_skip_ilu_for_order2
     def test_BICGSTAB_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1826,7 +1810,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @_skip_ilu_for_order2
     def test_BICGSTAB_ILUT(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1835,7 +1818,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @_skip_ilu_for_order2
     def test_BICGSTAB_RILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1862,7 +1844,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @_skip_ilu_for_order2
     def test_MINRES_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1871,7 +1852,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @_skip_ilu_for_order2
     def test_MINRES_ILUT(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1880,7 +1860,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @_skip_ilu_for_order2
     def test_MINRES_RILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1907,7 +1886,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @_skip_ilu_for_order2
     def test_TFQMR_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1916,7 +1894,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @_skip_ilu_for_order2
     def test_TFQMR_ILUT(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1925,7 +1902,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @_skip_ilu_for_order2
     def test_TFQMR_RILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1952,7 +1928,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @_skip_ilu_for_order2
     def test_PRES20_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1961,7 +1936,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @_skip_ilu_for_order2
     def test_PRES20_ILUT(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1970,7 +1944,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @_skip_ilu_for_order2
     def test_PRES20_RILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1999,7 +1972,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @_skip_ilu_for_order2
     def test_GMRESnoRestart_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -2009,7 +1981,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setTruncation(50)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @_skip_ilu_for_order2
     def test_GMRESnoRestart_ILUT(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -2019,7 +1990,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setTruncation(50)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @_skip_ilu_for_order2
     def test_GMRESnoRestart_RILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -2047,7 +2017,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @_skip_ilu_for_order2
     def test_GMRES_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -2056,7 +2025,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @_skip_ilu_for_order2
     def test_GMRES_ILUT(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -2065,7 +2033,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @_skip_ilu_for_order2
     def test_GMRES_RILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -2096,7 +2063,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @_skip_ilu_for_order2
     def test_GMRES_truncation_restart_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -2107,7 +2073,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setRestart(20)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @_skip_ilu_for_order2
     def test_GMRES_truncation_restart_ILUT(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -2118,7 +2083,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setRestart(20)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @_skip_ilu_for_order2
     def test_GMRES_truncation_restart_RILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -2178,7 +2142,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @_skip_ilu_for_order2
     def test_PCG_ILU0_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
@@ -2261,7 +2224,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @_skip_ilu_for_order2
     def test_BICGSTAB_ILU0_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
@@ -2309,7 +2271,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @_skip_ilu_for_order2
     def test_PRES20_ILU0_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
@@ -2357,7 +2318,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @_skip_ilu_for_order2
     def test_GMRESnoRestart_ILU0_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
@@ -2406,7 +2366,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @_skip_ilu_for_order2
     def test_GMRES_ILU0_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
@@ -2458,7 +2417,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @_skip_ilu_for_order2
     def test_GMRES_truncation_restart_ILU0_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
