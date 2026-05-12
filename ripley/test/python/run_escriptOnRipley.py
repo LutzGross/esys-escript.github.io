@@ -200,6 +200,12 @@ class Test_CSVOnRipley(Test_saveCSV):
         rbound=Data(3,ReducedFunctionOnBoundary(self.domain))
         saveDataCSV(fname,A=sol,B=ctsfn,C=bound, D=rbound)
         
+@unittest.skipIf(mpiSize > 1 and mpiSize % 2 != 0,
+                 "Test uses gaussian filter radius=2; at odd MPI ranks Ripley "
+                 "picks a 1xN (or 1x1xN) decomposition, so the per-rank Y "
+                 "dimension is too small for the filter and RandomData raises "
+                 "'Radius of gaussian filter is too large for Y dimension of "
+                 "a rank' before the test reaches its assertRaises block")
 class Test_randomOnRipley(unittest.TestCase):
     def test_FillRectangle(self):
         fs=ContinuousFunction(Rectangle(10*(int(sqrt(mpiSize)+1)),10*(int(sqrt(mpiSize)+1))))
