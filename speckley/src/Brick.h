@@ -232,6 +232,8 @@ protected:
     virtual void reduceElements(escript::Data& out, const escript::Data& in) const;
 #ifdef ESYS_MPI
     virtual void balanceNeighbours(escript::Data& data, bool average) const;
+    template<typename Scalar>
+    void balanceNeighboursWorker(escript::Data& data, bool average) const;
 #endif
 
 private:
@@ -302,8 +304,11 @@ private:
                                           bool reduced) const;
 #ifdef ESYS_MPI
     void setCornerNeighbours();
+    template<typename Scalar>
     void shareEdges(escript::Data& out, int rx, int ry, int rz) const;
+    template<typename Scalar>
     void shareFaces(escript::Data& out, int rx, int ry, int rz) const;
+    template<typename Scalar>
     void shareCorners(escript::Data& out) const;
 #endif
     /* \brief

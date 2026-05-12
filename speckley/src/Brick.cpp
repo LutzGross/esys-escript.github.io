@@ -1688,6 +1688,16 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
 //protected
 void Brick::balanceNeighbours(escript::Data& out, bool average) const
 {
+    if (out.isComplex())
+        balanceNeighboursWorker<escript::DataTypes::cplx_t>(out, average);
+    else
+        balanceNeighboursWorker<escript::DataTypes::real_t>(out, average);
+}
+
+template<typename Scalar>
+void Brick::balanceNeighboursWorker(escript::Data& out, bool average) const
+{
+    const Scalar zero = static_cast<Scalar>(0);
     // skip all this if we aren't even subdividing the domain
     if (m_NX[0] * m_NX[1] * m_NX[2] == 1) {
         return;
@@ -1698,13 +1708,13 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
     int rz = m_mpiInfo->rank / (m_NX[0]*m_NX[1]);
     //include bordering ranks in summation
     //averaging waits til after all sharing
-    shareFaces(out, rx, ry, rz);
+    shareFaces<Scalar>(out, rx, ry, rz);
     if ((m_NX[0] > 1 && m_NX[1] > 1)
             || (m_NX[1] > 1 && m_NX[2] > 1)
             || (m_NX[0] > 1 && m_NX[2] > 1))
-        shareEdges(out, rx, ry, rz);
+        shareEdges<Scalar>(out, rx, ry, rz);
     if (m_NX[0] != 1 && m_NX[1] != 1 && m_NX[2] != 1) {
-        shareCorners(out);
+        shareCorners<Scalar>(out);
         if (!average)
             return;
         //averaging out corners now that all sharing done
@@ -1713,9 +1723,9 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
                 for (int x = 0; x < 2; x++) {
                     if (!neighbour_exists[INDEX3(x,y,z,2,2)])
                         continue;
-                    double *values = out.getSampleDataRW(
+                    Scalar *values = out.getSampleDataRW(
                             INDEX3(x*(m_NN[0]-1), y*(m_NN[1]-1), z*(m_NN[2]-1),
-                                            m_NN[0], m_NN[1]));
+                                            m_NN[0], m_NN[1]), zero);
                     for (int comp = 0; comp < numComp; comp++) {
                         values[comp] /= 2;
                     }
@@ -1737,8 +1747,8 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
         if (front) { //average Z lines
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[2]; i++) {
-                double *data = out.getSampleDataRW(
-                                INDEX3(0, 0, i, m_NN[0], m_NN[1]));
+                Scalar *data = out.getSampleDataRW(
+                                INDEX3(0, 0, i, m_NN[0], m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] /= 2;
                 }
@@ -1747,8 +1757,8 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
         if (back) {//average Z lines
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[2]; i++) {
-                double *data = out.getSampleDataRW(
-                                INDEX3(0, m_NN[1]-1, i, m_NN[0], m_NN[1]));
+                Scalar *data = out.getSampleDataRW(
+                                INDEX3(0, m_NN[1]-1, i, m_NN[0], m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] /= 2;
                 }
@@ -1757,8 +1767,8 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
         if (top) {//average Y lines
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[1]; i++) {
-                double *data = out.getSampleDataRW(
-                                INDEX3(0, i, m_NN[2]-1, m_NN[0], m_NN[1]));
+                Scalar *data = out.getSampleDataRW(
+                                INDEX3(0, i, m_NN[2]-1, m_NN[0], m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] /= 2;;
                 }
@@ -1767,8 +1777,8 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
         if (bottom) {//average Y lines
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[1]; i++) {
-                double *data = out.getSampleDataRW(
-                                INDEX3(0,i,0,m_NN[0],m_NN[1]));
+                Scalar *data = out.getSampleDataRW(
+                                INDEX3(0,i,0,m_NN[0],m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] /= 2;
                 }
@@ -1779,8 +1789,8 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
         if (front) { //average Z lines
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[2]; i++) {
-                double *data = out.getSampleDataRW(
-                                INDEX3(m_NN[0]-1, 0, i, m_NN[0], m_NN[1]));
+                Scalar *data = out.getSampleDataRW(
+                                INDEX3(m_NN[0]-1, 0, i, m_NN[0], m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] /= 2;
                 }
@@ -1789,8 +1799,8 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
         if (back) {//average Z lines
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[2]; i++) {
-                double *data = out.getSampleDataRW(
-                                INDEX3(m_NN[0]-1,m_NN[1]-1,i,m_NN[0], m_NN[1]));
+                Scalar *data = out.getSampleDataRW(
+                                INDEX3(m_NN[0]-1,m_NN[1]-1,i,m_NN[0], m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] /= 2;
                 }
@@ -1799,8 +1809,8 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
         if (top) {//average Y lines
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[1]; i++) {
-                double *data = out.getSampleDataRW(
-                                INDEX3(m_NN[0]-1,i,m_NN[2]-1, m_NN[0],m_NN[1]));
+                Scalar *data = out.getSampleDataRW(
+                                INDEX3(m_NN[0]-1,i,m_NN[2]-1, m_NN[0],m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] /= 2;
                 }
@@ -1809,8 +1819,8 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
         if (bottom) {//average Y lines
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[1]; i++) {
-                double *data = out.getSampleDataRW(
-                                INDEX3(m_NN[0]-1, i, 0, m_NN[0], m_NN[1]));
+                Scalar *data = out.getSampleDataRW(
+                                INDEX3(m_NN[0]-1, i, 0, m_NN[0], m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] /= 2;
                 }
@@ -1822,8 +1832,8 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
         if (front) {//average X lines
 #pragma omp parallel for
             for (dim_t x = 0; x < m_NN[0]; x++) {
-                double *data = out.getSampleDataRW(
-                                INDEX3(x, 0, m_NN[2]-1, m_NN[0], m_NN[1]));
+                Scalar *data = out.getSampleDataRW(
+                                INDEX3(x, 0, m_NN[2]-1, m_NN[0], m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] /= 2;
                 }
@@ -1832,8 +1842,8 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
         if (back) {//average X lines
 #pragma omp parallel for
             for (dim_t x = 0; x < m_NN[0]; x++) {
-                double *data = out.getSampleDataRW(
-                                INDEX3(x,m_NN[1]-1,m_NN[2]-1,m_NN[0], m_NN[1]));
+                Scalar *data = out.getSampleDataRW(
+                                INDEX3(x,m_NN[1]-1,m_NN[2]-1,m_NN[0], m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] /= 2;
                 }
@@ -1844,7 +1854,7 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
         if (front) {//average X lines
 #pragma omp parallel for
             for (dim_t x = 0; x < m_NN[0]; x++) {
-                double *data = out.getSampleDataRW(x);
+                Scalar *data = out.getSampleDataRW(x, zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] /= 2;
                 }
@@ -1853,8 +1863,8 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
         if (back) {//average X lines
 #pragma omp parallel for
             for (dim_t x = 0; x < m_NN[0]; x++) {
-                double *data = out.getSampleDataRW(
-                                INDEX3(x, m_NN[1]-1, 0, m_NN[0], m_NN[1]));
+                Scalar *data = out.getSampleDataRW(
+                                INDEX3(x, m_NN[1]-1, 0, m_NN[0], m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] /= 2;
                 }
@@ -1868,8 +1878,8 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
 #pragma omp parallel for
         for (dim_t y = 0; y <m_NN[1]; y++) {
             for (dim_t x = 0; x <m_NN[0]; x++) {
-                double *data = out.getSampleDataRW(
-                                INDEX3(x, y, m_NN[2]-1, m_NN[0], m_NN[1]));
+                Scalar *data = out.getSampleDataRW(
+                                INDEX3(x, y, m_NN[2]-1, m_NN[0], m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] /= 2;
                 }
@@ -1880,7 +1890,7 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
 #pragma omp parallel for
         for (dim_t y = 0; y <m_NN[1]; y++) {
             for (dim_t x = 0; x <m_NN[0]; x++) {
-                double *data = out.getSampleDataRW(INDEX2(x, y, m_NN[0]));
+                Scalar *data = out.getSampleDataRW(INDEX2(x, y, m_NN[0]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] /= 2;
                 }
@@ -1892,8 +1902,8 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
 #pragma omp parallel for
         for (dim_t z = 0; z <m_NN[2]; z++) {
             for (dim_t y = 0; y <m_NN[1]; y++) {
-                double *data = out.getSampleDataRW(
-                                INDEX3(m_NN[0]-1, y, z, m_NN[0], m_NN[1]));
+                Scalar *data = out.getSampleDataRW(
+                                INDEX3(m_NN[0]-1, y, z, m_NN[0], m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] /= 2;
                 }
@@ -1904,8 +1914,8 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
 #pragma omp parallel for
         for (dim_t z = 0; z <m_NN[2]; z++) {
             for (dim_t y = 0; y <m_NN[1]; y++) {
-                double *data = out.getSampleDataRW(
-                                INDEX3(0, y, z, m_NN[0], m_NN[1]));
+                Scalar *data = out.getSampleDataRW(
+                                INDEX3(0, y, z, m_NN[0], m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] /= 2;
                 }
@@ -1917,8 +1927,8 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
 #pragma omp parallel for
         for (dim_t z = 0; z <m_NN[2]; z++) {
             for (dim_t x = 0; x <m_NN[0]; x++) {
-                double *data = out.getSampleDataRW(
-                                INDEX3(x, m_NN[1]-1, z, m_NN[0], m_NN[1]));
+                Scalar *data = out.getSampleDataRW(
+                                INDEX3(x, m_NN[1]-1, z, m_NN[0], m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] /= 2;
                 }
@@ -1929,8 +1939,8 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
 #pragma omp parallel for
         for (dim_t z = 0; z <m_NN[2]; z++) {
             for (dim_t x = 0; x <m_NN[0]; x++) {
-                double *data = out.getSampleDataRW(
-                                INDEX3(x, 0, z, m_NN[0], m_NN[1]));
+                Scalar *data = out.getSampleDataRW(
+                                INDEX3(x, 0, z, m_NN[0], m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] /= 2;
                 }
@@ -1975,15 +1985,18 @@ void Brick::setCornerNeighbours()
 }
 
 //private
+template<typename Scalar>
 void Brick::shareCorners(escript::Data& out) const
 {
+    const Scalar zero = static_cast<Scalar>(0);
+    MPI_Datatype mpiType = (sizeof(Scalar) == sizeof(double) ? MPI_DOUBLE : MPI_DOUBLE_COMPLEX);
     //setup
     const int tag = 0;
     MPI_Status status;
     MPI_Request request[8];
     const int numComp = out.getDataPointSize();
     const int count = numComp;
-    std::vector<double> inbuf(count, 0);
+    std::vector<Scalar> inbuf(count, 0);
 
     //send
     for (int z = 0; z < 2; z++) {
@@ -1991,13 +2004,13 @@ void Brick::shareCorners(escript::Data& out) const
             for (int x = 0; x < 2; x++) {
                 int i = INDEX3(x,y,z,2,2);
                 if (neighbour_exists[i]) {
-                    double *data = out.getSampleDataRW(
+                    Scalar *data = out.getSampleDataRW(
                                            x*(m_NN[0]-1)
                                          + y*(m_NN[1]-1)*m_NN[0]
                                          + z*(m_NN[2]-1)*m_NN[0]*m_NN[1]
-                                        );
+                                        , zero);
 
-                    MPI_Isend(data, numComp, MPI_DOUBLE, neighbour_ranks[i], tag,
+                    MPI_Isend(data, numComp, mpiType, neighbour_ranks[i], tag,
                             m_mpiInfo->comm, request+i);
                 }
             }
@@ -2010,13 +2023,13 @@ void Brick::shareCorners(escript::Data& out) const
             for (int x = 0; x < 2; x++) {
                 int i = INDEX3(x,y,z,2,2);
                 if (neighbour_exists[i]) {
-                    double *data = out.getSampleDataRW(
+                    Scalar *data = out.getSampleDataRW(
                                            x*(m_NN[0]-1)
                                          + y*(m_NN[1]-1)*m_NN[0]
                                          + z*(m_NN[2]-1)*m_NN[0]*m_NN[1]
-                                        );
+                                        , zero);
 
-                    MPI_Recv(&inbuf[0], numComp, MPI_DOUBLE, neighbour_ranks[i],
+                    MPI_Recv(&inbuf[0], numComp, mpiType, neighbour_ranks[i],
                             tag, m_mpiInfo->comm, &status);
                     //unpack
                     for (int comp = 0; comp < numComp; comp++) {
@@ -2036,8 +2049,11 @@ void Brick::shareCorners(escript::Data& out) const
 }
 
 //private
+template<typename Scalar>
 void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
 {
+    const Scalar zero = static_cast<Scalar>(0);
+    MPI_Datatype mpiType = (sizeof(Scalar) == sizeof(double) ? MPI_DOUBLE : MPI_DOUBLE_COMPLEX);
     const int rank = m_mpiInfo->rank;
 
     const int tag = 0;
@@ -2058,57 +2074,57 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
         if (front) { //share Z lines
             int neighbour = rank - m_NX[0] - 1;
             const dim_t count = m_NN[2]*numComp;
-            std::vector<double> outbuf(count);
+            std::vector<Scalar> outbuf(count);
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[2]; i++) {
-                double *data = out.getSampleDataRW(INDEX3(0, 0, i, m_NN[0], m_NN[1]));
+                Scalar *data = out.getSampleDataRW(INDEX3(0, 0, i, m_NN[0], m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     outbuf[i*numComp + comp] = data[comp];
                 }
             }
-            MPI_Isend(&outbuf[0], count, MPI_DOUBLE, neighbour, tag,
+            MPI_Isend(&outbuf[0], count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, request + reqNum++);
         }
         if (back) {//share Z lines
             int neighbour = rank + m_NX[0] - 1;
             const dim_t count = m_NN[2]*numComp;
-            std::vector<double> outbuf(count);
+            std::vector<Scalar> outbuf(count);
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[2]; i++) {
-                double *data = out.getSampleDataRW(INDEX3(0,m_NN[1]-1,i,m_NN[0],m_NN[1]));
+                Scalar *data = out.getSampleDataRW(INDEX3(0,m_NN[1]-1,i,m_NN[0],m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     outbuf[i*numComp + comp] = data[comp];
                 }
             }
-            MPI_Isend(&outbuf[0], count, MPI_DOUBLE, neighbour, tag,
+            MPI_Isend(&outbuf[0], count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, request + reqNum++);
         }
         if (top) {//share Y lines
             int neighbour = rank + m_NX[0]*m_NX[1] - 1;
             const dim_t count = m_NN[1]*numComp;
-            std::vector<double> outbuf(count);
+            std::vector<Scalar> outbuf(count);
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[1]; i++) {
-                double *data = out.getSampleDataRW(INDEX3(0,i,m_NN[2]-1,m_NN[0],m_NN[1]));
+                Scalar *data = out.getSampleDataRW(INDEX3(0,i,m_NN[2]-1,m_NN[0],m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     outbuf[i*numComp + comp] = data[comp];
                 }
             }
-            MPI_Isend(&outbuf[0], count, MPI_DOUBLE, neighbour, tag,
+            MPI_Isend(&outbuf[0], count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, request + reqNum++);
         }
         if (bottom) {//share Y lines
             int neighbour = rank - m_NX[0]*m_NX[1] - 1;
             const dim_t count = m_NN[1]*numComp;
-            std::vector<double> outbuf(count);
+            std::vector<Scalar> outbuf(count);
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[1]; i++) {
-                double *data = out.getSampleDataRW(INDEX3(0,i,0,m_NN[0],m_NN[1]));
+                Scalar *data = out.getSampleDataRW(INDEX3(0,i,0,m_NN[0],m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     outbuf[i*numComp + comp] = data[comp];
                 }
             }
-            MPI_Isend(&outbuf[0], count, MPI_DOUBLE, neighbour, tag,
+            MPI_Isend(&outbuf[0], count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, request + reqNum++);
         }
     }
@@ -2116,93 +2132,93 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
         if (front) { //share Z lines
             int neighbour = rank - m_NX[0] + 1;
             const dim_t count = m_NN[2]*numComp;
-            std::vector<double> outbuf(count);
+            std::vector<Scalar> outbuf(count);
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[2]; i++) {
-                double *data = out.getSampleDataRW(
-                            INDEX3(m_NN[0]-1, 0, i, m_NN[0], m_NN[1]));
+                Scalar *data = out.getSampleDataRW(
+                            INDEX3(m_NN[0]-1, 0, i, m_NN[0], m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     outbuf[i*numComp + comp] = data[comp];
                 }
             }
-            MPI_Isend(&outbuf[0], count, MPI_DOUBLE, neighbour, tag,
+            MPI_Isend(&outbuf[0], count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, request + reqNum++);
         }
         if (back) {//share Z lines
             int neighbour = rank + m_NX[0] + 1;
             const dim_t count = m_NN[2]*numComp;
-            std::vector<double> outbuf(count);
+            std::vector<Scalar> outbuf(count);
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[2]; i++) {
-                double *data = out.getSampleDataRW(
-                            INDEX3(m_NN[0]-1, m_NN[1]-1, i, m_NN[0], m_NN[1]));
+                Scalar *data = out.getSampleDataRW(
+                            INDEX3(m_NN[0]-1, m_NN[1]-1, i, m_NN[0], m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     outbuf[i*numComp + comp] = data[comp];
                 }
             }
-            MPI_Isend(&outbuf[0], count, MPI_DOUBLE, neighbour, tag,
+            MPI_Isend(&outbuf[0], count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, request + reqNum++);
         }
         if (top) {//share Y lines
             int neighbour = rank + m_NX[0]*m_NX[1] + 1;
             const dim_t count = m_NN[1]*numComp;
-            std::vector<double> outbuf(count);
+            std::vector<Scalar> outbuf(count);
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[1]; i++) {
-                double *data = out.getSampleDataRW(INDEX3(m_NN[0]-1,i,m_NN[2]-1,m_NN[0],m_NN[1]));
+                Scalar *data = out.getSampleDataRW(INDEX3(m_NN[0]-1,i,m_NN[2]-1,m_NN[0],m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     outbuf[i*numComp + comp] = data[comp];
                 }
             }
-            MPI_Isend(&outbuf[0], count, MPI_DOUBLE, neighbour, tag,
+            MPI_Isend(&outbuf[0], count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, request + reqNum++);
         }
         if (bottom) {//share Y lines
             int neighbour = rank - m_NX[0]*m_NX[1] + 1;
             const dim_t count = m_NN[1]*numComp;
-            std::vector<double> outbuf(count);
+            std::vector<Scalar> outbuf(count);
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[1]; i++) {
-                double *data = out.getSampleDataRW(INDEX3(m_NN[0]-1,i,0,m_NN[0],m_NN[1]));
+                Scalar *data = out.getSampleDataRW(INDEX3(m_NN[0]-1,i,0,m_NN[0],m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     outbuf[i*numComp + comp] = data[comp];
                 }
             }
-            MPI_Isend(&outbuf[0], count, MPI_DOUBLE, neighbour, tag,
+            MPI_Isend(&outbuf[0], count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, request + reqNum++);
         }
     }
 
     if (top) {
         const dim_t count = m_NN[0]*numComp;
-        std::vector<double> buf(count);
+        std::vector<Scalar> buf(count);
         if (front) {//share X lines
             int neighbour = rank + m_NX[0]*m_NX[1] - m_NX[0];
-            double *data = out.getSampleDataRW(m_NN[0]*m_NN[1]*(m_NN[2]-1));
-            MPI_Isend(data, count, MPI_DOUBLE, neighbour, tag,
+            Scalar *data = out.getSampleDataRW(m_NN[0]*m_NN[1]*(m_NN[2]-1), zero);
+            MPI_Isend(data, count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, request + reqNum++);
         }
         if (back) {//share X lines
             int neighbour = rank + m_NX[0]*m_NX[1] + m_NX[0];
-            double *data = out.getSampleDataRW(m_NN[0]*m_NN[1]*(m_NN[2]-1)
-                                             + m_NN[0]*(m_NN[1]-1));
-            MPI_Isend(data, count, MPI_DOUBLE, neighbour, tag,
+            Scalar *data = out.getSampleDataRW(m_NN[0]*m_NN[1]*(m_NN[2]-1)
+                                             + m_NN[0]*(m_NN[1]-1), zero);
+            MPI_Isend(data, count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, request + reqNum++);
         }
     }
     if (bottom) {
         const dim_t count = m_NN[0]*numComp;
-        std::vector<double> buf(count);
+        std::vector<Scalar> buf(count);
         if (front) {//share X lines
             int neighbour = rank - m_NX[0]*m_NX[1] - m_NX[0];
-            double *data = out.getSampleDataRW(0);
-            MPI_Isend(data, count, MPI_DOUBLE, neighbour, tag,
+            Scalar *data = out.getSampleDataRW(0, zero);
+            MPI_Isend(data, count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, request + reqNum++);
         }
         if (back) {//share X lines
             int neighbour = rank - m_NX[0]*m_NX[1] + m_NX[0];
-            double *data = out.getSampleDataRW(m_NN[0]*(m_NN[1]-1));
-            MPI_Isend(data, count, MPI_DOUBLE, neighbour, tag,
+            Scalar *data = out.getSampleDataRW(m_NN[0]*(m_NN[1]-1), zero);
+            MPI_Isend(data, count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, request + reqNum++);
         }
     }
@@ -2213,12 +2229,12 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
         if (front) { //share Z lines
             int neighbour = rank - m_NX[0] - 1;
             const dim_t count = m_NN[2]*numComp;
-            std::vector<double> buf(count);
-            MPI_Recv(&buf[0], count, MPI_DOUBLE, neighbour, tag,
+            std::vector<Scalar> buf(count);
+            MPI_Recv(&buf[0], count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, status);
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[2]; i++) {
-                double *data = out.getSampleDataRW(INDEX3(0, 0, i, m_NN[0], m_NN[1]));
+                Scalar *data = out.getSampleDataRW(INDEX3(0, 0, i, m_NN[0], m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] += buf[i*numComp + comp];
                 }
@@ -2227,12 +2243,12 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
         if (back) {//share Z lines
             int neighbour = rank + m_NX[0] - 1;
             const dim_t count = m_NN[2]*numComp;
-            std::vector<double> buf(count);
-            MPI_Recv(&buf[0], count, MPI_DOUBLE, neighbour, tag,
+            std::vector<Scalar> buf(count);
+            MPI_Recv(&buf[0], count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, status);
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[2]; i++) {
-                double *data = out.getSampleDataRW(INDEX3(0,m_NN[1]-1,i,m_NN[0],m_NN[1]));
+                Scalar *data = out.getSampleDataRW(INDEX3(0,m_NN[1]-1,i,m_NN[0],m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] += buf[i*numComp + comp];
                 }
@@ -2241,12 +2257,12 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
         if (top) {//share Y lines
             int neighbour = rank + m_NX[0]*m_NX[1] - 1;
             const dim_t count = m_NN[1]*numComp;
-            std::vector<double> buf(count);
-            MPI_Recv(&buf[0], count, MPI_DOUBLE, neighbour, tag,
+            std::vector<Scalar> buf(count);
+            MPI_Recv(&buf[0], count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, status);
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[1]; i++) {
-                double *data = out.getSampleDataRW(INDEX3(0,i,m_NN[2]-1,m_NN[0],m_NN[1]));
+                Scalar *data = out.getSampleDataRW(INDEX3(0,i,m_NN[2]-1,m_NN[0],m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] += buf[i*numComp + comp];
                 }
@@ -2255,12 +2271,12 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
         if (bottom) {//share Y lines
             int neighbour = rank - m_NX[0]*m_NX[1] - 1;
             const dim_t count = m_NN[1]*numComp;
-            std::vector<double> buf(count);
-            MPI_Recv(&buf[0], count, MPI_DOUBLE, neighbour, tag,
+            std::vector<Scalar> buf(count);
+            MPI_Recv(&buf[0], count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, status);
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[1]; i++) {
-                double *data = out.getSampleDataRW(INDEX3(0,i,0,m_NN[0],m_NN[1]));
+                Scalar *data = out.getSampleDataRW(INDEX3(0,i,0,m_NN[0],m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] += buf[i*numComp + comp];
                 }
@@ -2271,13 +2287,13 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
         if (front) { //share Z lines
             int neighbour = rank - m_NX[0] + 1;
             const dim_t count = m_NN[2]*numComp;
-            std::vector<double> buf(count);
-            MPI_Recv(&buf[0], count, MPI_DOUBLE, neighbour, tag,
+            std::vector<Scalar> buf(count);
+            MPI_Recv(&buf[0], count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, status);
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[2]; i++) {
-                double *data = out.getSampleDataRW(
-                            INDEX3(m_NN[0]-1, 0, i, m_NN[0], m_NN[1]));
+                Scalar *data = out.getSampleDataRW(
+                            INDEX3(m_NN[0]-1, 0, i, m_NN[0], m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] += buf[i*numComp + comp];
                 }
@@ -2286,13 +2302,13 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
         if (back) {//share Z lines
             int neighbour = rank + m_NX[0] + 1;
             const dim_t count = m_NN[2]*numComp;
-            std::vector<double> buf(count);
-            MPI_Recv(&buf[0], count, MPI_DOUBLE, neighbour, tag,
+            std::vector<Scalar> buf(count);
+            MPI_Recv(&buf[0], count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, status);
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[2]; i++) {
-                double *data = out.getSampleDataRW(
-                            INDEX3(m_NN[0]-1, m_NN[1]-1, i, m_NN[0], m_NN[1]));
+                Scalar *data = out.getSampleDataRW(
+                            INDEX3(m_NN[0]-1, m_NN[1]-1, i, m_NN[0], m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] += buf[i*numComp + comp];
                 }
@@ -2301,12 +2317,12 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
         if (top) {//share Y lines
             int neighbour = rank + m_NX[0]*m_NX[1] + 1;
             const dim_t count = m_NN[1]*numComp;
-            std::vector<double> buf(count);
-            MPI_Recv(&buf[0], count, MPI_DOUBLE, neighbour, tag,
+            std::vector<Scalar> buf(count);
+            MPI_Recv(&buf[0], count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, status);
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[1]; i++) {
-                double *data = out.getSampleDataRW(INDEX3(m_NN[0]-1,i,m_NN[2]-1,m_NN[0],m_NN[1]));
+                Scalar *data = out.getSampleDataRW(INDEX3(m_NN[0]-1,i,m_NN[2]-1,m_NN[0],m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] += buf[i*numComp + comp];
                 }
@@ -2315,12 +2331,12 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
         if (bottom) {//share Y lines
             int neighbour = rank - m_NX[0]*m_NX[1] + 1;
             const dim_t count = m_NN[1]*numComp;
-            std::vector<double> buf(count);
-            MPI_Recv(&buf[0], count, MPI_DOUBLE, neighbour, tag,
+            std::vector<Scalar> buf(count);
+            MPI_Recv(&buf[0], count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, status);
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[1]; i++) {
-                double *data = out.getSampleDataRW(INDEX3(m_NN[0]-1,i,0,m_NN[0],m_NN[1]));
+                Scalar *data = out.getSampleDataRW(INDEX3(m_NN[0]-1,i,0,m_NN[0],m_NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] += buf[i*numComp + comp];
                 }
@@ -2330,11 +2346,11 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
 
     if (top) {
         const dim_t count = m_NN[0]*numComp;
-        std::vector<double> buf(count);
+        std::vector<Scalar> buf(count);
         if (front) {//share X lines
             int neighbour = rank + m_NX[0]*m_NX[1] - m_NX[0];
-            double *data = out.getSampleDataRW(m_NN[0]*m_NN[1]*(m_NN[2]-1));
-            MPI_Recv(&buf[0], count, MPI_DOUBLE, neighbour, tag,
+            Scalar *data = out.getSampleDataRW(m_NN[0]*m_NN[1]*(m_NN[2]-1), zero);
+            MPI_Recv(&buf[0], count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, status);
 #pragma omp parallel for
             for (dim_t i = 0; i < count; i++) {
@@ -2343,9 +2359,9 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
         }
         if (back) {//share X lines
             int neighbour = rank + m_NX[0]*m_NX[1] + m_NX[0];
-            double *data = out.getSampleDataRW(m_NN[0]*m_NN[1]*(m_NN[2]-1)
-                                             + m_NN[0]*(m_NN[1]-1));
-            MPI_Recv(&buf[0], count, MPI_DOUBLE, neighbour, tag,
+            Scalar *data = out.getSampleDataRW(m_NN[0]*m_NN[1]*(m_NN[2]-1)
+                                             + m_NN[0]*(m_NN[1]-1), zero);
+            MPI_Recv(&buf[0], count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, status);
 #pragma omp parallel for
             for (dim_t i = 0; i < count; i++) {
@@ -2355,11 +2371,11 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
     }
     if (bottom) {
         const dim_t count = m_NN[0]*numComp;
-        std::vector<double> buf(count);
+        std::vector<Scalar> buf(count);
         if (front) {//share X lines
             int neighbour = rank - m_NX[0]*m_NX[1] - m_NX[0];
-            double *data = out.getSampleDataRW(0);
-            MPI_Recv(&buf[0], count, MPI_DOUBLE, neighbour, tag,
+            Scalar *data = out.getSampleDataRW(0, zero);
+            MPI_Recv(&buf[0], count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, status);
 #pragma omp parallel for
             for (dim_t i = 0; i < count; i++) {
@@ -2368,8 +2384,8 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
         }
         if (back) {//share X lines
             int neighbour = rank - m_NX[0]*m_NX[1] + m_NX[0];
-            double *data = out.getSampleDataRW(m_NN[0]*(m_NN[1]-1));
-            MPI_Recv(&buf[0], count, MPI_DOUBLE, neighbour, tag,
+            Scalar *data = out.getSampleDataRW(m_NN[0]*(m_NN[1]-1), zero);
+            MPI_Recv(&buf[0], count, mpiType, neighbour, tag,
                     m_mpiInfo->comm, status);
 #pragma omp parallel for
             for (dim_t i = 0; i < count; i++) {
@@ -2384,48 +2400,51 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
 }
 
 
+template<typename Scalar>
 void frontAndBack(escript::Data& out, int ry, const int numComp, int rank,
                     const dim_t NN[3], const int NX[3], MPI_Comm& comm) {
+    const Scalar zero = static_cast<Scalar>(0);
+    MPI_Datatype mpiType = (sizeof(Scalar) == sizeof(double) ? MPI_DOUBLE : MPI_DOUBLE_COMPLEX);
     MPI_Status status;
     const int front_neighbour = rank - NX[0];
     const int back_neighbour = rank + NX[0];
     const dim_t count = NN[0]*NN[2]*numComp;
-    std::vector<double> front(count);
-    std::vector<double> back(count);
-    std::vector<double> recv(count);
+    std::vector<Scalar> front(count);
+    std::vector<Scalar> back(count);
+    std::vector<Scalar> recv(count);
 #pragma omp parallel for
     for (dim_t z = 0; z < NN[2]; z++) {
         for (dim_t x = 0; x < NN[0]; x++) {
             const dim_t index = INDEX2(x,z,NN[0])*numComp;
-            const double *frontData = out.getSampleDataRO(INDEX3(x, 0, z, NN[0], NN[1]));
+            const Scalar *frontData = out.getSampleDataRO(INDEX3(x, 0, z, NN[0], NN[1]), zero);
             std::copy(frontData, frontData + numComp, &front[index]);
 
-            const double *backData = out.getSampleDataRO(INDEX3(x, NN[1]-1, z, NN[0], NN[1]));
+            const Scalar *backData = out.getSampleDataRO(INDEX3(x, NN[1]-1, z, NN[0], NN[1]), zero);
             std::copy(backData, backData + numComp, &back[index]);
         }
     }
 
     MPI_Request request[2];
     if (ry) {
-        MPI_Isend(&front[0], count, MPI_DOUBLE, front_neighbour, rank,
+        MPI_Isend(&front[0], count, mpiType, front_neighbour, rank,
             comm, request);
     }
 
     if (ry < NX[1] - 1) {
-        MPI_Isend(&back[0], count, MPI_DOUBLE, back_neighbour, rank,
+        MPI_Isend(&back[0], count, mpiType, back_neighbour, rank,
             comm, request+1);
     }
 
     //front
     if (ry) {
-        MPI_Recv(&recv[0], count, MPI_DOUBLE, front_neighbour, front_neighbour,
+        MPI_Recv(&recv[0], count, mpiType, front_neighbour, front_neighbour,
                     comm, &status);
         //unpack front
 #pragma omp parallel for
         for (dim_t z = 0; z < NN[2]; z++) {
             for (dim_t x = 0; x < NN[0]; x++) {
                 const dim_t index = INDEX2(x,z,NN[0])*numComp;
-                double *data = out.getSampleDataRW(INDEX3(x, 0, z, NN[0], NN[1]));
+                Scalar *data = out.getSampleDataRW(INDEX3(x, 0, z, NN[0], NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] += recv[index+comp];
                 }
@@ -2435,14 +2454,14 @@ void frontAndBack(escript::Data& out, int ry, const int numComp, int rank,
 
     //back
     if (ry < NX[1] - 1) {
-        MPI_Recv(&recv[0], count, MPI_DOUBLE, back_neighbour, back_neighbour,
+        MPI_Recv(&recv[0], count, mpiType, back_neighbour, back_neighbour,
                 comm, &status);
         //unpack back
 #pragma omp parallel for
         for (dim_t z = 0; z < NN[2]; z++) {
             for (dim_t x = 0; x < NN[0]; x++) {
                 const dim_t index = INDEX2(x,z,NN[0])*numComp;
-                double *data = out.getSampleDataRW(INDEX3(x, NN[1] - 1, z, NN[0], NN[1]));
+                Scalar *data = out.getSampleDataRW(INDEX3(x, NN[1] - 1, z, NN[0], NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] += recv[index+comp];
                 }
@@ -2458,48 +2477,51 @@ void frontAndBack(escript::Data& out, int ry, const int numComp, int rank,
     }
 }
 
+template<typename Scalar>
 void topAndBottom(escript::Data& out, int rz, int numComp, int rank,
                     const dim_t NN[3], const int NX[3], MPI_Comm& comm) {
+    const Scalar zero = static_cast<Scalar>(0);
+    MPI_Datatype mpiType = (sizeof(Scalar) == sizeof(double) ? MPI_DOUBLE : MPI_DOUBLE_COMPLEX);
     MPI_Status status;
     const int top_neighbour = rank + NX[0]*NX[1];
     const int bottom_neighbour = rank - NX[0]*NX[1];
     const dim_t count = NN[0]*NN[1]*numComp;
-    std::vector<double> top(count);
-    std::vector<double> bottom(count);
-    std::vector<double> recv(count);
+    std::vector<Scalar> top(count);
+    std::vector<Scalar> bottom(count);
+    std::vector<Scalar> recv(count);
 #pragma omp parallel for
     for (dim_t y = 0; y < NN[1]; y++) {
         for (dim_t x = 0; x < NN[0]; x++) {
             const dim_t index = INDEX2(x,y,NN[0])*numComp;
-            const double *bottomData = out.getSampleDataRO(INDEX2(x, y, NN[0]));
+            const Scalar *bottomData = out.getSampleDataRO(INDEX2(x, y, NN[0]), zero);
             std::copy(bottomData, bottomData + numComp, &bottom[index]);
 
-            const double *topData = out.getSampleDataRO(INDEX3(x, y, NN[2]-1, NN[0], NN[1]));
+            const Scalar *topData = out.getSampleDataRO(INDEX3(x, y, NN[2]-1, NN[0], NN[1]), zero);
             std::copy(topData, topData + numComp, &top[index]);
         }
     }
 
     MPI_Request request[2];
     if (rz) {
-        MPI_Isend(&bottom[0], count, MPI_DOUBLE, bottom_neighbour, rank,
+        MPI_Isend(&bottom[0], count, mpiType, bottom_neighbour, rank,
             comm, request);
     }
 
     if (rz < NX[2] - 1) {
-        MPI_Isend(&top[0], count, MPI_DOUBLE, top_neighbour, rank,
+        MPI_Isend(&top[0], count, mpiType, top_neighbour, rank,
             comm, request + 1);
     }
 
     //bottom
     if (rz) {
-        MPI_Recv(&recv[0], count, MPI_DOUBLE, bottom_neighbour,
+        MPI_Recv(&recv[0], count, mpiType, bottom_neighbour,
                 bottom_neighbour, comm, &status);
         //unpack to bottom
 #pragma omp parallel for
         for (dim_t y = 0; y < NN[1]; y++) {
             for (dim_t x = 0; x < NN[0]; x++) {
                 const dim_t index = INDEX2(x,y,NN[0])*numComp;
-                double *data = out.getSampleDataRW(INDEX2(x, y, NN[0]));
+                Scalar *data = out.getSampleDataRW(INDEX2(x, y, NN[0]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] += recv[index+comp];
                 }
@@ -2509,14 +2531,14 @@ void topAndBottom(escript::Data& out, int rz, int numComp, int rank,
 
     //top
     if (rz < NX[2] - 1) {
-        MPI_Recv(&recv[0], count, MPI_DOUBLE, top_neighbour, top_neighbour,
+        MPI_Recv(&recv[0], count, mpiType, top_neighbour, top_neighbour,
                     comm, &status);
         //unpack to top
 #pragma omp parallel for
         for (dim_t y = 0; y < NN[1]; y++) {
             for (dim_t x = 0; x < NN[0]; x++) {
                 const dim_t index = INDEX2(x,y,NN[0])*numComp;
-                double *data = out.getSampleDataRW(INDEX3(x, y, NN[2]-1, NN[0], NN[1]));
+                Scalar *data = out.getSampleDataRW(INDEX3(x, y, NN[2]-1, NN[0], NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] += recv[index+comp];
                 }
@@ -2532,23 +2554,26 @@ void topAndBottom(escript::Data& out, int rz, int numComp, int rank,
 }
 
 
+template<typename Scalar>
 void leftAndRight(escript::Data& out, int rx, int numComp, int rank,
                     const dim_t NN[3], const int NX[3], MPI_Comm& comm) {
+    const Scalar zero = static_cast<Scalar>(0);
+    MPI_Datatype mpiType = (sizeof(Scalar) == sizeof(double) ? MPI_DOUBLE : MPI_DOUBLE_COMPLEX);
     MPI_Status status;
     const int left_neighbour = rank - 1;
     const int right_neighbour = rank + 1;
     const dim_t count = NN[2]*NN[1]*numComp;
-    std::vector<double> left(count);
-    std::vector<double> right(count);
-    std::vector<double> recv(count);
+    std::vector<Scalar> left(count);
+    std::vector<Scalar> right(count);
+    std::vector<Scalar> recv(count);
 #pragma omp parallel for
     for (dim_t z = 0; z < NN[2]; z++) {
         for (dim_t y = 0; y < NN[1]; y++) {
             const dim_t index = INDEX2(y,z,NN[1])*numComp;
-            const double *leftData = out.getSampleDataRO(INDEX3(0, y, z, NN[0], NN[1]));
+            const Scalar *leftData = out.getSampleDataRO(INDEX3(0, y, z, NN[0], NN[1]), zero);
             std::copy(leftData, leftData + numComp, &left[index]);
 
-            const double *rightData = out.getSampleDataRO(INDEX3(NN[0]-1, y, z, NN[0], NN[1]));
+            const Scalar *rightData = out.getSampleDataRO(INDEX3(NN[0]-1, y, z, NN[0], NN[1]), zero);
             std::copy(rightData, rightData + numComp, &right[index]);
         }
 
@@ -2558,25 +2583,25 @@ void leftAndRight(escript::Data& out, int rx, int numComp, int rank,
 
     //right send
     if (rx < NX[0] - 1) {
-        MPI_Isend(&right[0], count, MPI_DOUBLE, right_neighbour,
+        MPI_Isend(&right[0], count, mpiType, right_neighbour,
                 rank, comm, request);
     }
     //left send
     if (rx) {
-        MPI_Isend(&left[0], count, MPI_DOUBLE, left_neighbour,
+        MPI_Isend(&left[0], count, mpiType, left_neighbour,
                 rank, comm, request+1);
     }
 
     //right recv
     if (rx < NX[0] - 1) {
-        MPI_Recv(&recv[0], count, MPI_DOUBLE, right_neighbour, right_neighbour,
+        MPI_Recv(&recv[0], count, mpiType, right_neighbour, right_neighbour,
                 comm, &status);
         //unpack to right
 #pragma omp parallel for
         for (dim_t z = 0; z < NN[2]; z++) {
             for (dim_t y = 0; y < NN[1]; y++) {
                 const dim_t index = INDEX2(y,z,NN[1])*numComp;
-                double *data = out.getSampleDataRW(INDEX3(NN[0]-1, y, z, NN[0], NN[1]));
+                Scalar *data = out.getSampleDataRW(INDEX3(NN[0]-1, y, z, NN[0], NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] += recv[index+comp];
                 }
@@ -2585,14 +2610,14 @@ void leftAndRight(escript::Data& out, int rx, int numComp, int rank,
     }
     //left
     if (rx) {
-        MPI_Recv(&recv[0], count, MPI_DOUBLE, left_neighbour, left_neighbour,
+        MPI_Recv(&recv[0], count, mpiType, left_neighbour, left_neighbour,
                 comm, &status);
         //unpack to left
 #pragma omp parallel for
         for (dim_t z = 0; z < NN[2]; z++) {
             for (dim_t y = 0; y < NN[1]; y++) {
                 const dim_t index = INDEX2(y,z,NN[1])*numComp;
-                double *data = out.getSampleDataRW(INDEX3(0, y, z, NN[0], NN[1]));
+                Scalar *data = out.getSampleDataRW(INDEX3(0, y, z, NN[0], NN[1]), zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] += recv[index+comp];
                 }
@@ -2609,15 +2634,16 @@ void leftAndRight(escript::Data& out, int rx, int numComp, int rank,
 
 
 //private
+template<typename Scalar>
 void Brick::shareFaces(escript::Data& out, int rx, int ry, int rz) const
 {
     const int numComp = out.getDataPointSize();
     if (m_NX[0] != 1)
-        leftAndRight(out, rx, numComp, m_mpiInfo->rank, m_NN, m_NX, m_mpiInfo->comm);
+        leftAndRight<Scalar>(out, rx, numComp, m_mpiInfo->rank, m_NN, m_NX, m_mpiInfo->comm);
     if (m_NX[1] != 1)
-        frontAndBack(out, ry, numComp, m_mpiInfo->rank, m_NN, m_NX, m_mpiInfo->comm);
+        frontAndBack<Scalar>(out, ry, numComp, m_mpiInfo->rank, m_NN, m_NX, m_mpiInfo->comm);
     if (m_NX[2] != 1)
-        topAndBottom(out, rz, numComp, m_mpiInfo->rank, m_NN, m_NX, m_mpiInfo->comm);
+        topAndBottom<Scalar>(out, rz, numComp, m_mpiInfo->rank, m_NN, m_NX, m_mpiInfo->comm);
 }
 #endif //#ifdef ESYS_MPI
 
