@@ -117,8 +117,12 @@ except ImportError:
     WORLD_SIZE = 1
     WORLD_RANK = 0
 
-# Skip all tests if MPI is not available or only 1 process
-SKIP_MPI_TESTS = not HAVE_MPI or WORLD_SIZE < 2
+# Skip all tests if MPI is not available or the rank count is not compatible
+# with the hardcoded numDomains=2 used throughout this file.  MPIDomainArray
+# requires WORLD_SIZE to be a multiple of numDomains, so e.g. 3 ranks fails
+# with "Requested ranks 2 does not match available ranks 3".  Even rank
+# counts >= 2 (2, 4, 6, ...) work.
+SKIP_MPI_TESTS = not HAVE_MPI or WORLD_SIZE < 2 or WORLD_SIZE % 2 != 0
 
 
 # Test configurations: (domain_module, domain_class, dimensions, resolution)
@@ -162,7 +166,7 @@ def create_domain(domain_module_name, domain_class_name, params, comm):
     return domain_class(**dirac_params, comm=comm)
 
 
-@unittest.skipIf(SKIP_MPI_TESTS, "MPI with at least 2 processes required")
+@unittest.skipIf(SKIP_MPI_TESTS, "MPI with an even number of processes (>= 2) required")
 class Test_MPIDomainArray(unittest.TestCase):
     """Tests for MPIDomainArray communicator topology."""
 
@@ -202,7 +206,7 @@ class Test_MPIDomainArray(unittest.TestCase):
         self.assertEqual(subdomain_comm.Get_size(), num_domains)
 
 
-@unittest.skipIf(SKIP_MPI_TESTS, "MPI with at least 2 processes required")
+@unittest.skipIf(SKIP_MPI_TESTS, "MPI with an even number of processes (>= 2) required")
 class Test_DataCoupler_PointToPoint(unittest.TestCase):
     """Tests for DataCoupler point-to-point communication across all domains and function spaces."""
 
@@ -362,7 +366,7 @@ class Test_DataCoupler_PointToPoint(unittest.TestCase):
                                                  msg=f"{domain_module}.{domain_class} {fs_name}")
 
 
-@unittest.skipIf(SKIP_MPI_TESTS, "MPI with at least 2 processes required")
+@unittest.skipIf(SKIP_MPI_TESTS, "MPI with an even number of processes (>= 2) required")
 class Test_DataCoupler_Collective_Data(unittest.TestCase):
     """Tests for DataCoupler collective operations on Data objects."""
 
@@ -458,7 +462,7 @@ class Test_DataCoupler_Collective_Data(unittest.TestCase):
                                              msg=f"{domain_module}.{domain_class} {fs_name}")
                         print("DONE")
 
-@unittest.skipIf(SKIP_MPI_TESTS, "MPI with at least 2 processes required")
+@unittest.skipIf(SKIP_MPI_TESTS, "MPI with an even number of processes (>= 2) required")
 class Test_DataCoupler_Collective_Values(unittest.TestCase):
     """Tests for DataCoupler collective operations on scalar values (not Data objects)."""
 
