@@ -8,6 +8,23 @@ esys-escript is designed as an easy-to-use environment for implementing mathemat
 For geophyscial inversion see also the extensions [gambit](https://github.com/AndreaCodd/gambit) and [fingal](https://github.com/LutzGross/fingal).
 
 
+## Latest release: 6.1.0
+
+The latest release is [esys-escript 6.1.0](https://github.com/LutzGross/esys-escript.github.io/releases/tag/6.1.0).
+
+Highlights:
+
+- Trilinos upgraded from v14 to **v17.0.0** (bundled source, built in-tree).
+- New ``SolverFramework`` API replacing the ``SO_PACKAGE_PASO`` / ``SO_PACKAGE_TRILINOS`` constants.
+- Major MPI-correctness fixes in Speckley, Ripley and the Trilinos wrapper; the test suite now runs cleanly under MPI, OpenMP, and combined configurations.
+- HDF5 dumping/loading for ``Data`` (including complex and mesh data); the netCDF dependency has been removed.
+- ``InterpolationTable`` class for 1-D / 2-D / 3-D table-based interpolation, including complex-valued tables.
+- macOS arm64 (Apple Silicon) build support including Trilinos with MueLu and METIS via Homebrew.
+- GitHub Actions CI extended across multiple Linux distributions and macOS.
+
+See [RELEASE_NOTES](RELEASE_NOTES) for the full change list.
+
+
 ## Main Features:
 
 - python based user interface
