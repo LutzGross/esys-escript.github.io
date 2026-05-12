@@ -82,18 +82,25 @@ void CrsMatrixWrapper<ST>::add(const std::vector<LO>& rowIdx,
                 const size_t srcIdx = j * emSize + i;
                 vals[j] = array[srcIdx];
             }
+            // Tpetra::CrsMatrix::sumIntoLocalValues is not thread-safe
+            // (concurrent calls race on shared CrsGraph/Kokkos refcounts
+            // and abort with "SharedAllocationRecord failed decrement").
+            // Finley invokes add() from inside an OpenMP parallel region
+            // (element-coloring assembly), so serialize the Tpetra call.
+            #pragma omp critical (TpetraSumIntoLocalValues)
             mat.sumIntoLocalValues(row, cols, vals);
         }
     }
 }
 
 template<typename ST>
-void CrsMatrixWrapper<ST>::add_single(const LO row, 
-                                      const LO col, 
+void CrsMatrixWrapper<ST>::add_single(const LO row,
+                                      const LO col,
                                       const ST value)
 {
     std::vector<LO> cols(1,col);
     std::vector<ST> vals(1,value);
+    #pragma omp critical (TpetraSumIntoLocalValues)
     mat.sumIntoLocalValues(row, cols, vals);
 }
 

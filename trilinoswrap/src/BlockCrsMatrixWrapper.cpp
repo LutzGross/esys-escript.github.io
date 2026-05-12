@@ -91,6 +91,11 @@ void BlockCrsMatrixWrapper<ST>::add(const std::vector<LO>& rowIdx,
                     }
                 }
             }
+            // Tpetra::BlockCrsMatrix::sumIntoLocalValues is not thread-safe
+            // (concurrent calls race on shared CrsGraph/Kokkos refcounts).
+            // Finley invokes add() from inside an OpenMP parallel region,
+            // so serialize the Tpetra call.
+            #pragma omp critical (TpetraSumIntoLocalValues)
             mat.sumIntoLocalValues(row, &cols[0], &vals[0], emSize);
         }
     }
