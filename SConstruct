@@ -597,7 +597,13 @@ if env['version_information'] != '0.0':
     env['LDMODULEVERSION']=env['version_information']
 
 if env['IS_OSX']:
-    env.AppendUnique(SHLIBSONAMEFLAGS =  ["-Wl,-install_name=$_SHLIBSONAME"])
+    env.AppendUnique(SHLIBSONAMEFLAGS =  ["-Wl,-install_name,@rpath/$_SHLIBSONAME"])
+    # Stamp an @rpath install_name on every shared lib / python extension,
+    # even when SHLIBVERSION is unset. Without this, clang bakes the absolute
+    # build-tree path into LC_ID_DYLIB, which breaks conda-build's macOS
+    # post-processing (it sees a build-prefix path inside the installed .so
+    # and cannot relocate it).
+    env.AppendUnique(SHLINKFLAGS = ["-Wl,-install_name,@rpath/${TARGET.file}"])
 else:
     env.AppendUnique(SHLIBSONAMEFLAGS =   ["-Wl,-soname=$_SHLIBSONAME" ] )
 
