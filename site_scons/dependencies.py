@@ -227,9 +227,12 @@ def checkPython(env):
             cmd = "import os, sys\n"
             if USE_DISTUTILS:
                 cmd += 'from distutils import sysconfig\n'
+                cmd += "print(sysconfig.get_python_inc())\n"
             else:
+                # stdlib sysconfig has no get_python_inc(); the include
+                # directory is available via get_path('include').
                 cmd += 'import sysconfig\n'
-            cmd += "print(sysconfig.get_python_inc())\n"
+                cmd += "print(sysconfig.get_path('include'))\n"
             cmd += "print(os.path.join(sysconfig.get_config_var('prefix'), 'libs'))\n"
             cmd += "print('python%s%s'%(sys.version_info[0], sys.version_info[1]))\n"
             cmd += "print('.'.join([str(i) for i in sys.version_info[:3]]))"
