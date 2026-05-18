@@ -348,6 +348,13 @@ if env['tools_names'] != ['default']:
     else:
         env = Environment(tools = ['default'] + env['tools_names'], options = vars,
                       ENV = {'PATH' : os.environ['PATH']} )
+    # Re-set platform flags on the rebuilt env. They were assigned earlier
+    # (~line 267-268) on the original env that's just been replaced.
+    # Multiple consumers (site_scons/dependencies.py and elsewhere) read
+    # env['IS_OSX'] / env['IS_WINDOWS']; without this they get KeyError on
+    # platforms that take this branch (e.g. Windows with tools_names=['msvc']).
+    env['IS_WINDOWS'] = IS_WINDOWS
+    env['IS_OSX'] = IS_OSX
 
 
 # Generate help text (scons -h)
