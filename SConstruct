@@ -596,7 +596,11 @@ if env['version_information'] != '0.0':
     env['SHLIBVERSION']=env['version_information']
     env['LDMODULEVERSION']=env['version_information']
 
-if env['IS_OSX']:
+# Use module-level IS_OSX, not env['IS_OSX']: when tools_names != 'default'
+# (e.g. the Windows conda recipe sets tools_names=['msvc']), env is rebuilt
+# above by Environment(...) and the IS_OSX/IS_WINDOWS keys set at line ~268
+# are wiped out. Module-level IS_OSX is always available.
+if IS_OSX:
     env.AppendUnique(SHLIBSONAMEFLAGS =  ["-Wl,-install_name,@rpath/$_SHLIBSONAME"])
     # Stamp an @rpath install_name on every shared lib / python extension,
     # even when SHLIBVERSION is unset. Without this, clang bakes the absolute
@@ -604,7 +608,7 @@ if env['IS_OSX']:
     # post-processing (it sees a build-prefix path inside the installed .so
     # and cannot relocate it).
     env.AppendUnique(SHLINKFLAGS = ["-Wl,-install_name,@rpath/${TARGET.file}"])
-else:
+elif not IS_WINDOWS:
     env.AppendUnique(SHLIBSONAMEFLAGS =   ["-Wl,-soname=$_SHLIBSONAME" ] )
 
 if env['build_trilinos'] != 'never':
