@@ -436,10 +436,10 @@ Data load_hdf5grp(const H5::Group h5_grp, const AbstractDomain& domain)
     JMPI mpiInfo(domain.getMPI());
     /* .. read meta data ... */
     try {
-            uint rank = 0;
+            unsigned int rank = 0;
             int type=-1;
             int function_space_type=-1;
-            uint h5_shape[DataTypes::maxRank];
+            unsigned int h5_shape[DataTypes::maxRank];
 
             // .... read meta data ...
             H5::DataSet h5_meta_data=h5_grp.openDataSet("Meta");
@@ -485,7 +485,7 @@ Data load_hdf5grp(const H5::Group h5_grp, const AbstractDomain& domain)
             shape.resize(rank);
             h5_meta_data.read(&h5_shape, h5_type_shape);
             int num_values_per_data_point = 1;
-            for (uint i=0; i < rank; ++i) {
+            for (unsigned int i=0; i < rank; ++i) {
                 shape[i] = h5_shape[i];
                 num_values_per_data_point*=shape[i];
             }

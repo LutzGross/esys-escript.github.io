@@ -81,7 +81,7 @@ Domain_ptr FinleyDomain::load(const string& fileName, const bp::object& comm)
 
             H5::Group h5_grp_nodes = h5_file.openGroup("Nodes");
             // ... retrieve dimension ....
-            uint h5_numDim;
+            unsigned int h5_numDim;
             H5::Attribute h5_attr_dim(h5_grp_nodes.openAttribute("numDim"));
             H5::DataType h5_type_dim(h5_attr_dim.getDataType());
             if (  h5_type_dim != H5::PredType::NATIVE_UINT  ) {
@@ -211,7 +211,7 @@ Domain_ptr FinleyDomain::load(const string& fileName, const bp::object& comm)
             // .... end read elements
             // ...  read tag map ..... :
             H5::Group h5_grp_tags=h5_file.openGroup("Tags");
-            uint num_Tags=0;
+            unsigned int num_Tags=0;
             H5::Attribute h5_attr_ntags(h5_grp_tags.openAttribute("numTags"));
             H5::DataType h5_type_ntags(h5_attr_ntags.getDataType());
             if (  h5_type_ntags != H5::PredType::NATIVE_UINT  ) {
@@ -243,7 +243,7 @@ Domain_ptr FinleyDomain::load(const string& fileName, const bp::object& comm)
            }
            h5_ds_tagnames.read(&Tag_names[0], h5_type_tagnames);
 
-            for (uint i = 0; i < num_Tags; i++) {
+            for (unsigned int i = 0; i < num_Tags; i++) {
                 dom->setTagMap(Tag_names[i], Tag_keys[i]);
             }
             // ... node & DOF distributions:

@@ -488,8 +488,8 @@ void ElementFile::dump(H5::Group h5_grp) const
         H5::DataType h5_type_index = H5::PredType::NATIVE_INT;
     #endif
     hsize_t h5_dims_numElements[1] = { 1 };
-    uint h5_values_numElements[1] = { static_cast<uint>(numElements) };
-    uint h5_values_numNodes[1] = { static_cast<uint>(numNodes) };
+    unsigned int h5_values_numElements[1] = { static_cast<unsigned int>(numElements) };
+    unsigned int h5_values_numNodes[1] = { static_cast<unsigned int>(numNodes) };
     int h5_values_typeId[1] = { static_cast<int>(referenceElementSet->referenceElement->Type->TypeId) };
     H5::Attribute h5_attr_numElements = h5_grp.createAttribute("numElements", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_dims_numElements ) );
     h5_attr_numElements.write( H5::PredType::NATIVE_UINT, h5_values_numElements );
@@ -523,7 +523,7 @@ finley::ElementFile* loadElements_hdf5(const H5::Group h5_grp, const int integra
             H5::DataType h5_type_index = H5::PredType::NATIVE_INT;
         #endif
 
-        uint h5_numElements=0, h5_numNodes=0;
+        unsigned int h5_numElements=0, h5_numNodes=0;
         int h5_typeId=0;
 
 

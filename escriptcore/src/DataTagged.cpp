@@ -1393,7 +1393,7 @@ DataTagged::setToZero(){
 #ifdef ESYS_HAVE_HDF5
 void DataTagged::dump_hdf5(const H5::Group h5_grp) const
 {
-    uint rank = getRank();
+    unsigned int rank = getRank();
     int fs_type=  getFunctionSpace().getTypeCode();
     const DataTypes::ShapeType& shape = getShape();
     if (isComplex())
@@ -1416,8 +1416,8 @@ void DataTagged::dump_hdf5(const H5::Group h5_grp) const
     try
     {
         // .... add meta data ............
-        uint h5_shape[DataTypes::maxRank]; // dataset dimensions
-        for (uint i = 0; i < rank; i++) {
+        unsigned int h5_shape[DataTypes::maxRank]; // dataset dimensions
+        for (unsigned int i = 0; i < rank; i++) {
             h5_shape[i]= shape[i];
         }
         hsize_t h5_shape_dims[1] = {rank};
@@ -1429,7 +1429,7 @@ void DataTagged::dump_hdf5(const H5::Group h5_grp) const
         H5::Attribute h5_typeid_attr = h5_dmeta.createAttribute("type_id", H5::PredType::NATIVE_INT, H5::DataSpace(1,h5_typeid_dims ) );
         h5_typeid_attr.write( H5::PredType::NATIVE_INT , h5_type_id );
 
-        uint h5_rank[1] = { rank };
+        unsigned int h5_rank[1] = { rank };
         H5::Attribute h5_rank_attr = h5_dmeta.createAttribute("rank", H5::PredType::NATIVE_UINT, H5::DataSpace(1,h5_typeid_dims ) );
         h5_rank_attr.write( H5::PredType::NATIVE_UINT , h5_rank );
 

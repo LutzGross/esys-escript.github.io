@@ -242,7 +242,7 @@ void FinleyDomain::dump(const string& fileName) const
         H5::Group h5_grp_nodes = h5_file.createGroup("Nodes");
 
         hsize_t h5_dims_numDim[1] = { 1 };
-        uint h5_values_numDim[1] = { static_cast<uint>(numDim) };
+        unsigned int h5_values_numDim[1] = { static_cast<unsigned int>(numDim) };
         H5::Attribute h5_attr_numDim = h5_grp_nodes.createAttribute("numDim", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_dims_numDim ) );
         h5_attr_numDim.write( H5::PredType::NATIVE_UINT, h5_values_numDim );
 
@@ -286,10 +286,10 @@ void FinleyDomain::dump(const string& fileName) const
         m_contactElements->dump(h5_file.createGroup("ContactElements"));
         m_points->dump(h5_file.createGroup("Points"));
         // save tags:
-        uint numTags = static_cast<uint>(m_tagMap.size());
+        unsigned int numTags = static_cast<unsigned int>(m_tagMap.size());
         H5::Group h5_grp_tags = h5_file.createGroup("Tags");
         hsize_t h5_dims_numTags[1] = { 1 };
-        uint h5_values_numTags[1] = { numTags };
+        unsigned int h5_values_numTags[1] = { numTags };
         H5::Attribute h5_attr_numTags = h5_grp_tags.createAttribute("numTags", H5::PredType::NATIVE_UINT, H5::DataSpace(1, h5_dims_numTags ) );
         h5_attr_numTags.write( H5::PredType::NATIVE_UINT, h5_values_numTags );
 
