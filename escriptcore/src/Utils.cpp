@@ -20,7 +20,10 @@
 
 #include <cstring>
 #include <fstream>
-#ifndef _WIN32
+#ifdef _WIN32
+# define popen  _popen
+# define pclose _pclose
+#else
 # include <unistd.h>
 #endif // _WIN32
 #include <string>
@@ -176,7 +179,7 @@ void printParallelThreadCnt()
 {
     char hname[64];
 
-#ifdef HAVE_GETHOSTNAME
+#if defined(HAVE_GETHOSTNAME) && !defined(_WIN32)
     gethostname(hname, 64);
     hname[63] = '\0';
 #else
