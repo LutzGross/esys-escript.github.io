@@ -16,9 +16,6 @@
 # Refer to README_FIRST for usage instructions.
 
 escript_opts_version = 203
-openmp = True
-
-import os
 
 openmp=1
 paso=1
