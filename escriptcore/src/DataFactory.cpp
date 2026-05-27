@@ -648,7 +648,7 @@ Data load_hdf5(const std::string fileName, const AbstractDomain& domain)
     {
             Data data_re = load_hdf5grp(h5_file.openGroup("Data_Re"), domain);
             Data data_im = load_hdf5grp(h5_file.openGroup("Data_Im"), domain);
-            return data_re +  data_im * Scalar(std::complex(0.0, 1.0), data_im.getFunctionSpace(), false );
+            return data_re +  data_im * Scalar(std::complex<double>(0.0, 1.0), data_im.getFunctionSpace(), false );
     }
     else
     {
