@@ -1097,6 +1097,10 @@ if env['weipa']:
 
 
 
+# Generate escript/py_src/run_escript.py before the escript SConscript
+# globs *.py, otherwise the launcher module won't be installed.
+write_launcher(env)
+
 variant='$BUILD_DIR/$PLATFORM/'
 env.SConscript('escriptcore/SConscript', variant_dir=variant+'escriptcore', duplicate=0)
 env.SConscript('escript/SConscript', variant_dir=variant+'escript', duplicate=0)
@@ -1171,7 +1175,6 @@ generateTestScripts(env, TestGroups)
 write_buildvars(env)
 # delete buildvars upon cleanup - target_init is default so use it
 env.Clean('target_init', File('buildvars', env['libinstall']))
-write_launcher(env)
 
 # remove obsolete files
 if not env['usempi']:
