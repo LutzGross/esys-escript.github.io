@@ -283,6 +283,20 @@ def checkPython(env):
     # The wrapper script needs to find the libs
     conf.env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], python_lib_path)
 
+    # Locate numpy's include directory now so it's available for downstream
+    # probes (boost_numpy ships a header that transitively pulls in
+    # numpy/ndarrayobject.h, so the probe link test fails to compile unless
+    # this path is already on CPPPATH).
+    try:
+        numpy_inc = subprocess.check_output(
+            [env['pythoncmd'], '-c', 'import numpy; print(numpy.get_include())'],
+            text=True).strip()
+        if numpy_inc and os.path.isdir(numpy_inc):
+            conf.env.AppendUnique(CPPPATH=[numpy_inc])
+            env['buildvars']['numpy_inc_path'] = numpy_inc
+    except Exception:
+        pass
+
     if not conf.CheckCXXHeader('Python.h'):
         print("Cannot find python include files (tried 'Python.h' in directory %s)" % (python_inc_path))
         env.Exit(1)
@@ -382,52 +396,24 @@ def checkNumpy(env):
         env.Exit(1)
 
     ## check for numpy header (optional)
+    # checkPython already discovered numpy's include dir and put it on
+    # CPPPATH (see _add_numpy_include there), so we just verify the header
+    # is reachable.
     conf = Configure(env.Clone())
     numpy_h = False
-    conda_prefix = os.environ.get('CONDA_PREFIX')
-    if conda_prefix:
-            # make a copy of CPPPATH so it can be restored if header check fails
-            cpp_path_old = conf.env.get('CPPPATH', []).copy()
-            conf.env.Append(CPPPATH = [conda_prefix+'/Lib/site-packages/numpy/core/include'])
-            if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
-                numpy_h = True
-            else:
-                conf.env['CPPPATH'] = cpp_path_old
-    elif env['IS_OSX']:
-        cpp_path_old = conf.env.get('CPPPATH', []).copy()
-        if conf.CheckCXXHeader(['Python.h', 'numpy/ndarrayobject.h']):
-            numpy_h = True
-        else:
-            try:
-                import subprocess
-                numpy_inc = subprocess.check_output(
-                    [env['pythoncmd'], '-c', 'import numpy; print(numpy.get_include())'],
-                    text=True).strip()
-                conf.env.Append(CPPPATH=[numpy_inc])
-                if conf.CheckCXXHeader(['Python.h', 'numpy/ndarrayobject.h']):
-                    numpy_h = True
-                else:
-                    conf.env['CPPPATH'] = cpp_path_old
-            except Exception:
-                conf.env['CPPPATH'] = cpp_path_old
+    if conf.CheckCXXHeader(['Python.h', 'numpy/ndarrayobject.h']):
+        numpy_h = True
     else:
-        cpp_path_old = conf.env.get('CPPPATH', []).copy()
-        if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
-            numpy_h = True
-        else:
-            # Ask numpy for its include directory
-            try:
-                import subprocess
-                numpy_inc = subprocess.check_output(
-                    [env['pythoncmd'], '-c', 'import numpy; print(numpy.get_include())'],
-                    text=True).strip()
-                conf.env.Append(CPPPATH=[numpy_inc])
-                if conf.CheckCXXHeader(['Python.h', 'numpy/ndarrayobject.h']):
-                    numpy_h = True
-                else:
-                    conf.env['CPPPATH'] = cpp_path_old
-            except Exception:
-                conf.env['CPPPATH'] = cpp_path_old
+        # Last-resort: re-query numpy in case CPPPATH was clobbered.
+        try:
+            numpy_inc = subprocess.check_output(
+                [env['pythoncmd'], '-c', 'import numpy; print(numpy.get_include())'],
+                text=True).strip()
+            conf.env.Append(CPPPATH=[numpy_inc])
+            if conf.CheckCXXHeader(['Python.h', 'numpy/ndarrayobject.h']):
+                numpy_h = True
+        except Exception:
+            pass
     conf.env['numpy_h'] = numpy_h
     if numpy_h:
         conf.env.Append(CPPDEFINES = ['ESYS_HAVE_NUMPY_H'])
