@@ -974,11 +974,11 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
 #pragma omp parallel
     {
 #pragma omp for nowait
-        for (size_t i = 0; i < myNumTargets; i++) {
+        for (dim_t i = 0; i < myNumTargets; i++) {
             myRows[i] = globalDOFIndex[dofMap[i]];
         }
 #pragma omp for
-        for (size_t i = 0; i < numTargets; i++) {
+        for (dim_t i = 0; i < numTargets; i++) {
             columns[i] = globalDOFIndex[dofMap[i]];
         }
     } // end parallel section

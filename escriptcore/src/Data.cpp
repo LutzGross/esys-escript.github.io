@@ -968,9 +968,9 @@ Data::maskWorker(Data& other2, Data& mask2, S sentinel)
         // Scalar mask applied per data point (Expanded or Constant).
         // mvec has one entry per data point; self/ovec have psize entries per data point.
         size_t psize = getDataPointSize();
-        size_t num_dp = getNumDataPoints();
+        const ptrdiff_t num_dp = static_cast<ptrdiff_t>(getNumDataPoints());
         #pragma omp parallel for schedule(static)
-        for (size_t pt = 0; pt < num_dp; ++pt)
+        for (ptrdiff_t pt = 0; pt < num_dp; ++pt)
         {
             if (mvec[pt] > 0)
             {

@@ -1443,8 +1443,9 @@ esys_trilinos::const_TrilinosGraph_ptr RipleyDomain::createTrilinosGraph(
     IndexVector columns(getNumNodes());
     // order is important - our columns (=myRows) come first, followed by
     // shared ones (=node Id for non-DOF)
+    const ptrdiff_t numCols = static_cast<ptrdiff_t>(columns.size());
 #pragma omp parallel for
-    for (size_t i=0; i<columns.size(); i++) {
+    for (ptrdiff_t i=0; i<numCols; i++) {
         columns[getDofOfNode(i)] = myColumns[i];
     }
     TrilinosMap_ptr colMap(new MapType(getNumDataPointsGlobal(), columns,
