@@ -380,8 +380,8 @@ def checkBoost(env):
             env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
             env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
             env['have_boost_numpy'] = True
-        except:
-            print("Warning: Could not find boost/python/numpy.hpp. Building without numpy support.")
+        except Exception as e:
+            print("Warning: Could not find boost/python/numpy.hpp. Building without numpy support. (reason: %s)" % e)
 
     if boostversion >= 107000:
         env.Append(CPPDEFINES=['ESYS_DEPRECATED_BOOST_ENDIAN'])
