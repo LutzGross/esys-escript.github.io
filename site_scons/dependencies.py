@@ -370,9 +370,14 @@ def checkBoost(env):
             libname = f'boost_numpy{pyv[0]}{pyv[1]}'
         else:
             libname = f'boost_numpy{pyv[0]}{pyv[1]}'
+        # env['boost_libs'] may be a list (from an options file) or a string
+        # (when set on the scons CLI), so normalise before concatenating.
+        boost_libs = env['boost_libs']
+        if isinstance(boost_libs, str):
+            boost_libs = [boost_libs]
         try:
             boost_numpy_inc_path, boost_numpy_lib_path = \
-                findLibWithHeader(env, [ libname ] + env['boost_libs'], os.path.join('boost', 'python', 'numpy.hpp'), env['boost_prefix'], lang='c++')
+                findLibWithHeader(env, [ libname ] + list(boost_libs), os.path.join('boost', 'python', 'numpy.hpp'), env['boost_prefix'], lang='c++')
             env.AppendUnique(LIBS=libname)
             env.AppendUnique(boost_libs=libname)
             env.AppendUnique(CPPPATH=boost_numpy_inc_path)
