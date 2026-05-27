@@ -40,14 +40,20 @@ hdr_inst = local_env.Install(include_path, headers)
 
 lib_inst = local_env.Install(local_env['libinstall'], progs)
 
-py_env = local_env.Clone()
-# py_env.Prepend(LIBS = ['pythonMPI'])
-py_lib = py_env.PythonModule('pythonMPIcpp', 'pythonMPIcpp.cpp')
-mod_path = Dir('pythonMPI', local_env['pyinstall'])
-mod_inst = py_env.Install(mod_path, py_lib)
+# Only build the Python module when mpi4py is enabled. Without
+# ESYS_HAVE_MPI4PY the source file contains no BOOST_PYTHON_MODULE
+# block, so MSVC produces a .pyd with no exports and the install step
+# fails trying to copy a .exp file the linker never emits.
+mod_inst = []
+if env['mpi4py']:
+    py_env = local_env.Clone()
+    # py_env.Prepend(LIBS = ['pythonMPI'])
+    py_lib = py_env.PythonModule('pythonMPIcpp', 'pythonMPIcpp.cpp')
+    mod_path = Dir('pythonMPI', local_env['pyinstall'])
+    mod_inst = py_env.Install(mod_path, py_lib)
 
 env.Alias('build_pythonMPI', progs)
-env.Alias('install_pythonMPI', [lib_inst,mod_inst])
+env.Alias('install_pythonMPI', [lib_inst, mod_inst])
 
 
 
