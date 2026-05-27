@@ -644,7 +644,7 @@ Data load_hdf5(const std::string fileName, const AbstractDomain& domain)
         return load_hdf5grp(h5_file.openGroup("Data"), domain);
 
     }
-    else if ( h5_file.nameExists("Data_Re") and h5_file.nameExists("Data_Im") )
+    else if ( h5_file.nameExists("Data_Re") && h5_file.nameExists("Data_Im") )
     {
             Data data_re = load_hdf5grp(h5_file.openGroup("Data_Re"), domain);
             Data data_im = load_hdf5grp(h5_file.openGroup("Data_Im"), domain);
