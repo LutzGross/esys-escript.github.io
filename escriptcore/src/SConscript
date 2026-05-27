@@ -152,8 +152,12 @@ else:
 
 ### Python wrapper ###
 py_env = local_env.Clone()
-#if IS_WINDOWS:
-#    py_env.Append(CPPDEFINES = ['ESCRIPT_EXPORTS'])
+if IS_WINDOWS:
+    # The .pyd is a CONSUMER of escript.dll, so ESCRIPT_DLL_API must
+    # resolve to __declspec(dllimport) here -- drop ESCRIPT_EXPORTS that
+    # was inherited from local_env (where it's needed to build the .dll).
+    py_env['CPPDEFINES'] = [d for d in py_env.get('CPPDEFINES', [])
+                            if d != 'ESCRIPT_EXPORTS']
 if IS_OSX:
     py_env.Prepend(LIBS = [ lib_inst ])
 else:
