@@ -50,7 +50,7 @@ from esys.finley import ReadGmsh
 from esys.weipa import saveVTK
 import os
 GEO = { 2 :
-"""
+r"""
 Mesh.MshFileVersion = 2.2;
 Mesh.ElementOrder = {o};
 l_X={l_X};
@@ -69,7 +69,7 @@ Physical Curve(100) = \{1, 12, 23, 30\};
 Physical Surface(200) = \{1\};
 """,
         3 :
-"""
+r"""
 Mesh.MshFileVersion = 2.2;
 Mesh.ElementOrder = {o};
 l_X={l_X};
