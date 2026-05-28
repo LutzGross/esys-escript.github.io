@@ -614,6 +614,17 @@ if env['IS_OSX']:
 elif not env['IS_WINDOWS']:
     env.AppendUnique(SHLIBSONAMEFLAGS =   ["-Wl,-soname=$_SHLIBSONAME" ] )
 
+if not env['IS_WINDOWS']:
+    # Bake the install location of escript's shared libs as an absolute
+    # RPATH into every binary we link, so the .so/.dylib files find their
+    # siblings and the Python extensions find them too, without users
+    # having to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH. conda-build's
+    # post-processing rewrites the absolute prefix to a relative
+    # $ORIGIN / @loader_path expression at install time.
+    _libesys = os.path.join(env['prefix'], 'lib', 'esys')
+    env.AppendUnique(SHLINKFLAGS = ["-Wl,-rpath," + _libesys])
+    env.AppendUnique(LINKFLAGS   = ["-Wl,-rpath," + _libesys])
+
 if env['build_trilinos'] != 'never':
     if not os.path.isdir(env['trilinos_build']): # create a build folder if the user deleted it
         os.mkdir(env['trilinos_build'])
