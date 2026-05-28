@@ -27,11 +27,13 @@
 #include "PasoException.h"
 
 #ifdef ESYS_HAVE_MUMPS
-// TODO: is this needed? #pragma push_macro("MPI_COMM_WORLD")
-#ifdef ESYS_MPI
-    #if defined(MPI_COMM_WORLD)
-    #undef MPI_COMM_WORLD    // breaks mumps_mpi.h, defined in escriptcore/src/EsysMPI.h
-    #endif
+// MUMPS' MPI shim header declares `static MPI_Comm MPI_COMM_WORLD=...;`.
+// escriptcore/src/EsysMPI.h gives MPI_COMM_WORLD a #define-as-integer when
+// ESYS_MPI is off (and the real MPI mpi.h gives it a different definition
+// when on), either of which would turn that declaration into a syntax error.
+// Drop the macro here before bringing in MUMPS' header.
+#if defined(MPI_COMM_WORLD)
+#undef MPI_COMM_WORLD
 #endif
 #ifdef _WIN32
 #  if __has_include(<mumps_seq/mpi.h>)
