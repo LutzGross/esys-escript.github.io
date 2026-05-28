@@ -786,7 +786,13 @@ if env['ld_flags'] != 'default': env.Append(LINKFLAGS =env['ld_flags'])
 
 if env['cxx_extra'] : env.AppendUnique(CXXFLAGS = env['cxx_extra'])
 if env['cc_extra'] : env.AppendUnique(CCFLAGS = env['cc_extra'])
-if env['ld_extra']  : env.AppendUnique(LINKFLAGS =env['ld_extra'])
+if env['ld_extra']:
+    # Split string values (as supplied on the scons CLI) into separate args
+    # so the linker doesn't see "-L/path -lfoo -Wl,-bar" as one argument.
+    _ld = env['ld_extra']
+    if isinstance(_ld, str):
+        _ld = _ld.split()
+    env.AppendUnique(LINKFLAGS = _ld)
 
 
 # Disable OpenMP if no flags provided
