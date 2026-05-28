@@ -34,7 +34,11 @@
     #endif
 #endif
 #ifdef _WIN32
-#include <mumps_mpi.h>
+#  if __has_include(<mumps_seq/mpi.h>)
+#    include <mumps_seq/mpi.h>     // conda-forge mumps-seq layout
+#  elif __has_include(<mumps_mpi.h>)
+#    include <mumps_mpi.h>         // system / vcpkg MUMPS layout
+#  endif
 #endif
 // TODO: is this needed? #pragma pop_macro("MPI_COMM_WORLD")
 #include <dmumps_c.h>
