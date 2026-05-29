@@ -621,9 +621,14 @@ if not env['IS_WINDOWS']:
     # having to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH. conda-build's
     # post-processing rewrites the absolute prefix to a relative
     # $ORIGIN / @loader_path expression at install time.
+    # Also keep <prefix>/lib on the search path so scons configure tests
+    # (which exec()  small @rpath-style test programs) can dlopen
+    # libomp / libgomp / boost / etc.
     _libesys = os.path.join(env['prefix'], 'lib', 'esys')
-    env.AppendUnique(SHLINKFLAGS = ["-Wl,-rpath," + _libesys])
-    env.AppendUnique(LINKFLAGS   = ["-Wl,-rpath," + _libesys])
+    _libdir  = os.path.join(env['prefix'], 'lib')
+    _rpaths  = ["-Wl,-rpath," + _libesys, "-Wl,-rpath," + _libdir]
+    env.AppendUnique(SHLINKFLAGS = _rpaths)
+    env.AppendUnique(LINKFLAGS   = _rpaths)
 
 if env['build_trilinos'] != 'never':
     if not os.path.isdir(env['trilinos_build']): # create a build folder if the user deleted it
