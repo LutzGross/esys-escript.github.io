@@ -25,9 +25,12 @@
 # include <algorithm>
 #endif // _WIN32
 
-#ifdef ESYS_USE_BOOST_ACOS
-#include <boost/math/complex/acos.hpp>	// std::acos for complex on OSX (elcapitan) is wrong
-#endif
+// std::acos for complex was buggy on macOS 10.11 (El Capitan, 2015) and
+// older. We require C++17 and all currently-supported toolchains (clang
+// 14+, gcc 9+, MSVC 19.20+) implement it correctly, so the legacy
+// boost::math::complex::acos fallback has been removed. The
+// CheckComplexAcos configure test is kept but no longer wires anything
+// up if it fails.
 
 #ifndef M_PI
 #   define M_PI           3.14159265358979323846  /* pi */
@@ -626,14 +629,10 @@ DataTypes::real_t calc_acos(DataTypes::real_t x)
     return acos(x);
 }
 
-inline 
+inline
 DataTypes::cplx_t calc_acos(DataTypes::cplx_t x)
 {
-#ifdef ESYS_USE_BOOST_ACOS
-              return boost::math::acos(x);
-#else
-              return acos(x);
-#endif  
+    return acos(x);
 }
 
 
