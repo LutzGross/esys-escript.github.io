@@ -626,9 +626,10 @@ if not env['IS_WINDOWS']:
     # libomp / libgomp / boost / etc.
     _libesys = os.path.join(env['prefix'], 'lib', 'esys')
     _libdir  = os.path.join(env['prefix'], 'lib')
-    _rpaths  = ["-Wl,-rpath," + _libesys, "-Wl,-rpath," + _libdir]
-    env.AppendUnique(SHLINKFLAGS = _rpaths)
-    env.AppendUnique(LINKFLAGS   = _rpaths)
+    # Add to LINKFLAGS only -- SCons uses LINKFLAGS for both Program() and
+    # SharedLibrary() builds, so listing the rpath in SHLINKFLAGS too made
+    # ld warn "duplicate -rpath ... ignored" on every shared lib.
+    env.AppendUnique(LINKFLAGS = ["-Wl,-rpath," + _libesys, "-Wl,-rpath," + _libdir])
 
 if env['build_trilinos'] != 'never':
     if not os.path.isdir(env['trilinos_build']): # create a build folder if the user deleted it
