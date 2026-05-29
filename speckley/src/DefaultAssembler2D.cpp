@@ -410,9 +410,9 @@ void DefaultAssembler2D::assembleComplexPDESystem(AbstractSystemMatrix* mat,
         throw SpeckleyException("Speckley does not support PDEs using A, B or C");
 
     //shallow copies
-    escript::Data X = Data(X);
-    escript::Data Y = Data(Y);
-    escript::Data D = Data(D);
+    escript::Data X = Data(XX);
+    escript::Data Y = Data(YY);
+    escript::Data D = Data(DD);
 
     // complicate everything
     if(!D.isEmpty())
