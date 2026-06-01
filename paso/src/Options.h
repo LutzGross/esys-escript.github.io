@@ -113,7 +113,7 @@ struct PASO_DLL_API Options
     double inner_tolerance;
     bool adapt_inner_tolerance;
     bool verbose;
-    bool reordering;
+    index_t reordering;
     int preconditioner;
     dim_t iter_max;
     dim_t inner_iter_max;

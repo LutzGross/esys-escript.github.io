@@ -165,14 +165,16 @@ bool DataVar::initFromEscript(escript::Data& escriptData, const_DomainChunk_ptr 
             const escript::DataTypes::real_t* values =
                 escriptData.getDataRO();
             for (int pointNo=0; pointNo<numSamples*ptsPerSample; pointNo++) {
-                copy(values, values+dimSize, destPtr);
+                for (size_t i=0; i<dimSize; i++)
+                    destPtr[i] = static_cast<float>(values[i]);
                 destPtr += dimSize;
             }
         } else {
             for (int sampleNo=0; sampleNo<numSamples; sampleNo++) {
                 const escript::DataTypes::real_t* values =
                     escriptData.getSampleDataRO(sampleNo);
-                copy(values, values+dataSize, destPtr);
+                for (size_t i=0; i<dataSize; i++)
+                    destPtr[i] = static_cast<float>(values[i]);
                 destPtr += dataSize;
             }
         }

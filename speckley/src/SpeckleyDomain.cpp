@@ -117,7 +117,7 @@ pair<int,dim_t> SpeckleyDomain::getDataShape(int fsType) const
         case ReducedElements:
             return pair<int,dim_t>(1, getNumElements());
         case Points:
-            return pair<int,dim_t>(1, m_diracPoints.size());
+            return pair<int,dim_t>(1, static_cast<dim_t>(m_diracPoints.size()));
         default:
             break;
     }
