@@ -30,16 +30,22 @@ import os, sys
 esys_packages = __name__.split('.')
 esys_paths = os.path.dirname(os.path.abspath(__file__)).split(os.sep)
 __buildinfo_file__ = None
-if esys_paths[-(len(esys_packages)+1)] == 'site-packages':
+package_prefix = os.sep.join(esys_paths[:-len(esys_packages)])
+esys_lib_path = os.sep.join([package_prefix, 'esys_escript_lib'])
+# The pip/wheel layout ships escript's shared libs and a buildvars.in
+# template in a sibling esys_escript_lib/ directory and carries no RPATH, so
+# it must bootstrap the dynamic library path here. conda and system installs
+# resolve their libs via RPATH (or a system path) and have no
+# esys_escript_lib/ directory, so skip this bootstrap for them -- otherwise
+# bare `import esys` fails trying to read esys_escript_lib/buildvars.in.
+if esys_paths[-(len(esys_packages)+1)] == 'site-packages' and os.path.isdir(esys_lib_path):
     # check the library path for a pip install
-    package_prefix = os.sep.join(esys_paths[:-len(esys_packages)])
     if os.name == 'nt':
         lib_env_name = 'PATH'
         cmd, env1, env2 = 'set', '%', '%'
     else:
         lib_env_name = 'LD_LIBRARY_PATH'
         cmd, env1, env2 = 'export', '$', ''
-    esys_lib_path = os.sep.join([package_prefix, 'esys_escript_lib'])
     buildinfo_name = 'buildvars'
     __buildinfo_file__ = os.path.join(esys_lib_path, buildinfo_name)
     # check for the buildvars file
