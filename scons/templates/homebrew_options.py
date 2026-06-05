@@ -170,7 +170,22 @@ scotch_prefix = [HOMEBREW_PREFIX + '/opt/scotch/include', HOMEBREW_PREFIX + '/op
 scotch_libs = ['ptscotch', 'ptscotcherr', 'scotch', 'scotcherr']
 
 # Linker flags - include LLVM libc++ for macOS arm64
-ld_extra = ["-L/opt/homebrew/opt/llvm/lib", "-L/opt/homebrew/opt/llvm/lib/c++", "-lz", "-Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++"]
+#
+# IMPORTANT (macOS OpenMP duplicate-runtime fix):
+# Homebrew's openblas links the standalone 'libomp' formula
+# (/opt/homebrew/opt/libomp/lib/libomp.dylib), while clang's -fopenmp would
+# otherwise pull in LLVM's own copy (/opt/homebrew/opt/llvm/lib/libomp.dylib).
+# Loading two different libomp.dylib files in one process triggers
+# "OMP: Error #15 ... already initialized" and an Abort trap: 6 at the first
+# parallel region. We put the libomp-formula lib dir *first* so that the
+# -lomp added by -fopenmp resolves to the same physical libomp that openblas
+# uses, leaving exactly one OpenMP runtime in the process.
+# Note: zlib is linked via zlib_libs=['z'] above; do not repeat -lz here or the
+# linker warns "ignoring duplicate libraries: '-lz'".
+ld_extra = ["-L" + HOMEBREW_PREFIX + "/opt/libomp/lib",
+            "-L" + HOMEBREW_PREFIX + "/opt/llvm/lib", "-L" + HOMEBREW_PREFIX + "/opt/llvm/lib/c++",
+            "-Wl,-rpath," + HOMEBREW_PREFIX + "/opt/libomp/lib",
+            "-Wl,-rpath," + HOMEBREW_PREFIX + "/opt/llvm/lib/c++"]
 
 # Optional features
 # sympy not available in Homebrew - requires virtual environment installation
