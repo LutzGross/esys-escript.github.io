@@ -8,19 +8,19 @@ esys-escript is designed as an easy-to-use environment for implementing mathemat
 For geophyscial inversion see also the extensions [gambit](https://github.com/AndreaCodd/gambit) and [fingal](https://github.com/LutzGross/fingal).
 
 
-## Latest release: 6.1.0
+## Latest release: 6.1.1
 
-The latest release is [esys-escript 6.1.0](https://github.com/LutzGross/esys-escript.github.io/releases/tag/6.1.0).
+The latest release is [esys-escript 6.1.1](https://github.com/LutzGross/esys-escript.github.io/releases/tag/6.1.1), a maintenance release that builds on 6.1.0 with improved build and packaging support across platforms.
 
-Highlights:
+Highlights of 6.1.1:
 
-- Trilinos upgraded from v14 to **v17.0.0** (bundled source, built in-tree).
-- New ``SolverFramework`` API replacing the ``SO_PACKAGE_PASO`` / ``SO_PACKAGE_TRILINOS`` constants.
-- Major MPI-correctness fixes in Speckley, Ripley and the Trilinos wrapper; the test suite now runs cleanly under MPI, OpenMP, and combined configurations.
-- HDF5 dumping/loading for ``Data`` (including complex and mesh data); the netCDF dependency has been removed.
-- ``InterpolationTable`` class for 1-D / 2-D / 3-D table-based interpolation, including complex-valued tables.
-- macOS arm64 (Apple Silicon) build support including Trilinos with MueLu and METIS via Homebrew.
-- GitHub Actions CI extended across multiple Linux distributions and macOS.
+- Windows (MSVC) build fixes — esys-escript now compiles cleanly with the MSVC toolchain.
+- macOS: shared libraries and Python extensions carry an RPATH so ``import esys.escript`` works without ``run-escript``; fixed an OpenMP duplicate-runtime abort in Homebrew builds.
+- conda-forge and pip packaging improvements (bare-import support and the lib-path bootstrap).
+- More robust build-system probes: Boost.NumPy detection, the MUMPS MPI shim header, and the gmsh GEO templates.
+- The ``run-escript`` man page is brought in line with the launcher's options.
+
+6.1.0 introduced the major features: Trilinos **v17.0.0** (bundled, built in-tree), the new ``SolverFramework`` API, HDF5 dumping/loading for ``Data`` (replacing the mandatory netCDF dependency), the ``InterpolationTable`` class, and macOS arm64 (Apple Silicon) support.
 
 See [RELEASE_NOTES](RELEASE_NOTES) for the full change list.
 

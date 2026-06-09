@@ -1,6 +1,70 @@
 Changes from previous releases
 ==============================
 
+6.1.1
+-----
+A maintenance release on top of 6.1.0, focused on build and packaging
+robustness across Windows (MSVC), macOS, conda-forge and pip.  There are no
+API or numerical changes.
+
+Highlights
+~~~~~~~~~~
+ - esys-escript now compiles cleanly with the Windows MSVC toolchain.
+ - macOS shared libraries and Python extensions carry an RPATH, so
+   ``import esys.escript`` works from a plain interpreter without
+   ``run-escript``.
+ - conda-forge and pip packaging fixes.
+ - The ``run-escript`` man page is consistent with the launcher's options.
+
+Windows / MSVC build
+~~~~~~~~~~~~~~~~~~~~~~
+ - Use ``&&`` instead of the ``and`` keyword, ``unsigned int`` instead of the
+   POSIX ``uint``, signed loop counters for OpenMP ``for`` loops, and an
+   explicit ``std::complex<double>`` where MSVC requires it.
+ - Guard POSIX-only calls in ``Utils.cpp`` behind ``_WIN32``.
+ - Do not propagate ``ESCRIPT_EXPORTS`` to the Python wrapper on Windows;
+   skip ``pythonMPIcpp.pyd`` when mpi4py is disabled.
+ - Probe for the MUMPS MPI shim header on Windows and ``#undef
+   MPI_COMM_WORLD`` before including it.
+ - Fix MSVC narrowing warnings; this also uncovered a latent Paso bug, where
+   the ``Options::reordering`` field was ``bool`` but must be ``index_t``.
+
+macOS
+~~~~~
+ - Bake ``<prefix>/lib/esys`` (and ``<prefix>/lib``) as an RPATH into every
+   shared library and extension, so bare imports and the SCons configure
+   probes resolve ``libomp``/``libgomp`` without ``LD_LIBRARY_PATH``.
+   (``SHLINKFLAGS`` rpath dropped as ``LINKFLAGS`` already covers it.)
+ - Fix an OpenMP duplicate-runtime abort in Homebrew builds.
+ - Drop the deprecated ``boost::math::complex::acos`` fallback.
+
+Packaging
+~~~~~~~~~
+ - pip: only run the lib-path bootstrap when the ``esys_escript_lib/``
+   directory is present, so bare ``import esys`` works for conda and system
+   installs.
+ - conda-forge recipe updated for the 6.1 series.
+
+Build system
+~~~~~~~~~~~~
+ - More robust Boost.NumPy detection: find NumPy's include directory early,
+   normalise ``boost_libs`` before concatenation, and surface the probe
+   exception text on failure.
+ - Use raw strings for the gmsh GEO templates; split ``ld_extra`` into
+   separate link arguments; generate ``run_escript.py`` before the escript
+   SConscript runs.
+
+Other fixes
+~~~~~~~~~~~
+ - Fix self-initialisation of ``X``/``Y``/``D`` in the Speckley
+   ``DefaultAssembler2D``.
+
+Documentation
+~~~~~~~~~~~~~
+ - The ``run-escript`` man page now documents all launcher options (adds
+   ``-a`` and ``-x``), corrects the ``-p``/``-f``/``-i``/``-o`` descriptions,
+   and drops the untested ``-m`` (valgrind) option.
+
 6.1
 ---
 Highlights
