@@ -1,4 +1,7 @@
-.TH run-escript 1 "" "" "esys Escript" 
+
+
+
+.TH run-escript 1 "" "" "esys Escript"
 
 .SH NAME
 run-escript - a launcher for programs and scripts using the escript libraries.
@@ -14,7 +17,7 @@ nt
 ] [-f
 .I
 hostfile
-] [-x ] [-V ] [-e ] [-h ] [-v ] [-o ] [-c ] [-i ] [-b ] [
+] [-x ] [-a ] [-V ] [-e ] [-h ] [-v ] [-o ] [-c ] [-i ] [-b ] [
 .I
 file
 ] [
@@ -62,7 +65,7 @@ The total number of processes to be used is
 .I
 nn 
 times
-.IR ns .
+.IR np .
 .\" Please put a dot here
 This option overwrites the value of the
 .B
@@ -95,11 +98,11 @@ nt
 Specify the name of a file with a list of host names. Some systems require to specify the addresses or names of
 the compute nodes where MPI process should be spawned. The list of addresses or names of the compute
 nodes is listed in the file with the name hostfile. In order to avoid oversubsription the number of different
-hosts defined in hostfile must be equal to the number of requested compute nodes 
+hosts defined in hostfile must be at least the number of requested compute nodes
 .IR nn .
 The option
 overwrites the value of the
-.B ESCRIPT HOSTFILE 
+.B ESCRIPT_HOSTFILE
 environment variable. By default value no host file is
 used.
 .HP
@@ -129,10 +132,10 @@ nn
 * 
 .I
 np
-> 1) is used or if
+> 1) is used. It has no effect when
 .B
 -b
-is used.
+is given, since no python interpreter is started.
 
 .HP
 .B
@@ -148,10 +151,10 @@ Outputs export statements for the additional environment variables and commands 
 .B
 -o
 Switches on the redirection of output of processors with MPI rank greater than zero to the files
-"stdout_r.out" and "stderr_r.out" where 
+"stdout_rrrr.out" and "stdout_rrrr.err" where
 .I
-r
-is the rank of the processor. The option overwrites the value
+rrrr
+is the four-digit zero-padded rank of the processor. The option overwrites the value
 of the
 .B
 ESCRIPT_CREATESTDFILES
@@ -160,5 +163,17 @@ environment variable.
 .HP
 .B
 -v
-Prints some diagonstic information.
+Prints some diagnostic information.
+
+.HP
+.B
+-a
+Show output from all MPI ranks (verbose mode). This sets the
+.B ESCRIPT_VERBOSE_MPI
+environment variable.
+
+.HP
+.B
+-x
+Run escript in a new xterm instance.
 
