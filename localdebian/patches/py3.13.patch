@@ -1,0 +1,25 @@
+Description: Minor fix to allow escape chars in strings
+Author: Alastair McKinstry <mckinstry@debian.org>
+Last-Updated: 2024-11-21
+Forwarded: no
+
+--- a/site_scons/site_init.py
++++ b/site_scons/site_init.py
+@@ -225,7 +225,7 @@
+      app = "cd "+pn+"; "+os.path.join(env['bininstall'], "run-escript")+" -bv "+os.path.join('.',sn)
+   else:
+       if env['usempi']:
+-          app = "cd %s & mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
++          app = r"cd %s & mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
+             "FINLEY_TEST_DATA,PATH %s"\
+             %(pn,env['ENV']['ESCRIPT_NUM_NODES'], sn)
+       else:
+@@ -249,7 +249,7 @@
+    pn, sn= os.path.split(app)
+    if os.name=="nt":
+        if env['usempi']:
+-           app = "cd %s & mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
++           app = r"cd %s & mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
+               "FINLEY_TEST_DATA,PATH %s pythonMPIredirect.exe %s"\
+               %(pn,env['ENV']['ESCRIPT_NUM_NODES'],env['libinstall'],sn)
+        else:

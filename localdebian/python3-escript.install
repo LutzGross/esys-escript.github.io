@@ -1,4 +1,14 @@
-debian/stage3/lib/* usr/lib/python3-escript/lib
-debian/stage3/esys  usr/lib/python3-escript
-debian/stage3/bin/run-escript3 usr/bin
-debian/copyright	usr/share/doc/python3-escript
+debian/build/bin/run-escript 			usr/bin
+debian/build/posix/weipa/src/libescriptreader.so  usr/lib/python3-escript/lib/
+debian/build/posix/escriptcore/src/libescript.so	usr/lib/python3-escript/lib/
+debian/build/posix/weipa/src/libweipa.so		usr/lib/python3-escript/lib/
+debian/build/posix/finley/src/libfinley.so		usr/lib/python3-escript/lib/
+debian/build/posix/speckley/src/libspeckley.so		usr/lib/python3-escript/lib/
+debian/build/posix/paso/src/libpaso.so			usr/lib/python3-escript/lib/
+debian/build/posix/ripley/src/libripley.so		usr/lib/python3-escript/lib/
+debian/build/posix/weipa/src/weipacpp.so		usr/lib/python3-escript/esys/weipa
+debian/build/posix/escriptcore/src/escriptcpp.so	usr/lib/python3-escript/esys/escriptcore
+debian/build/posix/ripley/src/ripleycpp.so		usr/lib/python3-escript/esys/ripley
+debian/build/posix/speckley/src/speckleycpp.so		usr/lib/python3-escript/esys/speckleycpp
+debian/build/posix/finley/src/finleycpp.so		usr/lib/python3-escript/esys/finleycpp
+

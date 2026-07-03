@@ -1,5 +1,19 @@
-debian/stage3M/lib/* usr/lib/python3-escript-mpi/lib
-debian/stage3M/bin/escript-overlord usr/lib/python3-escript-mpi
-debian/stage3M/esys  usr/lib/python3-escript-mpi
-debian/stage3M/bin/run-escript3-mpi usr/bin
-debian/copyright	usr/share/doc/python3-escript-mpi
+debian/build-mpi/bin/run-escript-mpi		usr/bin
+bin/escript-overlord	usr/bin
+debian/build-mpi/posix/pythonMPI/src/pythonMPI 	usr/bin
+debian/build-mpi/posix/pythonMPI/src/pythonMPIredirect 	usr/bin
+debian/build-mpi/posix/pythonMPI/src/pythonMPIverbose 	usr/bin
+debian/tmp-mpi/esys/	usr/lib/python3-escript-mpi
+# usr/lib/python3-escript-mpi/* automatically done
+debian/build-mpi/posix/weipa/src/libescriptreader.so 	usr/lib/python3-escript-mpi/lib/
+debian/build-mpi/posix/weipa/src/libweipa.so		usr/lib/python3-escript-mpi/lib/
+debian/build-mpi/posix/escriptcore/src/libescript.so	usr/lib/python3-escript-mpi/lib/
+debian/build-mpi/posix/ripley/src/libripley.so		usr/lib/python3-escript-mpi/lib/
+debian/build-mpi/posix/speckley/src/libspeckley.so		usr/lib/python3-escript-mpi/lib/
+debian/build-mpi/posix/finley/src/libfinley.so		usr/lib/python3-escript-mpi/lib/
+debian/build-mpi/posix/paso/src/libpaso.so			usr/lib/python3-escript-mpi/lib/
+debian/build-mpi/posix/weipa/src/weipacpp.so		usr/lib/python3-escript-mpi/esys/weipa
+debian/build-mpi/posix/escriptcore/src/escriptcpp.so	usr/lib/python3-escript-mpi/esys/escriptcore
+debian/build-mpi/posix/ripley/src/ripleycpp.so		usr/lib/python3-escript-mpi/esys/ripley
+debian/build-mpi/posix/speckley/src/speckleycpp.so		usr/lib/python3-escript-mpi/esys/speckley
+debian/build-mpi/posix/finley/src/finleycpp.so		usr/lib/python3-escript-mpi/esys/finley

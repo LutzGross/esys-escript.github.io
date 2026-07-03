@@ -1,0 +1,28 @@
+Description: Changes to scons build files needed to work with python3
+Author: Alastair McKinstry <mckinstry@debian.org>
+Forwarded: no
+Last-Updated: 2020-03-09
+ Updated for python3.8
+
+--- a/site_scons/extractdebbuild.py
++++ b/site_scons/extractdebbuild.py
+@@ -32,7 +32,7 @@
+   mycflags=None
+   mycxxflags=None
+   try:
+-    deps=subprocess.check_output("dpkg-buildflags")
++    deps=subprocess.check_output("dpkg-buildflags").decode()
+   except OSError:
+     return []
+   res=[]
+--- a/site_scons/dependencies.py
++++ b/site_scons/dependencies.py
+@@ -218,7 +218,7 @@
+             python_libs=['python%s%s'%(sys.version_info[0], sys.version_info[1])]
+             verstring=".".join([str(i) for i in sys.version_info[:3]])
+         else:
+-            (python_lib_path, python_libs,verstring, python_inc_path)=call_python_config(env['pythoncmd'])
++            (python_lib_path, python_libs,verstring, python_inc_path)=call_python_config(env['pythoncmd'])            
+ 
+     # if we want to use a python other than the one scons is running
+     # Note: we assume scons is running python 2 in the following.

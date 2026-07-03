@@ -1,0 +1,33 @@
+Description: false postive for different build flags
+  Do not support different different dpkg-buildflags for C vs C++
+  In fact, there is no implicit-function-security support for cxxflags,
+  So add `-Werror=implicit-function-declaration` into cxxflags.
+  But it was still failed is following:
+  cxxflags: -g -O2 -ffile-prefix-map=/<<PKGBUILDDIR>>=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=form
+at-security -fcf-protection -Wno-uninitialized -Werror=implicit-function-declaration
+
+  cflags:   -g -O2 -Werror=implicit-function-declaration -ffile-prefix-map=/<<PKGBUILDDIR>>=. -fstack-protector-strong -fstack-
+clash-protection -Wformat -Werror=format-security -fcf-protection -Wno-uninitialized
+ so sorted them can fix the issue.
+
+Author: Bo YU <tsu.yubo@gmail.com>
+Bug-Debian: https://bugs.debian.org/1068158
+Last-Update: 2026-07-02
+Forwarded: no
+
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+--- a/site_scons/extractdebbuild.py
++++ b/site_scons/extractdebbuild.py
+@@ -54,8 +54,9 @@
+         mycflags=val
+       if key=="CXXFLAGS":
+         mycxxflags=val
+-      if mycflags is not None and mycxxflags is not None and mycflags!=mycxxflags:
+-        raise RuntimeError("We do not current support different different dpkg-buildflags for C vs C++")
++      if mycflags is not None and mycxxflags is not None:
++         if sorted(mycflags.split()) != sorted(mycxxflags.split()):
++            raise RuntimeError("We do not current support different different dpkg-buildflags for C vs C++")
+       if usedflags[key] is None:
+         continue
+       res.append([usedflags[key],val])

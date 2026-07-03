@@ -1,0 +1,87 @@
+Description: Set path for MPI
+Author: Alastair McKinstry <mckinstry@debian.org>
+Last-Updated: 2024-11-21
+Forwarded: no
+
+--- a/scons/templates/debian_options.py
++++ b/scons/templates/debian_options.py
+@@ -35,8 +35,11 @@
+ subversion = p.stdout.split(' ')[1].split('.')[1]
+ print(f"Python subversion = {subversion}")
+ 
++from subprocess import check_output
++arch = check_output(['dpkg-architecture','-qDEB_HOST_MULTIARCH']).strip().decode()
++
+ pythonlibname = f'python3.{subversion}'
+-pythonlibpath = '/usr/lib/x86_64-linux-gnu/'
++pythonlibpath = f'/usr/lib/{arch}/'
+ pythonincpath = f'/usr/include/python3.{subversion}'
+ 
+ # Compiler settings
+@@ -45,13 +48,13 @@
+ cxx_extra = ['-O3', '-fdiagnostics-color=always', '-fstack-protector-strong', '-Wformat', '-Werror=format-security']
+ 
+ # Boost configuration
+-boost_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu/']
++boost_prefix = ['/usr/include', f'/usr/lib/{arch}/']
+ boost_libs = [f'boost_python3{subversion}', f'boost_numpy3{subversion}', 'boost_random']
+ 
+ # MPI configuration
+ # Note: OpenMPI 5.x removed mpi_cxx and open-rte libraries; just 'mpi' is needed
+ mpi = 'OPENMPI'
+-mpi_prefix = ['/usr/include/x86_64-linux-gnu/openmpi', '/usr/lib/x86_64-linux-gnu/openmpi']
++mpi_prefix = [f'/usr/include/{arch}/openmpi', f'/usr/lib/{arch}/openmpi']
+ mpi_libs = ['mpi']
+ mpi4py = True
+ 
+@@ -66,12 +69,12 @@
+ 
+ # MUMPS sequential solver
+ mumps_seq = True
+-mumps_seq_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
++mumps_seq_prefix = ['/usr/include', f'/usr/lib/{arch}']
+ mumps_seq_libs = ['dmumps_seq', 'zmumps_seq', 'mumps_common_seq', 'mpiseq_seq', 'pord_seq']
+ 
+ # METIS graph partitioning (for Trilinos)
+ metis = True
+-metis_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
++metis_prefix = ['/usr/include', f'/usr/lib/{arch}']
+ metis_libs = ['metis']
+ 
+ # ParMETIS parallel graph partitioning (requires MPI)
+@@ -83,25 +86,25 @@
+ 
+ # LAPACK configuration
+ lapack = 'auto'
+-lapack_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
++lapack_prefix = ['/usr/include', f'/usr/lib/{arch}']
+ lapack_libs = ['lapacke']
+ 
+ # File I/O libraries
+ netcdf = True
+-netcdf_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
++netcdf_prefix = ['/usr/include', f'/usr/lib/{arch}']
+ netcdf_libs = ['netcdf_c++4', 'netcdf']
+ 
+ silo = True
+-silo_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu/hdf5/serial', '/usr/lib/x86_64-linux-gnu']
++silo_prefix = ['/usr/include', f'/usr/lib/{arch}/hdf5/serial', f'/usr/lib/{arch}']
+ silo_libs = ['siloh5', 'hdf5']
+ 
+ hdf5 = True
+-hdf5_prefix = ['/usr/include/hdf5/serial', '/usr/lib/x86_64-linux-gnu/hdf5/serial', '/usr/lib/x86_64-linux-gnu']
++hdf5_prefix = ['/usr/include/hdf5/serial', f'/usr/lib/{arch}/hdf5/serial', f'/usr/lib/{arch}']
+ hdf5_libs = ['hdf5_serial_cpp']
+ 
+ # Compression support
+ zlib = True
+-zlib_prefix = ['/usr/include', '/usr/lib/x86_64-linux-gnu']
++zlib_prefix = ['/usr/include', f'/usr/lib/{arch}']
+ zlib_libs = ['z']
+ 
+ # Optional features
+@@ -109,3 +112,4 @@
+ 
+ # Clean up temporary variables (SCons treats all module-level variables as options)
+ del p, subversion
++del check_output, arch

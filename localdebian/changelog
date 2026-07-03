@@ -1,9 +1,394 @@
-python-escript (4.9-1) unstable; urgency=medium
+python-escript (6.1.1-2) UNRELEASED; urgency=medium
+
+  * Restrict Architecture to 64-bit for python3-escript and
+    python3-escript-mpi. esys-escript is a 64-bit-only FEM library and has
+    never built on the 32-bit ports: 6.1.1-1 FTBFS on armhf and i386 at the
+    scons compiler sanity check (conf.CheckCXX), as did 5.6-10 earlier.
+
+ -- Lutz Gross <lutz.gross@gmail.com>  Fri, 03 Jul 2026 00:00:00 +1000
+
+python-escript (6.1.1-1) experimental; urgency=medium
+
+  * New upstream release
+    - New builds downloads Trilinos source at build.
+      Disable Trilinos support for this build while its sorted.
+  * Dropping '3'  suffixes and reverting to upstream names;
+    we no longer have python2 versions
+  * Delete obsolete patches:
+      32bitboostextract
+      boost_numpy.patch
+      g++10-fix.patch
+      make.patch
+      undo-py3.patch
+  * Escript moved to github.io; update d/control
+  * Add d/watch (needs additional work)
+  * Update patch for new buildflags. Closes: #1057593
+  * Fix broken vcs url
+  * Standards-Version: 4.7.4
+  * Drop Priority: optional from source in d/control per new policy
+  * Debhelper at compat 14
+  * Add build-dep on python3-mpi4py
+  * Now build-dep on libmumps-seq-dev
+  * metis.patch: change paths to scotchmetis
+  * Add release_sanity.py to debian/tests
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Fri, 03 Jul 2026 06:43:41 +0100
+
+python-escript (5.6-10) unstable; urgency=medium
+
+  * Team upload.
+  * Use T1 encoding to fix LaTeX errors. Closes: #1088894.
+  * Fix build on i386 and mip64el. Closes: #1041457.
+    Thanks to Adrian Bunk.
+  * debian/rules: Fix several typos.
+  * debian/control: Filter with "expand", so that at least we can
+    get rid of tabs, and drop trailing spaces.
+  * debian/control: Drop unused libnetcdf-dev build dependency.
+    Closes: #1050794. Thanks to Bas Couwenberg.
+  * debian/control: Add missing build-dependency on python3-setuptools.
+    Closes: #1080744. Thanks to Stefano Rivera.
+  * Fix changelog entries for 5.6-6 and 5.6-8.
+
+ -- Santiago Vila <sanvila@debian.org>  Fri, 13 Dec 2024 13:10:00 +0100
+
+python-escript (5.6-9) unstable; urgency=medium
+
+  * Change dep from openmpi-bin to mpi-default-bin in d/control.
+    Closes: #1086918, #1088137
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Sun, 24 Nov 2024 16:05:24 +0000
+
+python-escript (5.6-8) unstable; urgency=medium
+
+  * py3.13.patch: Allow escapes in string
+  * Standards-Version: 4.7.0; no changes required
+  * Escript moved to github.io; update d/control
+  * Add d/watch (needs additional work)
+  * Move openmpi -> mpi-default. Closes: #1086918
+  * Don't link against mpi_cxx. Closes: #1086371
+  * Change multiarch patch to work with both mpich and openmpi
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Thu, 21 Nov 2024 13:42:01 +0000
+
+python-escript (5.6-7) unstable; urgency=medium
+
+  * Team upload.
+  * debian/control: Apply "wrap-and-sort -abst" and unify between tabs
+    and spaces.
+  * debian/control: Move the main package descriptions to the source package
+    section. Use variable replacement ${source:Synopsis} and
+    ${source:Extended-Description} to avoid repeated boilerplate.
+  * debian/control: Fix Vcs-* field syntax.
+  * debian/gbp.conf: Use status quo and update default debian-branch to
+    "debian/latest". Also add ignore-branch = True to circumvent pedantic
+    issues.
+
+  [ Bo YU ]
+  * Team upload.
+  * Add fix-dpkg-buildflags-on-c-c++.patch to fix ftbfs issue.
+    (Closes: #1068158)
+  * No build dependencies issue now. (Closes: #1067385)
+
+ -- Boyuan Yang <byang@debian.org>  Wed, 03 Apr 2024 10:52:48 -0400
+
+python-escript (5.6-6) unstable; urgency=medium
+
+  * Update patch for new buildflags. Closes: #1057593
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Sun, 10 Dec 2023 10:53:54 +0000
+
+python-escript (5.6-5) unstable; urgency=medium
+
+  * Standards-Version: 4.6.2
+  * Drop build-dep on netcdf-legacy-cxx. Closes: #1038468
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Thu, 03 Aug 2023 11:13:07 +0100
+
+python-escript (5.6-4) unstable; urgency=medium
+
+  * Standards-Version: 4.6.0
+  * 'which' no longer present ; change sh scripts to use command -v
+    or search path in python
+  * Ignore new ASFLAGS in dpkg-buildpackage output. Closes: #10002428
+  * Build against latest numpy, sphinx, Closes: #999530
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Sat, 01 Jan 2022 11:40:25 +0000
+
+python-escript (5.6-3) unstable; urgency=medium
+
+  * Fix FTBFS with new DFLAG in dpkg-buildflags. Closes: #986516
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Wed, 07 Apr 2021 17:17:31 +0100
+
+python-escript (5.6-2) unstable; urgency=medium
+
+  * Ack bugs fixed: Closes: #976555, #976687
+  * Fix boost_numpy.patch to find lib properly
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Thu, 10 Dec 2020 17:53:59 +0000
+
+python-escript (5.6-1) unstable; urgency=medium
+
+  * New upstream release
+  * Drop python3-sympy until escript supports sympy >  1.2. Closes: #876555
+  * Fix bug in sid_options.py that results in linking to the wrong
+    boost_python library. Closes: #97687
+  * Patch g++-10.patch to fix compilation on g++-10
+  * Patch tex.patch to fix errors that break on pdflatex
+  * Drop python3-gdal; escript exports gdal module, not osgeo. Needs updating
+  * Build-depend and support:
+    - libcppunit-dev for cppunit
+    - libsuitesparse-dev for umfpack
+    - libboost-numpy-dev for Numpy Boost support
+    - libboost-iostream-dev for compressed files support
+    - Drop trilinos build-deps; currently not working
+    - B-D on libscotchmetis-dev and libscotchparmetis-dev for parmetis support
+  * Debhelper level 13
+  * Standards-Version: 4.5.1
+  * No longer ignore dwz errors; fixed
+  * Patch boost_numpy.patch to find correct lib
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Wed, 09 Dec 2020 16:57:30 +0000
+
+python-escript (5.5-5) unstable; urgency=medium
+
+  * Update py3 patch for python3.8 as default
+  * Fix boost library version detection in d/sid_options.py
+  * Disable boost_numpy detection - it crashes scons
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Mon, 09 Mar 2020 20:49:07 +0000
+
+python-escript (5.5-4) unstable; urgency=medium
+
+  * Ensure -mxgot is used on mips64el to enable linking against boost_python
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Mon, 24 Feb 2020 09:12:01 +0000
+
+python-escript (5.5-3) unstable; urgency=medium
+
+  * Set -O0 on mips64el builds. Closes: #917869
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Tue, 18 Feb 2020 12:51:24 +0000
+
+python-escript (5.5-2) unstable; urgency=medium
+
+  * Use dh-sequence-* instead of --with python3,sphinxdoc
+  * Set -j1 on some archs to avoid out-of-memory/hangs
+  * Use ${sphinxdoc:Depends} to add correct links.
+    Closes: #945538, #877460
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Mon, 17 Feb 2020 11:11:06 +0000
+
+python-escript (5.5-1) unstable; urgency=medium
+
+  * New upstream release
+  * Standards-Version: 4.5.0
+  * Patches to support  scons build files with python3
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Sun, 16 Feb 2020 11:10:18 +0000
+
+python-escript (5.4-4) unstable; urgency=medium
+
+  * Fix build issue on 32-bit systems: split debian/sid_options.py into
+    mpi and non-mpi parts, settin werror=False
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Thu, 19 Dec 2019 08:45:32 +0000
+
+python-escript (5.4-3) unstable; urgency=medium
+
+  * Drop python-numpy build-depends. Closes: #937731
+  * Standards-Version now 4.4.1.0
+  * Build-Depend on trilinos-dev for 64-bit archs
+  * Build-depend on gmsh
+  * Drop -Wno-maybe-uninitialized and use -Wno-unitialized instead because of 
+    warnings. Closes: #917689
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Mon, 16 Dec 2019 14:17:27 +0000
+
+python-escript (5.4-2) unstable; urgency=medium
+
+  * Close bug fixed in previous release. Closes: #925519
+  * Build-depend on python3-gdal, sympy, matplotlib
+  * Enable -Wno-maybe-uninitialized for 32-bit builds. 
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Sun, 28 Jul 2019 08:40:49 +0100
+
+python-escript (5.4-1) unstable; urgency=medium
+
+  * New upstream release
+  * Drop python2 variants, as upstream python-pyproj dependency is gone
+    Closes: #932615, #932681
+  * Standards-Version: 4.4.0
+  * Use debhelper-compat (=12)
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Sun, 21 Jul 2019 11:56:22 +0100
+
+python-escript (5.3-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release
+  * Standards-Version now 4.3.0
+  * Update VCS-* fields to point to salsa.debian.org
+  * Move scons config to debian/sid_option.py 
+  * Set -Os -g1 -Wl,--no-keep-memory on low-mem archs
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Sat, 19 Jan 2019 14:33:58 +0000
+
+python-escript (5.2-4) unstable; urgency=medium
+
+  * Fix FTBFS with multi-arch OpenMPI. Closes: #915946
+  * Use -g1 to avoid OOM on mips, mipsel
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Sat, 08 Dec 2018 12:00:49 +0000
+
+python-escript (5.2-3) unstable; urgency=medium
+
+  * Fix from Michael Hudson-Doyle for boost python name change.
+    Closes: #914141
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Tue, 20 Nov 2018 07:03:31 +0000
+
+python-escript (5.2-2) unstable; urgency=medium
+
+  * Enable silo support
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Fri, 12 Oct 2018 06:16:43 +0100
+
+python-escript (5.2-1) unstable; urgency=medium
+
+  * Team upload
+  * New upstream release
+  * Standards-Version: 4.2.1
+  * B-D on libnetcdf-c++4-dev
+  * Drop old patches: fixsphinxversion, 
+  * Add exception.patch for NetCDF4 errors with g++ 8.
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Sat, 06 Oct 2018 14:14:27 +0100
+
+python-escript (5.1-7) unstable; urgency=medium
+
+  * Team upload
+  * exception.patch: fix FTBFS with gcc 8. Closes: #897840
+  * Standards-Version: 4.2.0
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Mon, 20 Aug 2018 08:54:06 +0100
+
+python-escript (5.1-6) unstable; urgency=medium
+
+  * Team upload.
+  * [c8e84d99] Build fix for openmpi versions that aren't pure integers.
+    Closes: #896104
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Thu, 19 Apr 2018 15:36:45 +0100
+
+python-escript (5.1-5) unstable; urgency=medium
+
+  * Team upload.
+  * [8a6e107] Also ignore strict-overflow errors in s390x, albeit it happens
+    only in ubuntu.
+  * [9134bc2] Bump Standards-Version to 4.1.3, no changes needed.
+
+ -- Mattia Rizzolo <mattia@debian.org>  Mon, 01 Jan 2018 18:57:58 +0100
+
+python-escript (5.1-4) unstable; urgency=medium
+
+  * Team upload.
+  * [8beca24] Try to fix FTBFS in powerpc and ppc64 by applying the same
+    patch used for ppc64el (disabling a warning).
+  * [0ea59fd] Build depend only on the default python and python3
+    versions.  Closes: #867583
+  * [096248d] Bump Standards-Version to 4.1.2, no changes needed.
+
+ -- Mattia Rizzolo <mattia@debian.org>  Mon, 11 Dec 2017 13:46:30 +0100
+
+python-escript (5.1-3) unstable; urgency=medium
+
+  * Team upload.
+  * [48d47f2] Fix FTBFS on powerpc. Disable one warning
+
+ -- Anton Gladky <gladk@debian.org>  Sun, 10 Dec 2017 12:03:41 +0100
+
+python-escript (5.1-2) unstable; urgency=medium
+
+  * Team upload.
+  * [8a44bbe] Add missing space in the compiler flag. (Closes: #878496)
+  * [39dc272] Remove unused patches
+
+ -- Anton Gladky <gladk@debian.org>  Sat, 09 Dec 2017 23:35:51 +0100
+
+python-escript (5.1-1) unstable; urgency=medium
+
+  * Team upload.
 
   [ Joel Fenwick ]
-  * preparing for release
+  * [dae92b3] Upstream 5.1 - with modified /debian. (Closes: #878496)
+  * [fed2b67] Spelling errors found by lintian
+  * [ff2a920] Use libjs-mathjax instead of external site
+  * [419c8e9] Suppress spurious warning on 32bit builds
 
- -- Joel Fenwick <j.oelpublic@gmail.com>  Mon, 04 Apr 2016 10:49:00 +1000
+  [ Anton Gladky ]
+  * [e66da0f] Add section-field to each binary
+  * [5c83249] Add python3-sphinx to BD
+  * [b1bdc76] Remove myself from uploaders
+  * [034da16] Apply cme fix dpkg
+
+ -- Anton Gladky <gladk@debian.org>  Fri, 08 Dec 2017 20:48:12 +0100
+
+python-escript (5.0-4) unstable; urgency=medium
+
+  [ Joel Fenwick ]
+  * [6f58a7e] Add sphinx-common to -doc dependencies. (Closes: #861023)
+
+  [ Anton Gladky ]
+  * [8713dfa] Replace latex-xcolor by texlive-latex-recommended. (Closes: #865245)
+  * [7ebf074] Use compat level 10.
+  * [70044aa] Set the highest level of hardening.
+
+ -- Anton Gladky <gladk@debian.org>  Mon, 03 Jul 2017 22:02:53 +0200
+
+python-escript (5.0-3) unstable; urgency=medium
+
+  [ Paul Dreik ]
+  * [b33279b] Fix FTBFS due to unused variables. (Closes: #860604)
+
+ -- Anton Gladky <gladk@debian.org>  Wed, 19 Apr 2017 13:37:17 +0200
+
+python-escript (5.0-2) unstable; urgency=medium
+
+  [ Joel Fenwick ]
+  * [a75d1b9] Fix moved openmpi lib problem (Closes: #848787)
+
+  [ Anton Gladky ]
+  * [b80952a] Apply cme fix dpkg.
+
+ -- Anton Gladky <gladk@debian.org>  Thu, 05 Jan 2017 22:34:39 +0100
+
+python-escript (5.0-1) unstable; urgency=medium
+
+  * New version upload
+
+ -- Joel Fenwick <j.oelpublic@gmail.com>  Mon, 19 Sep 2016 12:44:21 +1000
+
+python-escript (4.2.0.1-4) unstable; urgency=medium
+
+  [ Joel Fenwick ]
+  * [96dc875] Protect against g++-6 (Closes: #831149)
+
+ -- Anton Gladky <gladk@debian.org>  Thu, 11 Aug 2016 20:05:23 +0200
+
+python-escript (4.2.0.1-3) unstable; urgency=medium
+
+  [ Joel Fenwick ]
+  * [462f3cc] Fix missing dep on python-numpy by python-escript-mpi
+  * [295d646] Fix missing debug syms (and always build for sid options)
+  * [73c3165] Allow extraction of tests from src tree
+  * [ce27363] Fix py3clean issues, piuparts failure. (Closes: #826105, #826070)
+
+  [ Anton Gladky ]
+  * [2a88e77] Apply cme fix dpkg.
+  * [e0c742a] Add VCS-fields.
+
+ -- Anton Gladky <gladk@debian.org>  Tue, 21 Jun 2016 23:02:46 +0200
 
 python-escript (4.2.0.1-2) unstable; urgency=medium
 

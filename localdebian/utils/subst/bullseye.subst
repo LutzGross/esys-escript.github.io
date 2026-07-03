@@ -1,0 +1,9 @@
+es:boostpy=libboost-python1.71.0
+es:boostrandom=libboost-random1.71.0
+es:netcdf=libnetcdf18, libnetcdfc++4
+es:doc=python-sphinx
+es:python3=python3.9, libpython3.9
+es:boostpy3=libboost-python1.71.0
+es:boostrandom3=libboost-random1.71.0
+es:boostnumpy=libboost-numpy1.71.0
+

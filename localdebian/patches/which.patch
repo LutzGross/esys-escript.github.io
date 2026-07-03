@@ -1,0 +1,56 @@
+--- a/run-escript.in
++++ b/run-escript.in
+@@ -55,7 +55,7 @@
+       cd "$CURDIR"
+   else
+       # name does not contain / therefore we are using
+-      tscriptdir=$(which $0)
++      tscriptdir=$(command -v $0)
+       if [ $? -ne 0 ]
+       then
+           die "Unable to determine script directory!"
+@@ -229,7 +229,7 @@
+ #
+ WITH_VISIT=$(get_buildvar visit)
+ if [ "$WITH_VISIT" = "1" ]; then
+-    VISIT_BIN=$(which visit 2>/dev/null)
++    VISIT_BIN=$(command -v visit 2>/dev/null)
+     if [ $? -eq 0 ]; then
+         VISIT_PY_PATH=$($VISIT_BIN -env | grep LIBPATH | cut -d= -f2)
+         EXTRA_PYTHONPATH=$EXTRA_PYTHONPATH:$VISIT_PY_PATH
+@@ -425,7 +425,7 @@
+ 
+ if [ ! -z "$DO_VALGRIND" ]
+ then
+-    VALGRIND_BIN=$(which valgrind 2>/dev/null)
++    VALGRIND_BIN=$(command -v valgrind 2>/dev/null)
+     if [ $? -eq 0 ]; then
+         LOGDIR=$ESCRIPT_ROOT/valgrind_logs
+         [ -d $LOGDIR ] || mkdir $LOGDIR
+@@ -507,7 +507,7 @@
+ 
+ if [ "$MPI_FLAVOUR" = "OPENMPI" ]
+ then
+-    if [ -z `which rsh``which ssh` ]
++    if [ -z `command -v rsh``command -v ssh` ]
+     then
+         AGENTOVERRIDE="--gmca plm_rsh_agent /bin/false"
+     fi
+--- a/site_scons/dependencies.py
++++ b/site_scons/dependencies.py
+@@ -34,6 +34,15 @@
+ 
+ REQUIRED_BOOST = (1, 46)
+ 
++def which(cmd):
++    hits = []
++    paths = os.environ['PATH'].split(os.pathsep)
++    for path in paths:
++        hit = os.path.join(path, cmd)
++        if os.path.isfile(hit):
++            hits.append(hit)
++    return hits
++
+ def CheckComplexAcos(context):
+     context.Message('Checking for working complex std::acos()... ')
+     result = context.TryRun("""

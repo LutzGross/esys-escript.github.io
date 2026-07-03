@@ -1,2 +1,5 @@
-version=3
-https://github.com/LutzGross/esys-escript.github.io/+download https://github.com/LutzGross/esys-escript.github.io/3.0\+/.+/\+download/python-escript_(.+).tar.gz
+Version: 5
+Template: GitHub
+Dist: https://github.com/LutzGross/esys-escript.github.io
+
+

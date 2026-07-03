@@ -1,132 +1,83 @@
 #!/usr/bin/make -f
 
-PROJROOT=$(CURDIR)
-BDEST=$(CURDIR)/debian/python-escript
-BMDEST=$(CURDIR)/debian/python-escript-mpi
 B3DEST=$(CURDIR)/debian/python3-escript
 B3MDEST=$(CURDIR)/debian/python3-escript-mpi
 DDEST=$(CURDIR)/debian/python-escript-doc
-BUILD=$(CURDIR)/debian/tmp2
-BUILDM=$(CURDIR)/debian/tmp2M
-BUILD3=$(CURDIR)/debian/tmp3
-BUILD3M=$(CURDIR)/debian/tmp3M
-WORK=$(CURDIR)/debian/stage2
-WORKM=$(CURDIR)/debian/stage2M
-WORK3=$(CURDIR)/debian/stage3
-WORK3M=$(CURDIR)/debian/stage3M
+BUILD3=$(CURDIR)/debian/build
+BUILD3M=$(CURDIR)/debian/build-mpi
+WORK3=$(CURDIR)/debian/tmp
+WORK3M=$(CURDIR)/debian/tmp-mpi
 
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
+# The additional -Werror=implicit-function-declaration is useless in its functionality,
+# but it is useful to satisfy a pedantic buildflag check in the source code.
+# See https://bugs.debian.org/1068158 and debian/patches/fix-dpkg-buildflags-on-c-c++.patch
+export DEB_CXXFLAGS_MAINT_APPEND = -Wno-uninitialized -Werror=implicit-function-declaration
+export DEB_CFLAGS_MAINT_APPEND = -Wno-uninitialized
+
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/buildflags.mk
 
 
 #thanks to the debian manual
 # export DEB_BUILD_OPTIONS="parallel=10"
 ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
-    parbuild=$(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
-    sflags=-j$(parbuild)
+    PARBUILD:=$(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+    SFLAGS:=-j$(PARBUILD)
 else
-    sflags=-j1
+    SFLAGS:=-j1
+endif
+
+ifeq ($(DEB_HOST_ARCH_BITS), 64)
+  OPT := -O3
+else
+  OPT := -Os -g1
+endif
+
+ifeq ($(DEB_HOST_ARCH), mips64el)
+  OPT += -mxgot
 endif
 
 %:
-	dh $@  --with python2,python3,sphinxdoc -v
+	dh $@  -v
 
-override_dh_clean:
+execute_after_dh_clean:
+	rm -f itest.sh utest.sh
 	rm -rf build condif.log esys include lib release .sconf_tmp .sconsign.dblite config.log .sconf_temp
-	rm -rf scons/templates/*.pyc
-	rm -rf $(BDEST)
-	rm -rf $(B3DEST)
-	rm -rf $(BMDEST)
-	rm -rf $(B3MDEST)
-	rm -rf $(DDEST)
-	rm -rf $(BUILD)
-	rm -rf $(BUILDM)
-	rm -rf $(BUILD3)
-	rm -rf $(BUILD3M)
-	rm -rf $(WORK)
-	rm -rf $(WORKM)
-	rm -rf $(WORK3)
-	rm -rf $(WORK3M)
-	rm -rf $(CURDIR)/debian/tmp/*
-	rm -f debian/files
-	rm -f debian/substvars
-	dh_clean
+	rm -f bin/run-escript escript/py_src/run_escript.py bin/escript-overlord
+	rm -rf $(BUILD3) $(BUILD3M) $(WORK3M)
 
 override_dh_installchangelogs:
 	dh_installchangelogs debian/changelog.trivial
 
 override_dh_auto_build:
-	#Build steps for py2
-	mkdir -p $(WORK)
-	if [ ! -f svn_version ];then echo "No svn_version file found"; exit 3;fi
-	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILD) verbose=on prefix=$(WORK) options_file=scons/templates/sid_options.py
+	mkdir -p $(WORK3) $(WORK3M)
+	scons -j4 options_file=scons/templates/debian_nompi_options.py build_dir=$(BUILD3) prefix=$(WORK3) cc_optim='$(OPT)' verbose=on
+	scons -j4 options_file=scons/templates/debian_options.py build_dir=$(BUILD3M) prefix=$(WORK3M) cc_optim='$(OPT)' verbose=on
+	# (scons $(SFLAGS) cc_optim='$(OPT)'  build_dir=$(BUILD3) verbose=on prefix=$(WORK5) options_file=debian/sid_options.py docs ) || true
 	# extract the relevant .py files
-	cd $(WORK); $(PROJROOT)/debian/utils/cppy.py $(PROJROOT); cd $(PROJROOT)
-	cp $(PROJROOT)/doc/manpage/man1/run-escript.1 $(WORK)/run-escript2.man
-	mv $(WORK)/bin/run-escript $(WORK)/bin/run-escript2
-	find $(WORK) -name '*.pyc' -print0 | xargs -0 rm -f
-	
+	$(CURDIR)/debian/utils/cppy.py debian/build/posix debian/tmp 
+	$(CURDIR)/debian/utils/cppy.py debian/build-mpi/posix debian/tmp-mpi
+	mkdir -p $(BUILD3)/bin $(BUILD3M)/bin
+	cp bin/run-escript	$(BUILD3)/bin/run-escript
+	cp bin/run-escript	$(BUILD3M)/bin/run-escript-mpi
+	# cp $(PROJROOT)/doc/manpage/man1/run-escript.1 $(WORK3)/run-escript3.man
+	# cp $(PROJROOT)/doc/manpage/man1/run-escript.1 $(WORK3M)/run-escript3-mpi.man
+	# fix paths in each package and fix some external links in the doc package
+	debian/utils/tweak.sh  "$(BUILD3)" "$(BUILD3M)"
+	find $(BUILD3) -name '*.so' -exec chrpath -d {} \;
+	find $(BUILD3M) -name '*.so' -exec chrpath -d {} \;
 
-	
-	# Build steps for py2 with MPI	
-	mkdir -p $(WORKM)
-	if [ ! -f svn_version ];then echo "No svn_version file found"; exit 3;fi
-	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILDM)  cc_optim='-O3 -DOVERLORDPATH=\"/usr/lib/python-escript-mpi/\"' verbose=on prefix=$(WORKM) options_file=scons/templates/sid_mpi_options.py
-	# extract the relevant .py files
-	cd $(WORKM); $(PROJROOT)/debian/utils/cppy.py $(PROJROOT); cd $(PROJROOT)
-	cp $(PROJROOT)/doc/manpage/man1/run-escript.1 $(WORKM)/run-escript2-mpi.man
-	ln $(WORKM)/bin/run-escript $(WORKM)/bin/run-escript2-mpi
-	find $(WORKM) -name '*.pyc' -print0| xargs -0 rm -f
-	#rm -rf $(BUILDM)
-
-	# Build steps for py3
-	mkdir -p $(WORK3)
-	if [ ! -f svn_version ];then echo "No svn_version file found"; exit 3;fi
-	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILD3) verbose=on prefix=$(WORK3) options_file=scons/templates/sid_py3_options.py
-	# extract the relevant .py files
-	cd $(WORK3); $(PROJROOT)/debian/utils/cppy.py $(PROJROOT); cd $(PROJROOT)
-	cp $(PROJROOT)/doc/manpage/man1/run-escript.1 $(WORK3)/run-escript3.man
-	ln $(WORK3)/bin/run-escript $(WORK3)/bin/run-escript3
-	find $(WORK3) -name '*.pyc' -print0| xargs -0 rm -f
-	#rm -rf $(BUILD3)
-	
-	# build_steps for documentation 
-	# depends on the py3 build so don't do anything here
-	# which will overwrite changes made in the py3 build
-	mkdir -p $(BUILD3)
-	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILD3) verbose=on prefix=$(WORK3) options_file=scons/templates/sid_py3_options.py docs
-	find $(WORK3) -name '*.pyc' -print0 | xargs -0 rm -f	
-
-	# Build steps for py3 with MPI
-	mkdir -p $(WORK3M)
-	if [ ! -f svn_version ];then echo "No svn_version file found"; exit 3;fi
-	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILD3M)  cc_optim='-O3 -DOVERLORDPATH=\"/usr/lib/python-escript3-mpi/\"' verbose=on prefix=$(WORK3M) options_file=scons/templates/sid_py3_mpi_options.py
-	# extract the relevant .py files
-	cd $(WORK3M); $(PROJROOT)/debian/utils/cppy.py $(PROJROOT); cd $(PROJROOT)
-	cp $(PROJROOT)/doc/manpage/man1/run-escript.1 $(WORK3M)/run-escript3-mpi.man
-	ln $(WORK3M)/bin/run-escript $(WORK3M)/bin/run-escript3-mpi
-	find $(WORK3M) -name '*.pyc' -print0| xargs -0 rm -f	
-	#rm -rf $(BUILD3M)
-	
-	# fix paths in each package and
-	# fix some external links in the doc package
-	debian/utils/tweak.sh "$(WORK)" "$(WORKM)" "$(WORK3)" "$(WORK3M)"
-	rm -f scons/templates/*.pyc
-	rm -f site_scons/*.pyc
-	rm -f utest.sh
+execute_after_dh_fixperms:
+	chrpath -d $(B3MDEST)/usr/bin/pyt* $(B3MDEST)/usr/bin/escript-overlord
 
 override_dh_shlibdeps:
 	# so libraries we just built are checked as well
-	dh_shlibdeps -ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(BDEST) -l$(BDEST)/usr/lib/python-escript/lib
-	dh_shlibdeps -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc -P$(BMDEST) -l$(BMDEST)/usr/lib/python-escript-mpi/lib
-	dh_shlibdeps -ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST) -l$(B3DEST)/usr/lib/python3-escript/lib
-	dh_shlibdeps -ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc -P$(B3MDEST) -l$(B3MDEST)/usr/lib/python3-escript-mpi/lib
+	dh_shlibdeps -ppython3-escript  -Npython3-escript-mpi -Npython-escript-doc -P$(B3DEST) -l$(B3DEST)/usr/lib/python3-escript/lib
+	dh_shlibdeps -ppython3-escript-mpi -Npython3-escript -Npython-escript-doc -P$(B3MDEST) -l$(B3MDEST)/usr/lib/python3-escript-mpi/lib
 
-	
-override_dh_python2:
-	dh_python2 -ppython-escript -Npython3-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc --no-ext-rename usr/lib/python-escript/esys
-	dh_python2 -ppython-escript-mpi -Npython3-escript -Npython-escript -Npython3-escript-mpi -Npython-escript-doc --no-ext-rename	usr/lib/python-escript-mpi/esys
-	
 override_dh_python3:
-	dh_python3 -ppython3-escript -Npython-escript -Npython-escript-mpi -Npython3-escript-mpi -Npython-escript-doc --no-ext-rename	usr/lib/python3-escript/esys
-	dh_python3 -ppython3-escript-mpi -Npython3-escript -Npython-escript -Npython-escript-mpi -Npython-escript-doc --no-ext-rename	usr/lib/python3-escript-mpi/esys
+	dh_python3 -ppython3-escript -Npython3-escript-mpi -Npython-escript-doc --no-ext-rename	usr/lib/python3-escript/esys
+	dh_python3 -ppython3-escript-mpi -Npython3-escript -Npython-escript-doc --no-ext-rename	usr/lib/python3-escript-mpi/esys
 

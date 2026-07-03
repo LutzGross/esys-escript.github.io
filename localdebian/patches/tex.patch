@@ -1,0 +1,68 @@
+Description: Fixes/workarounds to issues breaking pdflatex compilation
+ which causes FTBFS 
+Author: Alastair McKinstry <mckinstry@debian.org>
+Last-Updated: 2020-12-09
+Forwarded: no
+
+Index: python-escript-6.0.0/doc/user/linearPDE.tex
+===================================================================
+--- python-escript-6.0.0.orig/doc/user/linearPDE.tex
++++ python-escript-6.0.0/doc/user/linearPDE.tex
+@@ -76,7 +76,7 @@ The coefficient $d$ is a \RankTwo and $y
+ u_{i}=r_{i} \mbox{ where } q_{i}>0
+ \end{equation}
+ $r$ and $q$ are each a \RankOne. Notice that not necessarily all components
+-must have a constraint at all locations.  An example for a system of PDEs is shown in the elastic deformation example in section \ref{sec:ElasticChap}
++must have a constraint at all locations.  An example for a system of PDEs is shown in the elastic deformation example %in section \ref{sec:ElasticChap}
+ 
+ \LinearPDE also supports solution discontinuities\index{discontinuity} over a
+ contact region $\Gamma^{contact}$ in the domain $\Omega$.
+@@ -178,7 +178,7 @@ object gives access to diagnostic inform
+       mypde.getDiagnostics('residual_norm'))
+ \end{python}
+ Typically, a negative value for a diagnostic variable indicates that it is
+-undefined.  For more details on \SolverOptions and Trilinos see chapter \Refe{TRILINOS}.
++undefined.  For more details on \SolverOptions and Trilinos see chapter \Refe{Trilinos}.
+ 
+ \subsection{Classes}
+ %\declaremodule{extension}{esys.escript.linearPDEs} 
+@@ -419,7 +419,7 @@ as discussed in \Chap{ESCRIPT CHAP}. If
+ \begin{equation}\label{PROJ.1}
+ u = Y
+ \end{equation}
+-of the general scalar PDE~ Reference [\ref{LINEARPDE.SINGLE.1}] (boundary conditions are
++of the general scalar PDE (boundary conditions are
+ irrelevant), you can see the solution $u$ of this PDE as a projection of the
+ input function $Y$ which has the \Function attribute to a function with the
+ \SolutionFS or \ReducedSolutionFS attribute.
+@@ -450,7 +450,7 @@ to a function with the \ReducedSolutionF
+   # alternative call:
+   u=proj(jmp)
+ \end{python}
+-By default the class uses lumping to solve the PDE~Reference [\ref{PROJ.1}].
++By default the class uses lumping to solve the PDE.
+ This technique is faster than using the standard solver techniques of PDEs.
+ In essence it leads to using the average of neighbour element values to
+ calculate the value at each FEM node. 
+@@ -578,7 +578,7 @@ The value of \var{package} must be one o
+  \member{SolverOptions.CUSP} -- CUDA sparse linear algebra package\\
+  \member{SolverOptions.MKL} -- Intel MKL direct solver\\
+  \member{SolverOptions.PASO} -- built-in PASO solver library\\
+- \member{SolverOptions.TRILINOS} -- Trilinos solver package (chapter \Refe{TRILINOS})\\
++ \member{SolverOptions.TRILINOS} -- Trilinos solver package (chapter \Refe{Trilinos})\\
+  \member{SolverOptions.UMFPACK} -- direct solver from the UMFPACK library.\\
+ Not all packages are supported on all implementations. An exception may be
+ thrown on some platforms if a particular package is requested.
+Index: python-escript-6.0.0/doc/cookbook/example01.tex
+===================================================================
+--- python-escript-6.0.0.orig/doc/cookbook/example01.tex
++++ python-escript-6.0.0/doc/cookbook/example01.tex
+@@ -742,7 +742,7 @@ A sub-folder check/constructor is availa
+ \begin{verbatim}
+ mkDir(save_path)
+ \end{verbatim}
+-will check for the existence of \verb save_path  and if missing, create the
++will check for the existence of \verb|save_path|  and if missing, create the
+ required directories.
+ 
+ We start by modifying our solution script.

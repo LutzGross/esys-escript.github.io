@@ -1,0 +1,20 @@
+--- a/scons/templates/debian_options.py
++++ b/scons/templates/debian_options.py
+@@ -60,7 +60,7 @@
+ 
+ # Solver configuration
+ paso = True
+-build_trilinos = 'check'
++build_trilinos = 'never'
+ 
+ # UMFPACK direct solver
+ umfpack = True
+@@ -73,7 +73,7 @@
+ mumps_seq_libs = ['dmumps_seq', 'zmumps_seq', 'mumps_common_seq', 'mpiseq_seq', 'pord_seq']
+ 
+ # METIS graph partitioning (for Trilinos)
+-metis = True
++metis = False
+ metis_prefix = ['/usr/include', f'/usr/lib/{arch}']
+ metis_libs = ['metis']
+ 

@@ -1,0 +1,18 @@
+Description: Fixmathjax
+Author: Alastair McKinstry <mckinstry@debian.org>
+Last-Updated: 2026-07-02
+Forwarded: not-needed
+
+Debian-specific
+
+--- a/doc/sphinx_api/conf.py
++++ b/doc/sphinx_api/conf.py
+@@ -123,6 +123,8 @@
+ 
+ # -- Options for HTML output ---------------------------------------------------
+ 
++mathjax_path = 'file:///usr/share/javascript/mathjax/MathJax.js'
++
+ # The theme to use for HTML and HTML Help pages.  See the documentation for
+ # a list of builtin themes.
+ html_theme = 'classic'

@@ -1,0 +1,21 @@
+--- a/scons/templates/debian_options.py
++++ b/scons/templates/debian_options.py
+@@ -73,15 +73,15 @@
+ mumps_seq_libs = ['dmumps_seq', 'zmumps_seq', 'mumps_common_seq', 'mpiseq_seq', 'pord_seq']
+ 
+ # METIS graph partitioning (for Trilinos)
+-metis = False
+-metis_prefix = ['/usr/include', f'/usr/lib/{arch}']
++metis = True
++metis_prefix = ['/usr/include/scotch', f'/usr/lib/{arch}']
+ metis_libs = ['metis']
+ 
+ # ParMETIS parallel graph partitioning (requires MPI)
+ parmetis = True
+ # Note: On Ubuntu 24.04+, parmetis headers and libs are in /usr/include and /usr/lib
+ # (no longer in /usr/include/parmetis or /usr/lib/x86_64-linux-gnu)
+-parmetis_prefix = ['/usr/include', '/usr/lib']
++parmetis_prefix = ['/usr/include/scotch', '/usr/lib']
+ parmetis_libs = ['parmetis']
+ 
+ # LAPACK configuration

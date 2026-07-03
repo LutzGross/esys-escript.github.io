@@ -1,0 +1,21 @@
+Author: Alastair McKinstry <mckinstry@debian.org>
+Description: Fixes for FTBFS wiht gcc 8.2
+Bug-Origin: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=897840
+Last-Updated: 2018-08-19
+Forwarded: no
+
+--- a/weipa/src/EscriptDataset.cpp
++++ b/weipa/src/EscriptDataset.cpp
+@@ -523,9 +523,10 @@
+         // mesh name to all ranks.
+ #if WEIPA_HAVE_MPI
+         if (mpiSize > 1) {
+-            char name[100];
++            char name[101];
+             if (mpiRank == 0) {
+-                strncpy(&name[0], meshName.c_str(), 100);
++
++	      strncpy(&name[0], meshName.c_str(), 100);
+             }
+ 
+             MPI_Bcast(name, 100, MPI_CHAR, 0, mpiComm);

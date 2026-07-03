@@ -1,0 +1,17 @@
+Description: Handle openmpi versioning if a non-digit is present
+Author: Alastair McKinstry <mckinstry@debian.org>
+Last-Updated: 2020-02-16
+Fordwarded: no
+
+--- a/SConstruct
++++ b/SConstruct
+@@ -1003,7 +1003,8 @@
+         else:
+             env['launcher'] = "mpirun ${AGENTOVERRIDE} --gmca mpi_warn_on_fork 0 ${EE} "+hostoptionstr+" --map-by node:pe=%t -bind-to core -np %N %b"
+         if 'orte_version' in env:
+-            major,minor,point = [int(i) for i in env['orte_version'].split('.')]
++            v = [int(s) for s in env['orte_version'].split('.') if s.isdigit()]
++            major, minor = v[0], v[1]
+             if major == 1 and minor < 10:
+                 env['launcher'] = "mpirun ${AGENTOVERRIDE} --gmca mpi_warn_on_fork 0 ${EE} "+hostoptionstr+" --cpus-per-rank %t -np %N %b"
+     elif env['mpi'] == 'MPT':
