@@ -9,9 +9,12 @@ would you be able to build/lintian-check and sponsor the upload?
 Upstream tarball (uscan-trackable via the updated d/watch):
   https://github.com/LutzGross/esys-escript.github.io/archive/refs/tags/6.1.1.tar.gz
 
-The packaging delta is attached as a single patch (debian-6.1.1-update.patch),
-verified to apply cleanly on top of the current debian/latest (5.6-10). Summary
-of the changes:
+Now that 6.1.1-1 is in the archive (experimental), the attached patch
+(debian-6.1.1-update.patch) is the small follow-up delta on top of the
+*archived 6.1.1-1* debian/ tree: a 6.1.1-2 entry restricting Architecture to
+64-bit (see the buildd follow-up below). It applies cleanly with
+`patch -p1` / `git apply` / `quilt import`. The bullets below summarise the
+6.1.1-1 packaging already uploaded, for context:
 
   * New upstream release 6.1.1.
   * I/O: enable HDF5 alongside NetCDF (escript 6.x supports both); add
