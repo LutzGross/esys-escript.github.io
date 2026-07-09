@@ -29,6 +29,7 @@
 #include <p8est_extended.h>
 #include <p8est_ghost.h>
 #include <p8est_io.h>
+#include <p8est_search.h>
 #else
 #include <p4est_algorithms.h>
 #include <p4est_bits.h>
@@ -36,6 +37,7 @@
 #include <p4est_extended.h>
 #include <p4est_ghost.h>
 #include <p4est_io.h>
+#include <p4est_search.h>
 #endif /* !P4_TO_P8 */
 #include <sc_io.h>
 #include <sc_notify.h>
@@ -224,7 +226,7 @@ p4est_new_ext (sc_MPI_Comm mpicomm, p4est_connectivity_t * connectivity,
   p4est_log_indent_push ();
 
   P4EST_ASSERT (p4est_connectivity_is_valid (connectivity));
-  P4EST_ASSERT (min_level <= P4EST_QMAXLEVEL);
+  P4EST_ASSERT (min_level <= P4EST_OLD_QMAXLEVEL);
 
   /* create p4est object and assign some data members */
   p4est = P4EST_ALLOC_ZERO (p4est_t, 1);
@@ -245,7 +247,7 @@ p4est_new_ext (sc_MPI_Comm mpicomm, p4est_connectivity_t * connectivity,
   else {
     p4est->user_data_pool = NULL;
   }
-  p4est->quadrant_pool = sc_mempool_new (sizeof (p4est_quadrant_t));
+  p4est->quadrant_pool = p4est_quadrant_mempool_new ();
 
   /* determine uniform level of initial tree */
   tree_num_quadrants = 1;
@@ -267,9 +269,9 @@ p4est_new_ext (sc_MPI_Comm mpicomm, p4est_connectivity_t * connectivity,
 
   /* compute global number of quadrants */
   global_num_quadrants = tree_num_quadrants * num_trees;
-  P4EST_GLOBAL_PRODUCTIONF ("New " P4EST_STRING
-                            " with %lld trees on %d processors\n",
-                            (long long) num_trees, num_procs);
+  P4EST_GLOBAL_INFOF ("New " P4EST_STRING
+                      " with %lld trees on %d processors\n",
+                      (long long) num_trees, num_procs);
   P4EST_GLOBAL_INFOF ("Initial level %d potential global quadrants"
                       " %lld per tree %lld\n",
                       level, (long long) global_num_quadrants,
@@ -368,8 +370,7 @@ p4est_new_ext (sc_MPI_Comm mpicomm, p4est_connectivity_t * connectivity,
           (jt == first_tree
            && first_tree_quadrant == tree_num_quadrants - 1)) {
         /* There is only a in the tree */
-        quad = p4est_quadrant_array_push (tquadrants);
-        *quad = a;
+        quad = p4est_quadrant_array_push_copy (tquadrants, &a);
         p4est_quadrant_init_data (p4est, jt, quad, init_fn);
         tree->maxlevel = a.level;
         tree->quadrants_per_level[a.level] = 1;
@@ -414,9 +415,14 @@ p4est_new_ext (sc_MPI_Comm mpicomm, p4est_connectivity_t * connectivity,
 
       /* populate quadrant array in Morton order */
       sc_array_resize (tquadrants, (size_t) count);
-      for (miu = 0; miu < count; ++miu) {
+      quad = p4est_quadrant_array_index (tquadrants, 0);
+      P4EST_QUADRANT_INIT (quad);
+      p4est_quadrant_set_morton (quad, level, first_morton);
+      p4est_quadrant_init_data (p4est, jt, quad, init_fn);
+      for (miu = 1; miu < count; ++miu) {
         quad = p4est_quadrant_array_index (tquadrants, (size_t) miu);
-        p4est_quadrant_set_morton (quad, level, first_morton + miu);
+        P4EST_QUADRANT_INIT (quad);
+        p4est_quadrant_successor (quad - 1, quad);
         p4est_quadrant_init_data (p4est, jt, quad, init_fn);
       }
 
@@ -571,7 +577,7 @@ p4est_copy_ext (p4est_t * input, int copy_data, int duplicate_mpicomm)
   else {
     p4est->data_size = 0;
   }
-  p4est->quadrant_pool = sc_mempool_new (sizeof (p4est_quadrant_t));
+  p4est->quadrant_pool = p4est_quadrant_mempool_new ();
 
   /* copy quadrants for each tree */
   p4est->trees = sc_array_new (sizeof (p4est_tree_t));
@@ -1194,8 +1200,7 @@ p4est_balance_schedule (p4est_t * p4est, p4est_balance_peer_t * peers,
     }
 
     /* copy quadrant into shipping list */
-    s = p4est_quadrant_array_push (&peer->send_first);
-    *s = *q;
+    s = p4est_quadrant_array_push_copy (&peer->send_first, q);
     s->p.piggy2.which_tree = qtree;     /* piggy back tree id */
 
     /* update lowest and highest peer */
@@ -1491,8 +1496,7 @@ p4est_balance_ext (p4est_t * p4est, p4est_connect_type_t btype,
       }
 
       if (qarray != NULL) {
-        s = (p4est_quadrant_t *) sc_array_push (qarray);
-        *s = *q;
+        (void) p4est_quadrant_array_push_copy (qarray, q);
       }
 
 #ifdef P4_TO_P8
@@ -1717,7 +1721,7 @@ p4est_balance_ext (p4est_t * p4est, p4est_connect_type_t btype,
                                max_ranges, my_ranges, &all_ranges);
     twomaxwin = 2 * maxwin;
     if (p4est->inspect != NULL) {
-      p4est->inspect->balance_ranges += MPI_Wtime ();
+      p4est->inspect->balance_ranges += sc_MPI_Wtime ();
     }
     sc_ranges_decode (num_procs, rank, maxwin, all_ranges,
                       &num_receivers_ranges, receiver_ranks_ranges,
@@ -1828,7 +1832,7 @@ p4est_balance_ext (p4est_t * p4est, p4est_connect_type_t btype,
                         p4est->mpicomm);
     SC_CHECK_MPI (mpiret);
     if (p4est->inspect != NULL) {
-      p4est->inspect->balance_notify += MPI_Wtime ();
+      p4est->inspect->balance_notify += sc_MPI_Wtime ();
     }
 
     /* double-check sc_notify results by sc_notify_allgather */
@@ -1845,7 +1849,7 @@ p4est_balance_ext (p4est_t * p4est, p4est_connect_type_t btype,
                                     p4est->mpicomm);
       SC_CHECK_MPI (mpiret);
       if (p4est->inspect != NULL) {
-        p4est->inspect->balance_notify_allgather += MPI_Wtime ();
+        p4est->inspect->balance_notify_allgather += sc_MPI_Wtime ();
       }
 
       /* run verification against sc_notify_allgather */
@@ -2003,8 +2007,8 @@ p4est_balance_ext (p4est_t * p4est, p4est_connect_type_t btype,
 
   /* wait for quadrant counts and post receive and send for quadrants */
   while (request_first_count > 0) {
-    mpiret = MPI_Waitsome (num_procs, requests_first,
-                           &outcount, wait_indices, recv_statuses);
+    mpiret = sc_MPI_Waitsome (num_procs, requests_first,
+                              &outcount, wait_indices, recv_statuses);
     SC_CHECK_MPI (mpiret);
     P4EST_ASSERT (outcount != MPI_UNDEFINED);
     P4EST_ASSERT (outcount > 0);
@@ -2023,7 +2027,7 @@ p4est_balance_ext (p4est_t * p4est, p4est_connect_type_t btype,
       if (!peer->have_first_count) {
         /* verify message size */
         P4EST_ASSERT (jstatus->MPI_TAG == P4EST_COMM_BALANCE_FIRST_COUNT);
-        mpiret = MPI_Get_count (jstatus, MPI_INT, &rcount);
+        mpiret = sc_MPI_Get_count (jstatus, MPI_INT, &rcount);
         SC_CHECK_MPI (mpiret);
         SC_CHECK_ABORTF (rcount == 1, "Receive count mismatch A %d", rcount);
 
@@ -2057,7 +2061,7 @@ p4est_balance_ext (p4est_t * p4est, p4est_connect_type_t btype,
         /* verify received size */
         P4EST_ASSERT (jstatus->MPI_TAG == P4EST_COMM_BALANCE_FIRST_LOAD);
         P4EST_ASSERT (peer->recv_first_count > 0);
-        mpiret = MPI_Get_count (jstatus, MPI_BYTE, &rcount);
+        mpiret = sc_MPI_Get_count (jstatus, MPI_BYTE, &rcount);
         SC_CHECK_MPI (mpiret);
         SC_CHECK_ABORTF (rcount ==
                          peer->recv_first_count *
@@ -2140,8 +2144,8 @@ p4est_balance_ext (p4est_t * p4est, p4est_connect_type_t btype,
 #ifdef P4EST_ENABLE_MPI
   /* receive second round appending to the same receive buffer */
   while (request_second_count > 0) {
-    mpiret = MPI_Waitsome (num_procs, requests_second,
-                           &outcount, wait_indices, recv_statuses);
+    mpiret = sc_MPI_Waitsome (num_procs, requests_second,
+                              &outcount, wait_indices, recv_statuses);
     SC_CHECK_MPI (mpiret);
     P4EST_ASSERT (outcount != MPI_UNDEFINED);
     P4EST_ASSERT (outcount > 0);
@@ -2160,7 +2164,7 @@ p4est_balance_ext (p4est_t * p4est, p4est_connect_type_t btype,
       if (!peer->have_second_count) {
         /* verify message size */
         P4EST_ASSERT (jstatus->MPI_TAG == P4EST_COMM_BALANCE_SECOND_COUNT);
-        mpiret = MPI_Get_count (jstatus, MPI_INT, &rcount);
+        mpiret = sc_MPI_Get_count (jstatus, MPI_INT, &rcount);
         SC_CHECK_MPI (mpiret);
         SC_CHECK_ABORTF (rcount == 1, "Receive count mismatch B %d", rcount);
 
@@ -2194,7 +2198,7 @@ p4est_balance_ext (p4est_t * p4est, p4est_connect_type_t btype,
         /* verify received size */
         P4EST_ASSERT (jstatus->MPI_TAG == P4EST_COMM_BALANCE_SECOND_LOAD);
         P4EST_ASSERT (peer->recv_second_count > 0);
-        mpiret = MPI_Get_count (jstatus, MPI_BYTE, &rcount);
+        mpiret = sc_MPI_Get_count (jstatus, MPI_BYTE, &rcount);
         SC_CHECK_MPI (mpiret);
         SC_CHECK_ABORTF (rcount ==
                          peer->recv_second_count *
@@ -2286,8 +2290,7 @@ p4est_balance_ext (p4est_t * p4est, p4est_connect_type_t btype,
       }
       if (borders == NULL) {
         tree = p4est_tree_array_index (p4est->trees, qtree);
-        q = p4est_quadrant_array_push (&tree->quadrants);
-        *q = *s;
+        q = p4est_quadrant_array_push_copy (&tree->quadrants, s);
         ++tree->quadrants_per_level[q->level];
         tree->maxlevel = (int8_t) SC_MAX (tree->maxlevel, q->level);
         ++p4est->local_num_quadrants;
@@ -2296,8 +2299,7 @@ p4est_balance_ext (p4est_t * p4est, p4est_connect_type_t btype,
       else {
         qarray = (sc_array_t *) sc_array_index (borders,
                                                 (int) (qtree - first_tree));
-        q = p4est_quadrant_array_push (qarray);
-        *q = *s;
+        (void) p4est_quadrant_array_push_copy (qarray, s);
       }
     }
   }
@@ -2338,8 +2340,8 @@ p4est_balance_ext (p4est_t * p4est, p4est_connect_type_t btype,
 #ifdef P4EST_ENABLE_MPI
   /* wait for all send operations */
   if (request_send_count > 0) {
-    mpiret = MPI_Waitall (4 * num_procs,
-                          send_requests_first_count, MPI_STATUSES_IGNORE);
+    mpiret = sc_MPI_Waitall (4 * num_procs,
+                             send_requests_first_count, MPI_STATUSES_IGNORE);
     SC_CHECK_MPI (mpiret);
   }
 
@@ -2477,7 +2479,7 @@ p4est_partition_ext (p4est_t * p4est, int partition_for_coarsening,
   if (p4est->mpisize == 1) {
     P4EST_GLOBAL_PRODUCTION ("Done " P4EST_STRING "_partition no shipping\n");
 
-    /* in particular, there is no need to bumb the revision counter */
+    /* in particular, there is no need to bump the revision counter */
     P4EST_ASSERT (global_shipped == 0);
     return global_shipped;
   }
@@ -2561,7 +2563,7 @@ p4est_partition_ext (p4est_t * p4est, int partition_for_coarsening,
       P4EST_GLOBAL_PRODUCTION ("Done " P4EST_STRING
                                "_partition no shipping\n");
 
-      /* in particular, there is no need to bumb the revision counter */
+      /* in particular, there is no need to bump the revision counter */
       P4EST_ASSERT (global_shipped == 0);
       return global_shipped;
     }
@@ -2690,19 +2692,20 @@ p4est_partition_ext (p4est_t * p4est, int partition_for_coarsening,
 
     /* wait for sends and receives to complete */
     if (num_sends > 0) {
-      mpiret = MPI_Waitall (num_sends, send_requests, MPI_STATUSES_IGNORE);
+      mpiret = sc_MPI_Waitall (num_sends, send_requests, MPI_STATUSES_IGNORE);
       SC_CHECK_MPI (mpiret);
       P4EST_FREE (send_requests);
       P4EST_FREE (send_array);
     }
-    mpiret = MPI_Waitall (2, recv_requests, recv_statuses);
+    mpiret = sc_MPI_Waitall (2, recv_requests, recv_statuses);
     SC_CHECK_MPI (mpiret);
     if (my_lowcut != 0) {
       SC_CHECK_ABORT (recv_statuses[0].MPI_SOURCE == low_source,
                       "Wait low source");
       SC_CHECK_ABORT (recv_statuses[0].MPI_TAG ==
                       P4EST_COMM_PARTITION_WEIGHTED_LOW, "Wait low tag");
-      mpiret = MPI_Get_count (&recv_statuses[0], P4EST_MPI_GLOIDX, &rcount);
+      mpiret =
+        sc_MPI_Get_count (&recv_statuses[0], P4EST_MPI_GLOIDX, &rcount);
       SC_CHECK_MPI (mpiret);
       SC_CHECK_ABORTF (rcount == 1, "Wait low count %d", rcount);
     }
@@ -2711,7 +2714,8 @@ p4est_partition_ext (p4est_t * p4est, int partition_for_coarsening,
                       "Wait high source");
       SC_CHECK_ABORT (recv_statuses[1].MPI_TAG ==
                       P4EST_COMM_PARTITION_WEIGHTED_HIGH, "Wait high tag");
-      mpiret = MPI_Get_count (&recv_statuses[1], P4EST_MPI_GLOIDX, &rcount);
+      mpiret =
+        sc_MPI_Get_count (&recv_statuses[1], P4EST_MPI_GLOIDX, &rcount);
       SC_CHECK_MPI (mpiret);
       SC_CHECK_ABORTF (rcount == 1, "Wait high count %d", rcount);
     }
@@ -2794,6 +2798,15 @@ p4est_partition_for_coarsening (p4est_t * p4est,
   int                 mpiret;
   p4est_gloidx_t      global_num_quadrants = p4est->global_num_quadrants;
   int                 i, send_lowest, send_highest, num_sends;
+#ifdef P4EST_ENABLE_DEBUG
+  int                 old_send_highest, old_send_lowest, old_num_sends;
+  /* *INDENT-OFF* */
+  int                 old_receive_lowest, old_receive_highest,
+                      old_num_receives;
+  int                 old_process_with_cut = -1,
+                      old_process_with_cut_recv_id = -1;
+  /* *INDENT-ON* */
+#endif
   int                 parent_index;
   p4est_quadrant_t   *q;
   p4est_tree_t       *tree;
@@ -2801,6 +2814,7 @@ p4est_partition_for_coarsening (p4est_t * p4est,
   p4est_topidx_t      it, tree_index;
   p4est_gloidx_t      iq, quad_id_near_cut;
   p4est_gloidx_t      min_quad_id, max_quad_id;
+  p4est_gloidx_t      my_begin, my_end, begin, end;
   int8_t              quad_near_cut_level;
   p4est_gloidx_t     *partition_now = p4est->global_first_quadrant;
   p4est_gloidx_t     *partition_new;
@@ -2827,15 +2841,46 @@ p4est_partition_for_coarsening (p4est_t * p4est,
   if (partition_now[rank] < partition_now[rank + 1]) {
     /* if this process has quadrants */
     /* determine number and min/max process ids to send to */
+
+    my_begin = partition_now[rank] - P4EST_CHILDREN + 2;
+    my_end = partition_now[rank + 1] - 1 + P4EST_CHILDREN;
+
+    if (my_begin < 0 && my_end >= global_num_quadrants) {
+      begin = 1;
+      end = num_procs - 1;
+    }
+    else {
+      /* See the documentation of p4est_find_partition for the handling of the
+       * corner cases (`my_begin < 0` and `my_end >= global_num_quadrants`).
+       */
+      p4est_find_partition (num_procs - 1, &partition_new[1], my_begin,
+                            my_end, &begin, &end);
+      /* Increment the indices of the window boundaries because the search is in
+       * `&(partition_new[1])` and ignore the first process. But we need
+       * `partition_new[i] - P4EST_CHILDREN + 1 < partition_now[rank + 1]`
+       * (cf. old method below and documentation of `p4est_find_partition`)
+       * and we know that `end` determined by find_partition is the smallest
+       * index (>= 0) such that my_end <= partition_new [1 + end] holds.
+       * That is why we have to decrement `end` to obtain the required
+       * inequality. All in all only `begin` is incremented.
+       */
+      ++begin;
+
+      /* To sum it up `begin` is the smallest index (>= 1) sucht that
+       * `partition_now[rank] <= partition_new[begin] + P4EST_CHILDREN - 2`
+       * holds and `end` is the largest index (>= 1) that satisfies
+       * `partition_now[rank + 1] - 1 + P4EST_CHILDREN > partition_new[end]`.
+       * That is why begin and end define the interval of relevant processes
+       * (cf. old method below).
+       */
+    }
+
     num_sends = 0;              /* number of sends */
     send_lowest = num_procs;    /* lowest process id */
     send_highest = 0;           /* highest process id */
-    for (i = 1; i < num_procs; i++) {
-      /* loop over all processes (without first) */
-      if (partition_new[i] < partition_new[i + 1] &&
-          partition_now[rank] <= partition_new[i] + P4EST_CHILDREN - 2 &&
-          partition_new[i] - P4EST_CHILDREN + 1 < partition_now[rank + 1]) {
-        /* if this process has relevant quadrants for process `i` */
+    for (i = begin; i <= end; i++) {
+      /* loop over the relevant processes */
+      if (partition_new[i] < partition_new[i + 1]) {
         num_sends++;
         send_lowest = SC_MIN (send_lowest, i);
         send_highest = SC_MAX (send_highest, i);
@@ -2847,6 +2892,37 @@ p4est_partition_for_coarsening (p4est_t * p4est,
     num_sends = 0;
   }
 
+#ifdef P4EST_ENABLE_DEBUG
+  /* old calculation method */
+  if (partition_now[rank] < partition_now[rank + 1]) {
+    /* if this process has quadrants */
+    /* determine number and min/max process ids to send to */
+    old_num_sends = 0;          /* number of sends */
+    old_send_lowest = num_procs;        /* lowest process id */
+    old_send_highest = 0;       /* highest process id */
+    for (i = 1; i < num_procs; i++) {
+      /* loop over all processes (without first) */
+      if (partition_new[i] < partition_new[i + 1] &&
+          partition_now[rank] <= partition_new[i] + P4EST_CHILDREN - 2 &&
+          partition_new[i] - P4EST_CHILDREN + 1 < partition_now[rank + 1]) {
+        /* if this process has relevant quadrants for process `i` */
+        old_num_sends++;
+        old_send_lowest = SC_MIN (old_send_lowest, i);
+        old_send_highest = SC_MAX (old_send_highest, i);
+      }
+    }
+    P4EST_ASSERT (send_lowest == old_send_lowest);
+    P4EST_ASSERT (send_highest == old_send_highest);
+  }
+  else {
+    /* set number of messages to send */
+    old_num_sends = 0;
+  }
+  P4EST_ASSERT (num_sends == old_num_sends);
+#endif
+
+  send_requests = NULL;
+  parent_send = NULL;
   if (num_sends > 0) {          /* if this process sends messages */
     /* allocate send messages */
     send_requests = P4EST_ALLOC (MPI_Request, num_sends);
@@ -2854,6 +2930,11 @@ p4est_partition_for_coarsening (p4est_t * p4est,
 
     /* array index of send messages */
     parent_index = 0;
+
+    /* make memory valgrind clean */
+    for (i = 0; i < num_sends; i++) {
+      P4EST_QUADRANT_INIT (&parent_send[i]);
+    }
 
     for (i = send_lowest; i <= send_highest; i++) {
       /* loop over all process candidates to send to */
@@ -2986,8 +3067,7 @@ p4est_partition_for_coarsening (p4est_t * p4est,
 
         /* MPI send: parent */
         mpiret = MPI_Isend (&parent_send[parent_index],
-                            sizeof (p4est_quadrant_t), MPI_BYTE,
-                            i,
+                            sizeof (p4est_quadrant_t), MPI_BYTE, i,
                             P4EST_COMM_PARTITION_CORRECTION, p4est->mpicomm,
                             &send_requests[parent_index]);
         SC_CHECK_MPI (mpiret);
@@ -3010,8 +3090,7 @@ p4est_partition_for_coarsening (p4est_t * p4est,
 
         /* MPI send: root of tree */
         mpiret = MPI_Isend (&parent_send[parent_index],
-                            sizeof (p4est_quadrant_t), MPI_BYTE,
-                            i,
+                            sizeof (p4est_quadrant_t), MPI_BYTE, i,
                             P4EST_COMM_PARTITION_CORRECTION, p4est->mpicomm,
                             &send_requests[parent_index]);
         SC_CHECK_MPI (mpiret);
@@ -3020,6 +3099,7 @@ p4est_partition_for_coarsening (p4est_t * p4est,
       /* increment parent index */
       parent_index++;
     }
+    P4EST_ASSERT (parent_index == num_sends);
   }
   /* END: send */
 
@@ -3027,14 +3107,53 @@ p4est_partition_for_coarsening (p4est_t * p4est,
   if (rank != 0 && partition_new[rank] < partition_new[rank + 1]) {
     /* if this process should get quadrants */
     /* determine process ids to receive from */
+
+    my_begin = partition_new[rank] - P4EST_CHILDREN + 1;
+    my_end = partition_new[rank] + P4EST_CHILDREN - 2;
+
+    if (my_begin < 0 && my_end >= global_num_quadrants) {
+      begin = 0;
+      end = num_procs - 1;
+    }
+    else {
+      /* See the documentation of p4est_find_partition for the handling of the
+       * boundary cases (`my_begin < 0` and `my_end >= global_num_quadrants`).
+       */
+      p4est_find_partition (num_procs, partition_now, my_begin, my_end,
+                            &begin, &end);
+
+      if (my_begin == partition_now[begin]) {
+        /* We want to ensure < for the my_begin inequality constraint.
+         * `p4est_find_partition` gives us `begin` minimal such that
+         * `my_begin <= partition_now[begin]`. Since we want
+         * `my_begin < parition_now[begin + 1]` we decrement `begin`
+         * in general to get the inequality with the index `begin + 1`
+         * and in the case that is checked by this if statement we
+         * increment `begin` to ensure the strict inequality in
+         * `my_begin < parition_now[begin + 1]`.
+         */
+        ++begin;
+      }
+      --begin;                  /* since we have partition_now[i + 1] */
+
+      if (my_end != partition_now[end]) {
+        /* We want to ensure <= for my_end inequality constraint.
+         * `p4est_find_partition` gives us `end` minimal such that
+         * `my_end <= partition_now[end]`. By this conditional operation
+         * we ensure `my_end >= partition_now[end]` for minimal 'end'
+         * among the maximal array entries such that the inequality is
+         * satisfied.
+         */
+        --end;
+      }
+    }
+
     num_receives = 0;           /* number of receives */
     receive_lowest = num_procs; /* lowest process id */
     receive_highest = 0;        /* highest process id */
-    for (i = 0; i < num_procs; i++) {   /* loop over all processes */
-      if (partition_now[i] < partition_now[i + 1] &&
-          partition_now[i] <= partition_new[rank] + P4EST_CHILDREN - 2 &&
-          partition_new[rank] - P4EST_CHILDREN + 1 < partition_now[i + 1]) {
-        /* if process `i` has relevant quadrants for this process */
+    for (i = begin; i <= SC_MIN (end, num_procs - 1); i++) {
+      if (partition_now[i] < partition_now[i + 1]) {
+        /* loop over relevant processes */
         num_receives++;
         receive_lowest = SC_MIN (receive_lowest, i);
         receive_highest = SC_MAX (receive_highest, i);
@@ -3049,6 +3168,15 @@ p4est_partition_for_coarsening (p4est_t * p4est,
           process_with_cut_recv_id = num_receives - 1;
         }
       }
+      else if (i == end && partition_now[i] == partition_now[i + 1]) {
+        /* All indices that have same array value as `end` also satisfy
+         * the inequality (cf. old method below).
+         */
+        ++end;
+      }
+      else {
+        /* this case may occur and we do nothing */
+      }
     }
   }
   else {
@@ -3058,6 +3186,48 @@ p4est_partition_for_coarsening (p4est_t * p4est,
     /* set correction */
     correction_local = 0;
   }
+
+#ifdef P4EST_ENABLE_DEBUG
+  /* old calculation method */
+  if (rank != 0 && partition_new[rank] < partition_new[rank + 1]) {
+    /* if this process should get quadrants */
+    /* determine process ids to receive from */
+    old_num_receives = 0;       /* number of receives */
+    old_receive_lowest = num_procs;     /* lowest process id */
+    old_receive_highest = 0;    /* highest process id */
+    for (i = 0; i < num_procs; i++) {   /* loop over all processes */
+      if (partition_now[i] < partition_now[i + 1] &&
+          partition_now[i] <= partition_new[rank] + P4EST_CHILDREN - 2 &&
+          partition_new[rank] - P4EST_CHILDREN + 1 < partition_now[i + 1]) {
+        /* if process `i` has relevant quadrants for this process */
+        old_num_receives++;
+        old_receive_lowest = SC_MIN (old_receive_lowest, i);
+        old_receive_highest = SC_MAX (old_receive_highest, i);
+
+        if (partition_now[i] <= partition_new[rank] &&
+            partition_new[rank] < partition_now[i + 1]) {
+          /* if cut is owned by process `i` */
+          /* process id that sends parent of cut quadrant */
+          old_process_with_cut = i;
+
+          /* array index of receive messages of process with cut  */
+          old_process_with_cut_recv_id = old_num_receives - 1;
+
+          P4EST_ASSERT (process_with_cut == old_process_with_cut);
+          P4EST_ASSERT (process_with_cut_recv_id ==
+                        old_process_with_cut_recv_id);
+        }
+      }
+    }
+    P4EST_ASSERT (receive_lowest == old_receive_lowest);
+    P4EST_ASSERT (receive_highest == old_receive_highest);
+  }
+  else {
+    /* set number of messages to receive */
+    old_num_receives = 0;
+  }
+  P4EST_ASSERT (num_receives == old_num_receives);
+#endif
 
   if (num_receives > 0) {       /* if this process receives messages */
     /* allocate receive messages */
@@ -3082,8 +3252,7 @@ p4est_partition_for_coarsening (p4est_t * p4est,
 
       /* MPI receive */
       mpiret = MPI_Irecv (&parent_receive[parent_index],
-                          sizeof (p4est_quadrant_t), MPI_BYTE,
-                          i,
+                          sizeof (p4est_quadrant_t), MPI_BYTE, i,
                           P4EST_COMM_PARTITION_CORRECTION, p4est->mpicomm,
                           &receive_requests[parent_index]);
       SC_CHECK_MPI (mpiret);
@@ -3098,13 +3267,13 @@ p4est_partition_for_coarsening (p4est_t * p4est,
   if (num_receives > 0) {
     /* wait for receives to complete */
     mpiret =
-      MPI_Waitall (num_receives, receive_requests, MPI_STATUSES_IGNORE);
+      sc_MPI_Waitall (num_receives, receive_requests, MPI_STATUSES_IGNORE);
     SC_CHECK_MPI (mpiret);
 
     /* free receive memory */
     P4EST_FREE (receive_requests);
   }
-  /* END: wait for MPI recieve to complete */
+  /* END: wait for MPI receive to complete */
 
   /* BEGIN: compute correction with received quadrants */
   if (num_receives > 0) {
@@ -3167,7 +3336,7 @@ p4est_partition_for_coarsening (p4est_t * p4est,
   /* BEGIN: wait for MPI send to complete */
   if (num_sends > 0) {
     /* wait for sends to complete */
-    mpiret = MPI_Waitall (num_sends, send_requests, MPI_STATUSES_IGNORE);
+    mpiret = sc_MPI_Waitall (num_sends, send_requests, MPI_STATUSES_IGNORE);
     SC_CHECK_MPI (mpiret);
 
     /* free send memory */
@@ -3216,12 +3385,14 @@ p4est_partition_for_coarsening (p4est_t * p4est,
 #endif
 }
 
-unsigned
-p4est_checksum (p4est_t * p4est)
-{
 #ifdef P4EST_HAVE_ZLIB
-  uLong               treecrc, crc;
-  size_t              scount, ssum;
+
+static void
+p4est_checksum_local (p4est_t *p4est, uLong *local_crc, size_t *ssum,
+                      int partition_dependent)
+{
+  uLong               treecrc;
+  size_t              scount;
   p4est_topidx_t      nt;
   p4est_tree_t       *tree;
   sc_array_t          checkarray;
@@ -3229,19 +3400,54 @@ p4est_checksum (p4est_t * p4est)
   P4EST_ASSERT (p4est_is_valid (p4est));
 
   sc_array_init (&checkarray, 4);
-  crc = adler32 (0, Z_NULL, 0);
-  ssum = 0;
+/* *INDENT-OFF* */
+  *local_crc = (partition_dependent && p4est->mpirank > 0) ?
+                adler32 (0, (const Bytef *) &(p4est->local_num_quadrants),
+                         sizeof (p4est_locidx_t)) : adler32 (0, Z_NULL, 0);
+/* *INDENT-ON* */
+  *ssum = 0;
   for (nt = p4est->first_local_tree; nt <= p4est->last_local_tree; ++nt) {
     tree = p4est_tree_array_index (p4est->trees, nt);
     treecrc =
       (uLong) p4est_quadrant_checksum (&tree->quadrants, &checkarray, 0);
     scount = 4 * checkarray.elem_count;
-    ssum += scount;
-    crc = adler32_combine (crc, treecrc, (z_off_t) scount);
+    *ssum += scount;
+    *local_crc = adler32_combine (*local_crc, treecrc, (z_off_t) scount);
   }
   sc_array_reset (&checkarray);
-  P4EST_ASSERT ((p4est_locidx_t) ssum ==
+  P4EST_ASSERT ((p4est_locidx_t) * ssum ==
                 p4est->local_num_quadrants * 4 * (P4EST_DIM + 1));
+
+}
+
+#endif
+
+unsigned
+p4est_checksum (p4est_t * p4est)
+{
+#ifdef P4EST_HAVE_ZLIB
+  uLong               crc;
+  size_t              ssum;
+
+  p4est_checksum_local (p4est, &crc, &ssum, 0);
+
+  return p4est_comm_checksum (p4est, (unsigned) crc, ssum);
+#else
+  sc_abort_collective
+    ("Configure did not find a recent enough zlib.  Abort.\n");
+
+  return 0;
+#endif /* !P4EST_HAVE_ZLIB */
+}
+
+unsigned
+p4est_checksum_partition (p4est_t * p4est)
+{
+#ifdef P4EST_HAVE_ZLIB
+  uLong               crc;
+  size_t              ssum;
+
+  p4est_checksum_local (p4est, &crc, &ssum, 1);
 
   return p4est_comm_checksum (p4est, (unsigned) crc, ssum);
 #else
@@ -3264,25 +3470,19 @@ p4est_save_ext (const char *filename, p4est_t * p4est,
 {
   const int           headc = 6;
   const int           align = 32;
-#ifdef P4EST_ENABLE_MPI
-  int                 mpiret;
-#ifndef P4EST_MPIIO_WRITE
-  MPI_Status          mpistatus;
-#endif
-#endif
-  int                 retval;
+  int                 retval, mpiret;
   int                 num_procs, save_num_procs, rank;
   int                 i;
   long                fpos = -1, foffset;
   size_t              data_size, qbuf_size, comb_size, head_count;
   size_t              zz, zcount;
   uint64_t           *u64a;
-  FILE               *file;
 #ifdef P4EST_MPIIO_WRITE
   MPI_File            mpifile;
   MPI_Offset          mpipos;
   MPI_Offset          mpithis;
 #else
+  FILE               *file;
   long                fthis;
 #endif
   p4est_topidx_t      jt, num_trees;
@@ -3290,8 +3490,10 @@ p4est_save_ext (const char *filename, p4est_t * p4est,
   p4est_tree_t       *tree;
   p4est_quadrant_t   *q;
   char               *lbuf, *bp;
+  char                nul[2] = "\0";
   p4est_qcoord_t     *qpos;
   sc_array_t         *tquadrants;
+  sc_io_sink_t       *sink = NULL;
 
   P4EST_GLOBAL_PRODUCTIONF ("Into " P4EST_STRING "_save %s\n", filename);
   p4est_log_indent_push ();
@@ -3319,18 +3521,17 @@ p4est_save_ext (const char *filename, p4est_t * p4est,
   p4est_comm_count_pertree (p4est, pertree);
 
   if (rank == 0) {
-    p4est_connectivity_save (filename, p4est->connectivity);
-
-    /* open file after writing connectivity to it */
-    file = fopen (filename, "ab");
-    SC_CHECK_ABORT (file != NULL, "file open");
+    sink = sc_io_sink_new (SC_IO_TYPE_FILENAME, SC_IO_MODE_WRITE,
+                           SC_IO_ENCODE_NONE, filename);
+    SC_CHECK_ABORT (sink != NULL, "file open");
+    p4est_connectivity_sink (p4est->connectivity, sink);
 
     /* align the start of the header */
-    fpos = ftell (file);
+    fpos = sink->bytes_out;
     SC_CHECK_ABORT (fpos > 0, "first file tell");
     while (fpos % align != 0) {
-      retval = fputc ('\0', file);
-      SC_CHECK_ABORT (retval == 0, "first file align");
+      retval = sc_io_sink_write (sink, nul, 1);
+      SC_CHECK_ABORT (retval == SC_IO_ERROR_NONE, "first file align");
       ++fpos;
     }
 
@@ -3355,38 +3556,27 @@ p4est_save_ext (const char *filename, p4est_t * p4est,
     for (jt = 0; jt < num_trees; ++jt) {
       u64a[headc + save_num_procs + jt] = (uint64_t) pertree[jt + 1];
     }
-    sc_fwrite (u64a, sizeof (uint64_t), head_count,
-               file, "write header information");
+    retval = sc_io_sink_write (sink, u64a, sizeof (uint64_t) * head_count);
+    SC_CHECK_ABORT (retval == SC_IO_ERROR_NONE, "write header information");
     P4EST_FREE (u64a);
     fpos += head_count * sizeof (uint64_t);
 
     /* align the start of the quadrants */
-    fpos = ftell (file);
+    fpos = sink->bytes_out;
     SC_CHECK_ABORT (fpos > 0, "second file tell");
     while (fpos % align != 0) {
-      retval = fputc ('\0', file);
-      SC_CHECK_ABORT (retval == 0, "second file align");
+      retval = sc_io_sink_write (sink, nul, 1);
+      SC_CHECK_ABORT (retval == SC_IO_ERROR_NONE, "second file align");
       ++fpos;
     }
 
 #ifdef P4EST_MPIIO_WRITE
-    /* We will close the sequential access to the file */
-    /* best attempt to flush file to disk */
-    retval = fflush (file);
-    SC_CHECK_ABORT (retval == 0, "file flush");
-#ifdef P4EST_HAVE_FSYNC
-    retval = fsync (fileno (file));
-    SC_CHECK_ABORT (retval == 0, "file fsync");
-#endif
-    retval = fclose (file);
-    SC_CHECK_ABORT (retval == 0, "file close");
-    file = NULL;
+    /* we will close the sequential access to the file */
+    sc_io_sink_destroy (sink);
+    sink = NULL;
 #else
     /* file is still open for sequential write mode */
 #endif
-  }
-  else {
-    file = NULL;
   }
   P4EST_FREE (pertree);
 
@@ -3395,7 +3585,7 @@ p4est_save_ext (const char *filename, p4est_t * p4est,
     /* wait for sequential synchronization */
 #ifdef P4EST_ENABLE_MPI
     mpiret = MPI_Recv (&fpos, 1, MPI_LONG, rank - 1, P4EST_COMM_SAVE,
-                       p4est->mpicomm, &mpistatus);
+                       p4est->mpicomm, MPI_STATUSES_IGNORE);
     SC_CHECK_MPI (mpiret);
 #endif
 
@@ -3403,8 +3593,13 @@ p4est_save_ext (const char *filename, p4est_t * p4est,
     file = fopen (filename, "rb+");
     SC_CHECK_ABORT (file != NULL, "file open");
   }
+  else {
+    file = NULL;
+  }
 #else
-  /* Every core opens the file in append mode */
+  /* Every core opens the file in append mode -- file must exist */
+  mpiret = sc_MPI_Barrier (p4est->mpicomm);
+  SC_CHECK_MPI (mpiret);
   mpiret = MPI_File_open (p4est->mpicomm, (char *) filename,
                           MPI_MODE_WRONLY | MPI_MODE_APPEND |
                           MPI_MODE_UNIQUE_OPEN, MPI_INFO_NULL, &mpifile);
@@ -3451,7 +3646,13 @@ p4est_save_ext (const char *filename, p4est_t * p4est,
       bp += comb_size;
     }
 #ifndef P4EST_MPIIO_WRITE
-    sc_fwrite (lbuf, comb_size, zcount, file, "write quadrants");
+    if (p4est->mpirank == 0) {
+      retval = sc_io_sink_write (sink, lbuf, comb_size * zcount);
+      SC_CHECK_ABORT (retval == SC_IO_ERROR_NONE, "write quadrants");
+    }
+    else {
+      sc_fwrite (lbuf, comb_size, zcount, file, "write quadrants");
+    }
 #else
     sc_mpi_write (mpifile, lbuf, comb_size * zcount, MPI_BYTE,
                   "write quadrants");
@@ -3460,16 +3661,14 @@ p4est_save_ext (const char *filename, p4est_t * p4est,
   }
 
 #ifndef P4EST_MPIIO_WRITE
-  /* best attempt to flush file to disk */
-  retval = fflush (file);
-  SC_CHECK_ABORT (retval == 0, "file flush");
-#ifdef P4EST_HAVE_FSYNC
-  retval = fsync (fileno (file));
-  SC_CHECK_ABORT (retval == 0, "file fsync");
-#endif
-  retval = fclose (file);
-  SC_CHECK_ABORT (retval == 0, "file close");
-  file = NULL;
+  if (p4est->mpirank == 0) {
+    sc_io_sink_destroy (sink);
+    sink = NULL;
+  }
+  else {
+    sc_fflush_fsync_fclose (file);
+    file = NULL;
+  }
 
   /* initiate sequential synchronization */
 #ifdef P4EST_ENABLE_MPI
@@ -3483,6 +3682,9 @@ p4est_save_ext (const char *filename, p4est_t * p4est,
   mpiret = MPI_File_close (&mpifile);
   SC_CHECK_MPI (mpiret);
 #endif
+  /* make sure subsequent code finds the final result on disk */
+  mpiret = sc_MPI_Barrier (p4est->mpicomm);
+  SC_CHECK_MPI (mpiret);
 
   p4est_log_indent_pop ();
   P4EST_GLOBAL_PRODUCTION ("Done " P4EST_STRING "_save\n");
@@ -3497,19 +3699,324 @@ p4est_load (const char *filename, sc_MPI_Comm mpicomm, size_t data_size,
                          0, 0, user_pointer, connectivity);
 }
 
+#ifdef P4EST_ENABLE_MPIIO
+
+static p4est_t     *
+p4est_load_mpi (const char *filename, sc_MPI_Comm mpicomm, size_t data_size,
+                int load_data, int autopartition, int broadcasthead,
+                void *user_pointer, p4est_connectivity_t ** connectivity)
+{
+  const int           headc = 6;
+  const int           align = 32;
+  int                 root = 0;
+  int                 retval;
+  int                 mpiret;
+  int                 num_procs, rank;
+  int                 save_num_procs;
+  int                 save_data;
+  int                 load_in_one;
+  int                 i;
+  uint64_t           *u64a, u64int;
+  size_t              conn_bytes, file_offset;
+  size_t              save_data_size;
+  size_t              qbuf_size, comb_size, head_count;
+  size_t              zz, zcount, zpadding;
+  p4est_topidx_t      jt, num_trees;
+  p4est_gloidx_t     *gfq;
+  p4est_gloidx_t     *pertree;
+  p4est_qcoord_t     *qap;
+  p4est_connectivity_t *conn;
+  p4est_t            *p4est;
+  sc_io_source_t     *src;
+  sc_array_t         *qarr, *darr;
+  char               *dap, *lbuf, *lptr;
+  MPI_File            mpifile;
+  MPI_Offset          mpiofs;
+
+  /* retrieve MPI information */
+  mpiret = sc_MPI_Comm_size (mpicomm, &num_procs);
+  SC_CHECK_MPI (mpiret);
+  mpiret = sc_MPI_Comm_rank (mpicomm, &rank);
+  SC_CHECK_MPI (mpiret);
+
+  src = NULL;
+  broadcasthead = 1;
+  if (broadcasthead) {
+    /* We load the header of the file, including the connectivity,
+       on the root process using standard file I/O and MPI_Bcast it. */
+    /* The remainder of the file is read with MPI I/O. */
+
+    if (rank == root) {
+      src =
+        sc_io_source_new (SC_IO_TYPE_FILENAME, SC_IO_ENCODE_NONE, filename);
+      SC_CHECK_ABORT (src != NULL, "file source: possibly file not found");
+    }
+  }
+  else {
+    /* We read the whole file using MPI I/O. */
+    /* Not implemented since there is currently no function to
+       load the connectivity from a file using MPI I/O. */
+
+    SC_ABORT_NOT_REACHED ();
+  }
+  P4EST_ASSERT ((rank == root) == (src != NULL));
+
+  /* set some parameters */
+  P4EST_ASSERT (connectivity != NULL);
+  if (data_size == 0) {
+    load_data = 0;
+  }
+  qbuf_size = (P4EST_DIM + 1) * sizeof (p4est_qcoord_t);
+
+  /* the first part of the header determines further offsets */
+  save_data_size = (size_t) ULONG_MAX;
+  save_num_procs = -1;
+  conn = NULL;
+  conn_bytes = 0;
+  u64a = P4EST_ALLOC (uint64_t, headc + 1);
+  if (!broadcasthead || rank == root) {
+
+    /* read the forest connectivity */
+    conn = p4est_connectivity_source (src);
+    SC_CHECK_ABORT (conn != NULL, "connectivity source");
+    zcount = src->bytes_out;
+    zpadding = (align - zcount % align) % align;
+    retval = sc_io_source_read (src, NULL, zpadding, NULL);
+    SC_CHECK_ABORT (!retval, "source padding");
+    conn_bytes = src->bytes_out;
+
+    /* read format and some basic partition parameters */
+    retval = sc_io_source_read (src, u64a, sizeof (uint64_t) * (size_t) headc,
+                                NULL);
+    SC_CHECK_ABORT (!retval, "read format");
+    SC_CHECK_ABORT (u64a[0] == P4EST_ONDISK_FORMAT, "invalid format");
+    SC_CHECK_ABORT (u64a[1] == (uint64_t) sizeof (p4est_qcoord_t),
+                    "invalid coordinate size");
+    SC_CHECK_ABORT (u64a[2] == (uint64_t) sizeof (p4est_quadrant_t),
+                    "invalid quadrant size");
+    save_data_size = (size_t) u64a[3];
+    save_data = (int) u64a[4];
+    if (load_data) {
+      SC_CHECK_ABORT (save_data_size == data_size, "invalid data size");
+      SC_CHECK_ABORT (save_data, "quadrant data not saved");
+    }
+    save_num_procs = (int) u64a[5];
+    SC_CHECK_ABORT (autopartition || num_procs == save_num_procs,
+                    "num procs mismatch");
+
+    /* piggy-back the bytes for the connectivity onto first message */
+    u64a[headc + 0] = (uint64_t) conn_bytes;
+  }
+  if (broadcasthead) {
+
+    /* broadcast connectivity and first part of header */
+    conn = p4est_connectivity_bcast (conn, root, mpicomm);
+    mpiret = sc_MPI_Bcast (u64a, headc + 1, sc_MPI_LONG_LONG_INT,
+                           root, mpicomm);
+    SC_CHECK_MPI (mpiret);
+    if (rank != root) {
+
+      /* make sure the rest of the processes has the information */
+      SC_CHECK_ABORT (u64a[0] == P4EST_ONDISK_FORMAT, "invalid format");
+      save_data_size = (size_t) u64a[3];
+      save_data = (int) u64a[4];
+      save_num_procs = (int) u64a[5];
+      conn_bytes = (size_t) u64a[headc + 0];
+    }
+  }
+  P4EST_ASSERT (save_num_procs >= 0);
+  P4EST_ASSERT (save_data_size != (size_t) ULONG_MAX);
+  *connectivity = conn;
+  comb_size = qbuf_size + save_data_size;
+  file_offset = conn_bytes + headc * sizeof (uint64_t);
+
+  /* create partition data */
+  gfq = P4EST_ALLOC (p4est_gloidx_t, num_procs + 1);
+  gfq[0] = 0;
+  if (!broadcasthead || rank == root) {
+    if (!autopartition) {
+      P4EST_ASSERT (num_procs == save_num_procs);
+      u64a = P4EST_REALLOC (u64a, uint64_t, num_procs);
+      sc_io_source_read (src, u64a, sizeof (uint64_t) * (size_t) num_procs,
+                         NULL);
+      SC_CHECK_ABORT (!retval, "read quadrant partition");
+      for (i = 0; i < num_procs; ++i) {
+        gfq[i + 1] = (p4est_gloidx_t) u64a[i];
+      }
+    }
+    else {
+      /* ignore saved partition and compute a new uniform one */
+      retval = sc_io_source_read
+        (src, NULL, (long) ((save_num_procs - 1) * sizeof (uint64_t)), NULL);
+      SC_CHECK_ABORT (!retval, "seek over ignored partition");
+      retval = sc_io_source_read (src, &u64int, sizeof (uint64_t), NULL);
+      SC_CHECK_ABORT (!retval, "read quadrant count");
+      p4est_comm_global_first_quadrant ((p4est_gloidx_t) u64int, num_procs,
+                                        gfq);
+    }
+  }
+  if (broadcasthead) {
+    mpiret = sc_MPI_Bcast (gfq + 1, num_procs, P4EST_MPI_GLOIDX,
+                           root, mpicomm);
+    SC_CHECK_MPI (mpiret);
+  }
+  zcount = (size_t) (gfq[rank + 1] - gfq[rank]);
+  file_offset += save_num_procs * sizeof (uint64_t);
+
+  /* read pertree data */
+  num_trees = conn->num_trees;
+  pertree = P4EST_ALLOC (p4est_gloidx_t, num_trees + 1);
+  pertree[0] = 0;
+  if (!broadcasthead || rank == root) {
+    u64a = P4EST_REALLOC (u64a, uint64_t, num_trees);
+    retval = sc_io_source_read (src, u64a, sizeof (uint64_t) * (size_t)
+                                num_trees, NULL);
+    SC_CHECK_ABORT (!retval, "read pertree information");
+    for (jt = 0; jt < num_trees; ++jt) {
+      pertree[jt + 1] = (p4est_gloidx_t) u64a[jt];
+    }
+    SC_CHECK_ABORT (gfq[num_procs] == pertree[num_trees], "pertree mismatch");
+  }
+  if (broadcasthead) {
+    mpiret = sc_MPI_Bcast (pertree + 1, num_trees, P4EST_MPI_GLOIDX,
+                           root, mpicomm);
+    SC_CHECK_MPI (mpiret);
+  }
+  P4EST_FREE (u64a);
+  file_offset += num_trees * sizeof (uint64_t);
+
+  /* complete computation of header size, known to all ranks */
+  head_count = (size_t) (headc + save_num_procs) + (size_t) num_trees;
+  zpadding = (align - (head_count * sizeof (uint64_t)) % align) % align;
+
+  /* close file for serial reading */
+  if (src != NULL) {
+    retval = sc_io_source_destroy (src);
+    SC_CHECK_ABORT (!retval, "source destroy");
+    src = NULL;
+  }
+
+  /* open MPI I/O file and seek to beginning of process storage */
+  mpiret = MPI_File_open (mpicomm, (char *) filename,
+                          MPI_MODE_RDONLY, MPI_INFO_NULL, &mpifile);
+  SC_CHECK_MPI (mpiret);
+  mpiofs = (MPI_Offset) (file_offset + zpadding + gfq[rank] * comb_size);
+  mpiret = MPI_File_seek (mpifile, mpiofs, MPI_SEEK_SET);
+  SC_CHECK_MPI (mpiret);
+
+  /* read quadrant coordinates and data interleaved */
+  qarr =
+    sc_array_new_size (sizeof (p4est_qcoord_t), (P4EST_DIM + 1) * zcount);
+  qap = (p4est_qcoord_t *) qarr->array;
+  darr = NULL;
+  dap = NULL;
+  lbuf = lptr = NULL;
+  load_in_one = 0;
+  if (load_data || save_data_size == 0) {
+    /* load the whole file window in one call */
+    load_in_one = 1;
+    if (save_data_size > 0) {
+      lbuf = lptr = P4EST_ALLOC (char, comb_size * zcount);
+      /* otherwise, we read directly into the quadrant array */
+    }
+  }
+  if (load_data) {
+    P4EST_ASSERT (data_size == save_data_size && data_size > 0);
+    darr = sc_array_new_size (data_size, zcount);
+    dap = darr->array;
+    if (!load_in_one) {
+      P4EST_ASSERT (lbuf == NULL);
+      lbuf = P4EST_ALLOC (char, comb_size);
+    }
+  }
+  if (load_in_one) {
+    if (save_data_size > 0) {
+      P4EST_ASSERT (load_data);
+      P4EST_ASSERT (data_size == save_data_size);
+      P4EST_ASSERT (lbuf == lptr && lptr != NULL);
+      sc_mpi_read (mpifile, lptr, comb_size * zcount, MPI_BYTE,
+                   "read all local quadrants and data");
+      for (zz = 0; zz < zcount; ++zz) {
+        memcpy (qap, lptr, qbuf_size);
+        qap += P4EST_DIM + 1;
+        memcpy (dap, lptr + qbuf_size, data_size);
+        dap += data_size;
+        lptr += comb_size;
+      }
+    }
+    else {
+      P4EST_ASSERT (comb_size == qbuf_size);
+      sc_mpi_read (mpifile, qap, qbuf_size * zcount, MPI_BYTE,
+                   "read all local quadrants");
+    }
+  }
+  else {
+    P4EST_ASSERT (!load_data);
+    P4EST_ASSERT (save_data_size > 0);
+    P4EST_ASSERT (lptr == NULL);
+    P4EST_ASSERT (dap == NULL);
+#define P4EST_SEEK_CUR_BROKEN
+    for (zz = 0; zz < zcount; ++zz) {
+      sc_mpi_read (mpifile, qap, qbuf_size, MPI_BYTE, "read quadrant");
+#ifndef P4EST_SEEK_CUR_BROKEN
+      mpiret = MPI_File_seek
+        (mpifile, (MPI_Offset) save_data_size, MPI_SEEK_CUR);
+      SC_CHECK_MPI (mpiret);
+#else
+      /* avoid MPI_SEEK_CUR, which appears to be broken on some systems */
+      mpiofs += comb_size;
+      mpiret = MPI_File_seek (mpifile, mpiofs, MPI_SEEK_SET);
+      SC_CHECK_MPI (mpiret);
+#endif
+      qap += P4EST_DIM + 1;
+    }
+  }
+  P4EST_FREE (lbuf);
+
+  /* close MPI file */
+  mpiret = MPI_File_close (&mpifile);
+  SC_CHECK_MPI (mpiret);
+
+  /* create p4est from accumulated information */
+  p4est = p4est_inflate (mpicomm, conn, gfq, pertree,
+                         qarr, darr, user_pointer);
+  sc_array_destroy (qarr);
+  if (darr != NULL) {
+    sc_array_destroy (darr);
+  }
+  P4EST_FREE (pertree);
+  P4EST_FREE (gfq);
+
+  /* assert that we loaded a valid forest and return */
+  SC_CHECK_ABORT (p4est_is_valid (p4est), "invalid forest");
+
+  return p4est;
+}
+
+#endif /* P4EST_ENABLE_MPIIO */
+
 p4est_t            *
 p4est_load_ext (const char *filename, sc_MPI_Comm mpicomm, size_t data_size,
                 int load_data, int autopartition, int broadcasthead,
                 void *user_pointer, p4est_connectivity_t ** connectivity)
 {
+#ifndef P4EST_ENABLE_MPIIO
   int                 retval;
-  p4est_t            *p4est;
   sc_io_source_t     *src;
+#endif
+  p4est_t            *p4est;
 
   P4EST_GLOBAL_PRODUCTIONF ("Into " P4EST_STRING "_load %s\n", filename);
   p4est_log_indent_push ();
 
-  /* open file on all processors */
+#ifdef P4EST_ENABLE_MPIIO
+  /* use MPI I/O functionality */
+
+  p4est = p4est_load_mpi (filename, mpicomm, data_size, load_data,
+                          autopartition, broadcasthead, user_pointer,
+                          connectivity);
+#else
+  /* open file on all processors and rely on file system */
 
   src = sc_io_source_new (SC_IO_TYPE_FILENAME, SC_IO_ENCODE_NONE, filename);
   SC_CHECK_ABORT (src != NULL, "file source: possibly file not found");
@@ -3519,6 +4026,7 @@ p4est_load_ext (const char *filename, sc_MPI_Comm mpicomm, size_t data_size,
 
   retval = sc_io_source_destroy (src);
   SC_CHECK_ABORT (!retval, "source destroy");
+#endif
 
   p4est_log_indent_pop ();
   P4EST_GLOBAL_PRODUCTIONF
@@ -3653,9 +4161,8 @@ p4est_source_ext (sc_io_source_t * src, sc_MPI_Comm mpicomm, size_t data_size,
       SC_CHECK_ABORT (!retval, "seek over ignored partition");
       retval = sc_io_source_read (src, &u64int, sizeof (uint64_t), NULL);
       SC_CHECK_ABORT (!retval, "read quadrant count");
-      for (i = 1; i <= num_procs; ++i) {
-        gfq[i] = p4est_partition_cut_uint64 (u64int, i, num_procs);
-      }
+      p4est_comm_global_first_quadrant ((p4est_gloidx_t) u64int, num_procs,
+                                        gfq);
     }
   }
   if (broadcasthead) {

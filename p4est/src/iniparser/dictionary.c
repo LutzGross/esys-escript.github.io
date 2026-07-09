@@ -14,11 +14,9 @@
                                 Includes
  ---------------------------------------------------------------------------*/
 #include "dictionary.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include "inistring.h"
+#define sc3_strcopy  ini_strcopy
+#define sc3_snprintf ini_snprintf
 
 /** Maximum value size for integers and doubles. */
 #define MAXVALSZ    1024
@@ -38,7 +36,7 @@
 static void * mem_double(void * ptr, int size)
 {
     void * newptr ;
- 
+
     newptr = calloc(2*size, 1);
     if (newptr==NULL) {
         return NULL ;
@@ -60,12 +58,14 @@ static void * mem_double(void * ptr, int size)
 /*--------------------------------------------------------------------------*/
 static char * xstrdup(const char * s)
 {
+    int lenp1 ;
     char * t ;
     if (!s)
         return NULL ;
-    t = (char*)malloc(strlen(s)+1) ;
+    lenp1 = strlen(s) + 1 ;
+    t = (char*)malloc(lenp1) ;
     if (t) {
-        strcpy(t,s);
+        sc3_strcopy(t,lenp1,s);
     }
     return t ;
 }
@@ -224,7 +224,7 @@ int dictionary_set(dictionary * d, const char * key, const char * val)
     unsigned    hash ;
 
     if (d==NULL || key==NULL) return -1 ;
-    
+
     /* Compute hash for this key */
     hash = dictionary_hash(key) ;
     /* Find if value is already in dictionary */
@@ -367,16 +367,16 @@ int main(int argc, char *argv[])
     /* Allocate dictionary */
     printf("allocating...\n");
     d = dictionary_new(0);
-    
+
     /* Set values in dictionary */
     printf("setting %d values...\n", NVALS);
     for (i=0 ; i<NVALS ; i++) {
-        sprintf(cval, "%04d", i);
+        sc3_snprintf (cval, 90, "%04d", i);
         dictionary_set(d, cval, "salut");
     }
     printf("getting %d values...\n", NVALS);
     for (i=0 ; i<NVALS ; i++) {
-        sprintf(cval, "%04d", i);
+        sc3_snprintf (cval, 90, "%04d", i);
         val = dictionary_get(d, cval, DICT_INVALID_KEY);
         if (val==DICT_INVALID_KEY) {
             printf("cannot get value for key [%s]\n", cval);
@@ -384,7 +384,7 @@ int main(int argc, char *argv[])
     }
     printf("unsetting %d values...\n", NVALS);
     for (i=0 ; i<NVALS ; i++) {
-        sprintf(cval, "%04d", i);
+        sc3_snprintf (cval, 90, "%04d", i);
         dictionary_unset(d, cval);
     }
     if (d->n != 0) {

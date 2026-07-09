@@ -143,6 +143,18 @@ sc_array_init_view (sc_array_t * view, sc_array_t * array, size_t offset,
 }
 
 void
+sc_array_init_reshape (sc_array_t * view, sc_array_t * array,
+                       size_t elem_size, size_t elem_count)
+{
+  SC_ASSERT (view != NULL);
+  SC_ASSERT (array != NULL);
+  SC_ASSERT (array->elem_size * array->elem_count == elem_size * elem_count);
+
+  /* create a view with the same memory content but different layout */
+  sc_array_init_data (view, array->array, elem_size, elem_count);
+}
+
+void
 sc_array_init_data (sc_array_t * view, void *base, size_t elem_size,
                     size_t elem_count)
 {
@@ -181,7 +193,7 @@ sc_array_truncate (sc_array_t * array)
 
 #if SC_ENABLE_DEBUG
   SC_ASSERT (array->byte_alloc >= 0);
-  memset (array->array, (char) -1, array->byte_alloc);
+  memset (array->array, -1, array->byte_alloc);
 #endif
 }
 
@@ -246,7 +258,7 @@ sc_array_resize (sc_array_t * array, size_t new_count)
   else {
 #ifdef SC_ENABLE_DEBUG
     if (newoffs < oldoffs) {
-      memset (array->array + newoffs, (char) -1, oldoffs - newoffs);
+      memset (array->array + newoffs, -1, oldoffs - newoffs);
     }
     for (i = oldoffs; i < newoffs; ++i) {
       SC_ASSERT (array->array[i] == (char) -1);
@@ -274,7 +286,7 @@ sc_array_resize (sc_array_t * array, size_t new_count)
 
 #ifdef SC_ENABLE_DEBUG
   SC_ASSERT (minoffs <= newsize);
-  memset (array->array + minoffs, (char) -1, newsize - minoffs);
+  memset (array->array + minoffs, -1, newsize - minoffs);
 #endif
 }
 
@@ -616,22 +628,23 @@ sc_array_permute (sc_array_t * array, sc_array_t * newindices, int keepperm)
   SC_FREE (temp);
 }
 
-unsigned
+unsigned int
 sc_array_checksum (sc_array_t * array)
 {
 #ifdef SC_HAVE_ZLIB
-  uInt                bytes;
-  uLong               crc;
+  /* these types have sufficient size for adler32 */
+  unsigned int        crc;
+  size_t              bytes;
 
-  crc = adler32 (0L, Z_NULL, 0);
+  crc = adler32 (0, Z_NULL, 0);
   if (array->elem_count == 0) {
-    return (unsigned) crc;
+    return crc;
   }
 
-  bytes = (uInt) (array->elem_count * array->elem_size);
+  bytes = array->elem_count * array->elem_size;
   crc = adler32 (crc, (const Bytef *) array->array, bytes);
 
-  return (unsigned) crc;
+  return crc;
 #else
   SC_ABORT ("Configure did not find a recent enough zlib.  Abort.\n");
 
@@ -858,33 +871,9 @@ size_t
 sc_mempool_memory_used (sc_mempool_t * mempool)
 {
   return sizeof (sc_mempool_t) +
-#ifdef SC_MEMPOOL_MSTAMP
     sc_mstamp_memory_used (&mempool->mstamp) +
-#else
-    obstack_memory_used (&mempool->obstack) +
-#endif
     sc_array_memory_used (&mempool->freed, 0);
 }
-
-#ifndef SC_MEMPOOL_MSTAMP
-
-static void        *
-sc_containers_malloc (size_t n)
-{
-  return sc_malloc (sc_package_id, n);
-}
-
-static void        *(*obstack_chunk_alloc) (size_t) = sc_containers_malloc;
-
-static void
-sc_containers_free (void *p)
-{
-  sc_free (sc_package_id, p);
-}
-
-static void         (*obstack_chunk_free) (void *) = sc_containers_free;
-
-#endif /* !SC_MEMPOOL_MSTAMP */
 
 /** This function is static; we do not like to expose _ext functions in libsc. */
 static void
@@ -895,11 +884,7 @@ sc_mempool_init_ext (sc_mempool_t * mempool, size_t elem_size,
   mempool->elem_count = 0;
   mempool->zero_and_persist = zero_and_persist;
 
-#ifdef SC_MEMPOOL_MSTAMP
   sc_mstamp_init (&mempool->mstamp, 4096, elem_size);
-#else
-  obstack_init (&mempool->obstack);
-#endif
   sc_array_init (&mempool->freed, sizeof (void *));
 }
 
@@ -916,7 +901,6 @@ sc_mempool_new_ext (size_t elem_size, int zero_and_persist)
   sc_mempool_t       *mempool;
 
   SC_ASSERT (elem_size > 0);
-  SC_ASSERT (elem_size <= (size_t) INT_MAX);    /* obstack limited to int */
 
   mempool = SC_ALLOC (sc_mempool_t, 1);
 
@@ -941,11 +925,7 @@ void
 sc_mempool_reset (sc_mempool_t * mempool)
 {
   sc_array_reset (&mempool->freed);
-#ifdef SC_MEMPOOL_MSTAMP
   sc_mstamp_reset (&mempool->mstamp);
-#else
-  obstack_free (&mempool->obstack, NULL);
-#endif
 }
 
 void
@@ -969,12 +949,7 @@ void
 sc_mempool_truncate (sc_mempool_t * mempool)
 {
   sc_array_reset (&mempool->freed);
-#ifdef SC_MEMPOOL_MSTAMP
   sc_mstamp_truncate (&mempool->mstamp);
-#else
-  obstack_free (&mempool->obstack, NULL);
-  obstack_init (&mempool->obstack);
-#endif
   mempool->elem_count = 0;
 }
 
@@ -1167,12 +1142,12 @@ sc_list_pop (sc_list_t * list)
 
 /* hash table routines */
 
-unsigned
+unsigned int
 sc_hash_function_string (const void *s, const void *u)
 {
   int                 j;
-  unsigned            h;
-  unsigned            a, b, c;
+  unsigned int        h;
+  unsigned int        a, b, c;
   const char         *sp = (const char *) s;
 
   j = 0;
@@ -1542,6 +1517,16 @@ sc_hash_print_statistics (int package_id, int log_priority, sc_hash_t * hash)
 
 /* hash array routines */
 
+struct sc_hash_array_data
+{
+  sc_hash_array_t     the_hash_array;
+  sc_array_t         *pa;
+  sc_hash_function_t  hash_fn;
+  sc_equal_function_t equal_fn;
+  sc_hash_foreach_t   foreach_fn;
+  void               *current_item;
+};
+
 size_t
 sc_hash_array_memory_used (sc_hash_array_t * ha)
 {
@@ -1549,18 +1534,18 @@ sc_hash_array_memory_used (sc_hash_array_t * ha)
     sc_array_memory_used (&ha->a, 0) + sc_hash_memory_used (ha->h);
 }
 
-static unsigned
+static unsigned int
 sc_hash_array_hash_fn (const void *v, const void *u)
 {
   const sc_hash_array_data_t *internal_data =
     (const sc_hash_array_data_t *) u;
-  long                l = (long) v;
+  ssize_t             l = (ssize_t) v;
   void               *p;
 
   p = (l == -1L) ? internal_data->current_item :
-    sc_array_index_long (internal_data->pa, l);
+    sc_array_index_ssize_t (internal_data->pa, l);
 
-  return internal_data->hash_fn (p, internal_data->user_data);
+  return internal_data->hash_fn (p, internal_data->the_hash_array.user_data);
 }
 
 static int
@@ -1568,16 +1553,17 @@ sc_hash_array_equal_fn (const void *v1, const void *v2, const void *u)
 {
   const sc_hash_array_data_t *internal_data =
     (const sc_hash_array_data_t *) u;
-  long                l1 = (long) v1;
-  long                l2 = (long) v2;
+  ssize_t             l1 = (ssize_t) v1;
+  ssize_t             l2 = (ssize_t) v2;
   void               *p1, *p2;
 
   p1 = (l1 == -1L) ? internal_data->current_item :
-    sc_array_index_long (internal_data->pa, l1);
+    sc_array_index_ssize_t (internal_data->pa, l1);
   p2 = (l2 == -1L) ? internal_data->current_item :
-    sc_array_index_long (internal_data->pa, l2);
+    sc_array_index_ssize_t (internal_data->pa, l2);
 
-  return internal_data->equal_fn (p1, p2, internal_data->user_data);
+  return internal_data->equal_fn
+    (p1, p2, internal_data->the_hash_array.user_data);
 }
 
 sc_hash_array_t    *
@@ -1585,17 +1571,21 @@ sc_hash_array_new (size_t elem_size, sc_hash_function_t hash_fn,
                    sc_equal_function_t equal_fn, void *user_data)
 {
   sc_hash_array_t    *hash_array;
+  sc_hash_array_data_t *had;
 
-  hash_array = SC_ALLOC (sc_hash_array_t, 1);
+  /* save one allocation by storing the hash array inside its context */
+  had = SC_ALLOC_ZERO (sc_hash_array_data_t, 1);
+  hash_array = &had->the_hash_array;
+  hash_array->user_data = user_data;
+  hash_array->internal_data = had;
 
+  /* initialize all members */
   sc_array_init (&hash_array->a, elem_size);
-  hash_array->internal_data.pa = &hash_array->a;
-  hash_array->internal_data.hash_fn = hash_fn;
-  hash_array->internal_data.equal_fn = equal_fn;
-  hash_array->internal_data.user_data = user_data;
-  hash_array->internal_data.current_item = NULL;
+  had->pa = &hash_array->a;
+  had->hash_fn = hash_fn;
+  had->equal_fn = equal_fn;
   hash_array->h = sc_hash_new (sc_hash_array_hash_fn, sc_hash_array_equal_fn,
-                               &hash_array->internal_data, NULL);
+                               had, NULL);
 
   return hash_array;
 }
@@ -1606,7 +1596,8 @@ sc_hash_array_destroy (sc_hash_array_t * hash_array)
   sc_hash_destroy (hash_array->h);
   sc_array_reset (&hash_array->a);
 
-  SC_FREE (hash_array);
+  /* the hash_array memory lives as part of internal data */
+  SC_FREE (hash_array->internal_data);
 }
 
 int
@@ -1615,6 +1606,12 @@ sc_hash_array_is_valid (sc_hash_array_t * hash_array)
   int                 found;
   size_t              zz, position;
   void               *v;
+
+  SC_ASSERT (hash_array != NULL);
+
+  if (hash_array->a.elem_count != hash_array->h->elem_count) {
+    return 0;
+  }
 
   for (zz = 0; zz < hash_array->a.elem_count; ++zz) {
     v = sc_array_index (&hash_array->a, zz);
@@ -1635,15 +1632,20 @@ sc_hash_array_truncate (sc_hash_array_t * hash_array)
 }
 
 int
-sc_hash_array_lookup (sc_hash_array_t * hash_array, void *v,
-                      size_t * position)
+sc_hash_array_lookup (sc_hash_array_t * hash_array, void *v, size_t *position)
 {
   int                 found;
   void              **found_void;
 
-  hash_array->internal_data.current_item = v;
+  /* verify general invariant */
+  SC_ASSERT (hash_array != NULL);
+  SC_ASSERT (hash_array->a.elem_count == hash_array->h->elem_count);
+  SC_ASSERT (hash_array->internal_data->foreach_fn == NULL);
+  SC_ASSERT (hash_array->internal_data->current_item == NULL);
+
+  hash_array->internal_data->current_item = v;
   found = sc_hash_lookup (hash_array->h, (void *) (-1L), &found_void);
-  hash_array->internal_data.current_item = NULL;
+  hash_array->internal_data->current_item = NULL;
 
   if (found) {
     if (position != NULL) {
@@ -1658,16 +1660,20 @@ sc_hash_array_lookup (sc_hash_array_t * hash_array, void *v,
 
 void               *
 sc_hash_array_insert_unique (sc_hash_array_t * hash_array, void *v,
-                             size_t * position)
+                             size_t *position)
 {
   int                 added;
   void              **found_void;
 
+  /* verify general invariant */
+  SC_ASSERT (hash_array != NULL);
   SC_ASSERT (hash_array->a.elem_count == hash_array->h->elem_count);
+  SC_ASSERT (hash_array->internal_data->foreach_fn == NULL);
+  SC_ASSERT (hash_array->internal_data->current_item == NULL);
 
-  hash_array->internal_data.current_item = v;
+  hash_array->internal_data->current_item = v;
   added = sc_hash_insert_unique (hash_array->h, (void *) (-1L), &found_void);
-  hash_array->internal_data.current_item = NULL;
+  hash_array->internal_data->current_item = NULL;
 
   if (added) {
     if (position != NULL) {
@@ -1682,6 +1688,37 @@ sc_hash_array_insert_unique (sc_hash_array_t * hash_array, void *v,
     }
     return NULL;
   }
+}
+
+static int
+sc_hash_array_foreach_fn (void **v, const void *u)
+{
+  const sc_hash_array_data_t *internal_data =
+    (const sc_hash_array_data_t *) u;
+
+  SC_ASSERT (internal_data != NULL);
+  SC_ASSERT (internal_data->foreach_fn != NULL);
+
+  return internal_data->foreach_fn
+    (v, internal_data->the_hash_array.user_data);
+}
+
+void
+sc_hash_array_foreach (sc_hash_array_t * hash_array, sc_hash_foreach_t fn)
+{
+  /* verify general invariant */
+  SC_ASSERT (hash_array != NULL);
+  SC_ASSERT (hash_array->a.elem_count == hash_array->h->elem_count);
+  SC_ASSERT (hash_array->internal_data->foreach_fn == NULL);
+  SC_ASSERT (hash_array->internal_data->current_item == NULL);
+
+  /* verify remaining input arguments */
+  SC_ASSERT (fn != NULL);
+
+  /* rely on internal hash table's foreach function */
+  hash_array->internal_data->foreach_fn = fn;
+  sc_hash_foreach (hash_array->h, sc_hash_array_foreach_fn);
+  hash_array->internal_data->foreach_fn = NULL;
 }
 
 void
@@ -1715,7 +1752,7 @@ sc_recycle_array_reset (sc_recycle_array_t * rec_array)
 }
 
 void               *
-sc_recycle_array_insert (sc_recycle_array_t * rec_array, size_t * position)
+sc_recycle_array_insert (sc_recycle_array_t * rec_array, size_t *position)
 {
   size_t              newpos;
   void               *newitem;

@@ -24,7 +24,9 @@
 
 /** \file p8est_ghost.h
  *
- * passing quadrants and data to neighboring processes
+ * Passing quadrants and data to neighboring processes.
+ *
+ * See also the page \ref ghost for general information.
  *
  * \ingroup p8est
  */
@@ -32,25 +34,29 @@
 #ifndef P8EST_GHOST_H
 #define P8EST_GHOST_H
 
-#include "p8est.h"
+#include <p8est.h>
 
 SC_EXTERN_C_BEGIN;
 
-/** quadrants that neighbor the local domain */
-typedef struct
+/** Quadrants that neighbor the local domain.
+ *
+ * See also the page \ref ghost for general information.
+ */
+typedef struct p8est_ghost
 {
-  int                 mpisize;
-  p4est_topidx_t      num_trees;
+  int                 mpisize; /**< MPI size of the ghost */
+  p4est_topidx_t      num_trees; /**< number of trees of the ghost */
   p8est_connect_type_t btype; /**< which neighbors are in the ghost layer */
 
-  /** An array of quadrants which make up the ghost layer around \a
-   * p4est.  Their piggy3 data member is filled with their owner's tree
-   * and local number (cumulative over trees).  Quadrants are ordered in \c
-   * p8est_quadrant_compare_piggy order.  These are quadrants inside the
-   * neighboring tree, i.e., \c p8est_quadrant_is_inside() is true for the
-   * quadrant and the neighboring tree.
+  /** An array of \ref p8est_quadrant_t quadrants which make up the ghost layer
+   * around \b p8est.  Their piggy3 (cf. \ref
+   * p8est_quadrant::p8est_quadrant_data) data member is filled with their
+   * owner's tree and local number (cumulative over trees).  Quadrants are
+   * ordered in \ref p8est_quadrant_compare_piggy order. These are quadrants
+   * inside the neighboring tree, i.e., \c p8est_quadrant_is_inside is true for
+   * the quadrant and the neighboring tree.
    */
-  sc_array_t          ghosts; /**< array of p8est_quadrant_t type */
+  sc_array_t          ghosts;
   p4est_locidx_t     *tree_offsets;     /**< num_trees + 1 ghost indices */
   p4est_locidx_t     *proc_offsets;     /**< mpisize + 1 ghost indices */
 
@@ -58,7 +64,7 @@ typedef struct
    * inside, i.e., that are ghosts in the perspective of at least one other
    * processor.  The storage convention is the same as for \c ghosts above.
    */
-  sc_array_t          mirrors; /**< array of p4est_quadrant_t type */
+  sc_array_t          mirrors;
   p4est_locidx_t     *mirror_tree_offsets;      /**< num_trees + 1 mirror indices */
   p4est_locidx_t     *mirror_proc_mirrors;      /**< indices into mirrors grouped by
                                                    outside processor rank and
@@ -69,17 +75,17 @@ typedef struct
                                                    but limited to the
                                                    outermost octants.  This is
                                                    NULL until
-                                                   p4est_ghost_expand is
+                                                   p8est_ghost_expand is
                                                    called */
   p4est_locidx_t     *mirror_proc_front_offsets;        /**< NULL until
-                                                           p4est_ghost_expand is
+                                                           p8est_ghost_expand is
                                                            called */
 }
 p8est_ghost_t;
 
-/** Examine if a ghost structure is valid as desribed above.
+/** Examine if a ghost structure is valid as described above.
  * Test if within a ghost-structure the arrays ghosts and mirrors are in
- * p4est_quadrant_compare_piggy order.
+ * p8est_quadrant_compare_piggy order.
  * Test if local_num in piggy3 data member of the quadrants in ghosts and
  * mirrors are in ascending order (ascending within each rank for ghost).
  *
@@ -129,6 +135,17 @@ int                 p8est_quadrant_find_owner (p8est_t * p8est,
  */
 p8est_ghost_t      *p8est_ghost_new (p8est_t * p8est,
                                      p8est_connect_type_t btype);
+
+/** Generate an empty ghost layer.
+ * This ghost layer pretends that there are no parallel neighbor elements.
+ * It is useful if general algorithms should be run with local data only.
+ * \param [in] p8est    Valid forest.
+ * \param [in] ctype    Ghosts to include (none, across face, face/corner).
+ *                      This variable must be valid but has no effect.
+ * \return              Valid ghost layer of zero ghost elements.
+ */
+p8est_ghost_t      *p8est_ghost_new_local (p8est_t * p8est,
+                                           p8est_connect_type_t ctype);
 
 /** Frees all memory used for the ghost layer. */
 void                p8est_ghost_destroy (p8est_ghost_t * ghost);
@@ -193,7 +210,7 @@ p4est_locidx_t      p8est_face_quadrant_exists (p8est_t * p8est,
  * For quadrants across tree corners it checks if the quadrant exists
  * in any of the corner neighbors, thus it can execute multiple queries.
  *
- * \param [in]  p4est        The forest in which to search for \a q
+ * \param [in]  p8est        The forest in which to search for \a q
  * \param [in]  ghost        The ghost layer in which to search for \a q
  * \param [in]  treeid       The tree to which \a q belongs (can be extended).
  * \param [in]  q            The quadrant that is being searched for.
@@ -247,23 +264,27 @@ unsigned            p8est_ghost_checksum (p8est_t * p8est,
  *                              0, must at least hold sizeof (void *) bytes for
  *                              each, otherwise p8est->data_size each.
  */
-void                p8est_ghost_exchange_data (p8est_t * p4est,
+void                p8est_ghost_exchange_data (p8est_t * p8est,
                                                p8est_ghost_t * ghost,
                                                void *ghost_data);
 
 /** Transient storage for asynchronous ghost exchange. */
 typedef struct p8est_ghost_exchange
 {
-  int                 is_custom;        /**< False for p4est_ghost_exchange_data */
+  int                 is_custom;        /**< False for p8est_ghost_exchange_data */
   int                 is_levels;        /**< Are we restricted to levels or not */
-  p8est_t            *p4est;
-  p8est_ghost_t      *ghost;
-  int                 minlevel, maxlevel;       /**< Meaningful with is_levels */
-  size_t              data_size;
-  void               *ghost_data;
-  int                *qactive, *qbuffer;
-  sc_array_t          requests, sbuffers;
-  sc_array_t          rrequests, rbuffers;
+  p8est_t            *p4est;            /**< The forest used for reference */
+  p8est_ghost_t      *ghost;            /**< The ghost layer used for reference */
+  int                 minlevel;         /**< Meaningful with is_levels */
+  int                 maxlevel;         /**< Meaningful with is_levels */
+  size_t              data_size;        /**< The data size to transfer per quadrant */
+  void               *ghost_data;       /**< Allocated contiguous array for ghost data */
+  int                *qactive;          /**< p4est->mpisize many integers */
+  int                *qbuffer;          /**< p4est->mpisize many integers */
+  sc_array_t          requests;         /**< Array of send requests */
+  sc_array_t          sbuffers;         /**< Array of send buffers */
+  sc_array_t          rrequests;        /**< Array of receive requests */
+  sc_array_t          rbuffers;         /**< Array of receive buffers */
 }
 p8est_ghost_exchange_t;
 
@@ -272,16 +293,18 @@ p8est_ghost_exchange_t;
  * The return type is always non-NULL and must be passed to
  * p8est_ghost_exchange_data_end to complete the exchange.
  * The ghost data must not be accessed before completion.
+ * \param [in] p8est            The forest used for reference.
+ * \param [in] ghost            The ghost layer used for reference.
  * \param [in,out]  ghost_data  Must stay alive into the completion call.
  * \return          Transient storage for messages in progress.
  */
 p8est_ghost_exchange_t *p8est_ghost_exchange_data_begin
-  (p8est_t * p4est, p8est_ghost_t * ghost, void *ghost_data);
+  (p8est_t * p8est, p8est_ghost_t * ghost, void *ghost_data);
 
 /** Complete an asynchronous ghost data exchange.
  * This function waits for all pending MPI communications.
- * \param [in,out]  Data created ONLY by p8est_ghost_exchange_data_begin.
- *                  It is deallocated before this function returns.
+ * \param [in,out]  exc Created ONLY by p8est_ghost_exchange_data_begin.
+ *                      It is deallocated before this function returns.
  */
 void                p8est_ghost_exchange_data_end
   (p8est_ghost_exchange_t * exc);
@@ -296,7 +319,7 @@ void                p8est_ghost_exchange_data_end
  *                              in sequence, which must hold at least \c
  *                              data_size for each ghost.
  */
-void                p8est_ghost_exchange_custom (p8est_t * p4est,
+void                p8est_ghost_exchange_custom (p8est_t * p8est,
                                                  p8est_ghost_t * ghost,
                                                  size_t data_size,
                                                  void **mirror_data,
@@ -309,17 +332,20 @@ void                p8est_ghost_exchange_custom (p8est_t * p4est,
  * The ghost data must not be accessed before completion.
  * The mirror data can be safely discarded right after this function returns
  * since it is copied into internal send buffers.
+ * \param [in]      p8est       The forest used for reference.
+ * \param [in]      ghost       The ghost layer used for reference.
+ * \param [in]      data_size   The data size to transfer per quadrant.
  * \param [in]      mirror_data Not required to stay alive any longer.
  * \param [in,out]  ghost_data  Must stay alive into the completion call.
  * \return          Transient storage for messages in progress.
  */
 p8est_ghost_exchange_t *p8est_ghost_exchange_custom_begin
-  (p8est_t * p4est, p8est_ghost_t * ghost,
+  (p8est_t * p8est, p8est_ghost_t * ghost,
    size_t data_size, void **mirror_data, void *ghost_data);
 
 /** Complete an asynchronous ghost data exchange.
  * This function waits for all pending MPI communications.
- * \param [in,out]  Data created ONLY by p8est_ghost_exchange_custom_begin.
+ * \param [in,out]  exc created ONLY by p8est_ghost_exchange_custom_begin.
  *                  It is deallocated before this function returns.
  */
 void                p8est_ghost_exchange_custom_end
@@ -329,7 +355,7 @@ void                p8est_ghost_exchange_custom_end
  * The data size is the same for all quadrants and can be chosen arbitrarily.
  * This function restricts the transfer to a range of refinement levels.
  * The memory for quadrants outside the level range is not dereferenced.
- * \param [in] p4est            The forest used for reference.
+ * \param [in] p8est            The forest used for reference.
  * \param [in] ghost            The ghost layer used for reference.
  * \param [in] minlevel         Level of the largest quads to be exchanged.
  *                              Use <= 0 for no restriction.
@@ -356,17 +382,24 @@ void                p8est_ghost_exchange_custom_levels (p8est_t * p8est,
  * The ghost data must not be accessed before completion.
  * The mirror data can be safely discarded right after this function returns
  * since it is copied into internal send buffers.
+ * \param [in]      p8est       The forest used for reference.
+ * \param [in]      ghost       The ghost layer used for reference.
+ * \param [in]      minlevel    Level of the largest quads to be exchanged.
+ *                              Use <= 0 for no restriction.
+ * \param [in]      maxlevel    Level of the smallest quads to be exchanged.
+ *                              Use >= P8EST_QMAXLEVEL for no restriction.
+ * \param [in]      data_size   The data size to transfer per quadrant.
  * \param [in]      mirror_data Not required to stay alive any longer.
  * \param [in,out]  ghost_data  Must stay alive into the completion call.
  * \return          Transient storage for messages in progress.
  */
 p8est_ghost_exchange_t *p8est_ghost_exchange_custom_levels_begin
-  (p8est_t * p4est, p8est_ghost_t * ghost, int minlevel, int maxlevel,
+  (p8est_t * p8est, p8est_ghost_t * ghost, int minlevel, int maxlevel,
    size_t data_size, void **mirror_data, void *ghost_data);
 
 /** Complete an asynchronous ghost data exchange.
  * This function waits for all pending MPI communications.
- * \param [in,out]  Data created ONLY by p8est_ghost_exchange_custom_levels_begin.
+ * \param [in,out]  exc created ONLY by p8est_ghost_exchange_custom_levels_begin.
  *                  It is deallocated before this function returns.
  */
 void                p8est_ghost_exchange_custom_levels_end
