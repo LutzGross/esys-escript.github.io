@@ -19,6 +19,7 @@
 #include <oxley/Oxley.h>
 #include <oxley/OxleyException.h>
 #include <oxley/AbstractAssembler.h>
+#include <oxley/MeshAccess.h>
 #include <oxley/domainhelpers.h>
 #include <oxley/tictoc.h>
 
@@ -34,6 +35,7 @@
 #endif
 
 #include <boost/python/tuple.hpp>
+#include <boost/python/dict.hpp>
 #include <boost/python/to_python_converter.hpp>
 
 #ifdef ESYS_HAVE_TRILINOS
@@ -899,9 +901,21 @@ protected:
     /// returns the number of face elements on current MPI rank
     virtual dim_t getNumFaceElements() const = 0;
 
-    #ifdef ESYS_HAVE_BOOST_NUMPY    
+    #ifdef ESYS_HAVE_BOOST_NUMPY
       virtual boost::python::numpy::ndarray getNumpyX() const;
     #endif
+
+    /// returns an lnodes-based, p4est-independent view of the mesh (see MeshAccess).
+    /// This is the single public description of the mesh topology consumed by
+    /// output and (later) assembly; the node numbering stays inside the domain.
+    virtual MeshAccess getMeshAccess() const = 0;
+
+public:
+    #ifdef ESYS_HAVE_BOOST_NUMPY
+      /// Python view of getMeshAccess(): a dict of scalars and numpy arrays.
+      boost::python::dict getMeshInfo() const;
+    #endif
+protected:
 
     // Tagmap
     TagMap m_tagMap;

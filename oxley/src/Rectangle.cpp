@@ -2944,6 +2944,58 @@ inline dim_t Rectangle::getNumElements() const
     return numElements;
 }
 
+MeshAccess Rectangle::getMeshAccess() const
+{
+    MeshAccess m;
+    m.numDim = 2;
+    m.nodesPerElement = nodes->vnodes;                 // 4 for degree 1
+    m.numNodes = nodes->num_local_nodes;
+    m.numOwnedNodes = nodes->owned_count;
+    m.numElements = nodes->num_local_elements;
+    m.globalNodeOffset = (long) nodes->global_offset;
+
+    m.nodeCoords.assign((size_t) m.numNodes * m.numDim, 0.0);
+    m.nodeGlobalId.resize(m.numNodes);
+    m.elementNodes.resize((size_t) m.numElements * m.nodesPerElement);
+    m.elementTags.resize(m.numElements);
+
+    // global node ids: owned nodes are contiguous from global_offset, ghost
+    // nodes carry their explicit global id in nonlocal_nodes.
+    for (long i = 0; i < m.numOwnedNodes; ++i)
+        m.nodeGlobalId[i] = m.globalNodeOffset + i;
+    for (long i = m.numOwnedNodes; i < m.numNodes; ++i)
+        m.nodeGlobalId[i] = (long) nodes->nonlocal_nodes[i - m.numOwnedNodes];
+
+    // walk the leaves in lnodes element order, filling connectivity, tags and
+    // (deduplicated by node index) coordinates.
+    const int V = m.nodesPerElement;
+    long e = 0;
+    for (p4est_topidx_t treeid = p4est->first_local_tree;
+         treeid <= p4est->last_local_tree; ++treeid) {
+        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+        sc_array_t * quads = &tree->quadrants;
+        const p4est_locidx_t Q = (p4est_locidx_t) quads->elem_count;
+        for (p4est_locidx_t q = 0; q < Q; ++q, ++e) {
+            p4est_quadrant_t * quad = p4est_quadrant_array_index(quads, q);
+            const quadrantData * qd = (const quadrantData *) quad->p.user_data;
+            m.elementTags[e] = qd ? qd->quadTag : 0;
+            const p4est_qcoord_t len = P4EST_QUADRANT_LEN(quad->level);
+            for (int c = 0; c < V; ++c) {
+                const long ni = (long) nodes->element_nodes[(size_t) e * V + c];
+                m.elementNodes[(size_t) e * V + c] = ni;
+                const int cx = c & 1;          // z-order corner: bit0=x, bit1=y
+                const int cy = (c >> 1) & 1;
+                double xy[3] = {0., 0., 0.};
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid,
+                                       quad->x + cx * len, quad->y + cy * len, xy);
+                m.nodeCoords[(size_t) ni * m.numDim + 0] = xy[0];
+                m.nodeCoords[(size_t) ni * m.numDim + 1] = xy[1];
+            }
+        }
+    }
+    return m;
+}
+
 //protected
 dim_t Rectangle::getNumFaceElements() const
 {

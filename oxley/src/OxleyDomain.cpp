@@ -11,6 +11,7 @@
 *
 *****************************************************************************/
 
+#include <cstring>
 #include <string>
 #include <typeinfo>
 
@@ -3038,6 +3039,50 @@ void OxleyDomain::updateMeshInformation()
 boost::python::numpy::ndarray OxleyDomain::getNumpyX() const
 {
     return continuousFunction(*this).getNumpyX();
+}
+
+boost::python::dict OxleyDomain::getMeshInfo() const
+{
+    namespace bp = boost::python;
+    namespace np = boost::python::numpy;
+
+    const MeshAccess m = getMeshAccess();
+    const np::dtype f64 = np::dtype::get_builtin<double>();
+    const np::dtype i64 = np::dtype::get_builtin<long>();
+
+    np::ndarray nodeCoords = np::zeros(bp::make_tuple(m.numNodes, m.numDim), f64);
+    if (!m.nodeCoords.empty())
+        std::memcpy(nodeCoords.get_data(), m.nodeCoords.data(),
+                    m.nodeCoords.size() * sizeof(double));
+
+    np::ndarray nodeGlobalId = np::zeros(bp::make_tuple(m.numNodes), i64);
+    if (!m.nodeGlobalId.empty())
+        std::memcpy(nodeGlobalId.get_data(), m.nodeGlobalId.data(),
+                    m.nodeGlobalId.size() * sizeof(long));
+
+    np::ndarray elementNodes = np::zeros(
+            bp::make_tuple(m.numElements, m.nodesPerElement), i64);
+    if (!m.elementNodes.empty())
+        std::memcpy(elementNodes.get_data(), m.elementNodes.data(),
+                    m.elementNodes.size() * sizeof(long));
+
+    np::ndarray elementTags = np::zeros(bp::make_tuple(m.numElements), i64);
+    if (!m.elementTags.empty())
+        std::memcpy(elementTags.get_data(), m.elementTags.data(),
+                    m.elementTags.size() * sizeof(long));
+
+    bp::dict d;
+    d["numDim"] = m.numDim;
+    d["nodesPerElement"] = m.nodesPerElement;
+    d["numNodes"] = m.numNodes;
+    d["numOwnedNodes"] = m.numOwnedNodes;
+    d["numElements"] = m.numElements;
+    d["globalNodeOffset"] = m.globalNodeOffset;
+    d["nodeCoords"] = nodeCoords;
+    d["nodeGlobalId"] = nodeGlobalId;
+    d["elementNodes"] = elementNodes;
+    d["elementTags"] = elementTags;
+    return d;
 }
 #endif
 

@@ -38,6 +38,7 @@ headers = """
     DefaultAssembler3D.h
     domainhelpers.h
     InitAlgorithms.h
+    MeshAccess.h
     Rectangle.h
     system_dep.h
     OtherAlgorithms.h

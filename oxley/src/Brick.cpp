@@ -6734,6 +6734,61 @@ inline dim_t Brick::getNumElements() const
     return nodes->num_local_elements;
 }
 
+MeshAccess Brick::getMeshAccess() const
+{
+    MeshAccess m;
+    m.numDim = 3;
+    m.nodesPerElement = nodes->vnodes;                 // 8 for degree 1
+    m.numNodes = nodes->num_local_nodes;
+    m.numOwnedNodes = nodes->owned_count;
+    m.numElements = nodes->num_local_elements;
+    m.globalNodeOffset = (long) nodes->global_offset;
+
+    m.nodeCoords.assign((size_t) m.numNodes * m.numDim, 0.0);
+    m.nodeGlobalId.resize(m.numNodes);
+    m.elementNodes.resize((size_t) m.numElements * m.nodesPerElement);
+    m.elementTags.resize(m.numElements);
+
+    // global node ids: owned nodes are contiguous from global_offset, ghost
+    // nodes carry their explicit global id in nonlocal_nodes.
+    for (long i = 0; i < m.numOwnedNodes; ++i)
+        m.nodeGlobalId[i] = m.globalNodeOffset + i;
+    for (long i = m.numOwnedNodes; i < m.numNodes; ++i)
+        m.nodeGlobalId[i] = (long) nodes->nonlocal_nodes[i - m.numOwnedNodes];
+
+    // walk the leaves in lnodes element order, filling connectivity, tags and
+    // (deduplicated by node index) coordinates.
+    const int V = m.nodesPerElement;
+    long e = 0;
+    for (p4est_topidx_t treeid = p8est->first_local_tree;
+         treeid <= p8est->last_local_tree; ++treeid) {
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * octs = &tree->quadrants;
+        const p4est_locidx_t Q = (p4est_locidx_t) octs->elem_count;
+        for (p4est_locidx_t q = 0; q < Q; ++q, ++e) {
+            p8est_quadrant_t * oct = p8est_quadrant_array_index(octs, q);
+            const octantData * od = (const octantData *) oct->p.user_data;
+            m.elementTags[e] = od ? od->octantTag : 0;
+            const p4est_qcoord_t len = P8EST_QUADRANT_LEN(oct->level);
+            for (int c = 0; c < V; ++c) {
+                const long ni = (long) nodes->element_nodes[(size_t) e * V + c];
+                m.elementNodes[(size_t) e * V + c] = ni;
+                const int cx = c & 1;          // z-order corner: bit0=x,bit1=y,bit2=z
+                const int cy = (c >> 1) & 1;
+                const int cz = (c >> 2) & 1;
+                double xyz[3] = {0., 0., 0.};
+                p8est_qcoord_to_vertex(p8est->connectivity, treeid,
+                                       oct->x + cx * len, oct->y + cy * len,
+                                       oct->z + cz * len, xyz);
+                m.nodeCoords[(size_t) ni * m.numDim + 0] = xyz[0];
+                m.nodeCoords[(size_t) ni * m.numDim + 1] = xyz[1];
+                m.nodeCoords[(size_t) ni * m.numDim + 2] = xyz[2];
+            }
+        }
+    }
+    return m;
+}
+
 //protected
 dim_t Brick::getNumFaceElements() const
 {

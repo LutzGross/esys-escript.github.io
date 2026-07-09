@@ -344,6 +344,12 @@ BOOST_PYTHON_MODULE(oxleycpp)
             ":param symmetry:\n:type symmetry: ``int``")
         .def("getX",&oxley::OxleyDomain::getX, ":return: locations in the FEM nodes\n\n"
             ":rtype: `Data`")
+        #ifdef ESYS_HAVE_BOOST_NUMPY
+        .def("getMeshInfo",&oxley::OxleyDomain::getMeshInfo,
+            "Returns an lnodes-based view of the mesh (node coordinates, global ids,\n"
+            "element-to-node connectivity and element tags) as a dict of numpy arrays.\n\n"
+            ":rtype: ``dict``")
+        #endif
         #ifdef ESYS_HAVE_TRILINOS
         .def("makeZ",&oxley::OxleyDomain::makeZ, arg("complex"), "creates the matrix Z")
         .def("makeIZ",&oxley::OxleyDomain::makeIZ, arg("complex"), "creates the matrix IZ")

@@ -509,6 +509,12 @@ protected:
 
     /**
        \brief
+       Returns an lnodes-based, p4est-independent view of the mesh.
+    */
+    virtual MeshAccess getMeshAccess() const;
+
+    /**
+       \brief
        Returns the number of face elements
     */
     dim_t getNumFaceElements() const;
