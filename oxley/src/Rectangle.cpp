@@ -78,15 +78,20 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order,
     double x1, double y1,
     const std::vector<double>& points,
     const std::vector<int>& tags,
-    const TagMap& tagnamestonums):
+    const TagMap& tagnamestonums,
+    int refine_level):
     OxleyDomain(2, order, jmpi){
 
     // MPI communicator passed to base class constructor
     // Caller is responsible for ensuring MPI is initialized
 
-    // Possible error: User passes invalid values for the dimensions
+    // n0/n1 are the number of BLOCKS (p4est trees) per axis; refine_level is the
+    // uniform subdivision applied to every block, so the base mesh has
+    // n0*2^refine_level by n1*2^refine_level elements.
     if(n0 <= 0 || n1 <= 0)
-        throw OxleyException("Number of elements in each spatial dimension must be positive");
+        throw OxleyException("Number of blocks in each spatial dimension must be positive");
+    if(refine_level < 0)
+        throw OxleyException("refine_level must be non-negative");
 
 #ifdef ESYS_HAVE_TRILINOS
     initZ(true);
@@ -107,9 +112,11 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order,
         std::cout << "OK" << std::endl;
 #endif
 
-    // Create a p4est - use the custom communicator
+    // Create a p4est - use the custom communicator.
+    // fill_uniform + min_level=refine_level builds a uniform base mesh where every
+    // block is subdivided refine_level times.
     p4est_locidx_t min_quadrants = n0*n1;
-    int min_level = 0;
+    int min_level = refine_level;
     int fill_uniform = 1;
 
     p4est = p4est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,

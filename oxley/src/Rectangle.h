@@ -70,7 +70,7 @@ public:
     Rectangle(escript::JMPI jmpi, int order, dim_t n0, dim_t n1,
         double x0, double y0, double x1, double y1,
         const std::vector<double>& points, const std::vector<int>& tags,
-        const TagMap& tagnamestonums);
+        const TagMap& tagnamestonums, int refine_level=0);
 
     /**
        \brief creates a rectangular mesh from numpy arrays [x,y].

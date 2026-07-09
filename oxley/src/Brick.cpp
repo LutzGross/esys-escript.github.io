@@ -74,7 +74,8 @@ Brick::Brick(escript::JMPI jmpi, int order,
     double x1, double y1, double z1,
     const std::vector<double>& points,
     const std::vector<int>& tags,
-    const TagMap& tagnamestonums):
+    const TagMap& tagnamestonums,
+    int refine_level):
     OxleyDomain(3, order, jmpi)
 {
 
@@ -83,9 +84,12 @@ Brick::Brick(escript::JMPI jmpi, int order,
     // MPI communicator passed to base class constructor
     // Caller is responsible for ensuring MPI is initialized
 
-    // Possible error: User passes invalid values for the dimensions
+    // n0/n1/n2 are the number of BLOCKS (p8est trees) per axis; refine_level is the
+    // uniform subdivision applied to every block.
     if(n0 <= 0 || n1 <= 0 || n2 <= 0)
-        throw OxleyException("Number of elements in each spatial dimension must be positive");
+        throw OxleyException("Number of blocks in each spatial dimension must be positive");
+    if(refine_level < 0)
+        throw OxleyException("refine_level must be non-negative");
 
     // Domain decomposition across MPI ranks is handled by p4est/p8est (see
     // p4est_partition below), not by a Cartesian d0 x d1 x d2 block grid.
@@ -106,9 +110,11 @@ Brick::Brick(escript::JMPI jmpi, int order,
     // create the forestdata
     forestData = new p8estData;
 
-    // Create the p8est - use the custom communicator
+    // Create the p8est - use the custom communicator.
+    // fill_uniform + min_level=refine_level builds a uniform base mesh where every
+    // block is subdivided refine_level times.
     p8est_locidx_t min_quadrants = n0*n1*n2;
-    int min_level = 0;
+    int min_level = refine_level;
     int fill_uniform = 1;
     oxleytimer.toc("\t creating p8est...");
     p8est = p8est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
