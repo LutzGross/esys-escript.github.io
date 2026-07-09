@@ -67,238 +67,6 @@ namespace bp = boost::python;
 
 namespace oxley {
 
-    /**
-       \brief
-       OLD Constructor - DEPRECATED - Uses sc_MPI_COMM_WORLD which violates the rule that
-       mpiInfo must be handed over from the caller, not created internally.
-       This constructor is not used - all code uses the JMPI-based constructor below.
-    */
-#if 0
-Rectangle::Rectangle(int order,
-    dim_t n0, dim_t n1,
-    double x0, double y0,
-    double x1, double y1,
-    int d0, int d1,
-    const std::vector<double>& points,
-    const std::vector<int>& tags,
-    const TagMap& tagnamestonums,
-    int periodic0, int periodic1):
-    OxleyDomain(2, order, escript::makeInfo(sc_MPI_COMM_WORLD)){
-
-    // makeInfo called in base class constructor
-
-    // Possible error: User passes invalid values for the dimensions
-    if(n0 <= 0 || n1 <= 0)
-        throw OxleyException("Number of elements in each spatial dimension must be positive");
-
-#ifdef ESYS_HAVE_TRILINOS
-    initZ(true);
-    initIZ(true);
-#endif //ESYS_HAVE_TRILINOS
-
-    // Ignore d0 and d1 if we are running in serial
-    if(m_mpiInfo->size == 1) {
-        d0=1;
-        d1=1;
-    }
-
-    // If the user did not set the number of divisions manually
-    if(d0 == -1 && d1 == -1)
-    {
-        d0 = m_mpiInfo->size < 3 ? 1 : m_mpiInfo->size / 3;
-        d1 = m_mpiInfo->size / d0;
-
-        if(d0*d1 != m_mpiInfo->size)
-            throw OxleyException("Could not find values for d0, d1 and d2. Please set them manually.");
-    }
-
-    // Create the connectivity
-    // const p4est_topidx_t num_vertices = (n0+1)*(n1+1);
-    // const p4est_topidx_t num_trees = n0*n1;
-    // const p4est_topidx_t num_corners = (n0-1)*(n1-1);
-    // const double vertices[P4EST_CHILDREN * 3] = {
-    //                                             x0, y0, 0,
-    //                                             x1, y0, 0,
-    //                                             x0, y1, 0,
-    //                                             x1, y1, 0,
-    //                                             };
-    // const p4est_topidx_t tree_to_vertex[P4EST_CHILDREN] = {0, 1, 2, 3,};
-    // const p4est_topidx_t tree_to_tree[P4EST_FACES] = {0, 0, 0, 0,};
-    // // const int8_t tree_to_face[P4EST_FACES] = {1, 0, 3, 2,}; //TODO: add in periodic boundary conditions
-    // const int8_t tree_to_face[P4EST_FACES] = {0, 1, 2, 3,};
-    // const p4est_topidx_t tree_to_corner[P4EST_CHILDREN] = {0, 0, 0, 0,};
-    // const p4est_topidx_t ctt_offset[2] = {0, P4EST_CHILDREN,};
-    // const p4est_topidx_t corner_to_tree[P4EST_CHILDREN] = {0, 0, 0, 0,};
-    // const int8_t corner_to_corner[P4EST_CHILDREN] = {0, 1, 2, 3,};
-
-    // connectivity = p4est_connectivity_new_copy(num_vertices, num_trees,
-    //                                   num_corners, vertices, tree_to_vertex,
-    //                                   tree_to_tree, tree_to_face,
-    //                                   tree_to_corner, ctt_offset,
-    //                                   corner_to_tree, corner_to_corner);
-
-    // connectivity = p4est_connectivity_new_brick(n0, n1, false, false); 
-
-    // signed int refinex = n0, refiney = n1, num_refine = 0;
-    // long div=1;
-    // while(refinex % 2 == 0 && refiney % 2 == 0)
-    // {
-    //     refinex /= 2;
-    //     refiney /= 2;
-    //     num_refine++;
-    //     div*=2;
-    // }
-    connectivity = new_rectangle_connectivity(n0, n1, false, false, x0, y0, x1, y1);
-
-#ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
-    std::cout << "In Rectangle() constructor..." << std::endl;
-    std::cout << "Checking connectivity ... ";
-    if(!p4est_connectivity_is_valid(connectivity))
-        std::cout << "broken" << std::endl;
-    else
-        std::cout << "OK" << std::endl;
-#endif
-
-    // Create a p4est
-    p4est_locidx_t min_quadrants = n0*n1;
-    int min_level = 0;
-    int fill_uniform = 1;
-
-// #ifdef OXLEY_ENABLE_DEBUG_CHECKS
-//     bool print_backtrace = true;
-// #else
-//     bool print_backtrace = false;
-// #endif
-
-// #ifdef ESYS_MPI
-//     sc_init(MPI_COMM_WORLD, 1, print_backtrace, NULL, LOG_LEVEL);
-// #else
-//     sc_init(NULL, 1, print_backtrace, NULL, LOG_LEVEL);
-// #endif
-    
-    p4est = p4est_new_ext(MPI_COMM_WORLD, connectivity, min_quadrants,
-            min_level, fill_uniform, sizeof(quadrantData), init_rectangle_data, (void *) &forestData);
-
-#ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
-    std::cout << "Checking p4est ... ";
-    if(!p4est_is_valid(p4est))
-        std::cout << "broken" << std::endl;
-    else
-        std::cout << "OK" << std::endl;
-#endif
-
-    // Nodes numbering
-    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    nodes = p4est_lnodes_new(p4est, ghost, 1);
-    p4est_ghost_destroy(ghost);
-
-    // This information is needed by the assembler
-    m_NE[0] = n0;
-    m_NE[1] = n1;
-    m_NX[0] = (x1-x0)/n0;
-    m_NX[1] = (y1-y0)/n1;
-    m_NN[0] = n0;
-    m_NN[1] = n1;
-
-    // Record the physical dimensions of the domain and the location of the origin
-    forestData.m_origin[0] = x0;
-    forestData.m_origin[1] = y0;
-    forestData.m_lxy[0] = x1;
-    forestData.m_lxy[1] = y1;
-    forestData.m_length[0] = x1-x0;
-    forestData.m_length[1] = y1-y0;
-    forestData.m_NX[0] = (x1-x0)/n0;
-    forestData.m_NX[1] = (y1-y0)/n1;
-
-    // Whether or not we have periodic boundaries
-    forestData.periodic[0] = periodic0;
-    forestData.periodic[1] = periodic1;
-
-    // Find the grid spacing for each level of refinement in the mesh
-#pragma omp parallel for
-    for(int i = 0; i<=P4EST_MAXLEVEL; i++){
-        double numberOfSubDivisions = (p4est_qcoord_t) (1 << (P4EST_MAXLEVEL - i));
-        forestData.m_dx[0][i] = forestData.m_NX[0] / (numberOfSubDivisions);
-        forestData.m_dx[1][i] = forestData.m_NX[1] / (numberOfSubDivisions);
-    }
-
-    // max levels of refinement
-    forestData.max_levels_refinement = MAXREFINEMENTLEVELS;
-    
-    // element order
-    m_order = order;
-
-    // initial tag
-    // tags[0] = 0;
-    // numberOfTags=1;
-
-    // Number of dimensions
-    m_numDim=2;
-
-    // Distribute the p4est across the processors
-    int allow_coarsening = 0;
-    p4est_partition(p4est, allow_coarsening, NULL);
-
-    // Number the nodes
-    updateNodeIncrements();
-    renumberNodes();
-    updateRowsColumns();
-    updateNodeDistribution();
-    updateElementIds();
-    updateFaceOffset();
-    updateFaceElementCount();
-    updateQuadrantIDinformation();
-    // populateDofMap()
-
-    // Tags
-    populateSampleIds();
-    for (TagMap::const_iterator i = tagnamestonums.begin(); i != tagnamestonums.end(); i++) {
-        setTagMap(i->first, i->second);
-    }
-    
-    // Dirac points and tags
-    addPoints(points, tags);
-
-    // srand(time(NULL));
-
-    // To prevent segmentation faults when using numpy ndarray
-#ifdef ESYS_HAVE_BOOST_NUMPY
-    Py_Initialize();
-    boost::python::numpy::initialize();
-#endif
-
-#ifdef ESYS_HAVE_PASO
-
-    /// local array length shared
-    // dim_t local_length = p4est->local_num_quadrants;
-    dim_t local_length = 0;
-
-    /// list of the processors sharing values with this processor
-    std::vector<int> neighbour = {};
-
-    /// offsetInShared[i] points to the first input value in array shared
-    /// for processor i. Has length numNeighbors+1
-    std::vector<index_t> offsetInShared = {0};
-
-    /// list of the (local) components which are shared with other processors.
-    /// Has length numSharedComponents
-    index_t* shared = {};
-
-    /// = offsetInShared[numNeighbours]
-    dim_t numSharedComponents = 0;
-
-    IndexVector sendShared, recvShared;
-
-    createPasoConnector(neighbour, offsetInShared, offsetInShared, sendShared, recvShared);
-
-#endif
-
-    // Refine the mesh 
-    // refineMesh(num_refine, "uniform");
-
-    oxleytimer.toc("Class initialised");
-}
-#endif  // End of deprecated constructor
 
 /**
    \brief
@@ -308,11 +76,9 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order,
     dim_t n0, dim_t n1,
     double x0, double y0,
     double x1, double y1,
-    int d0, int d1,
     const std::vector<double>& points,
     const std::vector<int>& tags,
-    const TagMap& tagnamestonums,
-    int periodic0, int periodic1):
+    const TagMap& tagnamestonums):
     OxleyDomain(2, order, jmpi){
 
     // MPI communicator passed to base class constructor
@@ -327,21 +93,8 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order,
     initIZ(true);
 #endif //ESYS_HAVE_TRILINOS
 
-    // Ignore d0 and d1 if we are running in serial
-    if(m_mpiInfo->size == 1) {
-        d0=1;
-        d1=1;
-    }
-
-    // If the user did not set the number of divisions manually
-    if(d0 == -1 && d1 == -1)
-    {
-        d0 = m_mpiInfo->size < 3 ? 1 : m_mpiInfo->size / 3;
-        d1 = m_mpiInfo->size / d0;
-
-        if(d0*d1 != m_mpiInfo->size)
-            throw OxleyException("Could not find values for d0, d1 and d2. Please set them manually.");
-    }
+    // Domain decomposition across MPI ranks is handled by p4est (see
+    // p4est_partition below), not by a Cartesian d0 x d1 block grid.
 
     connectivity = new_rectangle_connectivity(n0, n1, false, false, x0, y0, x1, y1);
 
@@ -393,9 +146,8 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order,
     forestData.m_NX[0] = (x1-x0)/n0;
     forestData.m_NX[1] = (y1-y0)/n1;
 
-    // Whether or not we have periodic boundaries
-    forestData.periodic[0] = periodic0;
-    forestData.periodic[1] = periodic1;
+    // Periodic boundaries are not implemented: the connectivity above is built
+    // non-periodic. forestData.periodic stays at its default (false).
 
     // Find the grid spacing for each level of refinement in the mesh
 #pragma omp parallel for
