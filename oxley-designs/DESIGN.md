@@ -1,4 +1,4 @@
-# Oxley Reimplementation — Design
+    # Oxley Reimplementation — Design
 
 Status: **draft for discussion**. Supersedes the current `oxley/` domain/DOF/refinement
 layer. Grounded in the reuse audit (see "Reuse map") and the API sketches
@@ -25,9 +25,11 @@ incremental cleanup cannot reach:
    assembled over *all* lnodes including hanging ones, then condensed via `IZᵀ·A·IZ`
    (`finaliseAworker` → `IztAIz`). Inefficient, and the eager `IZ` construction
    (`initZ`/`initIZ` in the constructor) is the MPI abort site (Tpetra `CrsGraph`).
-4. **Construction is one p4est tree per element** (`num_trees = n0·n1[·n2]`), so the coarse
-   mesh *is* the fine mesh — p4est's "start coarse, adapt deep" advantage is lost, and the
-   API (a ripley clone) exposes no way to drive refinement from geometry/features.
+4. **Construction conflates blocks with elements.** `n0/n1/n2` are documented as "elements"
+   but build p4est *trees* (`num_trees = n0·n1[·n2]`), each holding a single leaf — so the
+   macro-mesh *is* the element mesh and p4est's "start coarse, adapt deep" advantage is lost.
+   The API (a ripley clone) also exposes no way to set a structured base resolution or to
+   drive refinement from geometry/features.
 
 The result is a domain that works serially for simple uniform-ish cases but is "not useful
 for practical applications." This document specifies a reimplementation of the domain/DOF/
@@ -41,7 +43,10 @@ refinement **middle layer** on top of the (sound) p4est layer and assembler kern
   so material properties and BCs attach naturally (the "practical applications" gap).
 - Correct **hanging-node** handling in **2D and 3D**, done at the element level.
 - Correct **parallel** (MPI) node/DOF distribution.
-- Dimension-agnostic construction; explicit domain `origin`.
+- **Block-structured construction**: a coarse grid of *blocks* (p4est trees) with an optional
+  per-block initial refinement level and background tag — a structured coarse model of the
+  domain — that the feature-driven `Refiner` then adapts. Dimension-agnostic; explicit
+  `origin`.
 - Reuse the p4est layer and the conforming assembler kernels.
 
 **Non-goals (for the first cut)**
@@ -51,39 +56,69 @@ refinement **middle layer** on top of the (sound) p4est layer and assembler kern
 
 ## 3. User-facing API
 
-### 3.1 Construction  [DECIDED]
+### 3.1 Construction — block-structured  [DECIDED]
 
-Dimension-agnostic primary constructor, returning a 2D (`Rectangle`) or 3D (`Brick`) domain
-from the length of `n`:
+A domain is built from a coarse grid of **blocks**. Each block is one p4est **tree**
+(macro-cell); its leaves are the elements. This exposes p4est's real two-level structure
+(blocks → refined leaves) instead of the current one-tree-per-element collapse (§1.4).
 
-```python
-Block(n=(20, 20, 10),                 # elements per axis (coarse base mesh)
-      l=(1000., 1000., 800.),         # physical extent per axis
-      origin=(-500., -500., -800.),   # coordinate of the lower corner
-      comm=None,                      # mpi4py communicator (default COMM_WORLD)
-      framework=None)                 # SolverFramework (Paso/Trilinos)
-```
-
-`Rectangle`/`Brick` remain as dimension-specific conveniences (escript-style scalar args):
+Dimension-agnostic primary constructor (2D or 3D from the length of `numBlocks`):
 
 ```python
-Rectangle(n0, n1, l0=1., l1=1., origin0=0., origin1=0., comm=None, framework=None)
-Brick(n0, n1, n2, l0=1., l1=1., l2=1., origin0=0., origin1=0., origin2=0., ...)
+Block(numBlocks=(20, 20, 10),        # number of BLOCKS (p4est trees) per axis
+      length=(1000., 1000., 800.),   # physical extent per axis
+      origin=(-500., -500., -800.),  # coordinate of the lower corner
+      refine_level=0,                # uniform refinement of every block (see below)
+      block_tags=None,               # background region tag per block (see below)
+      comm=None,                     # mpi4py communicator (default COMM_WORLD)
+      framework=None)                # SolverFramework (Paso/Trilinos)
 ```
+
+`Rectangle`/`Brick` remain dimension-specific conveniences:
+
+```python
+Rectangle(numBlocks0, numBlocks1, length0=1., length1=1., origin0=0., origin1=0.,
+          refine_level=0, block_tags=None, comm=None, framework=None)
+Brick(numBlocks0, numBlocks1, numBlocks2, length0=1., length1=1., length2=1.,
+      origin0=0., origin1=0., origin2=0., refine_level=0, block_tags=None, ...)
+```
+
+**Resolution model.** `refine_level = L` uniformly refines every block `L` times, so:
+- elements per axis within a block = `2^L`;
+- base element size along axis *i* = `length_i / (numBlocks_i · 2^L)`.
+
+The `Refiner` (§3.2) then adds *adaptive* refinement above this uniform base.
+
+**Per-block level and tag — scalar-or-array (broadcast) semantics.** [DECIDED; arrays are a
+later phase — see §7]
+- `refine_level`: an `int` (uniform) **or** an array of shape `numBlocks` giving a per-block
+  initial level (structured pre-refinement — e.g. finer near the surface).
+- `block_tags`: `None` **or** an array of shape `numBlocks` of tag **names** (strings, mapped
+  through the escript tag map; integer ids also accepted) — a **background region tag** per
+  block.
+
+This makes `Block` a *structured coarse model → adaptive FEM domain* converter: a gridded
+earth model (a material-id array, a resolution array) drops straight into `block_tags` /
+`refine_level`, and the `Refiner` resolves embedded features on top.
+
+**Consequence of per-block levels.** Differing levels across neighbouring blocks make the
+mesh non-conforming *at block boundaries from the start* → hanging nodes and 2:1 balance
+apply to the base mesh, not just after adaptive refinement, and blocks differing by more than
+one level trigger balancing cascades (§4.7). The hanging-node machinery (§4.3) must therefore
+be correct for the base mesh too.
 
 Notes:
-- `origin` replaces the current `l0`-as-2-tuple overload (clearer, dimension-agnostic).
+- **Blocks are the macro-mesh, not the MPI partition.** p4est partitions *leaves* (elements)
+  across ranks by space-filling curve (§4.5), so a rank owns a slice of leaves that may span
+  several blocks or part of one — hence "blocks", not "subdomains".
+- `origin` + `length` replace the current `l0`-as-2-tuple overload.
 - Legacy `d0/d1/d2`, `periodic*`, `order` are **not** accepted (already removed; the shim
-  warns if passed). Decomposition is p4est's; periodicity is a separate future feature.
-- **[OPEN]** Whether the base mesh should be a *small* connectivity (few trees) with the
-  requested `n` reached by uniform refinement, vs. the current one-tree-per-element. For a
-  coarse base like `(20,20,10)` the current approach is acceptable; revisit only if very fine
-  bases are needed. Does not affect the API.
+  warns). Decomposition is p4est's; periodicity is a separate future feature.
 
 ### 3.2 Refinement — functional, feature-driven, tagging  [DECIDED shape, some OPEN details]
 
 ```python
-refiner = Refiner(levels_max=5)                              # bound on adaptive depth
+refiner = Refiner(levels_max=5)                              # additional levels above base
 refiner.add(Sphere(center=(0,0,-400), radius=200,
                    tagname="Anomaly", resolution=5.))        # refine volume, tag it
 refiner.add(PlaneInterface(origin=(0,0,400), normal=(0,0,1),
@@ -103,11 +138,19 @@ domain2 = refiner(domain1)     # NEW domain; domain1 (and its Data) untouched
 - Built-in tasks: `Sphere(center, radius, ...)`, `PlaneInterface(origin, normal, ...)`.
   Extensible: `Box`, `Cylinder`, `PolySurface`, `FieldThreshold(data, value)` (for
   solution-driven adaptivity), etc.
-- **Tagging semantics**: a volume task tags every element it selects; an interface task
-  tags elements on the "below/inside" side. Element tags become the escript tag map, usable
-  as `kappa.setTaggedValue("Anomaly", ...)`.
-- **[OPEN]** Overlap/priority when multiple tasks tag the same element (last-wins vs
-  explicit priority).
+- **Levels are relative to the base** [DECIDED]: `levels_max` bounds the number of
+  *additional* refinement levels above the uniform base (§3.1), so the absolute p4est level
+  cap is `max(refine_level) + levels_max`. A task's `resolution` is an absolute element size;
+  refinement stops when `element_size ≤ resolution` or the cap is hit.
+- **Two-layer tagging** [DECIDED]:
+  1. *Block tags* (§3.1) give each element a coarse structured **background** region.
+  2. *Task tags* label embedded features and **override** the block (background) tag on the
+     elements a task applies to. Children inherit the parent element's tag unless a task
+     re-tags them.
+  Element tags become the escript tag map, usable as `kappa.setTaggedValue("Anomaly", ...)`.
+- **[OPEN]** Whether *interface* tasks re-tag (volume tasks clearly tag their interior; the
+  "below/inside" side for an interface is ambiguous). Task-vs-task overlap precedence
+  (add-order vs explicit priority) also TBD.
 - **[OPEN]** Boundary/face tags (e.g. `"bottom"`). Base-mesh outer faces get canonical tags
   (`left/right/bottom/top/front/back`); how interface tasks interact with face tags TBD.
 
@@ -237,8 +280,10 @@ No oversized global matrix; no global triple product.
    - **volume task**: mark for refinement if all children inside; tag children/parent by side;
    - **interface task**: mark for refinement if children straddle the surface;
    - stop when no leaf was refined in a pass.
-4. `p4est_balance` (2:1) after refinement; **[OPEN]** balance each pass vs once at the end —
-   balancing cascades extra refinement that can exceed a task's `resolution` locally.
+4. `p4est_balance` (2:1) after refinement, capped at `max(refine_level) + levels_max`. The
+   base mesh is likewise balanced at construction when per-block `refine_level`s differ
+   (§3.1). **[OPEN]** balance each pass vs once at the end — balancing cascades extra
+   refinement that can exceed a task's `resolution` locally.
 5. `p4est_partition`; rebuild lnodes, constraints, DOF map, tags.
 6. Construct and return the new domain.
 
@@ -247,6 +292,39 @@ per element per pass from a C++ callback is too slow at scale. Proposed first cu
 gathers candidate coordinates into a numpy array and calls `check()` **vectorized** (tasks
 operate on arrays), then feeds the boolean result back to the p4est refine decision. Later
 optimization: C++-native criteria for the common shapes.
+
+### 4.8 Output — VTK / Silo  [DECIDED]
+
+Output uses escript's **standard `weipa` path** (`saveVTK`, `saveSilo`) — identical to
+finley/ripley/speckley — via the weipa Oxley adapter (`weipa/src/Oxley{Domain,Elements,
+Nodes}`). Each leaf element is written as one unstructured cell (quad/hex). Silo needs the
+`silo` build feature; VTK (`.vtu`) needs none. There is **no build cycle**: weipa depends on
+the domain libraries, not vice-versa (`escriptcore → domains → weipa`).
+
+**Decouple the adapter from oxley internals.** The current weipa Oxley adapter re-walks the
+p4est forest itself (`p4est->trees`, `p4est_quadrant_array_index`, …) and re-derives node ids
+through the domain's coordinate-hash map (`NodeIDs.find(make_pair(x,y))`,
+`getNeighouringNodeIDs`). That makes the node numbering **co-owned by oxley and weipa**: any
+change to oxley's numbering breaks the adapter, and the two must move in lockstep — a design
+loop (not a build loop). Ripley/finley avoid this by having their adapters read the domain's
+public node/element tables rather than re-deriving topology; oxley's adapter is the outlier.
+
+Fix, as part of **Milestone A4**: oxley exposes a **public mesh-access interface** —
+per-leaf element→node-id connectivity, node global ids + coordinates, the node→DOF map, and
+tags — and the weipa Oxley adapter is rewritten to consume **only** that interface, with no
+knowledge of p4est or the numbering scheme. The lnodes numbering (§4.1) then lives entirely
+inside oxley, and the numbering rewrite stays contained (does not ripple into weipa beyond a
+one-time adapter rewrite against the new interface). Also drop the adapter's leftover debug
+`std::cout`s.
+
+The bespoke `writeToVTK`/`saveMesh` (p4est's native `p4est_vtk`) is **demoted to an optional
+developer/debug** dump of the forest (refinement level, MPI partition), not user-facing
+output.
+
+**Milestone B (non-conforming meshes):** unstructured VTK/Silo writes each leaf as its own
+cell, so hanging-node meshes export directly. Nodal fields must write **constrained
+(interpolated) values at hanging nodes** (§4.6) so continuous fields render without cracks —
+no change to the file format, just correct hanging values.
 
 ## 5. Reuse map
 
@@ -272,27 +350,59 @@ optimization: C++-native criteria for the common shapes.
 
 ## 7. Phased implementation plan
 
-1. **Numbering core.** lnodes-based global numbering + `node→dof` map + `constraints` table,
-   serial. Verify against uniform (no hanging) and a single-refinement case.
-2. **Assembly.** Element-level condensation using `constraints`; drop `Z`/`IZ`. Verify a
-   Poisson solve on a hanging-node mesh (2D then 3D) against an analytic/finley reference.
-3. **Nodal data & interpolation.** `getX`, `Solution↔ContinuousFunction`, hanging fill;
-   complete `interpolateAcross`.
-4. **Refinement engine + tasks.** `Refiner`, `RefinementTask`, `Sphere`, `PlaneInterface`,
-   tagging; functional `domain2 = refiner(domain1)`.
-5. **Construction API.** `Block` + `origin`; `Rectangle`/`Brick` delegating.
-6. **MPI.** Owned/ghost DOF maps, ghost-column masters, `ownSample`; verify parallel Poisson
-   matches serial. (This is where the current implementation aborts.)
-7. **Boundary tags, Dirac points, complex data, cleanup.**
+Sequenced into two milestones. **Milestone A first**: a *uniform, conforming* Block domain
+that reproduces ripley/finley functionality — no adaptive refinement. A uniform
+`refine_level` yields a fully conforming mesh (**no hanging nodes**), so the hanging-node
+constraint table, the element-level condensation (degenerates to a plain scatter), the 3D
+hanging assembler, the `Refiner`, and `interpolateAcross` are all **deferred to Milestone B**.
+Milestone A still delivers the core rewrite — lnodes numbering and the MPI DOF distribution —
+because the current code is broken there even for uniform meshes.
+
+### Milestone A — conforming uniform domain (ripley/finley parity)  ← current focus
+
+A1. **Construction.** `Block(numBlocks, length, origin, refine_level, comm, framework)` with a
+    single **scalar, uniform** `refine_level` (conforming); `Rectangle`/`Brick` delegating.
+    (`block_tags` / per-block arrays deferred to B.)
+A2. **Mesh-access interface + numbering.** lnodes-based node numbering; expose a **public
+    mesh-access interface** — per-leaf element→node connectivity, node global ids +
+    coordinates, tags (and the node→DOF map, trivial while conforming). Replaces the
+    coordinate-hash scheme; this is the interface both output and assembly consume (§4.8).
+A3. **VTK / Silo output.**  ← *next after Block, per the output-early strategy.* Rewrite the
+    weipa Oxley adapter on the A2 interface (no p4est/`NodeIDs` internals) so `saveVTK` /
+    `saveSilo` work (§4.8); demote native `p4est_vtk` to a debug dump. This is the first
+    **visual validation** of construction — block grid, `refine_level`, `origin`, tags — and
+    a fast feedback loop for A1/A2 before any assembly exists.
+A4. **Assembly.** Conforming element assembly reusing the 2-pt Gauss kernels; scatter real
+    DOFs directly. Drop `Z`/`IZ`/`IztAIz`. Function spaces + `getDataShape`.
+A5. **Nodal data & interpolation.** `getX`, within-domain `interpolate`,
+    `Solution↔ContinuousFunction`, outer-face canonical tags, dirac points.
+A6. **MPI.** Owned/ghost DOF maps + `ownSample`; parallel assembly. **Fixes the current
+    `CrsGraph` abort.** Verify parallel solve matches serial.
+
+*Acceptance:* the existing oxley Python test suite (which mirrors the ripley/finley tests —
+`run_escriptOnOxley`, `run_linearPDEsOnOxley`, `run_utilOnOxley`, solver tests, …) passes
+**serial and parallel**, and a reference Poisson / elasticity solve matches ripley.
+
+### Milestone B — adaptivity
+
+B1. **Hanging-node constraint table** (from lnodes `face_code`) + element-level condensation,
+    2D then 3D. Verify a Poisson solve on a hanging-node mesh vs. analytic/finley reference.
+B2. **Per-block `refine_level` / `block_tags` arrays** (introduce base-mesh hanging + the
+    two-layer tagging model).
+B3. **Refinement engine + tasks.** `Refiner`, `RefinementTask`, `Sphere`, `PlaneInterface`,
+    functional `domain2 = refiner(domain1)`, feature tagging.
+B4. **Cross-domain interpolation.** Complete `interpolateAcross`; solution-driven adaptivity
+    (`FieldThreshold` task).
 
 ## 8. Risks / open questions
 
 - **[OPEN]** Balance vs `resolution`/`levels_max` interaction (§4.7 step 4).
 - **[OPEN]** Refinement `check()` performance & where it runs (§4.7).
-- **[OPEN]** Task overlap/tag priority (§3.2); boundary/face tagging (§3.2).
-- **[OPEN]** Coarse base mesh (few trees + uniform refinement) vs one-tree-per-element (§3.1).
+- **[OPEN]** Interface-task re-tagging, and task-vs-task overlap precedence (§3.2); boundary/
+  face tagging (§3.2).
 - **[RISK]** Correctness of 3D face+edge hanging constraints (the current 3D path never
-  implemented this) — needs careful verification in step 2/6.
+  implemented this) — needs careful verification in step 2/6. Per-block base levels (§3.1)
+  exercise these constraints on the base mesh, so they must be right early.
 - **[RISK]** Parallel constraints where masters are off-rank — must be covered by ghost
   columns and tested early (step 6).
 - **[OPEN]** Solution-driven adaptivity (`FieldThreshold` task) — fits the same engine but
