@@ -284,18 +284,6 @@ Rectangle::Rectangle(const oxley::Rectangle& R, int order):
     // max levels of refinement
     forestData.max_levels_refinement = MAXREFINEMENTLEVELS;
 
-    // NodeIDs is stored as a pointer
-    if(!R.forestData.NodeIDs) // if Nullpointer
-    {
-        forestData.NodeIDs=nullptr;
-    }
-    else
-    {
-        std::unordered_map<DoublePair,long,boost::hash<DoublePair>> tmp_NodeIDs(*(R.forestData.NodeIDs));
-        NodeIDs=tmp_NodeIDs;
-        forestData.NodeIDs=&NodeIDs;    
-    }    
-
     // Update the user_data pointer in p4est 
     p4est->user_pointer=&forestData;
 
@@ -495,156 +483,10 @@ void Rectangle::interpolateNodesToNodesFiner(const escript::Data& source, escrip
 template <typename S>
 void Rectangle::interpolateNodesToNodesWorker(const escript::Data& source, escript::Data& target, const Rectangle& other) const
 {
-    ESYS_ASSERT(p4est->first_local_tree==other.p4est->first_local_tree, "Incompatible Rectangles.");
-    ESYS_ASSERT(p4est->last_local_tree==other.p4est->last_local_tree, "Incompatible Rectangles.");
-
-    bool notdone=true;
-    int fs_code=other.getFunctionCode();
-
-    TicTocClock oxleytimer_tmp;
-    oxleytimer_tmp.toc("interpolateNodesToNodesWorker...");
-    oxleytimer_tmp.toc("1. copying values..");
-
-    // loop along the finer mesh comparing the size of quads along the way
-    // and copy the data
-    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
-    {
-        // find the corresponding quadrands
-        p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-
-        // #pragma omp for
-        for (int q = 0; q < Q; ++q)
-        {
-            for(int n = 0; n < 4; n++)
-            {
-                double xy[2];
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                quadrantData * quadData = (quadrantData *) quad->p.user_data;
-                p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
-                long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-                // skip hanging as the data object does not track them
-                if(nodeid >= source.getNumDataPoints())
-                    continue;
-
-                if(source.isComplex())
-                {   
-                    cplx_t dummy;
-                    cplx_t new_value(0);
-                    const cplx_t * samples_source = source.getSampleDataRO(nodeid, dummy);
-                    new_value=*samples_source;
-                    quadData->u_cplx=&new_value;
-                }
-                else
-                {
-                    real_t dummy;
-                    real_t new_value(0);
-                    const real_t * samples_source = source.getSampleDataRO(nodeid, dummy);
-                    new_value=*samples_source;
-                    quadData->u_real=&new_value;
-                }
-            }            
-        }
-    }
-
-    oxleytimer_tmp.toc("2. interpolating...");
-    // Do the interpolation
-    while(notdone)
-    {
-        notdone=false;
-        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
-        {
-            // find the corresponding quadrands
-            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-
-            p4est_tree_t * currenttree_other = p4est_tree_array_index(other.p4est->trees, t); // this mesh is finer
-            sc_array_t * tquadrants_other = &currenttree->quadrants;
-            p4est_locidx_t Q_tmp = (p4est_locidx_t) tquadrants->elem_count;
-
-            int q_counter=0;
-            for (int q = 0; q < Q_tmp; ++q)
-            {
-                // Get the quadrant side lengths
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
-                p4est_quadrant_t * quad_other = p4est_quadrant_array_index(tquadrants, q_counter);
-                p4est_qcoord_t length_other = P4EST_QUADRANT_LEN(quad_other->level);
-
-                if(length>length_other)
-                {
-                    quadrantData * quadData = (quadrantData *) quad->p.user_data;
-                    quadData->needs_refinement=true;
-                    notdone=true;
-                    getNeighouringNodeIDs(quad_other->level, quad_other->x, quad_other->y, t, quadData->ids);
-                }
-
-                q_counter++;
-            }
-        }
-
-        // move one level
-        bool recursive = false;
-        int maxlevel=-1; //use compile time P4EST_MAXLEVEL
-        p4est_refine_ext(other.p4est, recursive, maxlevel,
-                            refine_nodesToNodesFiner,
-                            init_rectangle_data,
-                            refine_copy_parent_quadrant_data);
-    }
-
-    oxleytimer_tmp.toc("3. updating mesh info...");
-
-    //TODO
-    // other.updateNodeIncrements();
-    // other.renumberNodes();
-    // other.updateRowsColumns();
-    // other.updateElementIds();
-    // other.updateFaceOffset();
-    // other.updateFaceElementCount();
-
-    oxleytimer_tmp.toc("4. copying data...");
-
-    // loop along the finer mesh comparing the size of quads along the way
-    // and copy the data
-    long counter = 0;
-    long nodeid=0;
-    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
-    {
-        p4est_tree_t * currenttree_other = p4est_tree_array_index(other.p4est->trees, t); // this mesh is finer
-        sc_array_t * tquadrants_other = &currenttree_other->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants_other->elem_count;
-
-        // #pragma omp for
-        for (int q = 0; q < Q; ++q)
-        {
-            double xy[2];
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants_other, q);
-            quadrantData * quadData = (quadrantData *) quad->p.user_data;
-            // p4est_qcoord_to_vertex(other.p4est->connectivity, t, quad->x, quad->y, xy);
-            // long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            // ESYS_ASSERT(nodeid>=0, "Invalid nodeid (unknown error)");
-            // ESYS_ASSERT(nodeid<target.getNumDataPoints(), "Invalid nodeid (too large)");
-            if(source.isComplex())
-            {   
-                cplx_t dummy;
-                cplx_t new_value(0);
-                const cplx_t * samples_target = target.getSampleDataRO(nodeid++, dummy);
-                samples_target=quadData->u_cplx;
-            }
-            else
-            {
-                real_t dummy;
-                real_t new_value(0);
-                const real_t * samples_target = target.getSampleDataRO(nodeid, dummy);
-                samples_target=quadData->u_real;
-            }
-        }
-    }
-
-    oxleytimer_tmp.toc("done...");
+    // Cross-domain (refinement) interpolation is not yet reimplemented on the
+    // lnodes numbering; probeInterpolationAcross() returns false so this is
+    // never reached. (Milestone B.)
+    throw OxleyException("interpolateNodesToNodesWorker: not implemented for the lnodes numbering yet");
 }
 
 void Rectangle::interpolateNodesToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other)  const
@@ -668,125 +510,10 @@ void Rectangle::interpolateElementsToElementsFiner(const escript::Data& source, 
 template <typename S>
 void Rectangle::interpolateElementsToElementsWorker(const escript::Data& source, escript::Data& target, const Rectangle& other)  const
 {
-    ESYS_ASSERT(p4est->first_local_tree==other.p4est->first_local_tree, "Incompatible Rectangles.");
-    ESYS_ASSERT(p4est->last_local_tree==other.p4est->last_local_tree, "Incompatible Rectangles.");
-
-    bool notdone=true;
-    int fs_code=other.getFunctionCode();
-
-    // loop along the finer mesh comparing the size of quads along the way
-    // and copy the data
-    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
-    {
-        // find the corresponding quadrands
-        p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-
-        // #pragma omp for
-        for (int q = 0; q < Q; ++q)
-        {
-            double xy[2];
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            quadrantData * quadData = (quadrantData *) quad->p.user_data;
-            p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
-            long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            if(source.isComplex())
-            {   
-                cplx_t dummy;
-                cplx_t new_value(0);
-                const cplx_t * samples_source = source.getSampleDataRO(nodeid, dummy);
-                new_value=*samples_source;
-                quadData->u_cplx=&new_value;
-            }
-            else
-            {
-                real_t dummy;
-                real_t new_value(0);
-                const real_t * samples_source = source.getSampleDataRO(nodeid, dummy);
-                new_value=*samples_source;
-                quadData->u_real=&new_value;
-            }
-        }
-    }
-
-    // Do the interpolation
-    while(notdone)
-    {
-        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
-        {
-            // find the corresponding quadrands
-            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-
-            p4est_tree_t * currenttree_other = p4est_tree_array_index(other.p4est->trees, t); // this mesh is finer
-            sc_array_t * tquadrants_other = &currenttree->quadrants;
-            p4est_locidx_t Q_tmp = (p4est_locidx_t) tquadrants->elem_count;
-
-            int q_counter=0;
-            for (int q = 0; q < Q_tmp; ++q)
-            {
-                // Get the quadrant side lengths
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
-                p4est_quadrant_t * quad_other = p4est_quadrant_array_index(tquadrants, q_counter);
-                p4est_qcoord_t length_other = P4EST_QUADRANT_LEN(quad_other->level);
-
-                if(length>length_other)
-                {
-                    quadrantData * quadData = (quadrantData *) quad->p.user_data;
-                    quadData->needs_refinement=true;
-                    getNeighouringNodeIDs(quad_other->level, quad_other->x, quad_other->y, t, quadData->ids);
-                }
-
-                q_counter++;
-            }
-        }
-
-        // move one level
-        bool recursive = false;
-        p4est_refine_ext(other.p4est, recursive, P4EST_MAXLEVEL,
-                            refine_nodesToNodesFiner,
-                            init_rectangle_data,
-                            refine_copy_parent_element_data);
-    }
-
-    // loop along the finer mesh comparing the size of quads along the way
-    // and copy the data
-    long counter = 0;
-    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
-    {
-        p4est_tree_t * currenttree_other = p4est_tree_array_index(other.p4est->trees, t); // this mesh is finer
-        sc_array_t * tquadrants_other = &currenttree_other->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants_other->elem_count;
-
-        #pragma omp for
-        for (int q = 0; q < Q; ++q)
-        {
-            double xy[2];
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants_other, q);
-            quadrantData * quadData = (quadrantData *) quad->p.user_data;
-            p4est_qcoord_to_vertex(other.p4est->connectivity, t, quad->x, quad->y, xy);
-            long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            if(source.isComplex())
-            {   
-                cplx_t dummy;
-                cplx_t new_value(0);
-                const cplx_t * samples_target = target.getSampleDataRO(nodeid, dummy);
-                new_value=*samples_target;
-                quadData->u_cplx=&new_value;
-            }
-            else
-            {
-                real_t dummy;
-                real_t new_value(0);
-                const real_t * samples_target = target.getSampleDataRO(nodeid, dummy);
-                new_value=*samples_target;
-                quadData->u_real=&new_value;
-            }
-        }
-    }
+    // Cross-domain (refinement) interpolation is not yet reimplemented on the
+    // lnodes numbering; probeInterpolationAcross() returns false so this is
+    // never reached. (Milestone B.)
+    throw OxleyException("interpolateElementsToElementsWorker: not implemented for the lnodes numbering yet");
 }
 
 void Rectangle::interpolateReducedToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other)  const
@@ -1069,15 +796,20 @@ void Rectangle::dump(const std::string& fileName) const
     long int *pNode_ids = nullptr;
     double * pValues = nullptr;
 
-    pNodex = new float[MAXP4ESTNODES];
-    pNodey = new float[MAXP4ESTNODES];
-    pNode_ids = new long int [MAXP4ESTNODES];
+    // node coordinates and element connectivity come from the lnodes-based
+    // mesh-access view (no coordinate hashing).
+    const MeshAccess m = getMeshAccess();
+    const int V = m.nodesPerElement;
 
-    for(std::pair<DoublePair,long> element : NodeIDs)
+    pNodex = new float[m.numNodes];
+    pNodey = new float[m.numNodes];
+    pNode_ids = new long int [m.numNodes];
+
+    for(long i = 0; i < m.numNodes; ++i)
     {
-        pNodex[element.second]=element.first.first;
-        pNodey[element.second]=element.first.second;
-        pNode_ids[element.second]=element.second;
+        pNodex[i]    = (float) m.nodeCoords[(size_t) i*m.numDim + 0];
+        pNodey[i]    = (float) m.nodeCoords[(size_t) i*m.numDim + 1];
+        pNode_ids[i] = m.nodeGlobalId[i];
     }
 
     // Array of the coordinate arrays
@@ -1090,22 +822,14 @@ void Rectangle::dump(const std::string& fileName) const
     if (!dbfile)
         throw escript::IOError("dump: Could not create Silo file");
 
-    // create the nodelist
+    // create the nodelist (Silo quad winding: z-order 0,2,3,1)
     std::vector<int> nodelist;
-    long ids[4]={0};
-    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
-        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        for(int q = 0; q < Q; q++)
-        {
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);          
-            getNeighouringNodeIDs(quad->level, quad->x, quad->y, treeid, ids);
-            nodelist.push_back(ids[0]);
-            nodelist.push_back(ids[2]);
-            nodelist.push_back(ids[3]);
-            nodelist.push_back(ids[1]);
-        }
+    for(long e = 0; e < m.numElements; ++e)
+    {
+        nodelist.push_back((int) m.elementNodes[(size_t) e*V + 0]);
+        nodelist.push_back((int) m.elementNodes[(size_t) e*V + 2]);
+        nodelist.push_back((int) m.elementNodes[(size_t) e*V + 3]);
+        nodelist.push_back((int) m.elementNodes[(size_t) e*V + 1]);
     }
 
     int* nodelistarray = &nodelist[0];
@@ -1305,8 +1029,7 @@ void Rectangle::refineMesh(std::string algorithmname)
 
     p4estData * pForestData;
     pForestData = &forestData;
-    p4est->user_pointer = pForestData;    
-    forestData.NodeIDs = &NodeIDs;
+    p4est->user_pointer = pForestData;
 
     if(!algorithmname.compare("uniform"))
     {
@@ -1861,298 +1584,22 @@ void Rectangle::renumberNodes()
 {
     oxleytimer.toc("renumberNodes...");
 
-    // Clear some variables
-    NodeIDs.clear();
-    hanging_face_orientation.clear();
-    quadrantIDs.clear();
+    // The global node numbering now comes directly from p4est_lnodes (built in
+    // the constructor / after refinement); this routine only derives m_nodeId,
+    // the global id of each local node, from the lnodes owned/ghost partition.
+    // The legacy coordinate-hash containers are retired.
     quadrantInfo.clear();
-    std::vector<DoublePair> NormalNodes;
-    std::vector<DoublePair> HangingNodes;
+    hanging_face_orientation.clear();
 
-    int orient_lookup[4][4]={{-1,2,0,-1}, //p4est_child_corner_faces
-                             {2,-1,1,-1},
-                             {0,-1,-1,3},
-                             {-1,1,3,-1}};
-
-    // Write in NodeIDs
-    int k = 0;
-    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
-        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        for(int q = 0; q < Q; ++q) { 
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
-            p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
-            int hanging[4] = {0};
-
-            getHangingNodes(nodes->face_code[k++], hanging); 
-            for(int n = 0; n < 4; n++)
-            {
-                double xy[3];
-                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
-                auto tmp = std::make_pair(xy[0],xy[1]);
-                if(hanging[n]!=-1)
-                {
-                    if(!std::count(HangingNodes.begin(), HangingNodes.end(), tmp))
-                    {
-                        hangingNodeInfo tmp2;
-                        tmp2.x=quad->x+lxy[n][0];
-                        tmp2.y=quad->y+lxy[n][1];
-                        tmp2.level=quad->level;
-                        tmp2.treeid=treeid;
-                        tmp2.face_type=orient_lookup[n][hanging[n]];
-                        ESYS_ASSERT(tmp2.face_type!=-1, "renumberNodes: Unknown programming error");
-                        p4est_quadrant_t * parent;
-                        p4est_quadrant_t parent_quad;
-                        parent = &parent_quad;
-                        p4est_quadrant_parent(quad, parent);
-                        ESYS_ASSERT(p4est_quadrant_is_parent(parent, quad), "renumberNodes: Quadrant is not parent");
-                        ESYS_ASSERT(p4est_quadrant_is_valid(parent),"renumberNodes: Invalid parent quadrant");
-                        p4est_quadrant_t * neighbour;
-                        p4est_quadrant_t neighbour_quad;
-                        neighbour = &neighbour_quad;
-                        int * nface = NULL;
-                        int newtree = p4est_quadrant_face_neighbor_extra(parent, treeid, tmp2.face_type, neighbour, nface, connectivity);
-                        ESYS_ASSERT(newtree!=-1, "renumberNodes: Invalid neighbour tree");
-                        ESYS_ASSERT(p4est_quadrant_is_valid(neighbour),"renumberNodes: Invalid neighbour quadrant");
-                        tmp2.neighbour_x=neighbour->x;
-                        tmp2.neighbour_y=neighbour->y;
-                        tmp2.neighbour_l=neighbour->level;
-                        tmp2.neighbour_tree=newtree;
-                        tmp2.parent=parent_quad;
-                        hanging_face_orientation.push_back(tmp2);
-                        HangingNodes.push_back(tmp);
-                        #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES
-                            double xy[3];
-                            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
-                            std::cout << "H: " << xy[0] << ", " << xy[1] << "  <---" << std::endl; 
-                        #endif
-                    }
-                }
-                else
-                {
-                    if(!std::count(NormalNodes.begin(), NormalNodes.end(), tmp))
-                    {
-                        NormalNodes.push_back(tmp);
-                        #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES
-                            std::cout << "N: " << tmp.first << ", " << tmp.second << std::endl;
-                        #endif
-                    }
-                }
-            }
-        }
-    }
-
-    // Check for hanging border nodes
-    k = 0;
-    // [position 0 1 2 3] [n s e w]
-    int transform_direction[4][4]={{ 3,-1, 1,-1},   
-                                   { 3,-1,-1, 0},  
-                                   {-1, 2, 1,-1},  
-                                   {-1, 2,-1, 0}};
-    // [position 0 1 2 3] [n s e w]
-    int invert[4][4]   ={{-1, 1,-1, 3},   // 0
-                         {-1, 0, 3,-1},   // 1
-                         { 2,-1,-1, 1},   // 2
-                         { 2,-1, 0,-1}};  // 3
-    bool boundary[4] = {false};
-    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
-        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        for(int q = 0; q < Q; ++q) { 
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
-            p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
-
-            int hanging[4] = {0};
-            getHangingNodes(nodes->face_code[k++], hanging); 
-            for(int n = 0; n < 4; n++)
-            {
-                double xy[3];
-                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
-
-                // #ifdef OXLEY_ENABLE_DEBUG_CHECK_HANGING_BORDER_NODE
-                //     std::cout << "(" << xy[0] << ", " << xy[1] << ")" << " <----  skipping" << std::endl;
-                // #endif
-
-                if(hanging[n]==-1)
-                    continue;  
-
-                auto tmp = std::make_pair(xy[0],xy[1]);
-                bool hangingBorder = checkHangingBorderNode(quad, quad->x+lxy[n][0], quad->y+lxy[n][1], treeid, n); //here
-
-                #ifdef OXLEY_ENABLE_DEBUG_CHECK_HANGING_BORDER_NODE
-                    std::cout << "(" << xy[0] << ", " << xy[1] << ")";
-                    if(hangingBorder)
-                        std::cout << " <---- hanging border node" << std::endl;
-                    else
-                        std::cout << std::endl;
-                #endif
-
-                if(hangingBorder)
-                {
-                    if(!std::count(HangingNodes.begin(), HangingNodes.end(), tmp))
-                    {
-                        // remove coordinate from normalnodes
-                        for(int i = 0 ; i < NormalNodes.size(); i++)
-                            if(NormalNodes[i]==std::make_pair(xy[0],xy[1]))
-                            {
-                                NormalNodes.erase(NormalNodes.begin() + i);
-                                break;
-                            }
-
-                        hangingNodeInfo tmp2;
-                        tmp2.x=quad->x+lxy[n][0];
-                        tmp2.y=quad->y+lxy[n][1];
-                        tmp2.level=quad->level;
-                        tmp2.treeid=treeid;
-                        if(xy[0]==forestData.m_origin[0]) //w
-                            tmp2.face_type=0;
-                        else if (xy[0] == forestData.m_lxy[0]) //e
-                            tmp2.face_type=1;
-                        else if(xy[1]==forestData.m_origin[1]) //s
-                            tmp2.face_type=2;
-                        else if (xy[1] == forestData.m_lxy[1]) //n
-                            tmp2.face_type=3;
-                        ESYS_ASSERT(tmp2.face_type!=-1, "renumberNodes: invalid face type");
-                        // get sibling quadrant
-                        int position=p4est_quadrant_child_id(quad);
-                        boundary[0]  = xy[1] == forestData.m_lxy[1];
-                        boundary[1]  = xy[1] == forestData.m_origin[1];
-                        boundary[2]  = xy[0] == forestData.m_lxy[0];
-                        boundary[3]  = xy[0] == forestData.m_origin[0];
-                        ESYS_ASSERT((int)boundary[0]+(int)boundary[1]+(int)boundary[2]+(int)boundary[3] < 2, "renumberNodes: Unknown error");
-                        int dir = -1;
-                        for(int i = 0; i < 4; i++)
-                            if(boundary[i] == true)
-                            {
-                                dir=invert[position][i];
-                                break;
-                            }
-                        p4est_quadrant_t * neighbour;
-                        p4est_quadrant_t neighbour_quad;
-                        neighbour = &neighbour_quad;
-                        ESYS_ASSERT(dir!=-1, "renumberNodes: Invalid transform direction");
-                        p4est_quadrant_face_neighbor(quad,dir,neighbour);
-                        int * nface = nullptr;
-                        int newtree = p4est_quadrant_face_neighbor_extra(quad, treeid, dir, neighbour, nface, connectivity);
-                        ESYS_ASSERT(newtree!=-1, "renumberNodes: Invalid neighbour tree");
-                        ESYS_ASSERT(p4est_quadrant_is_valid(neighbour),"renumberNodes: Invalid neighbour quadrant");
-                        // add the sibling information to hanging_face_orientation
-                        tmp2.neighbour_x=neighbour->x;
-                        tmp2.neighbour_y=neighbour->y;
-                        tmp2.neighbour_l=neighbour->level;
-                        tmp2.neighbour_tree=newtree;
-                        tmp2.position=p4est_quadrant_child_id(neighbour);
-                        hanging_face_orientation.push_back(tmp2);
-                        HangingNodes.push_back(tmp);
-                        #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES
-                            double xy[3];
-                            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
-                            std::cout << "H: " << xy[0] << ", " << xy[1] << "  <---" << std::endl; 
-                        #endif
-                    }
-                }
-                else
-                {
-                    continue;
-                }
-            }
-        }
-    }
-
-    // Populate NodeIDs
-    is_hanging.clear();
-    int num_norm_nodes=NormalNodes.size();
-    num_hanging=HangingNodes.size();
-    int total_nodes=num_norm_nodes+num_hanging;
-    is_hanging.resize(total_nodes,false);
-    int count = 0;
-    for(int i=0;i<num_norm_nodes;i++)
-    {
-        NodeIDs[NormalNodes[i]]=count++;
-    }
-    for(int i=0;i<num_hanging;i++)
-    {
-        NodeIDs[HangingNodes[i]]=count;
-        is_hanging[count++]=true;
-    }
-
-    ESYS_ASSERT(NodeIDs.size()!=0, "renumberNodes: Did not find any nodes");
-
-    // Populate m_nodeIDs
+    const long nOwned = (long) nodes->owned_count;
+    const long nLocal = (long) nodes->num_local_nodes;
     m_nodeId.clear();
-    m_nodeId.resize(NodeIDs.size());
-    count=0;
-    for(std::pair<DoublePair,long> e : NodeIDs)
-        m_nodeId[count++]=e.second;
-    
-    // quadrant IDs
-    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
-        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        for(int q = 0; q < Q; ++q) { 
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            double xy[3];
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
-            quadrantIDs.push_back(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
-            quad_info tmp;
-            tmp.x=xy[0];
-            tmp.y=xy[1];
-            tmp.level=quad->level;
-            quadrantInfo.push_back(tmp);
-        }
-    }
-
-    //update hanging face information
-    // is_hanging_face.clear();
-    // std::vector<long> tmp={-1};
-    // is_hanging_face.resize(getNumNodes(),tmp);
-    // for(int i = 0; i < hanging_face_orientation.size(); i++)
-    // {
-        // // Distances to neighbouring nodes
-        // p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].level);
-        // p4est_qcoord_t xlookup[4][2] = {{0,0}, {0,0}, {-l,l}, {-l,l}};
-        // p4est_qcoord_t ylookup[4][2] = {{-l,l}, {-l,l}, {0,0}, {0,0}};
-        // p4est_qcoord_t zlookup[4][2] = {{l,0}, {-l,0}, {0,l}, {0,-l}};
-
-        // // Calculate the node ids
-        // double xy[3]={0};
-        // p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_type][0], hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_type][0], xy);
-        // long lni0   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        // p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_type][1], hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_type][1], xy);
-        // long lni1   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-        // is_hanging_face[lni0].push_back(lni1);
-        // is_hanging_face[lni1].push_back(lni0);
-    // }
-
-#ifdef OXLEY_PRINT_QUAD_INFO
-    std::cout << "There are " << quadrantIDs.size() << " quadrants" << std::endl;
-    for(int i = 0; i < quadrantInfo.size(); i++)
-    {
-        std::cout << i << ": (" << quadrantInfo[i].x << ", " << quadrantInfo[i].y << "), l =" 
-                << quadrantInfo[i].level << std::endl;
-    }
-#endif
-
-#ifdef OXLEY_PRINT_NODEIDS
-    std::cout << "Printing NodeIDs " << std::endl;
-    double xyf[NodeIDs.size()][2]={{0}};
-    for(std::pair<DoublePair,long> e : NodeIDs)
-    {
-        xyf[e.second][0]=e.first.first;
-        xyf[e.second][1]=e.first.second;
-    }
-    for(int i=0; i<NodeIDs.size(); i++)
-        std::cout << i << ": " << xyf[i][0] << ", " << xyf[i][1] << std::endl;
-    std::cout << "-------------------------------" << std::endl;
-#endif
-
-    forestData.NodeIDs=&NodeIDs;
+    m_nodeId.resize(nLocal);
+    for(long i = 0; i < nOwned; ++i)
+        m_nodeId[i] = (long) nodes->global_offset + i;
+    for(long i = nOwned; i < nLocal; ++i)
+        m_nodeId[i] = (long) nodes->nonlocal_nodes[i - nOwned];
+    m_nodeId.shrink_to_fit();
 
     oxleytimer.toc("renumberNodes...Done");
 }
@@ -2582,18 +2029,6 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
 }
 
 //
-void Rectangle::getNeighouringNodeIDs(int8_t level, p4est_qcoord_t x, p4est_qcoord_t y, p4est_topidx_t treeid, long (&ids) [4]) const
-{
-    p4est_qcoord_t l = P4EST_QUADRANT_LEN(level);
-    int adj[4][2]={{0,0},{l,0},{0,l},{l,l}};
-#pragma omp parallel for
-    for(int i=0; i<4;i++)
-    {
-        double xy[3];
-        p4est_qcoord_to_vertex(p4est->connectivity, treeid, x+adj[i][0], y+adj[i][1], xy);
-        ids[i]=(long) NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-    }
-}
 
 void Rectangle::p4est_qcoord_to_vertex_mod (p4est_connectivity_t * connectivity,
                         p4est_topidx_t treeid,
@@ -2740,13 +2175,6 @@ int Rectangle::getHangingBorderNodeFacecode(p4est_quadrant_t * quad, int8_t leve
     }
 }
 
-long Rectangle::getQuadID(long nodeid) const
-{
-    for(int i = 0; i < quadrantIDs.size(); i++)
-        if(quadrantIDs[i]==nodeid)
-            return i;
-    throw OxleyException("getQuadID: node id "+ std::to_string(nodeid) +" was not found.");
-}
 
 //private
 template <typename S>
@@ -3054,457 +2482,15 @@ void Rectangle::updateTreeIDs()
 
 void Rectangle::updateRowsColumns()
 {
-    oxleytimer.toc("updateRowsColumns...");
-
-    std::vector<std::vector<long>> * indices;
-    indices = new std::vector<std::vector<long>>;
-    long initial[] = {0, -1, -1, -1, -1};
-    indices->resize(getNumNodes(), std::vector<long>(initial, initial+5));
-
-    #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-        std::cout << "updateRowsColumns" << std::endl;
-        std::cout << "Allocated memory for " << getNumNodes() << " nodes. " << std::endl;
-    #endif
-
-    update_RC_data * data;
-    data = new update_RC_data;
-    data->indices = indices;
-    data->pNodeIDs = &NodeIDs;
-    data->p4est = p4est;
-    data->m_origin[0]=forestData.m_origin[0];
-    data->m_origin[1]=forestData.m_origin[1];
-    data->pQuadInfo = &quadrantInfo;
-
-    p4est_ghost_t * ghost;
-    ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    update_RC_data * ghost_data;
-    ghost_data = (update_RC_data *) malloc(ghost->ghosts.elem_count);
-    // update_RC_data * ghost_data = P4EST_ALLOC(data, ghost->ghosts.elem_count);
-    
-
-    p4est_ghost_exchange_data(p4est, ghost, ghost_data);
-    // This function loops over all interior faces
-    // Note that it does not loop over the nodes on the boundaries
-    // x = Lx and y = Ly
-    p4est_iterate_ext(p4est, ghost, data, NULL, update_RC, NULL, true);
-    p4est_ghost_destroy(ghost);
-
-    // Find the indices of the nodes on the boundaries x = Lx and y = Ly
-    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
-        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
-            double xy[3];
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y, xy);
-
-            // If the node is on the boundary x=Lx or y=Ly
-            if(xy[0] == forestData.m_lxy[0]) 
-            {
-                // Get the node IDs
-                long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y+length, xy);
-                long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-                std::vector<long> * idx0 = &indices[0][lni0];
-                std::vector<long> * idx1 = &indices[0][lni1];
-
-                // Check for duplicates
-                bool dup = false;
-                for(int i = 1; i < idx0[0][0] + 1; i++)
-                    if(idx0[0][i] == lni1)
-                        dup = true;
-
-                // Add the new indices
-                if(dup == false)
-                {
-                    idx0[0][0]++;
-                    idx1[0][0]++;
-                    ESYS_ASSERT(idx0[0][0]<=4, "updateRowsColumns index out of bound ");
-                    ESYS_ASSERT(idx1[0][0]<=4, "updateRowsColumns index out of bound ");
-                    idx0[0][idx0[0][0]]=lni1;
-                    idx1[0][idx1[0][0]]=lni0;
-                }
-            }
-
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y+length, xy);
-            if(xy[1] == forestData.m_lxy[1])
-            {
-                // Get the node IDs
-                long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y+length, xy);
-                long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-                std::vector<long> * idx0 = &indices[0][lni0];
-                std::vector<long> * idx1 = &indices[0][lni1];
-
-                // Check for duplicates
-                bool dup = false;
-                for(int i = 1; i < idx0[0][0] + 1; i++)
-                    if(idx0[0][i] == lni1)
-                        dup = true;
-
-                // Add the new indices
-                if(dup == false)
-                {
-                    idx0[0][0]++;
-                    idx1[0][0]++;
-                    ESYS_ASSERT(idx0[0][0]<=4, "updateRowsColumns index out of bound ");
-                    ESYS_ASSERT(idx1[0][0]<=4, "updateRowsColumns index out of bound ");
-                    idx0[0][idx0[0][0]]=lni1;
-                    idx1[0][idx1[0][0]]=lni0;
-                }
-            }
-        }
-    }
-
-    // Hanging nodes
-    hanging_faces.clear();
-    for(int i = 0; i < hanging_face_orientation.size(); i++)
-    {
-        double xy[3]={0};
-
-        // Skip if this is a hanging border node
-         // get parent quadrant
-        p4est_quadrant_t parent = hanging_face_orientation[i].parent;
-        double xy_parent00[3]={0};
-        double xy_parent11[3]={0};
-        p4est_qcoord_t l = P4EST_QUADRANT_LEN(parent.level);
-        p4est_topidx_t treeid = hanging_face_orientation[i].treeid;
-        p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x, parent.y, xy_parent00);
-        p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x+l, parent.y+l, xy_parent11);
-
-        // Check if we are on the boundary
-        bool west  = xy[0] == xy_parent00[0];
-        bool south = xy[1] == xy_parent00[1];
-        bool east  = xy[0] == xy_parent11[0];
-        bool north = xy[1] == xy_parent11[1];
-
-        // (These nodes are accounted for in a loop below)
-        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x, hanging_face_orientation[i].y, xy);
-        if( west || south || east || north )
-            continue;
-
-        // Distances to neighbouring nodes
-        l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].level);
-        p4est_qcoord_t xlookup[4][2] = {{0,0}, {0,0}, {-l,l}, {-l,l}};
-        p4est_qcoord_t ylookup[4][2] = {{-l,l}, {-l,l}, {0,0}, {0,0}};
-        p4est_qcoord_t zlookup[4][2] = {{l,0}, {-l,0}, {0,l}, {0,-l}};
-
-        // Calculate the node ids
-        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x, hanging_face_orientation[i].y, xy);
-        long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-        #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-        std::cout << "processing nodeid = " << nodeid << std::endl;
-        #endif
-
-        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, 
-                            hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_type][0], 
-                            hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_type][0], xy);
-        long lni0   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, 
-                            hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_type][1], 
-                            hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_type][1], xy);
-        long lni1   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, 
-                            hanging_face_orientation[i].x+zlookup[hanging_face_orientation[i].face_type][0], 
-                            hanging_face_orientation[i].y+zlookup[hanging_face_orientation[i].face_type][1], xy);
-        long lni2   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-        // Initialise vectors
-        std::vector<long> * idx0  = &indices[0][nodeid];
-        std::vector<long> * idx1a = &indices[0][lni0];
-        std::vector<long> * idx1b = &indices[0][lni1];
-        std::vector<long> * idx1c = &indices[0][lni2];
-
-        #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-            std::cout << "nodeid = " << nodeid << ": " << idx0[0][0] << ", " << idx0[0][1] << ", " << idx0[0][2] << ", " << idx0[0][3] << ", " << idx0[0][4] << std::endl;
-            std::cout << lni0 << ": " << idx1a[0][0] << ", " << idx1a[0][1] << ", " << idx1a[0][2] << ", " << idx1a[0][3] << ", " << idx1a[0][4] << std::endl;
-            std::cout << lni1 << ": " << idx1b[0][0] << ", " << idx1b[0][1] << ", " << idx1b[0][2] << ", " << idx1b[0][3] << ", " << idx1b[0][4] << std::endl;
-            std::cout << lni2 << ": " << idx1c[0][0] << ", " << idx1c[0][1] << ", " << idx1c[0][2] << ", " << idx1c[0][3] << ", " << idx1c[0][4] << std::endl;
-        #endif
-
-        // Remove spurious connections, if they exist
-        for(int i = 1; i < 5; i++)
-        {
-            if(idx1a[0][i]==lni1)
-                idx1a[0][i]=nodeid;
-            if(idx1b[0][i]==lni0)
-                idx1b[0][i]=nodeid;
-        }
-
-        // Check to see if these are new connections
-        bool new_connections[3]={true,true,true};
-        for(int i=1;i<5;i++)
-        {
-            if(idx1a[0][i]==nodeid)
-                new_connections[0]=false;
-            if(idx1b[0][i]==nodeid)
-                new_connections[1]=false;
-            if(idx1c[0][i]==nodeid)
-                new_connections[2]=false;
-        }
-
-        // If they are new then add them to the vectors
-        if(new_connections[0]==true)
-        {
-            idx1a[0][0]++;
-            ESYS_ASSERT(idx1a[0][0]<=4, "updateRowsColumns index out of bound ");
-            idx1a[0][idx1a[0][0]]=nodeid;
-        }
-        if(new_connections[1]==true)
-        {
-            idx1b[0][0]++;
-            ESYS_ASSERT(idx1b[0][0]<=4, "updateRowsColumns index out of bound ");
-            idx1b[0][idx1b[0][0]]=nodeid;
-        }
-        if(new_connections[2]==true)
-        {
-            idx1c[0][0]++;
-            ESYS_ASSERT(idx1c[0][0]<=4, "updateRowsColumns index out of bound ");
-            idx1c[0][idx1c[0][0]]=nodeid;
-        }
-        
-        // Add the hanging node
-        idx0[0][0]=3;
-        idx0[0][1]=lni0;
-        idx0[0][2]=lni1;
-        idx0[0][3]=lni2;
-        idx0[0][4]=-1;
-        hanging_faces.push_back(std::make_pair(nodeid,lni0));
-        hanging_faces.push_back(std::make_pair(nodeid,lni1));
-    }
-
-    // Hanging Border nodes
-    for(int i = 0; i < hanging_face_orientation.size(); i++)
-    {
-        double xy00[3]={0},xy11[3]={0}, xy[3]={0};
-
-        // Skip if this is not a hanging border node
-        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, 
-                                hanging_face_orientation[i].x, hanging_face_orientation[i].y, xy00);
-
-        #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-            std::cout << "nodeid = " << NodeIDs.find(std::make_pair(xy[0],xy[1]))->second << std::endl;
-        #endif
-
-        // Check if we are on the boundary
-        bool west  = xy00[0] == forestData.m_origin[0];
-        bool south = xy00[1] == forestData.m_origin[1];
-        bool east  = xy00[0] == forestData.m_lxy[0];
-        bool north = xy00[1] == forestData.m_lxy[1];
-
-        bool hangingBorderNode = west || south || east || north;
-        if( !hangingBorderNode )
-            continue;
-
-        long nodeid = NodeIDs.find(std::make_pair(xy00[0],xy00[1]))->second;
-        
-        // get parent quadrant
-        p4est_quadrant_t parent = hanging_face_orientation[i].parent;
-        double xy_parent00[3]={0};
-        double xy_parent11[3]={0};
-        p4est_qcoord_t l = P4EST_QUADRANT_LEN(parent.level);
-        p4est_topidx_t treeid = hanging_face_orientation[i].treeid;
-        p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x, parent.y, xy_parent00);
-        p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x+l, parent.y+l, xy_parent11);
-
-        // get lni0 and lni1 from parent
-        long lni0, lni1, lni2;
-        if(south)
-        {
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x, parent.y, xy);
-            lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x+l, parent.y, xy);
-            lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        }
-        else if(east)
-        {
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x+l, parent.y, xy);
-            lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x+l, parent.y+l, xy);
-            lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        }
-        else if(west)
-        {
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x, parent.y, xy);
-            lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x, parent.y+l, xy);
-            lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        }
-        else if(north)
-        {
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x, parent.y+l, xy);
-            lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x+l, parent.y+l, xy);
-            lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        }
-
-        // calculate lni from child quadrant
-        p4est_quadrant_t * child;
-        p4est_quadrant_t child_quad;
-        child = &child_quad;
-        p4est_quadrant_t * pParent;
-        pParent = &parent;
-        p4est_quadrant_child(pParent, child, 0);
-        l = P4EST_QUADRANT_LEN(child->level);
-        p4est_qcoord_to_vertex(p4est->connectivity, treeid, child->x+l, child->y+l, xy);
-        lni2 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-        // Initialise vectors
-        std::vector<long> * idx0  = &indices[0][nodeid];
-        std::vector<long> * idx1a = &indices[0][lni0];
-        std::vector<long> * idx1b = &indices[0][lni1];
-        std::vector<long> * idx1c = &indices[0][lni2];
-        
-        #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-            std::cout << "nodeid = " << nodeid << ": " << idx0[0][0] << ", " << idx0[0][1] << ", " << idx0[0][2] << ", " << idx0[0][3] << ", " << idx0[0][4] << std::endl;
-            std::cout << lni0 << ": " << idx1a[0][0] << ", " << idx1a[0][1] << ", " << idx1a[0][2] << ", " << idx1a[0][3] << ", " << idx1a[0][4] << std::endl;
-            std::cout << lni1 << ": " << idx1b[0][0] << ", " << idx1b[0][1] << ", " << idx1b[0][2] << ", " << idx1b[0][3] << ", " << idx1b[0][4] << std::endl;
-            std::cout << lni2 << ": " << idx1c[0][0] << ", " << idx1c[0][1] << ", " << idx1c[0][2] << ", " << idx1c[0][3] << ", " << idx1c[0][4] << std::endl;
-        #endif
-
-        // Remove spurious connections, if they exist
-        for(int i = 1; i < 5; i++)
-        {
-            if(idx1a[0][i]==lni1)
-                idx1a[0][i]=nodeid;
-            if(idx1b[0][i]==lni0)
-                idx1b[0][i]=nodeid;
-        }
-
-        // Check to see if these are new connections
-        bool new_connections[3]={true,true,true};
-        for(int i=1;i<5;i++)
-        {
-            if(idx1a[0][i]==nodeid)
-                new_connections[0]=false;
-            if(idx1b[0][i]==nodeid)
-                new_connections[1]=false;
-            if(idx1c[0][i]==nodeid)
-                new_connections[2]=false;
-        }
-
-        // If they are new then add them to the vectors
-        if(new_connections[0]==true)
-        {
-            idx1a[0][0]++;
-            ESYS_ASSERT(idx1a[0][0]<=4, "updateRowsColumns index out of bound ");
-            idx1a[0][idx1a[0][0]]=nodeid;
-        }
-        if(new_connections[1]==true)
-        {
-            idx1b[0][0]++;
-            ESYS_ASSERT(idx1b[0][0]<=4, "updateRowsColumns index out of bound ");
-            idx1b[0][idx1b[0][0]]=nodeid;
-        }
-        if(new_connections[2]==true)
-        {
-            idx1c[0][0]++;
-            ESYS_ASSERT(idx1c[0][0]<=4, "updateRowsColumns index out of bound ");
-            idx1c[0][idx1c[0][0]]=nodeid;
-        }
-        
-        // Add the hanging node
-        idx0[0][0]=3;
-        idx0[0][1]=lni0;
-        idx0[0][2]=lni1;
-        idx0[0][3]=lni2;
-        idx0[0][4]=-1;
-        std::pair<double,double> pair1=std::make_pair(nodeid,lni0);
-        std::pair<double,double> pair2=std::make_pair(nodeid,lni1);
-        int duplicate_test1=std::count(hanging_faces.begin(),hanging_faces.end(),pair1);
-        int duplicate_test2=std::count(hanging_faces.begin(),hanging_faces.end(),pair2);
-        if(duplicate_test1==0)
-            hanging_faces.push_back(pair1);
-        if(duplicate_test2==0)
-            hanging_faces.push_back(pair2);
-    }
-
-    // update num_hanging
-    num_hanging=hanging_faces.size() / 2; // each hanging node is counted twice in hanging_faces
-
-    // Sorting
-    for(int i = 0; i < getNumNodes(); i++)
-    {
-        std::vector<long> * idx0 = &indices[0][i];
-        std::sort(indices[0][i].begin()+1, indices[0][i].begin()+idx0[0][0]+1);
-    }
-
-#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-    std::cout << "Node connections: " << std::endl;
-    // Output for debugging
-    for(int i = 0; i < getNumNodes(); i++){
-        std::vector<long> * idx0 = &indices[0][i];
-        std::cout << i << ": ";
-        for(int j = 1; j < idx0[0][0]+1; j++)
-            std::cout << idx0[0][j] << ", ";
-        std::cout << std::endl;
-    }
-#endif
-
-    // Convert to CRS format
-    myRows.clear();
-    myRows.push_back(0);
-    myColumns.clear();
-    m_dofMap.assign(getNumNodes(), 0);
-    long counter = 0;
-    for(int i = 0; i < getNumNodes(); i++)
-    {
-        std::vector<long> * idx0 = &indices[0][i];
-        std::vector<long> temp; 
-        for(int j = 1; j < idx0[0][0]+1; j++)
-        {
-            temp.push_back(idx0[0][j]);
-            counter++;
-        }
-        std::sort(temp.begin(),temp.end());
-        for(int i = 0; i < temp.size(); i++)
-        {
-            myColumns.push_back(temp[i]);
-        }
-        m_dofMap[i] = counter-myRows[i];
-        if(i < getNumNodes()-1)
-            myRows.push_back(counter);
-    }
-    myRows.push_back(myColumns.size());
-
-#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-    std::cout << "Converted to Yale format... "<< std::endl;
-    std::cout << "COL_INDEX [";
-    for(auto i = myColumns.begin(); i < myColumns.end(); i++)
-        std::cout << *i << " ";
-    std::cout << "]" << std::endl;
-    std::cout << "ROW_INDEX [";
-    for(auto i = myRows.begin(); i < myRows.end(); i++)
-        std::cout << *i << " ";
-    std::cout << "]" << std::endl;
-    std::cout << "m_dofMap [";
-    for(auto i = m_dofMap.begin(); i < m_dofMap.end(); i++)
-        std::cout << *i << " ";
-    std::cout << "]" << std::endl;
-#endif
-
-// triple check that the entries are correct
-#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA_EXTRA
-    std::cout << "---------------------------------" << std::endl;
-    std::cout << "Reconstructed connection data:" << std::endl;
-    for(int i = 1; i < myRows.size(); i++)
-    {
-        std::cout << i-1 << ": ";
-        for(int j = myRows[i-1]; j < myRows[i]; j++)
-            std::cout << myColumns[j] << ", ";
-        std::cout << std::endl;
-    }
-#endif
-
-    delete indices;
-    delete data;
-
-    oxleytimer.toc("updateRowsColumns...Done");
+    // Conforming lnodes numbering: every local node is a real DOF numbered
+    // identically (serially). ownSample() consults m_dofMap, so keep it as the
+    // identity map. The legacy hanging-node connectivity build (the old
+    // coordinate-hash `indices`/update_RC path) is retired; getConnections now
+    // derives the matrix graph directly from lnodes.
+    const dim_t n = getNumNodes();
+    m_dofMap.assign(n, 0);
+    for(dim_t i = 0; i < n; ++i)
+        m_dofMap[i] = i;
 }
 
 #ifdef ESYS_HAVE_TRILINOS
@@ -3778,23 +2764,17 @@ void Rectangle::updateNodeDistribution()
     m_nodeDistribution.assign(MAXP4ESTNODES,0);
 
     int counter =0;
-    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
+    const int V = nodes->vnodes;
+    long e = 0;
+    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid)
     {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        for(int q = 0; q < Q; ++q) 
-        { 
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
-            for(int n = 0; n < 4; n++)
-            {
-                double lx = length * ((int) (n % 2) == 1);
-                double ly = length * ((int) (n / 2) == 1);
-                double xy[3];
-                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-                m_nodeDistribution[counter++]=NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            }
+        for(int q = 0; q < Q; ++q, ++e)
+        {
+            for(int n = 0; n < V; n++)
+                m_nodeDistribution[counter++] = (long) nodes->element_nodes[(size_t) e * V + n];
         }
     }
     m_nodeDistribution.shrink_to_fit();
@@ -3803,11 +2783,12 @@ void Rectangle::updateNodeDistribution()
 // updates m_elementIDs()
 void Rectangle::updateElementIds()
 {
+    // element sample ids are the running local leaf indices [0, numElements)
+    const dim_t ne = getNumElements();
     m_elementId.clear();
-    m_elementId.assign(MAXP4ESTNODES,0);
-    int count=0;
-    for(std::pair<DoublePair,long> e : NodeIDs)
-        m_elementId[count++]=e.second;
+    m_elementId.resize(ne);
+    for(dim_t i = 0; i < ne; ++i)
+        m_elementId[i] = i;
     m_elementId.shrink_to_fit();
 }
 
@@ -4010,23 +2991,21 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
         std::vector<Scalar> f_10(numComp, zero);
         std::vector<Scalar> f_11(numComp, zero);
 
+        const int V = nodes->vnodes;
+        long e = 0;
         for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-// #pragma omp parallel for
-            for(int q = 0; q < Q; ++q) // Loop over every quadrant within the tree
+            for(int q = 0; q < Q; ++q, ++e) // Loop over every quadrant within the tree
             {
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                double xy[3];
-                p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
-                long e = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
                 long l = quad->level;
 
-                long ids[4]={0};
-                getNeighouringNodeIDs(l, quad->x, quad->y, t, ids);
-                
+                long ids[4];
+                for(int n = 0; n < V; ++n) ids[n] = (long) nodes->element_nodes[(size_t) e * V + n];
+
                 #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_GRADIENT
                     std::cout << "quad id: " << e << std::endl;
                 #endif
@@ -4057,23 +3036,20 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
         std::vector<Scalar> f_10(numComp, zero);
         std::vector<Scalar> f_11(numComp, zero);
 
+        const int V = nodes->vnodes;
+        long e = 0;
         for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-// #pragma omp parallel for
-            for(int q = 0; q < Q; ++q) // Loop over every quadrant within the tree
+            for(int q = 0; q < Q; ++q, ++e) // Loop over every quadrant within the tree
             {
-
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                double xy[3];
-                p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
-                long e = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
                 long l = quad->level;
 
-                long ids[4]={0};
-                getNeighouringNodeIDs(l, quad->x, quad->y, t, ids);
+                long ids[4];
+                for(int n = 0; n < V; ++n) ids[n] = (long) nodes->element_nodes[(size_t) e * V + n];
 
                 memcpy(&f_00[0], in.getSampleDataRO(ids[0], zero), numComp*sizeof(Scalar));
                 memcpy(&f_01[0], in.getSampleDataRO(ids[2], zero), numComp*sizeof(Scalar));
@@ -4303,52 +3279,27 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
     } else if (fs == Elements && arg.actsExpanded()) {
        
         std::vector<Scalar> int_local(numComp, zero);
-        std::vector<bool> duplicates(quadrantIDs.size(),false);
-        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
+        long id = 0;   // running local leaf index (element sample order)
+        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid)
         {
             p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
             sc_array_t * tquadrants = &tree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        
-    // #pragma omp parallel for
-            for(int q = 0; q < Q; ++q)
+            for(int q = 0; q < Q; ++q, ++id)
             {
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);      
 
-                for (int n = 0; n < 4; ++n) 
-                {
-                    if( (n == 0) 
-                        || isHangingNode(nodes->face_code[q], n)
-                        || isUpperBoundaryNode(quad, n, treeid, length) )
-                    {
-                        // p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                        double xy[3];
-                        p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
-                        long id = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                real_t w = forestData.m_dx[0][P4EST_MAXLEVEL-quad->level]
+                         * forestData.m_dx[1][P4EST_MAXLEVEL-quad->level]
+                         / 4.;
 
-                        if(duplicates[id] == true)
-                            continue;
-                        else
-                            duplicates[id] = true;
-
-                        #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_INTEGRATE
-                            std::cout << "quad id: " << id << std::endl;
-                        #endif
-
-                        real_t w = forestData.m_dx[0][P4EST_MAXLEVEL-quad->level]
-                                 * forestData.m_dx[1][P4EST_MAXLEVEL-quad->level]
-                                 / 4.;
-
-                        const Scalar* f = arg.getSampleDataRO(id, zero);
-                        for (index_t i = 0; i < numComp; ++i) {
-                            const Scalar f0 = f[INDEX2(i,0,numComp)];
-                            const Scalar f1 = f[INDEX2(i,1,numComp)];
-                            const Scalar f2 = f[INDEX2(i,2,numComp)];
-                            const Scalar f3 = f[INDEX2(i,3,numComp)];
-                            int_local[i] += (f0+f1+f2+f3)*w;
-                        }
-                    }
+                const Scalar* f = arg.getSampleDataRO(id, zero);
+                for (index_t i = 0; i < numComp; ++i) {
+                    const Scalar f0 = f[INDEX2(i,0,numComp)];
+                    const Scalar f1 = f[INDEX2(i,1,numComp)];
+                    const Scalar f2 = f[INDEX2(i,2,numComp)];
+                    const Scalar f3 = f[INDEX2(i,3,numComp)];
+                    int_local[i] += (f0+f1+f2+f3)*w;
                 }
             }
         }
@@ -4359,20 +3310,17 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
 
     } else if (fs==ReducedElements || (fs==Elements && !arg.actsExpanded())) {
         
-        // const 
+        // const
         std::vector<Scalar> int_local(numComp, 0);
-        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
+        long id = 0;   // running local leaf index (element sample order)
+        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid)
         {
             p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
             sc_array_t * tquadrants = &tree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-    // #pragma omp parallel for
-            for(int q = 0; q < Q; ++q)
+            for(int q = 0; q < Q; ++q, ++id)
             {
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                double xy[3];
-                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
-                long id = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
                 const Scalar* f = arg.getSampleDataRO(id, zero);
                 real_t w = forestData.m_dx[0][P4EST_MAXLEVEL-quad->level]
                          * forestData.m_dx[1][P4EST_MAXLEVEL-quad->level];
@@ -5152,26 +4100,25 @@ escript::Data Rectangle::randomFillWorker(
 
 dim_t Rectangle::findNode(const double *coords) const
 {
-    // Check to see if the node is in the map
-    if(NodeIDs.count(std::make_pair(coords[0],coords[1]))==1)
-        return NodeIDs.find(std::make_pair(coords[0],coords[1]))->second;
-
-    // TODO speed enhancements
-    // Otherwise find the nearest element
-    double sq_distance = m_NX[0]*m_NX[1];
+    // Search the lnodes node coordinates for the closest node (used for Dirac
+    // points). Replaces the coordinate-hash lookup.
+    const MeshAccess m = getMeshAccess();
     long closest = 0;
-
-    for(std::pair<DoublePair,long> e : NodeIDs)
-        if(e.first.first*e.first.first+e.first.second*e.first.second < sq_distance)
-            closest = e.second;
-
-    return closest;
-
+    double best = std::numeric_limits<double>::max();
+    for(long i = 0; i < m.numNodes; ++i)
+    {
+        const double dx = m.nodeCoords[(size_t) i*2 + 0] - coords[0];
+        const double dy = m.nodeCoords[(size_t) i*2 + 1] - coords[1];
+        const double d2 = dx*dx + dy*dy;
+        if(d2 < best) { best = d2; closest = i; }
+    }
+    return (dim_t) closest;
 }
 
 const long Rectangle::getNodeId(double x, double y)
 {
-    return NodeIDs.find(std::make_pair(x,y))->second;
+    const double coords[2] = {x, y};
+    return (long) findNode(coords);
 }
 
 RankVector Rectangle::getOwnerVector(int fsType) const

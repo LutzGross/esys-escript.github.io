@@ -2340,7 +2340,7 @@ void DefaultAssembler3D<Scalar>::assemblePDEBoundarySingle(
             int l = quad->level;
             double xyz[3];
             p8est_qcoord_to_vertex(domain->p8est->connectivity, t, quad->x, quad->y, quad->z, xyz);
-            long e = domain->NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
+            long e = (long) currenttree->quadrants_offset + q;  // running local leaf index
 
             if(quaddata->m_faceOffset[0]) {
                 if (add_EM_S)
