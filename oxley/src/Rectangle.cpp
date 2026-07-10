@@ -929,24 +929,22 @@ void Rectangle::setToSize(escript::Data& out) const
         }
 
         const dim_t numQuad = out.getNumDataPointsPerSample();
-        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+        long id = 0;   // running local leaf index (lnodes / element sample order)
+        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++)
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-            for (int q = 0; q < Q; ++q)  
+            for (int q = 0; q < Q; ++q, ++id)
             {
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
                 int l = quad->level;
                 const double size = size_vect[l];
-                double xy[3];
-                p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
-                long id = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
                 double* o = out.getSampleDataRW(id);
                 std::fill(o, o+numQuad, size);
             }
         }
-    } 
+    }
     else if (out.getFunctionSpace().getTypeCode() == FaceElements
             || out.getFunctionSpace().getTypeCode() == ReducedFaceElements) 
     {
@@ -2406,9 +2404,11 @@ template<typename Scalar>
 void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
          const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F, 
          bool addS, bool addF, borderNodeInfo quad, int nEq, int nComp) const
-{    
-    long rowIndex[4] = {0};
-    getNeighouringNodeIDs(quad.level, quad.x, quad.y, quad.treeid, rowIndex);
+{
+    // the 4 quad corners (lnodes, z-order) were stored when the boundary lists
+    // were built (updateFaceOffset), so no coordinate-hash lookup is needed.
+    long rowIndex[4] = { quad.neighbours[0], quad.neighbours[1],
+                         quad.neighbours[2], quad.neighbours[3] };
     if(addF)
     {
         Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
@@ -2504,18 +2504,17 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
         std::vector<S> f_10(numComp);
         std::vector<S> f_11(numComp);
 
+        const int V = nodes->vnodes;
+        long e = 0;
         for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
             p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
             sc_array_t * tquadrants = &tree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-            // #pragma omp parallel for
-            for(int q = 0; q < Q; q++)
+            for(int q = 0; q < Q; q++, ++e)
             {
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-               
-                long ids[4]={0};
-                getNeighouringNodeIDs(quad->level, quad->x, quad->y, treeid, ids);
-                int quadID=getQuadID(ids[0]);
+                long ids[4];
+                for(int n = 0; n < V; ++n) ids[n] = (long) nodes->element_nodes[(size_t) e * V + n];
+                const long quadID = e;
 
                 memcpy(&f_00[0], in.getSampleDataRO(ids[0],sentinel), numComp*sizeof(S));
                 memcpy(&f_01[0], in.getSampleDataRO(ids[2],sentinel), numComp*sizeof(S));
@@ -2540,18 +2539,17 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
         std::vector<S> f_10(numComp);
         std::vector<S> f_11(numComp);
 
+        const int V = nodes->vnodes;
+        long e = 0;
         for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
             p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
             sc_array_t * tquadrants = &tree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-            // #pragma omp parallel for
-            for(int q = 0; q < Q; q++)
-            {        
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-
-                long ids[4]={0};
-                getNeighouringNodeIDs(quad->level, quad->x, quad->y, treeid, ids);
-                long quadId = getQuadID(ids[0]);
+            for(int q = 0; q < Q; q++, ++e)
+            {
+                long ids[4];
+                for(int n = 0; n < V; ++n) ids[n] = (long) nodes->element_nodes[(size_t) e * V + n];
+                const long quadId = e;
 
             #ifdef OXLEY_ENABLE_DEBUG_INTERPOLATE_EXTRA
                 std::cout << "interpolateNodesOnElementsWorker quadID: " << quadId << ", node IDs " << 
@@ -3596,12 +3594,14 @@ void Rectangle::updateFaceElementCount()
     NodeIDsLeft.clear();
     NodeIDsRight.clear();
 
-    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
+    const int V = nodes->vnodes;   // 4 corners (z-order matches lxy below)
+    long e = 0;                    // running local leaf index (lnodes order)
+    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid)
     {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        for(int q = 0; q < Q; ++q) 
+        for(int q = 0; q < Q; ++q, ++e)
         {
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
@@ -3613,7 +3613,7 @@ void Rectangle::updateFaceElementCount()
             for(int n = 0; n < 4; n++)
             {
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy[n]);
-                nodeids[n]=NodeIDs.find(std::make_pair(xy[n][0],xy[n][1]))->second;
+                nodeids[n]=(int) nodes->element_nodes[(size_t) e * V + n];
 
                 if(n==0)
                     do_check_yes_no[n]=true;

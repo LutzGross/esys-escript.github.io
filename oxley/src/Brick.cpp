@@ -753,24 +753,22 @@ void Brick::setToSize(escript::Data& out) const
         }
 
         const dim_t numQuad=out.getNumDataPointsPerSample();
-        for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++) 
+        long id = 0;   // running local leaf index (element sample order)
+        for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++)
         {
             p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p8est_qcoord_t Q = (p8est_qcoord_t) tquadrants->elem_count;
-            for (int q = 0; q < Q; ++q)  
+            for (int q = 0; q < Q; ++q, ++id)
             {
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
                 int l = quad->level;
                 const double size = size_vect[l];
-                double xyz[3];
-                p8est_qcoord_to_vertex(p8est->connectivity, t, quad->x, quad->y, quad->z, xyz);
-                long id = getQuadID(NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second);
                 double* o = out.getSampleDataRW(id);
                 std::fill(o, o+numQuad, size);
             }
         }
-    } 
+    }
     else if (out.getFunctionSpace().getTypeCode() == FaceElements
             || out.getFunctionSpace().getTypeCode() == ReducedFaceElements) 
     {
@@ -6377,21 +6375,19 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
         std::vector<S> f_110(numComp);
         std::vector<S> f_111(numComp);
 
-        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
+        const int V = nodes->vnodes;
+        long e = 0;
+        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid)
         {
             p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
             sc_array_t * tquadrants = &tree->quadrants;
             p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-            // #pragma omp parallel for
-            for(int q = 0; q < Q; q++)
+            for(int q = 0; q < Q; q++, ++e)
             {
-                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-               
-                long ids[8]={0};
-                getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
-                int quadID=getQuadID(ids[0]);
-                //TODO check order of indices ids[x]
-                memcpy(&f_000[0], in.getSampleDataRO(ids[0], sentinel), numComp*sizeof(S)); 
+                long ids[8];
+                for(int n = 0; n < V; ++n) ids[n] = (long) nodes->element_nodes[(size_t) e * V + n];
+                const long quadID = e;
+                memcpy(&f_000[0], in.getSampleDataRO(ids[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_001[0], in.getSampleDataRO(ids[1], sentinel), numComp*sizeof(S));
                 memcpy(&f_010[0], in.getSampleDataRO(ids[2], sentinel), numComp*sizeof(S));
                 memcpy(&f_011[0], in.getSampleDataRO(ids[3], sentinel), numComp*sizeof(S));
@@ -6423,18 +6419,17 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
         std::vector<S> f_110(numComp);
         std::vector<S> f_111(numComp);
 
+        const int V = nodes->vnodes;
+        long e = 0;
         for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
             p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
             sc_array_t * tquadrants = &tree->quadrants;
             p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-            // #pragma omp parallel for
-            for(int q = 0; q < Q; q++)
-            {        
-                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-
-                long ids[8]={0};
-                getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
-                long quadId = getQuadID(ids[0]);
+            for(int q = 0; q < Q; q++, ++e)
+            {
+                long ids[8];
+                for(int n = 0; n < V; ++n) ids[n] = (long) nodes->element_nodes[(size_t) e * V + n];
+                const long quadId = e;
 
                 #ifdef OXLEY_ENABLE_DEBUG_INTERPOLATE_QUADIDS
                     std::cout << "interpolateNodesOnElementsWorker quadID: " << quadId << ", node IDs " << 
