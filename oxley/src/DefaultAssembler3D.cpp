@@ -170,11 +170,14 @@ void DefaultAssembler3D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat,
     const double SQRT3 = 1.73205080756887719318;
     double w[74][P4EST_MAXLEVEL] = {{0}};
 #pragma omp parallel for
-    for(int i = 0; i < max_level; i++)
+    for(int i = 0; i <= max_level; i++)   // inclusive: level max_level needs w[..][max_level]
     {
-        double m_dx[3] = {domain->m_NX[0]*domain->forestData->m_dx[0][P4EST_MAXLEVEL-i], 
-                          domain->m_NX[1]*domain->forestData->m_dx[1][P4EST_MAXLEVEL-i],
-                          domain->m_NX[2]*domain->forestData->m_dx[2][P4EST_MAXLEVEL-i]};
+        // element size at level i = block size / 2^i  (m_NX is the per-block
+        // length; matches the 2D assembler and is correct for non-unit domains).
+        const double h = (double)(1 << i);
+        double m_dx[3] = {domain->m_NX[0]/h,
+                          domain->m_NX[1]/h,
+                          domain->m_NX[2]/h};
 
         w[10][i] = -m_dx[0]/288;
         w[6][i]  = w[10][i]*(SQRT3 - 2);
@@ -280,10 +283,9 @@ void DefaultAssembler3D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat,
             
             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
             int l = quad->level;
-            double xyz[3];
-            p8est_qcoord_to_vertex(domain->p8est->connectivity, t, quad->x, quad->y, quad->z, xyz);
-            long id = domain->NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
-                        
+            // element sample index = running local leaf index (lnodes order)
+            long id = (long) currenttree->quadrants_offset + q;
+
             ///////////////
             // process A //
             ///////////////
@@ -2276,11 +2278,14 @@ void DefaultAssembler3D<Scalar>::assemblePDEBoundarySingle(
     const double SQRT3 = 1.73205080756887719318;
     double w[16][P4EST_MAXLEVEL] = {{0}};
 #pragma omp parallel for
-    for(int i = 0; i < max_level; i++)
+    for(int i = 0; i <= max_level; i++)   // inclusive: level max_level needs w[..][max_level]
     {
-        double m_dx[3] = {domain->m_NX[0]*domain->forestData->m_dx[0][P4EST_MAXLEVEL-i], 
-                          domain->m_NX[1]*domain->forestData->m_dx[1][P4EST_MAXLEVEL-i],
-                          domain->m_NX[2]*domain->forestData->m_dx[2][P4EST_MAXLEVEL-i]};
+        // element size at level i = block size / 2^i  (m_NX is the per-block
+        // length; matches the 2D assembler and is correct for non-unit domains).
+        const double h = (double)(1 << i);
+        double m_dx[3] = {domain->m_NX[0]/h,
+                          domain->m_NX[1]/h,
+                          domain->m_NX[2]/h};
         w[12][i] = m_dx[0]*m_dx[1]/144;
         w[10][i] = w[12][i]*(-SQRT3 + 2);
         w[11][i] = w[12][i]*(SQRT3 + 2);

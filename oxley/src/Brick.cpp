@@ -6211,12 +6211,14 @@ void Brick::assembleCoordinates(escript::Data& arg) const
 
     std::vector<bool> duplicates(getNumNodes(),false);
 
-    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
+    const int V = nodes->vnodes;   // 8 corners (degree-1 lnodes)
+    long e = 0;                    // running local leaf index (lnodes order)
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid)
     {
         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
         p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-        for(int q = 0; q < Q; ++q) 
+        for(int q = 0; q < Q; ++q, ++e)
         {
             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
             p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
@@ -6228,7 +6230,8 @@ void Brick::assembleCoordinates(escript::Data& arg) const
 #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_COORDINATES
                 std::cout << "(" << xy[0] << ", " << xy[1] << ", " << xy[2] << ")" << std::endl;
 #endif
-                long lni = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+                // lnodes local node id for this corner (no coordinate hashing)
+                long lni = (long) nodes->element_nodes[(size_t) e * V + n];
                 if(duplicates[lni] == true)
                     continue;
                 else
@@ -6722,7 +6725,9 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
 //protected
 inline dim_t Brick::getNumNodes() const
 {
-    return NodeIDs.size();
+    // lnodes-based node count (owned + ghost). Replaces the coordinate-hash
+    // NodeIDs.size(); for a conforming mesh the two counts agree.
+    return nodes ? (dim_t) nodes->num_local_nodes : 0;
 }
 
 inline dim_t Brick::getNumHangingNodes() const
@@ -7679,14 +7684,51 @@ void Brick::updateElementIds()
 
 std::vector<IndexVector> Brick::getConnections(bool includeShared) const
 {
-    // returns a vector v of size numDOF where v[i] is a vector with indices
-    // of DOFs connected to i (up to 9 in 2D).
-    // In other words this method returns the occupied (local) matrix columns
-    // for all (local) matrix rows.
-    // If includeShared==true then connections to non-owned DOFs are also
-    // returned (i.e. indices of the column couplings)
+    // returns a vector v of size numNodes where v[i] lists the node indices
+    // coupled to node i (the occupied local matrix columns of row i).
+    //
+    // Built directly from the lnodes element->node connectivity (no coordinate
+    // hashing): every corner of a leaf is coupled to every other corner. This
+    // replaces the update_RC / coordinate-hash machinery in updateRowsColumns.
 
-    return *indices;
+    long numNodes = getNumNodes();
+    std::vector<IndexVector> indices_out(numNodes);
+
+    const int V = nodes->vnodes;   // 8 corners (degree-1 lnodes)
+    long e = 0;                    // running local leaf index (lnodes order)
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid)
+    {
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; ++q, ++e)
+        {
+            long lni[8];
+            for(int i = 0; i < V; i++)
+                lni[i] = (long) nodes->element_nodes[(size_t) e * V + i];
+
+            for(int i = 0; i < V; i++)
+            {
+                for(int j = 0; j < V; j++)
+                {
+                    bool dup = false;
+                    for(int k = 0; k < indices_out[lni[i]].size(); k++)
+                        if(indices_out[lni[i]][k] == lni[j])
+                        {
+                            dup = true;
+                            break;
+                        }
+                    if(dup == false)
+                        indices_out[lni[i]].push_back(lni[j]);
+                }
+            }
+        }
+    }
+
+    for(long i = 0; i < numNodes; i++)
+        std::sort(indices_out[i].begin(), indices_out[i].end());
+
+    return indices_out;
 }
 
 bool Brick::operator==(const AbstractDomain& other) const
@@ -8248,21 +8290,14 @@ void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F
          const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F, 
          bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const
 {    
-    IndexVector rowIndex(4);
+    const int V = nodes->vnodes;   // 8 corners (z-order matches the kernels)
+    IndexVector rowIndex(V);
     p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
-    sc_array_t * tquadrants = &currenttree->quadrants;
-    // p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-    p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-    p8est_qcoord_t length = P8EST_QUADRANT_LEN(quad->level);
-    for(int i = 0; i < 4; i++)
-    {
-        double lx = length * ((int) (i % 2) == 1);
-        double ly = length * ((int) (i / 2) == 1);
-        double lz = length * ((int) (i / 2) == 1);
-        double xyz[3];
-        p8est_qcoord_to_vertex(p8est->connectivity, t, quad->x+lx, quad->y+ly, quad->z+lz, xyz);
-        rowIndex[i] = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
-    }
+    // global local-leaf index in lnodes order; quadrants_offset is the cumulative
+    // number of local octants in the trees before t.
+    const long g = (long) currenttree->quadrants_offset + (long) e;
+    for(int i = 0; i < V; i++)
+        rowIndex[i] = (index_t) nodes->element_nodes[(size_t) g * V + i];
 
     if(addF)
     {
@@ -8325,10 +8360,9 @@ void Brick::updateMeshInformation()
 ////////////////////////////// inline methods ////////////////////////////////
 inline dim_t Brick::getDofOfNode(dim_t node) const
 {
-    //TODO
-    throw OxleyException("getDofOfNode");
-    return -1;
-    // return m_dofMap[node];
+    // Conforming lnodes numbering: every node is a real DOF and (serially)
+    // the DOF id equals the local node id. MPI ownership handled in A6.
+    return node;
 }
 
 dim_t Brick::findNode(const double *coords) const
