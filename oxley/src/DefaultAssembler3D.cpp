@@ -273,7 +273,9 @@ void DefaultAssembler3D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat,
         p8est_tree_t * currenttree = p8est_tree_array_index(domain->p8est->trees, t);
         sc_array_t * tquadrants = &currenttree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
+        // NB: element loop is serial: the scatter (addToMatrixAndRHS) accumulates
+        // into the shared global matrix/RHS, so parallelising here races and drops
+        // contributions (matches the serial 2D assembler).
         for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
         {
             if (add_EM_S)
@@ -2323,7 +2325,8 @@ void DefaultAssembler3D<Scalar>::assemblePDEBoundarySingle(
         sc_array_t * tquadrants = &currenttree->quadrants;
         p4est_qcoord_t Q = (p4est_qcoord_t) tquadrants->elem_count;
 
-#pragma omp parallel for
+        // serial element loop: the scatter accumulates into the shared global
+        // matrix/RHS (see note in assemblePDESingle).
         for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
         {
             if (add_EM_S)
