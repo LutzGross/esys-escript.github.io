@@ -905,12 +905,12 @@ protected:
       virtual boost::python::numpy::ndarray getNumpyX() const;
     #endif
 
+public:
     /// returns an lnodes-based, p4est-independent view of the mesh (see MeshAccess).
     /// This is the single public description of the mesh topology consumed by
     /// output and (later) assembly; the node numbering stays inside the domain.
     virtual MeshAccess getMeshAccess() const = 0;
 
-public:
     #ifdef ESYS_HAVE_BOOST_NUMPY
       /// Python view of getMeshAccess(): a dict of scalars and numpy arrays.
       boost::python::dict getMeshInfo() const;

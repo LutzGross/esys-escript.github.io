@@ -90,43 +90,32 @@ bool OxleyElements::initFromOxley(const oxley::OxleyDomain* dom, int fsType)
                 type = ZONETYPE_QUAD;
                 break;
             case 8:
-                throw WeipaException("Unknown shape type");
+                type = ZONETYPE_HEX;
                 break;
+            default:
+                throw WeipaException("OxleyElements: unsupported element shape");
         }
         owner = dom->getOwnerVector(fsType);
 
-        const dim_t* iPtr = dom->borrowSampleReferenceIDs(fsType);
-        ID.assign(iPtr, iPtr+numElements);
+        // serial element ids; TODO(MPI, A6): global element numbering.
+        ID.resize(numElements);
+        for (int i = 0; i < numElements; i++)
+            ID[i] = i;
 
         nodes.clear();
         if (dom->getDim() == 2) {
             const oxley::Rectangle * rect = static_cast<const oxley::Rectangle *>(dom);
 
             if (fsType==oxley::Elements) {
-                for(p4est_topidx_t treeid = rect->p4est->first_local_tree; treeid <= rect->p4est->last_local_tree; ++treeid) {
-                    p4est_tree_t * tree = p4est_tree_array_index(rect->p4est->trees, treeid);
-                    sc_array_t * tquadrants = &tree->quadrants;
-                    p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-            // #pragma omp parallel for
-                    for(int q = 0; q < Q; ++q) {
-                        p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                        long ids[4]={0};
-                        rect->getNeighouringNodeIDs(quad->level, quad->x, quad->y, treeid, ids);
-                        // Convert the node ordering
-                        nodes.push_back(ids[0]);
-                        nodes.push_back(ids[2]);
-                        nodes.push_back(ids[3]);
-                        nodes.push_back(ids[1]);
-
-                        #ifdef OXLEY_ENABLE_DEBUG_WEIPA
-                            std::cout << "Element " << 
-                                        ids[0] << "-" <<
-                                        ids[2] << "-" <<
-                                        ids[3] << "-" <<
-                                        ids[1] <<  std::endl;
-                        #endif
-                    }
-                }
+                // volume elements: connectivity from the lnodes mesh-access
+                // interface, reordering p4est z-order corners into weipa's quad
+                // order (z-order 0,1,3,2 == BL,BR,TR,TL).
+                const oxley::MeshAccess m = dom->getMeshAccess();
+                static const int quadMap[4] = {0, 1, 3, 2};
+                nodes.reserve((size_t) m.numElements * 4);
+                for (long e = 0; e < m.numElements; ++e)
+                    for (int k = 0; k < 4; ++k)
+                        nodes.push_back((int) m.elementNodes[(size_t) e*4 + quadMap[k]]);
             } else if (fsType==oxley::FaceElements) {
                 #ifdef OXLEY_ENABLE_DEBUG_WEIPA
                     long counter = 0;
@@ -201,26 +190,15 @@ bool OxleyElements::initFromOxley(const oxley::OxleyDomain* dom, int fsType)
         } else { //3d
             const oxley::Brick * brick = static_cast<const oxley::Brick *>(dom);
             if (fsType==oxley::Elements) {
-                for(oxley::p8est_topidx_t treeid = brick->p8est->first_local_tree; treeid <= brick->p8est->last_local_tree; ++treeid) {
-                    p8est_tree_t * tree = p8est_tree_array_index(brick->p8est->trees, treeid);
-                    sc_array_t * tquadrants = &tree->quadrants;
-                    oxley::p8est_locidx_t Q = (oxley::p8est_locidx_t) tquadrants->elem_count;
-            #pragma omp parallel for
-                    for(int q = 0; q < Q; ++q) {
-                        p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-                        long ids[8]={-1};
-                        brick->getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
-
-                        nodes.push_back(ids[2]);
-                        nodes.push_back(ids[0]);
-                        nodes.push_back(ids[1]);
-                        nodes.push_back(ids[3]);
-                        nodes.push_back(ids[6]);
-                        nodes.push_back(ids[4]);
-                        nodes.push_back(ids[5]);
-                        nodes.push_back(ids[7]);
-                    }
-                }
+                // volume elements: connectivity from the lnodes mesh-access
+                // interface, reordering p8est z-order corners into weipa's hex
+                // order (z-order 0,4,5,1,2,6,7,3).
+                const oxley::MeshAccess m = dom->getMeshAccess();
+                static const int hexMap[8] = {0, 4, 5, 1, 2, 6, 7, 3};
+                nodes.reserve((size_t) m.numElements * 8);
+                for (long e = 0; e < m.numElements; ++e)
+                    for (int k = 0; k < 8; ++k)
+                        nodes.push_back((int) m.elementNodes[(size_t) e*8 + hexMap[k]]);
             } else if (fsType==oxley::FaceElements) {
                 // const dim_t* NE = dom->getNumElements();
                 #ifdef OXLEY_ENABLE_DEBUG_WEIPA

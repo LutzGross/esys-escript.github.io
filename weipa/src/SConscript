@@ -65,6 +65,10 @@ if 'oxley' in env['domains']:
     local_env.Append(CPPDEFINES = ['USE_OXLEY'])
     weipalibs += env['oxley_libs']
     weipalibs += env['p4est_libs']
+    # the oxley headers include p4est headers, which include <p4est_config.h>
+    # by bare name, so the bundled p4est source dir must be on the include path
+    import os
+    local_env.AppendUnique(CPPPATH = [os.path.join(env['escript_src'], 'p4est', 'src')])
 
 if 'ripley' in env['domains']:
     sources += ['RipleyDomain.cpp','RipleyElements.cpp','RipleyNodes.cpp']

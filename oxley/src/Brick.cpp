@@ -1181,7 +1181,9 @@ const dim_t* Brick::borrowSampleReferenceIDs(int fsType) const
     switch (fsType) {
         case Nodes:
         case ReducedNodes: //FIXME: reduced
-            return &myColumns[0];
+            // node reference ids live in m_nodeId (populated by renumberNodes);
+            // myColumns is the Yale-format matrix column array, not node ids.
+            return &m_nodeId[0];
         case DegreesOfFreedom:
         case ReducedDegreesOfFreedom: //FIXME: reduced
             throw OxleyException("Unknown Error.");
@@ -9090,43 +9092,17 @@ void Brick::assembleIntegrateImpl(std::vector<Scalar>& integrals, const escript:
 RankVector Brick::getOwnerVector(int fsType) const
 {
     RankVector owner;
+    const int rank = m_mpiInfo->rank;
 
-    throw OxleyException("getOwnerVector TODO");
-
-    // const int rank = m_mpiInfo->rank;
-
-    // if (fsType == Elements || fsType == ReducedElements) {
-    //     owner.assign(getNumElements(), rank);
-    //     if (m_faceCount[0] == 0) {
-    //         owner[0]=(m_faceCount[2]==0 ? rank-m_NX[0]-1 : rank-1);
-    //         for (dim_t i=1; i<m_NE[1]; i++)
-    //             owner[i*m_NE[0]] = rank-1;
-    //     }
-    //     if (m_faceCount[2]==0) {
-    //         const int first=(m_faceCount[0]==0 ? 1 : 0);
-    //         for (dim_t i=first; i<m_NE[0]; i++)
-    //             owner[i] = rank-m_NX[0];
-    //     }
-
-    // } else if (fsType == FaceElements || fsType == ReducedFaceElements) {
-    //     owner.assign(getNumFaceElements(), rank);
-    //     if (m_faceCount[0] == 0) {
-    //         if (m_faceCount[2] > 0)
-    //             owner[m_faceCount[1]] = rank-1;
-    //         if (m_faceCount[3] > 0)
-    //             owner[m_faceCount[1]+m_faceCount[2]] = rank-1;
-    //     }
-    //     if (m_faceCount[2] == 0) {
-    //         if (m_faceCount[0] > 0)
-    //             owner[0] = rank-m_NX[0];
-    //         if (m_faceCount[1] > 0)
-    //             owner[m_faceCount[0]] = rank-m_NX[0];
-    //     }
-
-    // } else {
-    //     throw ValueError("getOwnerVector: only valid for element types");
-    // }
-
+    // Serial-correct: every local element is owned by this rank (no ghosts).
+    // TODO(MPI, A6): mark ghost elements across the p4est partition boundary.
+    if (fsType == Elements || fsType == ReducedElements) {
+        owner.assign(getNumElements(), rank);
+    } else if (fsType == FaceElements || fsType == ReducedFaceElements) {
+        owner.assign(getNumFaceElements(), rank);
+    } else {
+        throw ValueError("getOwnerVector: only valid for element types");
+    }
     return owner;
 }
 

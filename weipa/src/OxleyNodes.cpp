@@ -129,66 +129,38 @@ bool OxleyNodes::initFromOxley(const oxley::OxleyDomain* dom)
     nodeID.clear();
     nodeTag.clear();
 
-    numDims = dom->getDim();
-    globalNumNodes = dom->getNumDataPointsGlobal();
-    pair<int,dim_t> shape = dom->getDataShape(oxley::Nodes);
-    numNodes = dom->getNumNodes();
-    // oxley::IndexVector dist = dom->getNodeDistribution();
-    // nodeDist.assign(dist.begin(), dist.end());
+    // Consume the domain's public lnodes-based mesh view; the node numbering
+    // scheme stays inside the domain (no p4est / coordinate-hash access here).
+    // Everything comes from the clean lnodes mesh-access interface; no p4est
+    // or coordinate-hash access here. Node ids are the mesh-access global ids
+    // (0..N-1 in serial). weipa maps data to nodes by matching these ids
+    // against the data's sample reference ids, so this is consistent whenever
+    // the domain's node numbering is the lnodes numbering (true in 2D today;
+    // the 3D data path still uses the old numbering until A4/A5).
+    const oxley::MeshAccess m = dom->getMeshAccess();
+    numDims = m.numDim;
+    numNodes = (int) m.numNodes;
+    globalNumNodes = (int) m.numNodes;   // serial; TODO(MPI, A6)
+
+    const int mpiSize = dom->getMPISize();
+    nodeDist.assign(mpiSize + 1, globalNumNodes);
+    nodeDist[0] = 0;
 
     if (numNodes > 0) {
-        for (int d=0; d<numDims; d++) {
+        for (int d = 0; d < numDims; d++) {
             float* c = new float[numNodes];
+            for (int i = 0; i < numNodes; i++)
+                c[i] = (float) m.nodeCoords[(size_t) i * numDims + d];
             coords.push_back(c);
         }
-
-        if (numDims==2) {
-            const oxley::Rectangle * rect = static_cast<const oxley::Rectangle *>(dom);
-        #pragma omp parallel for
-            for(p4est_topidx_t treeid = rect->p4est->first_local_tree; treeid <= rect->p4est->last_local_tree; ++treeid) {
-                p4est_tree_t * tree = p4est_tree_array_index(rect->p4est->trees, treeid);
-                sc_array_t * tquadrants = &tree->quadrants;
-                p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-                for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
-                    p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                    int l = (int) P4EST_QUADRANT_LEN(quad->level);
-                    double xy[3];
-                    int lxy[4][2]={{0,0},{0,l},{l,0},{l,l}};
-                    for(int n = 0; n < 4; n++)
-                    {
-                        p4est_qcoord_to_vertex(rect->p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
-                        long nodeid=rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                        coords[0][nodeid]=xy[0];
-                        coords[1][nodeid]=xy[1];
-                    #ifdef OXLEY_ENABLE_DEBUG_WEIPA
-                        std::cout << "coords (" << coords[0][nodeid] << ", " << coords[1][nodeid] << ") " << std::endl;
-                    #endif
-                    }
-                }
-            }
-        } else {
-            const oxley::Brick * brick = static_cast<const oxley::Brick *>(dom);
-        #pragma omp parallel for
-            for(p4est_topidx_t treeid = brick->p8est->first_local_tree; treeid <= brick->p8est->last_local_tree; ++treeid) {
-                p8est_tree_t * tree = p8est_tree_array_index(brick->p8est->trees, treeid);
-                sc_array_t * tquadrants = &tree->quadrants;
-                oxley::p8est_locidx_t Q = (oxley::p8est_locidx_t) tquadrants->elem_count;
-                for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
-                    p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-                    // p8est_qcoord_t length = P8EST_QUADRANT_LEN(quad->level);
-                    double xy[3];
-                    p8est_qcoord_to_vertex(brick->p8est->connectivity, treeid, quad->x, quad->y, quad->z, xy);
-                    long nodeid=brick->NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
-                    coords[0][nodeid]=xy[0];
-                    coords[1][nodeid]=xy[1];
-                    coords[2][nodeid]=xy[2];
-                }
-            }
-        }
+        // node id labels must match the id space of the escript Data (which
+        // uses the domain's node sample ids, a permutation of 0..N-1), so
+        // weipa maps data to the correct nodes. Consistent because the data
+        // sample order equals the mesh-access lnodes order.
         const dim_t* iPtr = dom->borrowSampleReferenceIDs(oxley::Nodes);
-        nodeID.assign(iPtr, iPtr+numNodes);
-        // iPtr = dom->borrowListOfTags(oxley::Nodes); //todo
-        nodeTag.assign(iPtr, iPtr+numNodes);
+        nodeID.assign(iPtr, iPtr + numNodes);
+        // node tags are not part of the mesh-access interface yet
+        nodeTag.assign(numNodes, 0);
     }
     return true;
 #else // VISIT_PLUGIN
