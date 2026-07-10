@@ -338,14 +338,11 @@ public:
     // This is not private as it is used by weipa
     // A p8est
     p8est_t * p8est;
-    std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> NodeIDs; //global ids of the nodes
 
     /**
        \brief
        Returns the ID numbers of the neighbouring four nodes
     */
-    void getNeighouringNodeIDs(int8_t level, p8est_qcoord_t x, p8est_qcoord_t y, p8est_qcoord_t z, 
-                                             p8est_topidx_t treeid, long (&ids) [8]) const;
 
     /**
        \brief
@@ -431,7 +428,6 @@ private:
 
     // Brick needs to keep track of this information
     std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> treeIDs; //global ids of the hanging nodes
-    std::vector<long> octantIDs; // IDs of the octants
     std::vector<oct_info> octantInfo;
 
     std::vector<borderNodeInfo> NodeIDsTop;
@@ -481,7 +477,6 @@ private:
       \brief
       Returns the ID of a quad from the ID of it's bottom left node
     */
-    long getQuadID(long nodeid) const;
 
     template<typename Scalar>
     void assembleIntegrateImpl(std::vector<Scalar>& integrals, const escript::Data& arg) const;

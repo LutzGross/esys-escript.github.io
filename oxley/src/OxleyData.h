@@ -206,7 +206,6 @@ public:
 
 	// Pointer to the current solution and Node ID info
 	// std::unordered_map<long,double> * current_solution;
-	std::unordered_map<DoublePair,long,boost::hash<DoublePair>> * NodeIDs;
 
 	void assign_info(addSurfaceData * tmp) {info=tmp;};
 
@@ -279,7 +278,6 @@ public:
 
 	// Pointer to the current solution and Node ID info
 	std::unordered_map<long,double> * current_solution;
-	std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> * NodeIDs;
 
 	void assign_info(addSurfaceData * tmp) {info=tmp;};
 
@@ -327,7 +325,6 @@ struct oct_info {
 
 struct update_RC_data {
 
-	std::unordered_map<DoublePair,long,boost::hash<DoublePair>> * pNodeIDs; 
 	// std::unordered_map<long,bool> * phangingNodeIDs; 
 	p4est_t * p4est;
 	std::vector< std::vector<long> > * indices;
@@ -338,7 +335,6 @@ struct update_RC_data {
 
 struct getConnections_data {
 
-	const std::unordered_map<DoublePair,long,boost::hash<DoublePair>> * pNodeIDs; 
 	p4est_t * p4est;
 	std::vector< std::vector<escript::DataTypes::index_t> > * indices;
 	double m_origin[2]={0};
@@ -346,7 +342,6 @@ struct getConnections_data {
 
 struct update_RC_data_brick {
 
-	std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> * pNodeIDs; 
 	// std::unordered_map<long,bool> * phangingNodeIDs; 
 	p8est_t * p8est;
 	std::vector<oxley::IndexVector> * indices;
@@ -357,7 +352,6 @@ struct update_RC_data_brick {
 
 struct getConnections_data_brick {
 
-	const std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> * pNodeIDs; 
 	p8est_t * p8est;
 	std::vector< std::vector<escript::DataTypes::index_t> > * indices;
 	double m_origin[3]={0};

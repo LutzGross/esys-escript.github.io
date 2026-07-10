@@ -318,7 +318,6 @@ public:
     p4est_t * p4est;
 
     // Rectangle needs to keep track of this information
-    std::unordered_map<DoublePair,long,boost::hash<DoublePair>> NodeIDs; //global ids of the nodes
 
         /**
        \brief
@@ -348,7 +347,6 @@ public:
        \brief
        Returns the ID numbers of the neighbouring four nodes
     */
-    void getNeighouringNodeIDs(int8_t level, p4est_qcoord_t x, p4est_qcoord_t y, p4est_topidx_t treeid, long (&ids) [4]) const;
 
     /**
        \brief
@@ -416,7 +414,6 @@ private:
     std::vector<bool> is_hanging; // element x is true if node id x is a hanging node
     // std::vector<std::vector<long>> is_hanging_face; // if face x-y is hanging then element x is y
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> treeIDs; //global ids of the hanging nodes
-    std::vector<long> quadrantIDs; // IDs of the quadrants
     std::vector<quad_info> quadrantInfo;
 
     std::vector<borderNodeInfo> NodeIDsTop;
@@ -453,7 +450,6 @@ new_rectangle_connectivity(int mi, int ni, int periodic_a, int periodic_b,
       \brief
       Returns the ID of a quad from the ID of it's bottom left node
     */
-    long getQuadID(long nodeid) const;
 
     template<typename Scalar>
     void assembleIntegrateImpl(std::vector<Scalar>& integrals, const escript::Data& arg) const;

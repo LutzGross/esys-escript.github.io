@@ -1674,7 +1674,6 @@ void Brick::renumberNodes()
     // constructor / after refinement); this routine only derives m_nodeId,
     // the global id of each local node, from the lnodes owned/ghost partition.
     // The legacy coordinate-hash containers are retired.
-    octantIDs.clear();
     octantInfo.clear();
 
     const long nOwned = (long) nodes->owned_count;
