@@ -93,11 +93,6 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order,
     if(refine_level < 0)
         throw OxleyException("refine_level must be non-negative");
 
-#ifdef ESYS_HAVE_TRILINOS
-    initZ(true);
-    initIZ(true);
-#endif //ESYS_HAVE_TRILINOS
-
     // Domain decomposition across MPI ranks is handled by p4est (see
     // p4est_partition below), not by a Cartesian d0 x d1 block grid.
 
@@ -232,11 +227,6 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order,
 
 Rectangle::Rectangle(const oxley::Rectangle& R, int order):
     OxleyDomain(2, order){
-
-#ifdef ESYS_HAVE_TRILINOS
-    initZ(true);
-    initIZ(true);
-#endif //ESYS_HAVE_TRILINOS
 
     m_mpiInfo = R.m_mpiInfo;
 
@@ -2186,30 +2176,26 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 
     std::vector<bool> duplicates(getNumNodes(),false);
 
+    const int V = nodes->vnodes;   // 4 corners (degree-1 lnodes)
+    long e = 0;                    // running local leaf index (lnodes order)
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 
-// #pragma omp parallel for
-        for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
+        for(int q = 0; q < Q; ++q, ++e) { // Loop over the elements attached to the tree
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
 
-            // Loop over the four corners of the quadrant
+            // Loop over the four corners of the quadrant (z-order matches lnodes)
             for(int n = 0; n < 4; ++n){
-                // int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
                 double lx = length * ((int) (n % 2) == 1);
                 double ly = length * ((int) (n / 2) == 1);
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
 
-                // if( (n == 0) 
-                //   || isHangingNode(nodes->face_code[q], n)
-                //   || isUpperBoundaryNode(quad, n, treeid, length) 
-                // )
-                // {
-                long lni = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                // lnodes local node id for this corner (no coordinate hashing)
+                long lni = (long) nodes->element_nodes[(size_t) e * V + n];
 
                 if(duplicates[lni] == true)
                     continue;
@@ -2392,18 +2378,12 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
 {    
     IndexVector rowIndex(4);
     p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-    sc_array_t * tquadrants = &currenttree->quadrants;
-    p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
-    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
-    int lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
-
-#pragma omp for
+    // global local-leaf index in lnodes order; quadrants_offset is the cumulative
+    // number of local quadrants in the trees before t.
+    const long g = (long) currenttree->quadrants_offset + (long) e;
+    const int V = nodes->vnodes;   // 4 corners (z-order matches lxy above)
     for(int i = 0; i < 4; i++)
-    {
-        double xy[3];
-        p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x+lxy[i][0], quad->y+lxy[i][1], xy);
-        rowIndex[i] = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-    }
+        rowIndex[i] = (index_t) nodes->element_nodes[(size_t) g * V + i];
 
     if(addF)
     {
@@ -2902,7 +2882,9 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 ////////////////////////////// inline methods ////////////////////////////////
 inline dim_t Rectangle::getDofOfNode(dim_t node) const
 {
-    return m_dofMap[node];
+    // Conforming lnodes numbering: every node is a real DOF and (serially)
+    // the DOF id equals the local node id. MPI ownership handled in A6.
+    return node;
 }
 
 // //protected
@@ -2923,7 +2905,9 @@ inline dim_t Rectangle::getDofOfNode(dim_t node) const
 //protected
 inline dim_t Rectangle::getNumNodes() const
 {
-    return NodeIDs.size();
+    // lnodes-based node count (owned + ghost). Replaces the coordinate-hash
+    // NodeIDs.size(); for a conforming mesh the two counts agree.
+    return nodes ? (dim_t) nodes->num_local_nodes : 0;
 }
 
 inline dim_t Rectangle::getNumHangingNodes() const
@@ -3840,93 +3824,39 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
     long numNodes = getNumNodes();
     std::vector< std::vector<escript::DataTypes::index_t> > indices(numNodes);
 
-    // Loop over interior quadrants
-    // getConnections_data * data;
-    // data = new getConnections_data;
-    // data->pNodeIDs = &NodeIDs;
-    // data->indices = &indices;
-    // data->p4est = p4est;
-    // p4est_iterate(p4est, NULL, data, update_connections, NULL, NULL);
-
-    // Loop over the quadrants skipped by p4est_iterate 
-    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
+    // Build the node adjacency graph directly from the lnodes element->node
+    // connectivity (no coordinate hashing). Every corner of a leaf is coupled
+    // to every other corner of that leaf.
+    const int V = nodes->vnodes;   // 4 corners (degree-1 lnodes)
+    long e = 0;                    // running local leaf index (lnodes order)
+    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid)
     {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        for(int q = 0; q < Q; ++q) // Loop over all quadrants
-        { 
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
-            for(int n = 0; n < 4; n++)
-            {
-                double xy[3];
-                long lx[4] = {0,length,0,length};
-                long ly[4] = {0,0,length,length};
-                long lni[4] = {-1};
-                for(int i = 0; i < 4; i++)
-                {
-                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx[i], quad->y+ly[i], xy);
-                    lni[i] = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                }
+        for(int q = 0; q < Q; ++q, ++e) // Loop over all quadrants
+        {
+            long lni[4];
+            for(int i = 0; i < V; i++)
+                lni[i] = (long) nodes->element_nodes[(size_t) e * V + i];
 
-                for(int i = 0; i < 4; i++)
+            for(int i = 0; i < V; i++)
+            {
+                for(int j = 0; j < V; j++)
                 {
-                    for(int j = 0; j < 4; j++)
-                    {
-                        bool dup = false;
-                        for(int k = 0; k < indices[lni[i]].size(); k++)
-                            if(indices[lni[i]][k] == lni[j])
-                            {
-                                dup = true;
-                                break;
-                            }
-                        if(dup == false)
-                            indices[lni[i]].push_back(lni[j]);
-                    }
+                    bool dup = false;
+                    for(int k = 0; k < indices[lni[i]].size(); k++)
+                        if(indices[lni[i]][k] == lni[j])
+                        {
+                            dup = true;
+                            break;
+                        }
+                    if(dup == false)
+                        indices[lni[i]].push_back(lni[j]);
                 }
             }
         }
     }
-
-    // Hanging Nodes
-    for(int i = 0; i < hanging_face_orientation.size(); i++)
-    {       
-        // Calculate the node ids
-        double xy[3]={0};
-        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, 
-                                                    hanging_face_orientation[i].x, 
-                                                    hanging_face_orientation[i].y, xy); 
-        // These nodes are handled in the next loop
-        // if( (xy[0] == forestData.m_origin[0]) ||
-        //     (xy[1] == forestData.m_origin[1]) ||
-        //     (xy[0] == forestData.m_lxy[0]) ||
-        //     (xy[1] == forestData.m_lxy[1]) )
-        //     continue;
-
-        long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
- 
-        p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_l);
-        p4est_qcoord_t x_inc[4][2]={{0,0},{l,l},{0,l},{0,l}};
-        p4est_qcoord_t y_inc[4][2]={{0,l},{0,l},{0,0},{l,l}};
-
-        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, 
-                hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_type][0], 
-                hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_type][0], xy);
-        long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, 
-                hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_type][1], 
-                hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_type][1], xy);
-        long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-        // add info 
-        // std::cout << nodeid << ": " << lni0 << ", " << lni1 << std::endl;
-        indices[nodeid].push_back(lni0);
-        indices[nodeid].push_back(lni1);
-
-        indices[lni0].push_back(nodeid);
-        indices[lni1].push_back(nodeid);
-    }    
 
     // for(int i = 0; i < hanging_face_orientation.size(); i++)
     // {       
