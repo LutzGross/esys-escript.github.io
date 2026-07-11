@@ -581,7 +581,7 @@ void Brick::setToNormal(escript::Data& out) const
         {
             if(m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k);
                     // set vector at four quadrature points
                     *o++ = -1.; *o++ = 0.; *o++ = 0.;
@@ -593,7 +593,7 @@ void Brick::setToNormal(escript::Data& out) const
             
             if(m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsRight.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k);
                     // set vector at four quadrature points
                     *o++ = 1.; *o++ = 0.; *o++ = 0.;
@@ -605,7 +605,7 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k);                    
                     // set vector at four quadrature points
                     *o++ = 0.; *o++ = -1.; *o++ = 0.;
@@ -617,7 +617,7 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsTop.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k);
                     // set vector at four quadrature points
                     *o++ = 0.; *o++ = 1.; *o++ = 0.;
@@ -629,7 +629,7 @@ void Brick::setToNormal(escript::Data& out) const
 
             if(m_faceOffset[4]) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsAbove.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsAbove.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[4]+k);
                     // set vector at four quadrature points
                     *o++ = 0.; *o++ = 0.; *o++ = -1.;
@@ -641,7 +641,7 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[5] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsBelow.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsBelow.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[5]+k);
                     // set vector at four quadrature points
                     *o++ = 0.; *o++ = 0.; *o++ = 1.;
@@ -660,7 +660,7 @@ void Brick::setToNormal(escript::Data& out) const
         {
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k);
                     *o++ = -1.;
                     *o++ = 0.;
@@ -670,7 +670,7 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsRight.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k);
                     *o++ = 1.;
                     *o++ = 0.;
@@ -680,7 +680,7 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k);
                     *o++ = 0.;
                     *o++ = -1.;
@@ -690,7 +690,7 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsTop.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k);
                     *o++ = 0.;
                     *o++ = 1.;
@@ -700,7 +700,7 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[4] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsAbove.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsAbove.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[4]+k);
                     *o++ = 0.;
                     *o++ = 0.;
@@ -710,7 +710,7 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[4] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsBelow.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsBelow.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[5]+k);
                     *o++ = 0.;
                     *o++ = 0.;
@@ -774,52 +774,20 @@ void Brick::setToSize(escript::Data& out) const
     {
         out.requireWrite();
         const dim_t numQuad=out.getNumDataPointsPerSample();
-
-        if (m_faceOffset[0] > -1) {
-            for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
-                borderNodeInfo tmp = NodeIDsLeft[k];
-                double* o = out.getSampleDataRW(m_faceOffset[0]+k);
-                std::fill(o, o+numQuad, forestData->m_dx[1][P8EST_MAXLEVEL-tmp.level]);
-            }
-        }
-
-        if (m_faceOffset[0] > -1) {
-            for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
-                borderNodeInfo tmp = NodeIDsRight[k];
-                double* o = out.getSampleDataRW(m_faceOffset[1]+k);
-                std::fill(o, o+numQuad, forestData->m_dx[1][P8EST_MAXLEVEL-tmp.level]);
-            }
-        }
-
-        if (m_faceOffset[0] > -1) {
-            for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
-                borderNodeInfo tmp = NodeIDsBottom[k];
-                double* o = out.getSampleDataRW(m_faceOffset[2]+k);
-                std::fill(o, o+numQuad, forestData->m_dx[0][P8EST_MAXLEVEL-tmp.level]);
-            }
-        }
-
-        if (m_faceOffset[0] > -1) {
-            for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
-                borderNodeInfo tmp = NodeIDsTop[k];
-                double* o = out.getSampleDataRW(m_faceOffset[3]+k);
-                std::fill(o, o+numQuad, forestData->m_dx[0][P8EST_MAXLEVEL-tmp.level]);
-            }
-        }
-
-        if (m_faceOffset[0] > -1) {
-            for (index_t k=0; k<NodeIDsAbove.size()-1; k++) {
-                borderNodeInfo tmp = NodeIDsAbove[k];
-                double* o = out.getSampleDataRW(m_faceOffset[4]+k);
-                std::fill(o, o+numQuad, forestData->m_dx[2][P8EST_MAXLEVEL-tmp.level]);
-            }
-        }
-
-        if (m_faceOffset[0] > -1) {
-            for (index_t k=0; k<NodeIDsBelow.size()-1; k++) {
-                borderNodeInfo tmp = NodeIDsBelow[k];
-                double* o = out.getSampleDataRW(m_faceOffset[5]+k);
-                std::fill(o, o+numQuad, forestData->m_dx[2][P8EST_MAXLEVEL-tmp.level]);
+        // characteristic face size = sqrt(face area); in-plane sizes are
+        // m_NX/2^level (per-block length / 2^level).
+        const std::vector<borderNodeInfo>* lists[6] = {
+            &NodeIDsLeft, &NodeIDsRight, &NodeIDsBottom, &NodeIDsTop,
+            &NodeIDsAbove, &NodeIDsBelow };
+        static const int planeAxes[6][2] = {{1,2},{1,2},{0,2},{0,2},{0,1},{0,1}};
+        for(int fc = 0; fc < 6; ++fc) {
+            if(m_faceOffset[fc] < 0) continue;
+            const std::vector<borderNodeInfo>& L = *lists[fc];
+            for (index_t k=0; k<L.size(); k++) {
+                const double h = (double)(1 << L[k].level);
+                const double sz = std::sqrt((m_NX[planeAxes[fc][0]]/h) * (m_NX[planeAxes[fc][1]]/h));
+                double* o = out.getSampleDataRW(m_faceOffset[fc]+k);
+                std::fill(o, o+numQuad, sz);
             }
         }
     } 
@@ -1080,14 +1048,9 @@ void Brick::updateMesh()
     updateNodeIncrements();
     oxleytimer.toc("\t renumbering nodes");
     renumberNodes();
-    // oxleytimer.toc("\t updating Yale index vectors");
-    // updateRowsColumns();
-    // oxleytimer.toc("\t updating element ids");
-    // updateElementIds();
-    // oxleytimer.toc("\t updating face offset");
-    // updateFaceOffset();
-    // oxleytimer.toc("\t updating face element count");
-    // updateFaceElementCount();
+    updateRowsColumns();
+    updateElementIds();
+    updateFaceElementCount();
     // oxleytimer.toc("Brick::updateMesh: Finished...");
 
 }
@@ -4248,7 +4211,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
 
         if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                 borderNodeInfo tmp = NodeIDsLeft[k];
                 memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -4263,7 +4226,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
 
         if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsRight.size(); k++) {
                 borderNodeInfo tmp = NodeIDsRight[k];
                 memcpy(&f_100[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_101[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -4277,7 +4240,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         }
         if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                 borderNodeInfo tmp = NodeIDsBottom[k];
                 memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -4291,7 +4254,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         }
         if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsTop.size(); k++) {
                 borderNodeInfo tmp = NodeIDsTop[k];
                 memcpy(&f_010[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_011[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -4305,7 +4268,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         }
         if (m_faceOffset[4] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsAbove.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsAbove.size(); k++) {
                 borderNodeInfo tmp = NodeIDsAbove[k];
                 memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_010[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -4319,7 +4282,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         }
         if (m_faceOffset[5] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsBelow.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsBelow.size(); k++) {
                 borderNodeInfo tmp = NodeIDsBelow[k];
                 memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_011[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -4349,7 +4312,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         //TODO fix tmp.neighbours indices below
         if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                 borderNodeInfo tmp = NodeIDsLeft[k];
                 memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -4366,7 +4329,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         }
         if (m_faceOffset[1] > -1) {
     #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsRight.size(); k++) {
                 borderNodeInfo tmp = NodeIDsRight[k];
                 memcpy(&f_100[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_101[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -4383,7 +4346,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         }
         if (m_faceOffset[2] > -1) {
     #pragma omp for nowait
-             for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+             for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                 borderNodeInfo tmp = NodeIDsBottom[k];
                 memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -4400,7 +4363,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         }
         if (m_faceOffset[3] > -1) {
     #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsTop.size(); k++) {
             borderNodeInfo tmp = NodeIDsTop[k];
                 memcpy(&f_010[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_011[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -4417,7 +4380,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         }
         if (m_faceOffset[4] > -1) {
     #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsAbove.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsAbove.size(); k++) {
             borderNodeInfo tmp = NodeIDsAbove[k];
                 memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_010[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -4434,7 +4397,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         }
         if (m_faceOffset[5] > -1) {
     #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsBelow.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsBelow.size(); k++) {
             borderNodeInfo tmp = NodeIDsBelow[k];
                 memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_011[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -4645,187 +4608,81 @@ void Brick::populateSampleIds()
 void Brick::updateFaceElementCount()
 {
     oxleytimer.toc("updateFaceElementCount");
-    // TODO
 
-//     for(int i = 0; i < 4; i++)
-//         m_faceCount[i]=-1;
+    // Build the six boundary-face element lists directly from the lnodes
+    // connectivity. A face element stores in neighbours[0..3] the four nodes of
+    // the quad face it lies on, ordered (a0b0, a1b0, a0b1, a1b1) in the face's
+    // two in-plane axes (a,b) -- the order interpolateNodesOnFaces expects.
+    //
+    // Face id : boundary        : (a,b) axes : quad z-order corners
+    //   0 Left   x = xmin (-x)   : (y,z)      : 0,2,4,6
+    //   1 Right  x = xmax (+x)   : (y,z)      : 1,3,5,7
+    //   2 Bottom y = ymin (-y)   : (x,z)      : 0,1,4,5
+    //   3 Top    y = ymax (+y)   : (x,z)      : 2,3,6,7
+    //   4 (z-min, normal -z)     : (x,y)      : 0,1,2,3
+    //   5 (z-max, normal +z)     : (x,y)      : 4,5,6,7
+    static const int faceCorners[6][4] = {
+        {0,2,4,6}, {1,3,5,7}, {0,1,4,5}, {2,3,6,7}, {0,1,2,3}, {4,5,6,7}
+    };
 
-//     NodeIDsTop.clear();
-//     NodeIDsBottom.clear();
-//     NodeIDsLeft.clear();
-//     NodeIDsRight.clear();
-//     NodeIDsAbove.clear();
-//     NodeIDsBelow.clear();
+    for(int i = 0; i < 6; ++i)
+        m_faceCount[i] = 0;
+    NodeIDsLeft.clear();   NodeIDsRight.clear();
+    NodeIDsBottom.clear(); NodeIDsTop.clear();
+    NodeIDsAbove.clear();  NodeIDsBelow.clear();
+    std::vector<borderNodeInfo>* lists[6] = {
+        &NodeIDsLeft, &NodeIDsRight, &NodeIDsBottom, &NodeIDsTop,
+        &NodeIDsAbove, &NodeIDsBelow };
 
-//     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
-//     {
-//         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-//         sc_array_t * tquadrants = &tree->quadrants;
-//         p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-//         for(int q = 0; q < Q; ++q) 
-//         {
-//             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-//             p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
-//             // int k = q - Q + nodeIncrements[treeid - p8est->first_local_tree];
-//             p8est_qcoord_t lxy[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
-//                                         {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
-//             double xyz[4][3] = {{0}};
-//             int nodeids[4]={-1};
-//             bool do_check_yes_no[4]={false};
-//             for(int n = 0; n < 4; n++)
-//             {
-//                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], xyz[n]);
-//                 nodeids[n]=NodeIDs.find(std::make_tuple(xyz[n][0],xyz[n][1],xyz[n][2]))->second;
+    const int V = nodes->vnodes;   // 8
+    const double x0 = forestData->m_origin[0], y0 = forestData->m_origin[1], z0 = forestData->m_origin[2];
+    const double x1 = forestData->m_lxyz[0],   y1 = forestData->m_lxyz[1],   z1 = forestData->m_lxyz[2];
 
-//                 //TODO
-//                 if(n==0)
-//                     do_check_yes_no[n]=true;
-//                 else if(n==1 && xyz[n][0]==forestData->m_lxyz[0])
-//                     do_check_yes_no[n]=true;
-//                 else if(n==2 && xyz[n][1]==forestData->m_lxyz[1])
-//                     do_check_yes_no[n]=true;
-//                 else if(n==3 && xyz[n][0]==forestData->m_lxyz[0] && xyz[n][1]==forestData->m_lxyz[1])
-//                     do_check_yes_no[n]=true;
-//                 else
-//                     do_check_yes_no[n]=false;
-//             }
+    long e = 0;
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid)
+    {
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; ++q, ++e)
+        {
+            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+            const p8est_qcoord_t len = P8EST_QUADRANT_LEN(quad->level);
+            double lo[3], hi[3];
+            p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x,       quad->y,       quad->z,       lo);
+            p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+len,   quad->y+len,   quad->z+len,   hi);
 
-//             for(int n = 0; n < 4; n++)
-//             {
-//                 if(do_check_yes_no[n] == false)
-//                     continue;
+            const bool onFace[6] = {
+                lo[0]==x0, hi[0]==x1, lo[1]==y0, hi[1]==y1, lo[2]==z0, hi[2]==z1 };
 
-//                 borderNodeInfo tmp;
-//                 // tmp.nodeid=NodeIDs.find(std::make_pair(xy[n][0],xy[n][1]))->second;
-//                 tmp.nodeid=nodeids[n];
-//                 tmp.neighbours[0]=nodeids[0];
-//                 tmp.neighbours[1]=nodeids[1];
-//                 tmp.neighbours[2]=nodeids[2];
-//                 tmp.neighbours[3]=nodeids[3];
-//                 tmp.x=quad->x;
-//                 tmp.y=quad->y;
-//                 tmp.y=quad->z;
-//                 tmp.level=quad->level;
-//                 tmp.treeid=treeid;
+            for(int fc = 0; fc < 6; ++fc)
+            {
+                if(!onFace[fc]) continue;
+                borderNodeInfo tmp;
+                for(int c = 0; c < 4; ++c)
+                    tmp.neighbours[c] = (int) nodes->element_nodes[(size_t) e * V + faceCorners[fc][c]];
+                tmp.nodeid  = tmp.neighbours[0];
+                tmp.x = quad->x; tmp.y = quad->y; tmp.z = quad->z;
+                tmp.level = quad->level; tmp.treeid = treeid;
+                lists[fc]->push_back(tmp);
+                m_faceCount[fc]++;
+            }
+        }
+    }
 
-//                 if(isLeftBoundaryNode(quad, n, treeid, l))
-//                 {
-//                     NodeIDsLeft.push_back(tmp);
-//                     m_faceCount[0]++;
-//                 }
-
-//                 if(isRightBoundaryNode(quad, n, treeid, l))
-//                 {
-//                     NodeIDsRight.push_back(tmp);
-//                     m_faceCount[1]++;
-//                 }
-                    
-//                 if(isBottomBoundaryNode(quad, n, treeid, l))
-//                 {
-//                     NodeIDsBottom.push_back(tmp);
-//                     m_faceCount[2]++;
-//                 }
-                    
-//                 if(isTopBoundaryNode(quad, n, treeid, l))
-//                 {
-//                     NodeIDsTop.push_back(tmp);
-//                     m_faceCount[3]++;
-//                 }
-
-//                 if(isAboveBoundaryNode(quad, n, treeid, l))
-//                 {
-//                     NodeIDsAbove.push_back(tmp);
-//                     m_faceCount[4]++;
-//                 }
-
-//                 if(isBelowBoundaryNode(quad, n, treeid, l))
-//                 {
-//                     NodeIDsBelow.push_back(tmp);
-//                     m_faceCount[5]++;
-//                 }
-            
-//                 #ifdef OXLEY_ENABLE_DEBUG_FACEELEMENTS_POINTS
-//                     double xyz[3];
-//                     p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], &xyz[n]);
-//                     std::cout << nodeids[n] << ": quad (x,y,z) = ( " << xyz[0] 
-//                                             << ", " << xyz[1] << ", " << xyz[2] << " ) ";
-//                     if(isLeftBoundaryNode(quad, n, treeid, l))
-//                         std::cout << "L";
-//                     if(isRightBoundaryNode(quad, n, treeid, l))
-//                         std::cout << "R";
-//                     if(isBottomBoundaryNode(quad, n, treeid, l))
-//                         std::cout << "B";
-//                     if(isTopBoundaryNode(quad, n, treeid, l))
-//                         std::cout << "T";
-//                     if(isAboveBoundaryNode(quad, n, treeid, l))
-//                         std::cout << "A";
-//                     if(isBelowBoundaryNode(quad, n, treeid, l))
-//                         std::cout << "B";
-//                     std::cout << std::endl;
-//                 #endif
-//             }
-//         }
-//     }
-
-//     const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20, ABOVE=100, BELOW=200;
-//     m_faceTags.clear();
-//     const index_t faceTag[] = { LEFT, RIGHT, BOTTOM, TOP, ABOVE, BELOW };
-//     m_faceOffset.clear();
-//     m_faceOffset.resize(6);
-//     m_faceOffset.assign(6, -1);
-//     index_t offset=0;
-//     for (size_t i=0; i<6; i++) {
-//         if (m_faceCount[i]>0) {
-//             m_faceOffset[i]=offset;
-//             offset+=m_faceCount[i];
-//             m_faceTags.insert(m_faceTags.end(), m_faceCount[i], faceTag[i]);
-//         }
-//     }
-
-// #ifdef OXLEY_ENABLE_DEBUG_FACEELEMENTS
-//     std::cout << "NodeIDsLeft" << std::endl;
-//     for(int i = 0; i < NodeIDsLeft.size()-1;i++)
-//         std::cout << NodeIDsLeft[i].nodeid << " ";
-//     std::cout << std::endl;
-//     std::cout << "NodeIDsRight" << std::endl;
-//     for(int i = 0; i < NodeIDsRight.size()-1;i++)
-//         std::cout << NodeIDsRight[i].nodeid << " ";
-//     std::cout << std::endl;
-//     std::cout << "NodeIDsTop" << std::endl;
-//     for(int i = 0; i < NodeIDsTop.size()-1;i++)
-//         std::cout << NodeIDsTop[i].nodeid << " ";
-//     std::cout << std::endl;
-//     std::cout << "NodeIDsBottom" << std::endl;
-//     for(int i = 0; i < NodeIDsBottom.size()-1;i++)
-//         std::cout << NodeIDsBottom[i].nodeid << " ";
-//     std::cout << std::endl;
-//     std::cout << "NodeIDsAbove" << std::endl;
-//     for(int i = 0; i < NodeIDsAbove.size()-1;i++)
-//         std::cout << NodeIDsAbove[i].nodeid << " ";
-//     std::cout << std::endl;
-//     std::cout << "NodeIDsBelow" << std::endl;
-//     for(int i = 0; i < NodeIDsBelow.size()-1;i++)
-//         std::cout << NodeIDsBelow[i].nodeid << " ";
-//     std::cout << std::endl;
-//     std::cout << "-------------------------------------------------------" << std::endl;
-// #endif
-
-//     // set face tags
-//     setTagMap("left", LEFT);
-//     setTagMap("right", RIGHT);
-//     setTagMap("bottom", BOTTOM);
-//     setTagMap("top", TOP);
-//     setTagMap("above", ABOVE);
-//     setTagMap("below", BELOW);
-//     updateTagsInUse(FaceElements);
-
-
-//     // Update faceElementId
-//     const dim_t NFE = getNumFaceElements();
-//     m_faceId.resize(NFE);
-//     for (dim_t k=0; k<NFE; k++)
-//         m_faceId[k]=k;
-    oxleytimer.toc("done");
+    // face sample offsets and face tags (x-/x+/y-/y+/z-/z+ -> 1/2/10/20/100/200)
+    const index_t faceTag[6] = { 1, 2, 10, 20, 100, 200 };
+    m_faceTags.clear();
+    m_faceOffset.assign(6, -1);
+    index_t offset = 0;
+    for(int i = 0; i < 6; ++i) {
+        if(m_faceCount[i] > 0) {
+            m_faceOffset[i] = offset;
+            offset += m_faceCount[i];
+            m_faceTags.insert(m_faceTags.end(), m_faceCount[i], faceTag[i]);
+        }
+    }
+    oxleytimer.toc("updateFaceElementCount... done");
 }
 
 // This is a wrapper that converts the p8est node information into an IndexVector
@@ -6132,11 +5989,52 @@ void Brick::assembleIntegrateImpl(std::vector<Scalar>& integrals, const escript:
         for (index_t i = 0; i < numComp; ++i)
             integrals[i] += int_local[i];
 
-    } else if (fs==FaceElements || fs==ReducedFaceElements) {
-        // 3D boundary/face function spaces are not yet wired on the lnodes
-        // numbering (m_faceCount unset, FunctionOnBoundary.getX throws), so
-        // boundary integration is not available yet.
-        throw OxleyException("assembleIntegrate: FaceElements integration is not implemented for oxley Brick yet");
+    } else if (fs == FaceElements && arg.actsExpanded()) {
+        // Each boundary face element carries area A over 4 Gauss points (A/4 each).
+        // Face area uses the in-plane element sizes dx=m_NX/2^level.
+        std::vector<Scalar> int_local(numComp, zero);
+        const std::vector<borderNodeInfo>* lists[6] = {
+            &NodeIDsLeft, &NodeIDsRight, &NodeIDsBottom, &NodeIDsTop,
+            &NodeIDsAbove, &NodeIDsBelow };
+        static const int planeAxes[6][2] = {{1,2},{1,2},{0,2},{0,2},{0,1},{0,1}};
+        for(int fc = 0; fc < 6; ++fc) {
+            if(m_faceOffset[fc] < 0) continue;
+            const std::vector<borderNodeInfo>& L = *lists[fc];
+            for(size_t k = 0; k < L.size(); ++k) {
+                const double h = (double)(1 << L[k].level);
+                const real_t A = (m_NX[planeAxes[fc][0]]/h) * (m_NX[planeAxes[fc][1]]/h);
+                const Scalar* f = arg.getSampleDataRO(m_faceOffset[fc]+k, zero);
+                for (index_t i = 0; i < numComp; ++i) {
+                    Scalar srow = zero;
+                    for (int c = 0; c < 4; ++c)
+                        srow += f[INDEX2(i,c,numComp)];
+                    int_local[i] += srow * (A/4.);
+                }
+            }
+        }
+        for (index_t i = 0; i < numComp; ++i)
+            integrals[i] += int_local[i];
+
+    } else if (fs==ReducedFaceElements || (fs==FaceElements && !arg.actsExpanded())) {
+        std::vector<Scalar> int_local(numComp, zero);
+        const std::vector<borderNodeInfo>* lists[6] = {
+            &NodeIDsLeft, &NodeIDsRight, &NodeIDsBottom, &NodeIDsTop,
+            &NodeIDsAbove, &NodeIDsBelow };
+        static const int planeAxes[6][2] = {{1,2},{1,2},{0,2},{0,2},{0,1},{0,1}};
+        for(int fc = 0; fc < 6; ++fc) {
+            if(m_faceOffset[fc] < 0) continue;
+            const std::vector<borderNodeInfo>& L = *lists[fc];
+            for(size_t k = 0; k < L.size(); ++k) {
+                const double h = (double)(1 << L[k].level);
+                const real_t A = (m_NX[planeAxes[fc][0]]/h) * (m_NX[planeAxes[fc][1]]/h);
+                const Scalar* f = arg.getSampleDataRO(m_faceOffset[fc]+k, zero);
+                for (index_t i = 0; i < numComp; ++i)
+                    int_local[i] += f[i] * A;
+            }
+        }
+        for (index_t i = 0; i < numComp; ++i)
+            integrals[i] += int_local[i];
+
     } else {
         throw OxleyException("assembleIntegrate: unsupported function space");
     }
