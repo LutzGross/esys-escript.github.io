@@ -3992,16 +3992,15 @@ void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F
          const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F, 
          bool addS, bool addF, borderNodeInfo quad, int nEq, int nComp) const
 {    
-    // 3D boundary/face assembly is not yet reimplemented on the lnodes numbering
-    // (m_faceCount is unset and FunctionOnBoundary.getX throws), but keep the
-    // scatter compiling off the stored corner ids rather than a coordinate hash.
-    long rowIndex[8] = { quad.neighbours[0], quad.neighbours[1], quad.neighbours[2],
-                         quad.neighbours[3], quad.neighbours[4], quad.neighbours[5],
-                         quad.neighbours[6], quad.neighbours[7] };
+    // A boundary face element has 4 nodes (stored in neighbours[0..3]); EM_S is
+    // 4x4 and EM_F length 4 (per equation component).
+    IndexVector rowIndex(4);
+    for(int i = 0; i < 4; i++)
+        rowIndex[i] = (index_t) quad.neighbours[i];
     if(addF)
     {
         Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
-        for(index_t i=0; i < 8; i++) {
+        for(int i=0; i < 4; i++) {
             if (rowIndex[i]<getNumDOF()) {
                 for(int eq=0; eq<nEq; eq++) {
                     F_p[INDEX2(eq, rowIndex[i], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
@@ -4010,13 +4009,7 @@ void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F
         }
     }
     if(addS)
-    {
-        IndexVector rowInd(6);
-    #pragma omp for
-        for(int i = 0; i < 6; i++)
-            rowInd[i]=rowIndex[i];
-        addToSystemMatrix<Scalar>(S, rowInd, nEq, EM_S);
-    }
+        addToSystemMatrix<Scalar>(S, rowIndex, nEq, EM_S);
 }
 
 
