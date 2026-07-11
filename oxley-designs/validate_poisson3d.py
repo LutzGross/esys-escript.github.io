@@ -28,10 +28,9 @@ def solve_poisson(dom):
 
 def report(name, u, dom):
     s, i = sup(u), inf(u)
-    # NOTE: oxley 3D assembleIntegrate is not yet implemented (returns 0), so we
-    # gate the check on sup/inf (max/min over samples, no quadrature needed).
-    print("  %-8s  sup=%.8f  inf=%.8f" % (name, s, i))
-    return s, i
+    integ = integrate(u, Function(dom))
+    print("  %-8s  sup=%.8f  inf=%.8f  integral=%.8f" % (name, s, i, integ))
+    return s, i, integ
 
 
 N = 8   # elements per axis (must match between domains)
@@ -47,6 +46,7 @@ sr = report("ripley", solve_poisson(rdom), rdom)
 
 ds = abs(so[0] - sr[0])
 dii = abs(so[1] - sr[1])
-print("  |dsup|=%.3e  |dinf|=%.3e" % (ds, dii))
+dint = abs(so[2] - sr[2])
+print("  |dsup|=%.3e  |dinf|=%.3e  |dintegral|=%.3e" % (ds, dii, dint))
 tol = 1e-6
-print("RESULT:", "PASS" if (ds < tol and dii < tol) else "FAIL")
+print("RESULT:", "PASS" if (ds < tol and dii < tol and dint < tol) else "FAIL")

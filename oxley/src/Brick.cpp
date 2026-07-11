@@ -6069,267 +6069,78 @@ void Brick::assembleIntegrate(std::vector<cplx_t>& integrals, const escript::Dat
 template<typename Scalar>
 void Brick::assembleIntegrateImpl(std::vector<Scalar>& integrals, const escript::Data& arg) const
 {
-//     const dim_t numComp = arg.getDataPointSize();
-//     const index_t left = (m_offset[0]==0 ? 0 : 1);
-//     const index_t bottom = (m_offset[1]==0 ? 0 : 1);
-//     const index_t front = (m_offset[2]==0 ? 0 : 1);
-//     const int fs = arg.getFunctionSpace().getTypeCode();
-//     const Scalar zero = static_cast<Scalar>(0);
+    const dim_t numComp = arg.getDataPointSize();
+    const int fs = arg.getFunctionSpace().getTypeCode();
+    const Scalar zero = static_cast<Scalar>(0);
 
-//     bool HavePointData = arg.getFunctionSpace().getTypeCode() == Points;
+    const bool HavePointData = (fs == Points);
 
-// #ifdef ESYS_MPI
-//     if(HavePointData && escript::getMPIRankWorld() == 0) {
-// #else
-//     if(HavePointData) {
-// #endif
-//         integrals[0] += arg.getNumberOfTaggedValues();
-//     } else if (fs == Elements && arg.actsExpanded()) {
-//         const real_t w_0 = m_dx[0]*m_dx[1]*m_dx[2]/8.;
-// #pragma omp parallel
-//         {
-//             vector<Scalar> int_local(numComp, zero);
-// #pragma omp for nowait
-//             for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
-//                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                         const Scalar* f = arg.getSampleDataRO(INDEX3(k0, k1, k2, m_NE[0], m_NE[1]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             const Scalar f_0 = f[INDEX2(i,0,numComp)];
-//                             const Scalar f_1 = f[INDEX2(i,1,numComp)];
-//                             const Scalar f_2 = f[INDEX2(i,2,numComp)];
-//                             const Scalar f_3 = f[INDEX2(i,3,numComp)];
-//                             const Scalar f_4 = f[INDEX2(i,4,numComp)];
-//                             const Scalar f_5 = f[INDEX2(i,5,numComp)];
-//                             const Scalar f_6 = f[INDEX2(i,6,numComp)];
-//                             const Scalar f_7 = f[INDEX2(i,7,numComp)];
-//                             int_local[i]+=(f_0+f_1+f_2+f_3+f_4+f_5+f_6+f_7)*w_0;
-//                         }  // end of component loop i
-//                     } // end of k0 loop
-//                 } // end of k1 loop
-//             } // end of k2 loop
+#ifdef ESYS_MPI
+    if(HavePointData && escript::getMPIRankWorld() == 0) {
+#else
+    if(HavePointData) {
+#endif
+        integrals[0] += arg.getNumberOfTaggedValues();
 
-// #pragma omp critical
-//             for (index_t i = 0; i < numComp; i++)
-//                 integrals[i] += int_local[i];
-//         } // end of parallel section
+    } else if (fs == Elements && arg.actsExpanded()) {
+        // 2x2x2 Gauss on the trilinear hex: each of the 8 points carries V/8.
+        // Element size is m_NX/2^level (per-block length / 2^level); forestData
+        // m_dx is total-length based for Brick and must not be used here.
+        std::vector<Scalar> int_local(numComp, zero);
+        long id = 0;
+        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid)
+        {
+            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+            sc_array_t * tquadrants = &tree->quadrants;
+            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+            for(int q = 0; q < Q; ++q, ++id)
+            {
+                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+                const double h = (double)(1 << quad->level);
+                const real_t w = (m_NX[0]/h) * (m_NX[1]/h) * (m_NX[2]/h) / 8.;
+                const Scalar* f = arg.getSampleDataRO(id, zero);
+                for (index_t i = 0; i < numComp; ++i) {
+                    Scalar s = zero;
+                    for (int c = 0; c < 8; ++c)
+                        s += f[INDEX2(i,c,numComp)];
+                    int_local[i] += s*w;
+                }
+            }
+        }
+        for (index_t i = 0; i < numComp; ++i)
+            integrals[i] += int_local[i];
 
-//     } else if (fs==ReducedElements || (fs==Elements && !arg.actsExpanded())) {
-//         const real_t w_0 = m_dx[0]*m_dx[1]*m_dx[2];
-// #pragma omp parallel
-//         {
-//             vector<Scalar> int_local(numComp, zero);
-// #pragma omp for nowait
-//             for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
-//                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                         const Scalar* f = arg.getSampleDataRO(INDEX3(k0, k1, k2, m_NE[0], m_NE[1]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             int_local[i] += f[i]*w_0;
-//                         }  // end of component loop i
-//                     } // end of k0 loop
-//                 } // end of k1 loop
-//             } // end of k2 loop
+    } else if (fs==ReducedElements || (fs==Elements && !arg.actsExpanded())) {
+        // single centre point carries the full element volume V.
+        std::vector<Scalar> int_local(numComp, zero);
+        long id = 0;
+        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid)
+        {
+            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+            sc_array_t * tquadrants = &tree->quadrants;
+            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+            for(int q = 0; q < Q; ++q, ++id)
+            {
+                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+                const double h = (double)(1 << quad->level);
+                const real_t w = (m_NX[0]/h) * (m_NX[1]/h) * (m_NX[2]/h);
+                const Scalar* f = arg.getSampleDataRO(id, zero);
+                for (index_t i = 0; i < numComp; ++i)
+                    int_local[i] += f[i]*w;
+            }
+        }
+        for (index_t i = 0; i < numComp; ++i)
+            integrals[i] += int_local[i];
 
-// #pragma omp critical
-//             for (index_t i = 0; i < numComp; i++)
-//                 integrals[i] += int_local[i];
-//         } // end of parallel section
-
-//     } else if (fs == FaceElements && arg.actsExpanded()) {
-//         const real_t w_0 = m_dx[1]*m_dx[2]/4.;
-//         const real_t w_1 = m_dx[0]*m_dx[2]/4.;
-//         const real_t w_2 = m_dx[0]*m_dx[1]/4.;
-// #pragma omp parallel
-//         {
-//             vector<Scalar> int_local(numComp, zero);
-//             if (m_faceOffset[0] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
-//                     for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             const Scalar f_0 = f[INDEX2(i,0,numComp)];
-//                             const Scalar f_1 = f[INDEX2(i,1,numComp)];
-//                             const Scalar f_2 = f[INDEX2(i,2,numComp)];
-//                             const Scalar f_3 = f[INDEX2(i,3,numComp)];
-//                             int_local[i] += (f_0+f_1+f_2+f_3)*w_0;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-//             if (m_faceOffset[1] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
-//                     for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             const Scalar f_0 = f[INDEX2(i,0,numComp)];
-//                             const Scalar f_1 = f[INDEX2(i,1,numComp)];
-//                             const Scalar f_2 = f[INDEX2(i,2,numComp)];
-//                             const Scalar f_3 = f[INDEX2(i,3,numComp)];
-//                             int_local[i]+=(f_0+f_1+f_2+f_3)*w_0;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-//             if (m_faceOffset[2] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
-//                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             const Scalar f_0 = f[INDEX2(i,0,numComp)];
-//                             const Scalar f_1 = f[INDEX2(i,1,numComp)];
-//                             const Scalar f_2 = f[INDEX2(i,2,numComp)];
-//                             const Scalar f_3 = f[INDEX2(i,3,numComp)];
-//                             int_local[i]+=(f_0+f_1+f_2+f_3)*w_1;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-//             if (m_faceOffset[3] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
-//                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             const Scalar f_0 = f[INDEX2(i,0,numComp)];
-//                             const Scalar f_1 = f[INDEX2(i,1,numComp)];
-//                             const Scalar f_2 = f[INDEX2(i,2,numComp)];
-//                             const Scalar f_3 = f[INDEX2(i,3,numComp)];
-//                             int_local[i] += (f_0+f_1+f_2+f_3)*w_1;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-//             if (m_faceOffset[4] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             const Scalar f_0 = f[INDEX2(i,0,numComp)];
-//                             const Scalar f_1 = f[INDEX2(i,1,numComp)];
-//                             const Scalar f_2 = f[INDEX2(i,2,numComp)];
-//                             const Scalar f_3 = f[INDEX2(i,3,numComp)];
-//                             int_local[i] += (f_0+f_1+f_2+f_3)*w_2;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-//             if (m_faceOffset[5] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             const Scalar f_0 = f[INDEX2(i,0,numComp)];
-//                             const Scalar f_1 = f[INDEX2(i,1,numComp)];
-//                             const Scalar f_2 = f[INDEX2(i,2,numComp)];
-//                             const Scalar f_3 = f[INDEX2(i,3,numComp)];
-//                             int_local[i]+=(f_0+f_1+f_2+f_3)*w_2;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-// #pragma omp critical
-//             for (index_t i = 0; i < numComp; i++)
-//                 integrals[i] += int_local[i];
-//         } // end of parallel section
-
-//     } else if (fs==ReducedFaceElements || (fs==FaceElements && !arg.actsExpanded())) {
-//         const real_t w_0 = m_dx[1]*m_dx[2];
-//         const real_t w_1 = m_dx[0]*m_dx[2];
-//         const real_t w_2 = m_dx[0]*m_dx[1];
-// #pragma omp parallel
-//         {
-//             vector<Scalar> int_local(numComp, zero);
-//             if (m_faceOffset[0] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
-//                     for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             int_local[i] += f[i]*w_0;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-//             if (m_faceOffset[1] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
-//                     for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             int_local[i] += f[i]*w_0;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-//             if (m_faceOffset[2] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
-//                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             int_local[i] += f[i]*w_1;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-//             if (m_faceOffset[3] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
-//                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             int_local[i] += f[i]*w_1;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-//             if (m_faceOffset[4] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             int_local[i] += f[i]*w_2;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-//             if (m_faceOffset[5] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             int_local[i] += f[i]*w_2;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-// #pragma omp critical
-//             for (index_t i = 0; i < numComp; i++)
-//                 integrals[i] += int_local[i];
-//         } // end of parallel section
-//     } // function space selector
+    } else if (fs==FaceElements || fs==ReducedFaceElements) {
+        // 3D boundary/face function spaces are not yet wired on the lnodes
+        // numbering (m_faceCount unset, FunctionOnBoundary.getX throws), so
+        // boundary integration is not available yet.
+        throw OxleyException("assembleIntegrate: FaceElements integration is not implemented for oxley Brick yet");
+    } else {
+        throw OxleyException("assembleIntegrate: unsupported function space");
+    }
 }
-
 RankVector Brick::getOwnerVector(int fsType) const
 {
     RankVector owner;
