@@ -210,7 +210,7 @@ def adjust(NE, ftype):
 #             self.NE = [self.NX*mpiSize-1, self.NZ*self.multiplier[1]]
 #         else:
 #             self.NE = [self.NX*mpiSize*self.multiplier[0]-1, self.NZ*self.multiplier[1]]
-#         self.domain = Rectangle(self.NE[0], self.NE[1], d0=mpiSize, d1=1)
+#         self.domain = Rectangle(self.NE[0], self.NE[1])
 #         for ftype,fcode in self.fspaces:
 #             self.Ndata = [self.NX*mpiSize-1, self.NZ]
 #             if ftype==ContinuousFunction:
@@ -251,7 +251,7 @@ def adjust(NE, ftype):
 #         else:
 #             self.NE = [self.NX*mpiSize*self.multiplier[0]-1,
 #                        self.NX*self.multiplier[1], self.NZ*self.multiplier[2]]
-#         self.domain = Brick(self.NE[0], self.NE[1], self.NE[2], d0=mpiSize, d1=1, d2=1)
+#         self.domain = Brick(self.NE[0], self.NE[1], self.NE[2])
 #         for ftype,fcode in self.fspaces:
 #             self.Ndata = [self.NX*mpiSize-1, self.NX, self.NZ]
 #             if ftype==ContinuousFunction:
