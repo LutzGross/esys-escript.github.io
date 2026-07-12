@@ -62,20 +62,18 @@ class SimpleSolveOnMumps(SimpleSolveTestCase):
 ## MUMPS direct solver tests
 ## Note: MUMPS only supports direct solving - iterative methods are not available
 
-@unittest.skip("Oxley matrix distribution issue - see issue #118")
 class Test_SimpleSolveOxley2D_Mumps_Direct(SimpleSolveOnMumps):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = Rectangle(n0=NE0, n1=NE1)
         self.package = SolverOptions.MUMPS
         self.method = SolverOptions.DIRECT
 
     def tearDown(self):
         del self.domain
 
-@unittest.skip("Oxley matrix distribution issue - see issue #118")
 class Test_SimpleSolveOxley3D_Mumps_Direct(SimpleSolveOnMumps):
     def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
+        self.domain = Brick(n0=NE0, n1=NE1, n2=NE2)
         self.package = SolverOptions.MUMPS
         self.method = SolverOptions.DIRECT
 
