@@ -56,7 +56,7 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
 
 class Test_UtilOnOxley(Test_util, Test_symfuncs, Test_util_NaN_funcs):
     def setUp(self):
-        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=Rectangle(n0=NE, n1=NE, l0=1., l1=1.)
         self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
         try:
             self.workdir=os.environ['OXLEY_WORKDIR']
@@ -70,19 +70,18 @@ class Test_UtilOnOxley(Test_util, Test_symfuncs, Test_util_NaN_funcs):
 class Test_Util_SpatialFunctionsOnOxley2D(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
-        self.domain = Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain = Rectangle(n0=NE, n1=NE, l0=1., l1=1.)
     def tearDown(self):
         del self.order
         del self.domain
 
-# TODO
-# class Test_Util_SpatialFunctionsOnOxley3D(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
-#     def setUp(self):
-#         self.order=1
-#         self.domain = Brick(n0=NE*NXb-1, n1=NE*NYb-1, n2=NE*NZb-1, l0=1., l1=1., l2=1., d0=NXb, d1=NYb, d2=NZb)
-#     def tearDown(self):
-#         del self.order
-#         del self.domain
+class Test_Util_SpatialFunctionsOnOxley3D(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+    def setUp(self):
+        self.order=1
+        self.domain = Brick(n0=NE, n1=NE, n2=NE, l0=1., l1=1., l2=1.)
+    def tearDown(self):
+        del self.order
+        del self.domain
 
 #TODO
 # class Test_2D_Point_Data_Integration(Test_Util_Point_Data_Interpolation):
