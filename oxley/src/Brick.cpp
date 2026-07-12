@@ -4806,525 +4806,62 @@ void Brick::assembleGradientImpl(escript::Data& out,
                                  const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
-
-    // Find the maximum level of refinement on the mesh
-    int max_level = 0;
-    for(p8est_topidx_t tree = p8est->first_local_tree; tree < p8est->last_local_tree; tree++) {
-        p8est_tree_t * tree_t = p8est_tree_array_index(p8est->trees, tree);
-        max_level = SC_MAX(max_level, tree_t->maxlevel);
-    }
-
-    double cx[7][P4EST_MAXLEVEL] = {{0}};
-    double cy[7][P4EST_MAXLEVEL] = {{0}};
-
-    const double C0 = .044658198738520451079;
-    const double C1 = .16666666666666666667;
-    const double C2 = .21132486540518711775;
-    const double C3 = .25;
-    const double C4 = .5;
-    const double C5 = .62200846792814621559;
-    const double C6 = .78867513459481288225;
-
-    //TODO check
-// #pragma omp parallel for
-//     for(int i=0; i<= max_level; i++)
-//     {
-//         double m_dx[3]={forestData->m_dx[0][P4EST_MAXLEVEL-i], 
-//                         forestData->m_dx[1][P4EST_MAXLEVEL-i],
-//                         forestData->m_dx[2][P4EST_MAXLEVEL-i]};
-
-//         cx[0][i] = .044658198738520451079/m_dx[];
-//         cx[1][i] = .16666666666666666667/m_dx[];
-//         cx[2][i] = .21132486540518711775/m_dx[];
-//         cx[3][i] = .25/m_dx[];
-//         cx[4][i] = .5/m_dx[];
-//         cx[5][i] = .62200846792814621559/m_dx[];
-//         cx[6][i] = .78867513459481288225/m_dx[];
-//     }
-
-   
+    const int V = nodes->vnodes;   // 8
     const Scalar zero = static_cast<Scalar>(0);
 
-    if (out.getFunctionSpace().getTypeCode() == Elements) 
-    {
-        out.requireWrite();
-
-        std::vector<Scalar> f_000(numComp, zero);
-        std::vector<Scalar> f_001(numComp, zero);
-        std::vector<Scalar> f_010(numComp, zero);
-        std::vector<Scalar> f_011(numComp, zero);
-        std::vector<Scalar> f_100(numComp, zero);
-        std::vector<Scalar> f_101(numComp, zero);
-        std::vector<Scalar> f_110(numComp, zero);
-        std::vector<Scalar> f_111(numComp, zero);
-
-        for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++) // Loop over every tree
-        {
-            p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p8est_qcoord_t Q = (p8est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for(p8est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
-            {
-                // Work out what level this element is on 
-                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                // octantData * quaddata = (octantData *) quad->p.user_data;
-                int l = quad->level;
-
-                memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-
-                Scalar* o = out.getSampleDataRW(e, zero);
-
-                for (index_t i=0; i < numComp; ++i) {
-                    const Scalar V0 =((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData->m_dx[0][l];
-                    const Scalar V1 =((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData->m_dx[0][l];
-                    const Scalar V2 =((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData->m_dx[0][l];
-                    const Scalar V3 =((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData->m_dx[0][l];
-                    const Scalar V4 =((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData->m_dx[1][l];
-                    const Scalar V5 =((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData->m_dx[1][l];
-                    const Scalar V6 =((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData->m_dx[1][l];
-                    const Scalar V7 =((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData->m_dx[1][l];
-                    const Scalar V8 =((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData->m_dx[2][l];
-                    const Scalar V9 =((f_101[i]-f_100[i])*C5 + (f_011[i]-f_010[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData->m_dx[2][l];
-                    const Scalar V10=((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData->m_dx[2][l];
-                    const Scalar V11=((f_111[i]-f_110[i])*C5 + (f_001[i]-f_000[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData->m_dx[2][l];
-
-                    o[INDEX3(i,0,0,numComp,3)] = V0;
-                    o[INDEX3(i,1,0,numComp,3)] = V4;
-                    o[INDEX3(i,2,0,numComp,3)] = V8;
-                    o[INDEX3(i,0,1,numComp,3)] = V0;
-                    o[INDEX3(i,1,1,numComp,3)] = V5;
-                    o[INDEX3(i,2,1,numComp,3)] = V9;
-                    o[INDEX3(i,0,2,numComp,3)] = V1;
-                    o[INDEX3(i,1,2,numComp,3)] = V4;
-                    o[INDEX3(i,2,2,numComp,3)] = V10;
-                    o[INDEX3(i,0,3,numComp,3)] = V1;
-                    o[INDEX3(i,1,3,numComp,3)] = V5;
-                    o[INDEX3(i,2,3,numComp,3)] = V11;
-                    o[INDEX3(i,0,4,numComp,3)] = V2;
-                    o[INDEX3(i,1,4,numComp,3)] = V6;
-                    o[INDEX3(i,2,4,numComp,3)] = V8;
-                    o[INDEX3(i,0,5,numComp,3)] = V2;
-                    o[INDEX3(i,1,5,numComp,3)] = V7;
-                    o[INDEX3(i,2,5,numComp,3)] = V9;
-                    o[INDEX3(i,0,6,numComp,3)] = V3;
-                    o[INDEX3(i,1,6,numComp,3)] = V6;
-                    o[INDEX3(i,2,6,numComp,3)] = V10;
-                    o[INDEX3(i,0,7,numComp,3)] = V3;
-                    o[INDEX3(i,1,7,numComp,3)] = V7;
-                    o[INDEX3(i,2,7,numComp,3)] = V11;
-                }
-            }
+    // reference shape gradients at the 8 Gauss points (2x2x2) and at the centre.
+    const double SQ = 1.0/std::sqrt(3.0);
+    const double chi = (1.0 + SQ)/2.0, clo = (1.0 - SQ)/2.0;
+    double gradRef[8][8][3];   // node a, gauss g, direction
+    double gradCtr[8][3];      // node a, direction (centre)
+    for(int a=0;a<8;++a){
+        const int pa=a&1, qa=(a>>1)&1, ra=(a>>2)&1;
+        const double sx=pa?1.0:-1.0, sy=qa?1.0:-1.0, sz=ra?1.0:-1.0;
+        for(int g=0;g<8;++g){
+            const int gi=(g>>2)&1, gj=(g>>1)&1, gk=g&1;  // interp gauss order (x slowest)
+            const double Xa=(pa==gi)?chi:clo, Ya=(qa==gj)?chi:clo, Za=(ra==gk)?chi:clo;
+            gradRef[a][g][0]=sx*Ya*Za; gradRef[a][g][1]=Xa*sy*Za; gradRef[a][g][2]=Xa*Ya*sz;
         }
-    } 
-    else if (out.getFunctionSpace().getTypeCode() == ReducedElements) 
+        gradCtr[a][0]=sx*0.25; gradCtr[a][1]=sy*0.25; gradCtr[a][2]=sz*0.25;
+    }
+
+    const bool reduced = (out.getFunctionSpace().getTypeCode() == ReducedElements
+                       || out.getFunctionSpace().getTypeCode() == ReducedFaceElements);
+    out.requireWrite();
+
+    long e = 0;
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid)
     {
-        out.requireWrite();
-
-        std::vector<Scalar> f_000(numComp, zero);
-        std::vector<Scalar> f_001(numComp, zero);
-        std::vector<Scalar> f_010(numComp, zero);
-        std::vector<Scalar> f_011(numComp, zero);
-        std::vector<Scalar> f_100(numComp, zero);
-        std::vector<Scalar> f_101(numComp, zero);
-        std::vector<Scalar> f_110(numComp, zero);
-        std::vector<Scalar> f_111(numComp, zero);
-
-        for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++) // Loop over every tree
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; ++q, ++e)
         {
-            p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p8est_qcoord_t Q = (p8est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for(p8est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
-            {
-                // Work out what level this element is on 
-                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                // octantData * quaddata = (octantData *) quad->p.user_data;
+            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+            const double hh = (double)(1 << quad->level);
+            const double h[3] = { m_NX[0]/hh, m_NX[1]/hh, m_NX[2]/hh };
 
-                int l = quad->level;
+            // node values of the input field (indexed by lnode id == dof id serially)
+            const Scalar* f[8];
+            for(int a=0;a<8;++a)
+                f[a] = in.getSampleDataRO((index_t) nodes->element_nodes[(size_t) e*V + a], zero);
 
-                memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                Scalar* o = out.getSampleDataRW(e, zero);
-                for (index_t i=0; i < numComp; ++i) {
-                    o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / forestData->m_dx[0][l];
-                    o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / forestData->m_dx[1][l];
-                    o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C3 / forestData->m_dx[2][l];
-                } // end of component loop i
-            }
-        }
-    } 
-    else if (out.getFunctionSpace().getTypeCode() == FaceElements) 
-    {
-        out.requireWrite();
-
-        std::vector<Scalar> f_000(numComp, zero);
-        std::vector<Scalar> f_001(numComp, zero);
-        std::vector<Scalar> f_010(numComp, zero);
-        std::vector<Scalar> f_011(numComp, zero);
-        std::vector<Scalar> f_100(numComp, zero);
-        std::vector<Scalar> f_101(numComp, zero);
-        std::vector<Scalar> f_110(numComp, zero);
-        std::vector<Scalar> f_111(numComp, zero);
-
-
-        for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++) 
-        {
-            p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p8est_qcoord_t Q = (p8est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for(p8est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-            {
-                // Work out what level this element is on 
-                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                octantData * quaddata = (octantData *) quad->p.user_data;
-
-                int l = quad->level;
-
-                if(quaddata->m_faceOffset[0]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-
-                    Scalar* o = out.getSampleDataRW(e, zero);
-
-                    for (index_t i=0; i < numComp; ++i) {
-                        const Scalar V0=((f_010[i]-f_000[i])*C6 + (f_011[i]-f_001[i])*C2) / forestData->m_dx[1][l];
-                        const Scalar V1=((f_010[i]-f_000[i])*C2 + (f_011[i]-f_001[i])*C6) / forestData->m_dx[1][l];
-                        const Scalar V2=((f_001[i]-f_000[i])*C6 + (f_010[i]-f_011[i])*C2) / forestData->m_dx[2][l];
-                        const Scalar V3=((f_001[i]-f_000[i])*C2 + (f_011[i]-f_010[i])*C6) / forestData->m_dx[2][l];
-                        o[INDEX3(i,0,0,numComp,3)] = ((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,0,numComp,3)] = V0;
-                        o[INDEX3(i,2,0,numComp,3)] = V2;
-                        o[INDEX3(i,0,1,numComp,3)] = ((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,1,numComp,3)] = V0;
-                        o[INDEX3(i,2,1,numComp,3)] = V3;
-                        o[INDEX3(i,0,2,numComp,3)] = ((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,2,numComp,3)] = V1;
-                        o[INDEX3(i,2,2,numComp,3)] = V2;
-                        o[INDEX3(i,0,3,numComp,3)] = ((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,3,numComp,3)] = V1;
-                        o[INDEX3(i,2,3,numComp,3)] = V3;
-                    } 
-                }
-            
-                if(quaddata->m_faceOffset[1]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-
-                    for (index_t i=0; i < numComp; ++i) {
-                        const Scalar V0=((f_110[i]-f_100[i])*C6 + (f_111[i]-f_101[i])*C2) / forestData->m_dx[1][l];
-                        const Scalar V1=((f_110[i]-f_100[i])*C2 + (f_111[i]-f_101[i])*C6) / forestData->m_dx[1][l];
-                        const Scalar V2=((f_101[i]-f_100[i])*C6 + (f_111[i]-f_110[i])*C2) / forestData->m_dx[2][l];
-                        const Scalar V3=((f_101[i]-f_100[i])*C2 + (f_111[i]-f_110[i])*C6) / forestData->m_dx[2][l];
-                        o[INDEX3(i,0,0,numComp,3)] = ((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,0,numComp,3)] = V0;
-                        o[INDEX3(i,2,0,numComp,3)] = V2;
-                        o[INDEX3(i,0,1,numComp,3)] = ((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,1,numComp,3)] = V0;
-                        o[INDEX3(i,2,1,numComp,3)] = V3;
-                        o[INDEX3(i,0,2,numComp,3)] = ((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,2,numComp,3)] = V1;
-                        o[INDEX3(i,2,2,numComp,3)] = V2;
-                        o[INDEX3(i,0,3,numComp,3)] = ((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,3,numComp,3)] = V1;
-                        o[INDEX3(i,2,3,numComp,3)] = V3;
-                    } // end of component loop i
-                }
-
-                if(quaddata->m_faceOffset[2]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-
-                    for (index_t i=0; i < numComp; ++i) {
-                        const Scalar V0=((f_100[i]-f_000[i])*C6 + (f_101[i]-f_001[i])*C2) / forestData->m_dx[0][l];
-                        const Scalar V1=((f_001[i]-f_000[i])*C6 + (f_101[i]-f_100[i])*C2) / forestData->m_dx[2][l];
-                        const Scalar V2=((f_001[i]-f_000[i])*C2 + (f_101[i]-f_100[i])*C6) / forestData->m_dx[2][l];
-                        o[INDEX3(i,0,0,numComp,3)] = V0;
-                        o[INDEX3(i,1,0,numComp,3)] = ((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,0,numComp,3)] = V1;
-                        o[INDEX3(i,0,1,numComp,3)] = V0;
-                        o[INDEX3(i,1,1,numComp,3)] = ((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,1,numComp,3)] = V2;
-                        o[INDEX3(i,0,2,numComp,3)] = V0;
-                        o[INDEX3(i,1,2,numComp,3)] = ((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,2,numComp,3)] = V1;
-                        o[INDEX3(i,0,3,numComp,3)] = V0;
-                        o[INDEX3(i,1,3,numComp,3)] = ((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,3,numComp,3)] = V2;
-                    } // end of component loop i
-                } // end of face 2
-
-                if(quaddata->m_faceOffset[3]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-
-                    for (index_t i=0; i < numComp; ++i) {
-                        const Scalar V0=((f_110[i]-f_010[i])*C6 + (f_111[i]-f_011[i])*C2) / forestData->m_dx[0][l];
-                        const Scalar V1=((f_110[i]-f_010[i])*C2 + (f_111[i]-f_011[i])*C6) / forestData->m_dx[0][l];
-                        const Scalar V2=((f_011[i]-f_010[i])*C6 + (f_111[i]-f_110[i])*C2) / forestData->m_dx[2][l];
-                        const Scalar V3=((f_011[i]-f_010[i])*C2 + (f_111[i]-f_110[i])*C6) / forestData->m_dx[2][l];
-                        o[INDEX3(i,0,0,numComp,3)] = V0;
-                        o[INDEX3(i,1,0,numComp,3)] = ((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,0,numComp,3)] = V2;
-                        o[INDEX3(i,0,1,numComp,3)] = V0;
-                        o[INDEX3(i,1,1,numComp,3)] = ((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,1,numComp,3)] = V3;
-                        o[INDEX3(i,0,2,numComp,3)] = V1;
-                        o[INDEX3(i,1,2,numComp,3)] = ((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,2,numComp,3)] = V2;
-                        o[INDEX3(i,0,3,numComp,3)] = V1;
-                        o[INDEX3(i,1,3,numComp,3)] = ((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,3,numComp,3)] = V3;
-                    } // end of component loop i
-                } // end of face 3
-
-                if(quaddata->m_faceOffset[4]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i=0; i < numComp; ++i) {
-                        const Scalar V0=((f_100[i]-f_000[i])*C6 + (f_110[i]-f_010[i])*C2) / forestData->m_dx[0][l];
-                        const Scalar V1=((f_100[i]-f_000[i])*C2 + (f_110[i]-f_010[i])*C6) / forestData->m_dx[0][l];
-                        const Scalar V2=((f_010[i]-f_000[i])*C6 + (f_110[i]-f_100[i])*C2) / forestData->m_dx[1][l];
-                        const Scalar V3=((f_010[i]-f_000[i])*C2 + (f_110[i]-f_100[i])*C6) / forestData->m_dx[1][l];
-                        o[INDEX3(i,0,0,numComp,3)] = V0;
-                        o[INDEX3(i,1,0,numComp,3)] = V2;
-                        o[INDEX3(i,2,0,numComp,3)] = ((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData->m_dx[2][l];
-                        o[INDEX3(i,0,1,numComp,3)] = V0;
-                        o[INDEX3(i,1,1,numComp,3)] = V3;
-                        o[INDEX3(i,2,1,numComp,3)] = ((f_101[i]-f_100[i])*C5 + (f_011[i]-f_010[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData->m_dx[2][l];
-                        o[INDEX3(i,0,2,numComp,3)] = V1;
-                        o[INDEX3(i,1,2,numComp,3)] = V2;
-                        o[INDEX3(i,2,2,numComp,3)] = ((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData->m_dx[2][l];
-                        o[INDEX3(i,0,3,numComp,3)] = V1;
-                        o[INDEX3(i,1,3,numComp,3)] = V3;
-                        o[INDEX3(i,2,3,numComp,3)] = ((f_111[i]-f_110[i])*C5 + (f_001[i]-f_000[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData->m_dx[2][l];
-                    } // end of component loop i
-                } // end of face 4
-
-                if(quaddata->m_faceOffset[5]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i=0; i < numComp; ++i) {
-                        const Scalar V0=((f_101[i]-f_001[i])*C6 + (f_111[i]-f_011[i])*C2) / forestData->m_dx[0][l];
-                        const Scalar V1=((f_101[i]-f_001[i])*C2 + (f_111[i]-f_011[i])*C6) / forestData->m_dx[0][l];
-                        const Scalar V2=((f_011[i]-f_001[i])*C6 + (f_111[i]-f_101[i])*C2) / forestData->m_dx[1][l];
-                        const Scalar V3=((f_011[i]-f_001[i])*C2 + (f_111[i]-f_101[i])*C6) / forestData->m_dx[1][l];
-                        o[INDEX3(i,0,0,numComp,3)] = V0;
-                        o[INDEX3(i,1,0,numComp,3)] = V2;
-                        o[INDEX3(i,2,0,numComp,3)] = ((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData->m_dx[2][l];
-                        o[INDEX3(i,0,1,numComp,3)] = V0;
-                        o[INDEX3(i,1,1,numComp,3)] = V3;
-                        o[INDEX3(i,2,1,numComp,3)] = ((f_011[i]-f_010[i])*C0 + (f_101[i]-f_100[i])*C5 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData->m_dx[2][l];
-                        o[INDEX3(i,0,2,numComp,3)] = V1;
-                        o[INDEX3(i,1,2,numComp,3)] = V2;
-                        o[INDEX3(i,2,2,numComp,3)] = ((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData->m_dx[2][l];
-                        o[INDEX3(i,0,3,numComp,3)] = V1;
-                        o[INDEX3(i,1,3,numComp,3)] = V3;
-                        o[INDEX3(i,2,3,numComp,3)] = ((f_001[i]-f_000[i])*C0 + (f_111[i]-f_110[i])*C5 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData->m_dx[2][l];
-                    } // end of component loop i
-                } // end of face 5
-            }
-        }
-    } else if (out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
-
-        out.requireWrite();
-
-        for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++) 
-        {
-            p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p8est_qcoord_t Q = (p8est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for(p8est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-            {
-                // Work out what level this element is on 
-                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                octantData * quaddata = (octantData *) quad->p.user_data;
-
-                int l = quad->level;
-
-                std::vector<Scalar> f_000(numComp, zero);
-                std::vector<Scalar> f_001(numComp, zero);
-                std::vector<Scalar> f_010(numComp, zero);
-                std::vector<Scalar> f_011(numComp, zero);
-                std::vector<Scalar> f_100(numComp, zero);
-                std::vector<Scalar> f_101(numComp, zero);
-                std::vector<Scalar> f_110(numComp, zero);
-                std::vector<Scalar> f_111(numComp, zero);
-
-
-
-                if(quaddata->m_faceOffset[0]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]-f_000[i]-f_001[i])*C4 / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]-f_000[i]-f_010[i])*C4 / forestData->m_dx[2][l];
-                    } // end of component loop i
-                } // end of face 0
-
-
-                if(quaddata->m_faceOffset[1]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,0,numComp,3)] = (f_110[i]+f_111[i]-f_100[i]-f_101[i])*C4 / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,0,numComp,3)] = (f_101[i]+f_111[i]-f_100[i]-f_110[i])*C4 / forestData->m_dx[2][l];
-                    } // end of component loop i
-                } // end of face 1
-
-                if(quaddata->m_faceOffset[2]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]-f_000[i]-f_001[i])*C4 / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_101[i]-f_000[i]-f_100[i])*C4 / forestData->m_dx[2][l];
-                    } // end of component loop i
-                } // end of face 2
-
-
-                if(quaddata->m_faceOffset[3]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_110[i]+f_111[i]-f_010[i]-f_011[i])*C4 / forestData->m_dx[0][l];
-                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / forestData->m_dx[1][l];
-                            o[INDEX3(i,2,0,numComp,3)] = (f_011[i]+f_111[i]-f_010[i]-f_110[i])*C4 / forestData->m_dx[2][l];
-                    } // end of component loop i
-                } // end of face 3
-    
-                if(quaddata->m_faceOffset[4]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_110[i]-f_000[i]-f_010[i])*C4 / forestData->m_dx[0][l];
-                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_110[i]-f_000[i]-f_100[i])*C4 / forestData->m_dx[1][l];
-                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C4 / forestData->m_dx[2][l];
-                    } // end of component loop i
-                } // end of face 4
-
-                if(quaddata->m_faceOffset[5]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_101[i]+f_111[i]-f_001[i]-f_011[i])*C4 / forestData->m_dx[0][l];
-                            o[INDEX3(i,1,0,numComp,3)] = (f_011[i]+f_111[i]-f_001[i]-f_101[i])*C4 / forestData->m_dx[1][l];
-                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C3 / forestData->m_dx[2][l];
-                    } // end of component loop i
-                } // end of face 5
+            Scalar* o = out.getSampleDataRW(e, zero);
+            if(reduced) {
+                for(index_t i=0;i<numComp;++i)
+                    for(int d=0;d<3;++d) {
+                        Scalar s = zero;
+                        for(int a=0;a<8;++a) s += f[a][i]*(gradCtr[a][d]/h[d]);
+                        o[INDEX2(i,d,numComp)] = s;
+                    }
+            } else {
+                for(int g=0;g<8;++g)
+                    for(index_t i=0;i<numComp;++i)
+                        for(int d=0;d<3;++d) {
+                            Scalar s = zero;
+                            for(int a=0;a<8;++a) s += f[a][i]*(gradRef[a][g][d]/h[d]);
+                            o[INDEX3(i,d,g,numComp,3)] = s;
+                        }
             }
         }
     }
