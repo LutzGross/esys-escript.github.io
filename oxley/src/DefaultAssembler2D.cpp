@@ -216,30 +216,21 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
 
     rhs.requireWrite();
 
-// #pragma omp parallel for
-    for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+    // Per-element kernel: reads coefficient sample pointers (null == empty
+    // coefficient) plus per-Data actsExpanded flags and the element level;
+    // accumulates the element matrix/RHS into EM_S/EM_F. Called for both owned
+    // elements and the ghost (halo) element layer that completes owned rows in
+    // parallel. (MPI: A6.)
+    auto processElement = [&](int l,
+        const Scalar* A_p, bool A_exp, const Scalar* B_p, bool B_exp,
+        const Scalar* C_p, bool C_exp, const Scalar* D_p, bool D_exp,
+        const Scalar* X_p, bool X_exp, const Scalar* Y_p, bool Y_exp)
     {
-        p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        for (int q = 0; q < Q; ++q)  
-        {
-            if (addEM_S)
-                fill(EM_S.begin(), EM_S.end(), zero);
-            if (addEM_F)
-                fill(EM_F.begin(), EM_F.end(), zero);
-            
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            int l = quad->level;
-            // element sample index = running local leaf index (lnodes order)
-            long id = (long) currenttree->quadrants_offset + q;
-
             ///////////////
             // process A //
             ///////////////
-            if (!A.isEmpty()) {
-                const Scalar* A_p = A.getSampleDataRO(id, zero);
-                if (A.actsExpanded()) {
+            if (A_p) {
+                if (A_exp) {
                     const Scalar A_00_0 = A_p[INDEX3(0,0,0,2,2)];
                     const Scalar A_01_0 = A_p[INDEX3(0,1,0,2,2)];
                     const Scalar A_10_0 = A_p[INDEX3(1,0,0,2,2)];
@@ -359,9 +350,8 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
             ///////////////
             // process B //
             ///////////////
-            if (!B.isEmpty()) {
-                const Scalar* B_p = B.getSampleDataRO(id, zero);
-                if (B.actsExpanded()) {
+            if (B_p) {
+                if (B_exp) {
                     const Scalar B_0_0 = B_p[INDEX2(0,0,2)];
                     const Scalar B_1_0 = B_p[INDEX2(1,0,2)];
                     const Scalar B_0_1 = B_p[INDEX2(0,1,2)];
@@ -427,9 +417,8 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
             ///////////////
             // process C //
             ///////////////
-            if (!C.isEmpty()) {
-                const Scalar* C_p = C.getSampleDataRO(id, zero);
-                if (C.actsExpanded()) {
+            if (C_p) {
+                if (C_exp) {
                     const Scalar C_0_0 = C_p[INDEX2(0,0,2)];
                     const Scalar C_1_0 = C_p[INDEX2(1,0,2)];
                     const Scalar C_0_1 = C_p[INDEX2(0,1,2)];
@@ -495,9 +484,8 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
             ///////////////
             // process D //
             ///////////////
-            if (!D.isEmpty()) {
-                const Scalar* D_p = D.getSampleDataRO(id, zero);
-                if (D.actsExpanded()) {
+            if (D_p) {
+                if (D_exp) {
                     const Scalar D_0 = D_p[0];
                     const Scalar D_1 = D_p[1];
                     const Scalar D_2 = D_p[2];
@@ -553,9 +541,8 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
             ///////////////
             // process X //
             ///////////////
-            if (!X.isEmpty()) {
-                const Scalar* X_p = X.getSampleDataRO(id, zero);
-                if (X.actsExpanded()) {
+            if (X_p) {
+                if (X_exp) {
                     const Scalar X_0_0 = X_p[INDEX2(0,0,2)];
                     const Scalar X_1_0 = X_p[INDEX2(1,0,2)];
                     const Scalar X_0_1 = X_p[INDEX2(0,1,2)];
@@ -597,9 +584,8 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
             ///////////////
             // process Y //
             ///////////////
-            if (!Y.isEmpty()) {
-                const Scalar* Y_p = Y.getSampleDataRO(id, zero);
-                if (Y.actsExpanded()) {
+            if (Y_p) {
+                if (Y_exp) {
                     const Scalar Y_0 = Y_p[0];
                     const Scalar Y_1 = Y_p[1];
                     const Scalar Y_2 = Y_p[2];
@@ -617,11 +603,68 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
                     EM_F[3]+=36.*Y_p[0]*w[22][l];
                 }
             }
-            // add to matrix (if addEM_S) and RHS (if addEM_F)
+    };  // end processElement kernel
+
+    // --- owned elements ---
+    for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++)
+    {
+        p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
+        sc_array_t * tquadrants = &currenttree->quadrants;
+        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+        for (int q = 0; q < Q; ++q)
+        {
+            if (addEM_S) fill(EM_S.begin(), EM_S.end(), zero);
+            if (addEM_F) fill(EM_F.begin(), EM_F.end(), zero);
+            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+            const int l = quad->level;
+            const long id = (long) currenttree->quadrants_offset + q;
+            processElement(l,
+                A.isEmpty()?nullptr:A.getSampleDataRO(id,zero), A.isEmpty()?false:A.actsExpanded(),
+                B.isEmpty()?nullptr:B.getSampleDataRO(id,zero), B.isEmpty()?false:B.actsExpanded(),
+                C.isEmpty()?nullptr:C.getSampleDataRO(id,zero), C.isEmpty()?false:C.actsExpanded(),
+                D.isEmpty()?nullptr:D.getSampleDataRO(id,zero), D.isEmpty()?false:D.actsExpanded(),
+                X.isEmpty()?nullptr:X.getSampleDataRO(id,zero), X.isEmpty()?false:X.actsExpanded(),
+                Y.isEmpty()?nullptr:Y.getSampleDataRO(id,zero), Y.isEmpty()?false:Y.actsExpanded());
             domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
         }
     }
-} // end of parallel region
+
+    // --- ghost element halo: complete this rank's owned rows with contributions
+    // from neighbour-owned elements incident to its owned nodes. (MPI: A6.)
+    if (domain->m_ghost && !domain->m_ghostElemNodes.empty())
+    {
+        const int V = domain->nodes->vnodes;
+        const long nGhost = (long) domain->m_ghost->ghosts.elem_count;
+        const std::vector<Scalar> gA = domain->exchangeGhostCoeff<Scalar>(A);
+        const std::vector<Scalar> gB = domain->exchangeGhostCoeff<Scalar>(B);
+        const std::vector<Scalar> gC = domain->exchangeGhostCoeff<Scalar>(C);
+        const std::vector<Scalar> gD = domain->exchangeGhostCoeff<Scalar>(D);
+        const std::vector<Scalar> gX = domain->exchangeGhostCoeff<Scalar>(X);
+        const std::vector<Scalar> gY = domain->exchangeGhostCoeff<Scalar>(Y);
+        const size_t szA = A.isEmpty()?0:(size_t)A.getNumDataPointsPerSample()*A.getDataPointSize();
+        const size_t szB = B.isEmpty()?0:(size_t)B.getNumDataPointsPerSample()*B.getDataPointSize();
+        const size_t szC = C.isEmpty()?0:(size_t)C.getNumDataPointsPerSample()*C.getDataPointSize();
+        const size_t szD = D.isEmpty()?0:(size_t)D.getNumDataPointsPerSample()*D.getDataPointSize();
+        const size_t szX = X.isEmpty()?0:(size_t)X.getNumDataPointsPerSample()*X.getDataPointSize();
+        const size_t szY = Y.isEmpty()?0:(size_t)Y.getNumDataPointsPerSample()*Y.getDataPointSize();
+        for (long g = 0; g < nGhost; ++g)
+        {
+            if (addEM_S) fill(EM_S.begin(), EM_S.end(), zero);
+            if (addEM_F) fill(EM_F.begin(), EM_F.end(), zero);
+            p4est_quadrant_t* gq = p4est_quadrant_array_index(&domain->m_ghost->ghosts, g);
+            const int l = gq->level;
+            processElement(l,
+                gA.empty()?nullptr:&gA[(size_t)g*szA], A.isEmpty()?false:A.actsExpanded(),
+                gB.empty()?nullptr:&gB[(size_t)g*szB], B.isEmpty()?false:B.actsExpanded(),
+                gC.empty()?nullptr:&gC[(size_t)g*szC], C.isEmpty()?false:C.actsExpanded(),
+                gD.empty()?nullptr:&gD[(size_t)g*szD], D.isEmpty()?false:D.actsExpanded(),
+                gX.empty()?nullptr:&gX[(size_t)g*szX], X.isEmpty()?false:X.actsExpanded(),
+                gY.empty()?nullptr:&gY[(size_t)g*szY], Y.isEmpty()?false:Y.actsExpanded());
+            domain->addToMatrixAndRHSGhost(mat, rhs, EM_S, EM_F, addEM_S, addEM_F,
+                                           &domain->m_ghostElemNodes[(size_t)g*V]);
+        }
+    }
+}
 
 /****************************************************************************/
 // PDE SINGLE BOUNDARY

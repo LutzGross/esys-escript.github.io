@@ -46,7 +46,10 @@
 #include <p4est_io.h>
 #include <p4est_iterate.h>
 #include <p4est_lnodes.h>
+#include <p4est_ghost.h>
 #include <p4est_vtk.h>
+
+#include <unordered_map>
 
 #include <sc_mpi.h>
 
@@ -346,6 +349,7 @@ Rectangle::~Rectangle(){
     else
         std::cout << "OK" << std::endl;
 #endif
+    if (m_ghost) { p4est_ghost_destroy(m_ghost); m_ghost = nullptr; }
 }
 
 /**
@@ -772,7 +776,12 @@ bool Rectangle::ownSample(int fsType, index_t id) const
 
 dim_t Rectangle::getNumDataPointsGlobal() const
 {
-    return getNumNodes();
+    // total number of (owned) nodes across all ranks
+    if(!nodes) return 0;
+    dim_t total = 0;
+    for(int r = 0; r < m_mpiInfo->size; ++r)
+        total += (dim_t) nodes->global_owned_count[r];
+    return total;
 }
 
 void Rectangle::dump(const std::string& fileName) const
@@ -1601,7 +1610,85 @@ void Rectangle::renumberNodes()
         m_nodeId[i] = (long) nodes->nonlocal_nodes[i - nOwned];
     m_nodeId.shrink_to_fit();
 
+    // Trilinos map inputs: row map = owned global ids; col map = all local
+    // global ids (owned first, then ghost -- the lnodes local ordering).
+    myColumns.assign(m_nodeId.begin(), m_nodeId.end());
+    myRows.assign(m_nodeId.begin(), m_nodeId.begin() + nOwned);
+
+    // MPI: build the ghost element halo and extend myColumns with any 2nd-layer
+    // ghost nodes (nodes that appear only on ghost elements). (A6.)
+    buildParallelOverlap();
+
     oxleytimer.toc("renumberNodes...Done");
+}
+
+//protected
+void Rectangle::buildParallelOverlap()
+{
+    if (m_ghost) { p4est_ghost_destroy(m_ghost); m_ghost = nullptr; }
+    m_ghostElemNodes.clear();
+
+    // Serial: owned == all local nodes, no halo needed.
+    if (m_mpiInfo->size <= 1)
+        return;
+
+    const int V = nodes->vnodes;                       // 4 corners (degree-1)
+    const long nLocal = (long) nodes->num_local_nodes;
+    const long nLocalElem = (long) nodes->num_local_elements;
+
+    // global node id -> local (column) index for all lnodes-local nodes
+    std::unordered_map<long,long> g2l;
+    g2l.reserve((size_t) nLocal * 2);
+    for (long i = 0; i < nLocal; ++i)
+        g2l[(long) m_nodeId[i]] = i;
+
+    // FULL (face+corner) ghost layer of the current forest -- this is exactly
+    // the one-element halo incident to the owned nodes.
+    m_ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    const long nGhost  = (long) m_ghost->ghosts.elem_count;
+    const long nMirror = (long) m_ghost->mirrors.elem_count;
+
+    // For each local element, its V corner GLOBAL node ids (the data we mirror
+    // to the ranks that hold that element as a ghost).
+    std::vector<p4est_gloidx_t> localElemGN((size_t) nLocalElem * V);
+    for (long e = 0; e < nLocalElem; ++e)
+        for (int c = 0; c < V; ++c)
+            localElemGN[(size_t) e*V + c] =
+                (p4est_gloidx_t) m_nodeId[ nodes->element_nodes[(size_t) e*V + c] ];
+
+    // mirror_data[m] -> the V global ids of the local element that is mirror m
+    std::vector<void*> mirror_data((size_t) nMirror, nullptr);
+    for (long m = 0; m < nMirror; ++m) {
+        p4est_quadrant_t* mq = p4est_quadrant_array_index(&m_ghost->mirrors, m);
+        const long le = (long) mq->p.piggy3.local_num;   // cumulative local elem id
+        mirror_data[m] = (void*) &localElemGN[(size_t) le*V];
+    }
+
+    // Receive, per ghost quadrant, its V corner global node ids.
+    std::vector<p4est_gloidx_t> ghostElemGN((size_t) nGhost * V);
+    p4est_ghost_exchange_custom(p4est, m_ghost,
+                                (size_t) V * sizeof(p4est_gloidx_t),
+                                mirror_data.data(), ghostElemGN.data());
+
+    // Map ghost element corners to extended local column indices; nodes not
+    // already local (2nd layer) get a fresh column index appended to myColumns.
+    m_ghostElemNodes.resize((size_t) nGhost * V);
+    long nextLocal = nLocal;
+    for (long g = 0; g < nGhost; ++g) {
+        for (int c = 0; c < V; ++c) {
+            const long gid = (long) ghostElemGN[(size_t) g*V + c];
+            auto it = g2l.find(gid);
+            long lidx;
+            if (it != g2l.end()) {
+                lidx = it->second;
+            } else {
+                lidx = nextLocal++;
+                g2l[gid] = lidx;
+                myColumns.push_back((index_t) gid);
+            }
+            m_ghostElemNodes[(size_t) g*V + c] = (index_t) lidx;
+        }
+    }
 }
 
 //protected
@@ -1893,8 +1980,77 @@ void Rectangle::addToMatrixAndRHS<real_t>(escript::AbstractSystemMatrix* S, escr
 
 template
 void Rectangle::addToMatrixAndRHS<cplx_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
-         const std::vector<cplx_t>& EM_S, const std::vector<cplx_t>& EM_F, 
+         const std::vector<cplx_t>& EM_S, const std::vector<cplx_t>& EM_F,
          bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const;
+
+//protected
+template<typename Scalar>
+void Rectangle::addToMatrixAndRHSGhost(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
+         bool addS, bool addF, const index_t* rowIndex, int nEq, int nComp) const
+{
+    // rowIndex are extended-local corner node ids of a ghost (halo) element.
+    // Only OWNED rows (< getNumDOF()) are kept; the matrix wrapper likewise
+    // drops non-owned rows. Columns may be 2nd-layer ghost nodes (valid colMap).
+    if(addF)
+    {
+        Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
+        for(int i=0; i<4; i++) {
+            if (rowIndex[i]<getNumDOF()) {
+                for(int eq=0; eq<nEq; eq++) {
+                    F_p[INDEX2(eq, rowIndex[i], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
+                }
+            }
+        }
+    }
+    if(addS)
+    {
+        IndexVector rowInd(rowIndex, rowIndex+4);
+        addToSystemMatrix<Scalar>(S, rowInd, nEq, EM_S);
+    }
+}
+
+template
+void Rectangle::addToMatrixAndRHSGhost<real_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<real_t>& EM_S, const std::vector<real_t>& EM_F,
+         bool addS, bool addF, const index_t* rowIndex, int nEq, int nComp) const;
+template
+void Rectangle::addToMatrixAndRHSGhost<cplx_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<cplx_t>& EM_S, const std::vector<cplx_t>& EM_F,
+         bool addS, bool addF, const index_t* rowIndex, int nEq, int nComp) const;
+
+//protected
+template<typename Scalar>
+std::vector<Scalar> Rectangle::exchangeGhostCoeff(const escript::Data& coef) const
+{
+    std::vector<Scalar> out;
+    if (!m_ghost || coef.isEmpty())
+        return out;
+
+    const long nGhost  = (long) m_ghost->ghosts.elem_count;
+    const long nMirror = (long) m_ghost->mirrors.elem_count;
+    const size_t sampleSize = (size_t) coef.getNumDataPointsPerSample()
+                            * (size_t) coef.getDataPointSize();
+    if (nGhost == 0 || sampleSize == 0)
+        return out;
+
+    const Scalar zero = static_cast<Scalar>(0);
+    // mirror_data[m] -> the coefficient sample of the local element that is
+    // mirror m (its cumulative local element index is piggy3.local_num).
+    std::vector<const void*> mirror_data((size_t) nMirror, nullptr);
+    for (long m = 0; m < nMirror; ++m) {
+        p4est_quadrant_t* mq = p4est_quadrant_array_index(&m_ghost->mirrors, m);
+        const long le = (long) mq->p.piggy3.local_num;
+        mirror_data[m] = (const void*) coef.getSampleDataRO(le, zero);
+    }
+    out.resize((size_t) nGhost * sampleSize);
+    p4est_ghost_exchange_custom(p4est, m_ghost, sampleSize * sizeof(Scalar),
+                                const_cast<void**>(mirror_data.data()), out.data());
+    return out;
+}
+
+template std::vector<real_t> Rectangle::exchangeGhostCoeff<real_t>(const escript::Data&) const;
+template std::vector<cplx_t> Rectangle::exchangeGhostCoeff<cplx_t>(const escript::Data&) const;
 
 //protected
 void Rectangle::interpolateNodesOnElements(escript::Data& out,
@@ -2462,7 +2618,9 @@ dim_t Rectangle::getNumFaceElements() const
 
 dim_t Rectangle::getNumDOF() const
 {
-    return getNumNodes();
+    // owned nodes only (each owned node is one real DOF). Ghost/shared nodes
+    // are columns, not rows. (MPI: A6.)
+    return nodes ? (dim_t) nodes->owned_count : 0;
 }
 
 void Rectangle::updateTreeIDs()
@@ -2835,6 +2993,31 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
                     if(dup == false)
                         indices[lni[i]].push_back(lni[j]);
                 }
+            }
+        }
+    }
+
+    // MPI: add couplings contributed by the ghost element halo. Only OWNED rows
+    // matter (they must be complete); ghost elements supply the 2nd-layer column
+    // couplings for owned boundary nodes. (A6.)
+    const long nDOF = getNumDOF();
+    const long nGhost = (long) m_ghostElemNodes.size() / (V ? V : 1);
+    for(long g = 0; g < nGhost; ++g)
+    {
+        const index_t* lni = &m_ghostElemNodes[(size_t) g * V];
+        for(int i = 0; i < V; i++)
+        {
+            const long row = (long) lni[i];
+            if(row >= nDOF)          // only owned rows are assembled/kept
+                continue;
+            for(int j = 0; j < V; j++)
+            {
+                const index_t col = lni[j];
+                bool dup = false;
+                for(int k = 0; k < indices[row].size(); k++)
+                    if(indices[row][k] == col) { dup = true; break; }
+                if(!dup)
+                    indices[row].push_back(col);
             }
         }
     }
@@ -3488,8 +3671,20 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
 //protected
 void Rectangle::nodesToDOF(escript::Data& out, const escript::Data& in) const
 {
-    //TODO
-    throw OxleyException("nodesToDOF");
+    // Nodes -> DegreesOfFreedom: the owned nodes are the DOFs (lnodes orders
+    // owned nodes first), so copy the first getNumDOF() node samples. Ghost
+    // node values belong to other ranks and are dropped. (MPI: A6.)
+    const dim_t numComp = in.getDataPointSize();
+    out.requireWrite();
+    const dim_t nDOF = getNumDOF();
+    const real_t zero = 0;
+#pragma omp parallel for
+    for (index_t i = 0; i < nDOF; i++) {
+        const real_t* src = in.getSampleDataRO(i, zero);
+        std::copy(src, src+numComp, out.getSampleDataRW(i, zero));
+    }
+    return;
+    // legacy structured-grid implementation below (dead):
 
 //     const dim_t numComp = in.getDataPointSize();
 //     out.requireWrite();

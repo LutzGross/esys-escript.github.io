@@ -855,7 +855,12 @@ bool Brick::ownSample(int fsType, index_t id) const
 
 dim_t Brick::getNumDataPointsGlobal() const
 {
-    return getNumNodes();
+    // total number of (owned) nodes across all ranks
+    if(!nodes) return 0;
+    dim_t total = 0;
+    for(int r = 0; r < m_mpiInfo->size; ++r)
+        total += (dim_t) nodes->global_owned_count[r];
+    return total;
 }
 
 
@@ -1649,6 +1654,11 @@ void Brick::renumberNodes()
     for(long i = nOwned; i < nLocal; ++i)
         m_nodeId[i] = (long) nodes->nonlocal_nodes[i - nOwned];
     m_nodeId.shrink_to_fit();
+
+    // Trilinos map inputs: row map = owned global ids; col map = all local
+    // global ids (owned first, then ghost -- the lnodes local ordering).
+    myColumns.assign(m_nodeId.begin(), m_nodeId.end());
+    myRows.assign(m_nodeId.begin(), m_nodeId.begin() + nOwned);
 
     oxleytimer.toc("renumberNodes...Done");
 }
@@ -4494,7 +4504,9 @@ dim_t Brick::getNumFaceElements() const
 //protected
 inline dim_t Brick::getNumDOF() const
 {
-    return getNumNodes();
+    // owned nodes only (each owned node is one real DOF). Ghost/shared nodes
+    // are columns, not rows. (MPI: A6.)
+    return nodes ? (dim_t) nodes->owned_count : 0;
 }
 
 void Brick::updateTreeIDs()
@@ -4909,8 +4921,20 @@ void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F
 //protected
 void Brick::nodesToDOF(escript::Data& out, const escript::Data& in) const
 {
-    //TODO
-    throw OxleyException("nodesToDOF");
+    // Nodes -> DegreesOfFreedom: the owned nodes are the DOFs (lnodes orders
+    // owned nodes first), so copy the first getNumDOF() node samples. Ghost
+    // node values belong to other ranks and are dropped. (MPI: A6.)
+    const dim_t numComp = in.getDataPointSize();
+    out.requireWrite();
+    const dim_t nDOF = getNumDOF();
+    const real_t zero = 0;
+#pragma omp parallel for
+    for (index_t i = 0; i < nDOF; i++) {
+        const real_t* src = in.getSampleDataRO(i, zero);
+        std::copy(src, src+numComp, out.getSampleDataRW(i, zero));
+    }
+    return;
+    // legacy structured-grid implementation below (dead):
 
 //     const dim_t numComp = in.getDataPointSize();
 //     out.requireWrite();

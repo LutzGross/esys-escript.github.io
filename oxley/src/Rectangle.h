@@ -430,8 +430,20 @@ private:
     // vector that maps each node to a DOF index (used for the coupler)
     IndexVector m_dofMap;
 
-    // 
+    //
     IndexVector m_nodeId;
+
+    // --- MPI overlap (A6): p4est ghost element layer kept alive so that each
+    // rank can assemble the elements incident to its owned nodes that are owned
+    // by a neighbour (a one-element halo), completing its owned matrix/RHS rows.
+    // m_ghost is a FULL (face+corner) ghost of the current p4est. m_ghostElemNodes
+    // holds, per ghost quadrant, its vnodes corner node ids in the EXTENDED local
+    // column numbering (lnodes local nodes first, then any 2nd-layer ghost nodes
+    // that appear only on ghost elements). myColumns is extended to match.
+    p4est_ghost_t* m_ghost = nullptr;
+    IndexVector m_ghostElemNodes;
+    // builds m_ghost, m_ghostElemNodes and the extended myColumns from lnodes.
+    void buildParallelOverlap();
 
     // This is a modified version of the p4est library function new_connectivity
 p4est_connectivity_t *
@@ -647,6 +659,18 @@ protected:
     template<typename Scalar> void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
            bool addS, bool addF, index_t e, index_t t, int nEq=1, int nComp=1) const;
+    // MPI (A6): scatter an element matrix/RHS given explicit (extended-local)
+    // corner node ids -- used for the ghost element halo. Non-owned rows are
+    // dropped (matrix wrapper + RHS guard), owned rows completed. (2D: 4 nodes.)
+    template<typename Scalar> void addToMatrixAndRHSGhost(escript::AbstractSystemMatrix* S,
+           escript::Data& F, const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
+           bool addS, bool addF, const index_t* rowIndex, int nEq=1, int nComp=1) const;
+
+    // MPI (A6): exchange one PDE-coefficient Data's per-element samples to the
+    // ghost element halo. Returns a buffer of num_ghosts*sampleSize Scalars
+    // (empty if 'coef' is empty or serial); ghost g's sample is at [g*sampleSize].
+    template<typename Scalar>
+    std::vector<Scalar> exchangeGhostCoeff(const escript::Data& coef) const;
 
     // Updates m_faceOffset for each quadrant
     void updateFaceOffset();

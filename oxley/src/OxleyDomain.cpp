@@ -420,7 +420,6 @@ namespace oxley {
     #endif // ESYS_HAVE_PASO
     }
 
-
     //protected
     template<typename Scalar>
     void OxleyDomain::copyData(escript::Data& out, const escript::Data& in) const
@@ -1245,66 +1244,39 @@ namespace oxley {
 #ifdef ESYS_HAVE_TRILINOS
 //protected
 esys_trilinos::TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
-                                            const IndexVector& YaleRows,
-                                            const IndexVector& YaleColumns) const
+                                            const IndexVector& myRows,
+                                            const IndexVector& myColumns) const
 {
     using namespace esys_trilinos;
 
-    // const dim_t numMatrixRows = getNumDOF();
-    const dim_t numMatrixRows = getNumNodes();
+    // Row map: this rank's OWNED DOFs (global ids). Column map: all local nodes
+    // (owned first, then ghost -- lnodes local order), so a local node id is
+    // directly its column-map local index. Mirrors ripley's construction; in
+    // serial both reduce to the identity [0..numNodes). (MPI: A6.)
+    const dim_t numMatrixRows = getNumDOF();
+    const Tpetra::global_size_t numGlobal = (Tpetra::global_size_t) getNumDataPointsGlobal();
+    auto comm = TeuchosCommFromEsysComm(m_mpiInfo->comm);
 
-    IndexVector rowTemp(numMatrixRows);
-    // if(getMPISize() == 1)
-    // {
-    #pragma omp for
-        for(long i = 0; i < numMatrixRows; i++)
-            rowTemp[i] = i;
-    // }
-    // else
-    // {
-    //     OxleyException("Not yet implemented"); //TODO
-    // }
+    TrilinosMap_ptr rowMap(new MapType(numGlobal, myRows, 0, comm));
+    TrilinosMap_ptr colMap(new MapType(numGlobal, myColumns, 0, comm));
 
-    // rowMap
-    // This is using the constructor on line 868 of file  Tpetra_Map_def.hpp.
-    TrilinosMap_ptr rowMap(new MapType(numMatrixRows, 
-                                                rowTemp, 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
-
-    // colMap
-    TrilinosMap_ptr colMap(new MapType(numMatrixRows, 
-                                                rowTemp, 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
-    
-    // rowPtr
+    // CSR arrays for the owned rows; getConnections(true) gives, per local node,
+    // the coupled local node ids (== column-map local indices).
     const vector<IndexVector>& conns(getConnections(true));
     Teuchos::ArrayRCP<size_t> rowPtr(numMatrixRows+1);
     for (size_t i=0; i < numMatrixRows; i++) {
         rowPtr[i+1] = rowPtr[i] + conns[i].size();
     }
     Teuchos::ArrayRCP<LO> colInd(rowPtr[numMatrixRows]);
-
-    // colInd
 #pragma omp parallel for
     for (index_t i=0; i < numMatrixRows; i++) {
         copy(conns[i].begin(), conns[i].end(), &colInd[rowPtr[i]]);
     }
 
-    #ifdef OXLEY_ENABLE_DEBUG_CREATE_TRILINOS_GRAPH
-        for(int i = 0; i < numMatrixRows; i++)
-            std::cout << "myRows["<<i<<"]: " << rowTemp[i]<<std::endl;
-        for(int i = 0; i < numMatrixRows; i++)
-            std::cout << "colMap["<<i<<"]: " << rowTemp[i]<<std::endl;
-        for(int i = 0; i < numMatrixRows+1; i++)
-            std::cout << "rowPtr["<<i<<"]: " << rowPtr[i]<<std::endl;
-        for(int i = 0; i < rowPtr[numMatrixRows]; i++)
-            std::cout << "colInd["<<i<<"]: " << colInd[i]<<std::endl;
-    #endif
-
-    // params
-    TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd)); //here
+    TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
     Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
-    // params->set("Optimize Storage", true);
-    params->set("Static profile clone", false);
-    graph->fillComplete(rowMap, colMap, params);
+    params->set("Optimize Storage", true);
+    graph->fillComplete(rowMap, rowMap, params);
     return graph;
 }
 #endif
@@ -1488,16 +1460,21 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
             throw ValueError("addToSystem: Oxley does not support contact elements");
 
 #ifdef ESYS_HAVE_TRILINOS
-        // Ensure that rhs has the correct number of data points
-
         resetRhs(rhs);
-        
+
+        // NOTE (MPI/A6): esys-escript's FEM assembly model requires each rank to
+        // own COMPLETE matrix/RHS rows for its owned nodes — CrsMatrixWrapper::add
+        // silently drops contributions to non-owned rows. finley/ripley satisfy
+        // this by distributing an OVERLAPPING element layer so every owned node's
+        // incident elements are all present locally. p4est partitions leaves by
+        // space-filling curve with NO overlap, so owned rows at a rank boundary are
+        // currently incomplete in parallel. Making this correct is the "parallel
+        // node/DOF distribution" REWRITE (assemble the ghost element layer and
+        // extend the lnodes numbering / colMap / graph to cover it). Until then
+        // assembly is serial-correct; multi-rank results are approximate.
         assemblePDE(&mat, rhs, coefs, assembler);
-        
         assemblePDEBoundary(&mat, rhs, coefs, assembler);
-        
         assemblePDEDirac(&mat, rhs, coefs, assembler);
-        
 #else
         OxleyException("Unknown error");
 #endif
