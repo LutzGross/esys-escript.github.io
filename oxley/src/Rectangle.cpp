@@ -538,7 +538,7 @@ void Rectangle::setToNormal(escript::Data& out) const
         {
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k);
                     // set vector at two quadrature points
                     *o++ = -1.;
@@ -550,7 +550,7 @@ void Rectangle::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsRight.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k);
                     // set vector at two quadrature points
                     *o++ = 1.;
@@ -562,7 +562,7 @@ void Rectangle::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k);
                     // set vector at two quadrature points
                     *o++ = 0.;
@@ -574,7 +574,7 @@ void Rectangle::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsTop.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k);
                     // set vector at two quadrature points
                     *o++ = 0.;
@@ -590,7 +590,7 @@ void Rectangle::setToNormal(escript::Data& out) const
         {
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k);
                     *o++ = -1.;
                     *o = 0.;
@@ -599,7 +599,7 @@ void Rectangle::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsRight.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k);
                     *o++ = 1.;
                     *o = 0.;
@@ -608,7 +608,7 @@ void Rectangle::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k);
                     *o++ = 0.;
                     *o = -1.;
@@ -617,7 +617,7 @@ void Rectangle::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsTop.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k);
                     *o++ = 0.;
                     *o = 1.;
@@ -683,7 +683,7 @@ void Rectangle::setToSize(escript::Data& out) const
         const dim_t numQuad=out.getNumDataPointsPerSample();
 
         if (m_faceOffset[0] > -1) {
-            for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                 borderNodeInfo tmp = NodeIDsLeft[k];
 
                 double* o = out.getSampleDataRW(m_faceOffset[0]+k);
@@ -692,7 +692,7 @@ void Rectangle::setToSize(escript::Data& out) const
         }
 
         if (m_faceOffset[1] > -1) {
-            for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsRight.size(); k++) {
                 borderNodeInfo tmp = NodeIDsRight[k];
                 double* o = out.getSampleDataRW(m_faceOffset[1]+k);
                 std::fill(o, o+numQuad, forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level]);
@@ -700,7 +700,7 @@ void Rectangle::setToSize(escript::Data& out) const
         }
 
         if (m_faceOffset[2] > -1) {
-            for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                 borderNodeInfo tmp = NodeIDsBottom[k];
                 double* o = out.getSampleDataRW(m_faceOffset[2]+k);
                 std::fill(o, o+numQuad, forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level]);
@@ -708,7 +708,7 @@ void Rectangle::setToSize(escript::Data& out) const
         }
 
         if (m_faceOffset[3] > -1) {
-            for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsTop.size(); k++) {
                 borderNodeInfo tmp = NodeIDsTop[k];
                 double* o = out.getSampleDataRW(m_faceOffset[3]+k);
                 std::fill(o, o+numQuad, forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level]);
@@ -2353,7 +2353,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 
         if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                 borderNodeInfo tmp = NodeIDsLeft[k];
                 memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -2366,7 +2366,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
         } /* end of face 0 */
         if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsRight.size(); k++) {
                 borderNodeInfo tmp = NodeIDsRight[k];
                 memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
                 memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
@@ -2378,7 +2378,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
         } /* end of face 1 */
         if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                 borderNodeInfo tmp = NodeIDsBottom[k];
                 memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
@@ -2390,7 +2390,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
         } /* end of face 2 */
         if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsTop.size(); k++) {
                 borderNodeInfo tmp = NodeIDsTop[k];
                 memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
                 memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
@@ -2411,7 +2411,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
         std::vector<S> f_11(numComp);
         if (m_faceOffset[0] > -1) {
     #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                 borderNodeInfo tmp = NodeIDsLeft[k];
                 memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -2424,7 +2424,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
         } /* end of face 0 */
         if (m_faceOffset[1] > -1) {
     #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsRight.size(); k++) {
                 borderNodeInfo tmp = NodeIDsRight[k];
                 memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
                 memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
@@ -2437,7 +2437,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
         } /* end of face 1 */
         if (m_faceOffset[2] > -1) {
     #pragma omp for nowait
-             for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+             for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                 borderNodeInfo tmp = NodeIDsBottom[k];
                 memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
@@ -2450,7 +2450,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
         } /* end of face 2 */
         if (m_faceOffset[3] > -1) {
     #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsTop.size(); k++) {
                 borderNodeInfo tmp = NodeIDsTop[k];
                 memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
                 memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
@@ -2733,8 +2733,11 @@ void Rectangle::populateSampleIds()
 
 void Rectangle::updateFaceElementCount()
 {
+    // real face count per side (each face pushed once, deduplicated below). The
+    // old code initialised to -1 to cancel a size()-1 consumer loop / a corner
+    // duplicate; both are gone now, so count from 0. (A6.)
     for(int i = 0; i < 4; i++)
-        m_faceCount[i]=-1;
+        m_faceCount[i]=0;
 
     NodeIDsTop.clear();
     NodeIDsBottom.clear();
@@ -2791,25 +2794,31 @@ void Rectangle::updateFaceElementCount()
                 tmp.level=quad->level;
                 tmp.treeid=treeid;
 
-                if(isLeftBoundaryNode(quad, n, treeid, l))
+                // Push each boundary FACE exactly once, keyed on its canonical
+                // corner (SW=0 for left/bottom, SE=1 for right, NW=2 for top).
+                // Without this, a corner octant lies on two boundaries and its
+                // shared corner would push the same face twice; the old code
+                // masked that with a size()-1 loop which drops a REAL face on any
+                // rank that owns an edge but not its corner (MPI). (A6.)
+                if(n==0 && isLeftBoundaryNode(quad, n, treeid, l))
                 {
                     NodeIDsLeft.push_back(tmp);
                     m_faceCount[0]++;
                 }
 
-                if(isRightBoundaryNode(quad, n, treeid, l))
+                if(n==1 && isRightBoundaryNode(quad, n, treeid, l))
                 {
                     NodeIDsRight.push_back(tmp);
                     m_faceCount[1]++;
                 }
-                    
-                if(isBottomBoundaryNode(quad, n, treeid, l))
+
+                if(n==0 && isBottomBoundaryNode(quad, n, treeid, l))
                 {
                     NodeIDsBottom.push_back(tmp);
                     m_faceCount[2]++;
                 }
-                    
-                if(isTopBoundaryNode(quad, n, treeid, l))
+
+                if(n==2 && isTopBoundaryNode(quad, n, treeid, l))
                 {
                     NodeIDsTop.push_back(tmp);
                     m_faceCount[3]++;
@@ -2834,28 +2843,28 @@ void Rectangle::updateFaceElementCount()
     }
 
     // Remove duplicates
-    // for(int i = 1; i < NodeIDsLeft.size()-1; i++)
+    // for(int i = 1; i < NodeIDsLeft.size(); i++)
     //     if((NodeIDsLeft[i].treeid == NodeIDsLeft[i-1].treeid))
     //     {
     //         NodeIDsLeft.erase(NodeIDsLeft.begin()+i);
     //         i--;
     //         m_faceCount[0]--;
     //     }
-    // for(int i = 1; i < NodeIDsRight.size()-1; i++)
+    // for(int i = 1; i < NodeIDsRight.size(); i++)
     //     if(NodeIDsRight[i].treeid == NodeIDsRight[i-1].treeid)
     //     {
     //         NodeIDsRight.erase(NodeIDsRight.begin()+i);
     //         i--;
     //         m_faceCount[1]--;
     //     }
-    // for(int i = 1; i < NodeIDsBottom.size()-1; i++)
+    // for(int i = 1; i < NodeIDsBottom.size(); i++)
     //     if(NodeIDsBottom[i].treeid == NodeIDsBottom[i-1].treeid)
     //     {
     //         NodeIDsBottom.erase(NodeIDsBottom.begin()+i);
     //         i--;
     //         m_faceCount[2]--;
     //     }
-    // for(int i = 1; i < NodeIDsTop.size()-1; i++)
+    // for(int i = 1; i < NodeIDsTop.size(); i++)
     //     if(NodeIDsTop[i].treeid == NodeIDsTop[i-1].treeid)
     //     {
     //         NodeIDsTop.erase(NodeIDsTop.begin()+i);
@@ -2879,19 +2888,19 @@ void Rectangle::updateFaceElementCount()
 
 #ifdef OXLEY_ENABLE_DEBUG_FACEELEMENTS
     std::cout << "NodeIDsLeft" << std::endl;
-    for(int i = 0; i < NodeIDsLeft.size()-1;i++)
+    for(int i = 0; i < NodeIDsLeft.size();i++)
         std::cout << NodeIDsLeft[i].nodeid << " ";
     std::cout << std::endl;
     std::cout << "NodeIDsRight" << std::endl;
-    for(int i = 0; i < NodeIDsRight.size()-1;i++)
+    for(int i = 0; i < NodeIDsRight.size();i++)
         std::cout << NodeIDsRight[i].nodeid << " ";
     std::cout << std::endl;
     std::cout << "NodeIDsTop" << std::endl;
-    for(int i = 0; i < NodeIDsTop.size()-1;i++)
+    for(int i = 0; i < NodeIDsTop.size();i++)
         std::cout << NodeIDsTop[i].nodeid << " ";
     std::cout << std::endl;
     std::cout << "NodeIDsBottom" << std::endl;
-    for(int i = 0; i < NodeIDsBottom.size()-1;i++)
+    for(int i = 0; i < NodeIDsBottom.size();i++)
         std::cout << NodeIDsBottom[i].nodeid << " ";
     std::cout << std::endl;
     std::cout << "-------------------------------------------------------" << std::endl;
@@ -3274,7 +3283,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 std::vector<Scalar> f_11(numComp, zero);
 
                 if (m_faceOffset[0] > -1) {
-                    for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+                    for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                         borderNodeInfo tmp = NodeIDsLeft[k];
                         long l = tmp.level;
                         memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
@@ -3291,7 +3300,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     }
                 } // end of face 0
                 if (m_faceOffset[1] > -1) {
-                    for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+                    for (index_t k=0; k<NodeIDsRight.size(); k++) {
                         borderNodeInfo tmp = NodeIDsRight[k];
                         long l = tmp.level;
                         memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
@@ -3308,7 +3317,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     }
                 } // end of face 1
                 if (m_faceOffset[2] > -1) {
-                    for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+                    for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                         borderNodeInfo tmp = NodeIDsBottom[k];
                         long l = tmp.level;
                         memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
@@ -3325,7 +3334,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     }
                 } // end of face 2
                 if (m_faceOffset[3] > -1) {
-                    for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+                    for (index_t k=0; k<NodeIDsTop.size(); k++) {
                         borderNodeInfo tmp = NodeIDsTop[k];
                         long l = tmp.level;
                         memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
@@ -3367,7 +3376,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 std::vector<Scalar> f_11(numComp, zero);
 
                 if (m_faceOffset[0] > -1) {
-                    for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+                    for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                         borderNodeInfo tmp = NodeIDsLeft[k];
                         long l = tmp.level;
                         memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
@@ -3382,7 +3391,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     }
                 } // end of face 0
                 if (m_faceOffset[1] > -1) {
-                    for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+                    for (index_t k=0; k<NodeIDsRight.size(); k++) {
                         borderNodeInfo tmp = NodeIDsRight[k];
                         long l = tmp.level;
                         memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
@@ -3397,7 +3406,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     }
                 } // end of face 1
                 if (m_faceOffset[2] > -1) {
-                    for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+                    for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                         borderNodeInfo tmp = NodeIDsBottom[k];
                         long l = tmp.level;
                         memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
@@ -3412,7 +3421,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     }
                 } // end of face 2
                 if (m_faceOffset[3] > -1) {
-                    for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+                    for (index_t k=0; k<NodeIDsTop.size(); k++) {
                         borderNodeInfo tmp = NodeIDsTop[k];
                         long l = tmp.level;
                         memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
@@ -3526,7 +3535,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
             std::vector<Scalar> int_local(numComp, zero);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                     borderNodeInfo tmp = NodeIDsLeft[k];
                     const real_t w1 = forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level]/2.;
                     const Scalar* f = arg.getSampleDataRO(m_faceOffset[0]+k, zero);
@@ -3543,7 +3552,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
 
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsRight.size(); k++) {
                     borderNodeInfo tmp = NodeIDsRight[k];
                     const real_t w1 = forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level]/2.;
                     const Scalar* f = arg.getSampleDataRO(m_faceOffset[1]+k, zero);
@@ -3560,7 +3569,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
 
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                     borderNodeInfo tmp = NodeIDsBottom[k];
                     const real_t w0 = forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level]/2.;
                     const Scalar* f = arg.getSampleDataRO(m_faceOffset[2]+k, zero);
@@ -3577,7 +3586,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
 
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsTop.size(); k++) {
                     borderNodeInfo tmp = NodeIDsTop[k];
                     const real_t w0 = forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level]/2.;
                     const Scalar* f = arg.getSampleDataRO(m_faceOffset[3]+k, zero);
@@ -3599,7 +3608,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
         std::vector<Scalar> int_local(numComp, 0);
         if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                 borderNodeInfo tmp = NodeIDsLeft[k];
                 const Scalar* f = arg.getSampleDataRO(m_faceOffset[0]+k, zero);
                 #ifdef OXLEY_ENABLE_DEBUG_INTEGRATE
@@ -3616,7 +3625,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
 
         if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsRight.size(); k++) {
                 borderNodeInfo tmp = NodeIDsRight[k];
                 const Scalar* f = arg.getSampleDataRO(m_faceOffset[1]+k, zero);
                 #ifdef OXLEY_ENABLE_DEBUG_INTEGRATE
@@ -3633,7 +3642,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
 
         if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                 borderNodeInfo tmp = NodeIDsBottom[k];
                 const Scalar* f = arg.getSampleDataRO(m_faceOffset[2]+k, zero);
                 #ifdef OXLEY_ENABLE_DEBUG_INTEGRATE
@@ -3650,7 +3659,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
 
         if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsTop.size(); k++) {
                 borderNodeInfo tmp = NodeIDsTop[k];
                 const Scalar* f = arg.getSampleDataRO(m_faceOffset[3]+k, zero);
                 #ifdef OXLEY_ENABLE_DEBUG_INTEGRATE

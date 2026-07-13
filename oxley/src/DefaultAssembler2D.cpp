@@ -721,7 +721,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
             EM_F[3] = zero;
         }
 
-        for (index_t k=0; k<domain->NodeIDsLeft.size()-1; k++) {
+        for (index_t k=0; k<domain->NodeIDsLeft.size(); k++) {
             int id = domain->m_faceOffset[0]+k;
             int l = domain->NodeIDsLeft[k].level;
 
@@ -780,7 +780,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
             EM_F[2] = zero;
         }
 
-        for (index_t k=0; k<domain->NodeIDsRight.size()-1; k++) {
+        for (index_t k=0; k<domain->NodeIDsRight.size(); k++) {
             int id = domain->m_faceOffset[1]+k;
             int l = domain->NodeIDsRight[k].level;
 
@@ -839,7 +839,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
             EM_F[3] = zero;
         }
 
-        for (index_t k=0; k<domain->NodeIDsBottom.size()-1; k++) {
+        for (index_t k=0; k<domain->NodeIDsBottom.size(); k++) {
             int id = domain->m_faceOffset[2]+k;
             int l = domain->NodeIDsBottom[k].level;
 
@@ -899,7 +899,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
             EM_F[1] = zero;
         }
 
-        for (index_t k=0; k<domain->NodeIDsTop.size()-1; k++) {
+        for (index_t k=0; k<domain->NodeIDsTop.size(); k++) {
             int id = domain->m_faceOffset[3]+k;
             int l = domain->NodeIDsTop[k].level;
 
@@ -1229,7 +1229,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
             EM_F[3] = zero;
         }
 
-        for (index_t k=0; k<domain->NodeIDsLeft.size()-1; k++) {
+        for (index_t k=0; k<domain->NodeIDsLeft.size(); k++) {
             int id = k;
             int l = domain->NodeIDsLeft[k].level;
 
@@ -1265,7 +1265,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
             EM_F[2] = zero;
         }
 
-        for (index_t k=0; k<domain->NodeIDsRight.size()-1; k++) {
+        for (index_t k=0; k<domain->NodeIDsRight.size(); k++) {
             int id = domain->m_faceOffset[1]+k;
             int l = domain->NodeIDsRight[k].level;
 
@@ -1301,7 +1301,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
             EM_F[3] = zero;
         }
 
-        for (index_t k=0; k<domain->NodeIDsBottom.size()-1; k++) {
+        for (index_t k=0; k<domain->NodeIDsBottom.size(); k++) {
             int id = domain->m_faceOffset[2]+k;
             int l = domain->NodeIDsBottom[k].level;
 
@@ -1337,7 +1337,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
             EM_F[1] = zero;
         }
         
-        for (index_t k=0; k<domain->NodeIDsTop.size()-1; k++) {
+        for (index_t k=0; k<domain->NodeIDsTop.size(); k++) {
             int id = domain->m_faceOffset[3]+k;
             int l = domain->NodeIDsTop[k].level;
 
@@ -1995,7 +1995,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
         if (addEM_F)
             fill(EM_F.begin(), EM_F.end(), zero);
 
-        for (index_t k=0; k<domain->NodeIDsLeft.size()-1; k++) {
+        for (index_t k=0; k<domain->NodeIDsLeft.size(); k++) {
             int id = k;
             int l = domain->NodeIDsLeft[k].level;
 
@@ -2059,7 +2059,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
         if (addEM_F)
             fill(EM_F.begin(), EM_F.end(), zero);
 
-        for (index_t k=0; k<domain->NodeIDsRight.size()-1; k++) {
+        for (index_t k=0; k<domain->NodeIDsRight.size(); k++) {
             int id = domain->m_faceOffset[1]+k;
             int l = domain->NodeIDsRight[k].level;
 
@@ -2124,7 +2124,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
         if (addEM_F)
             fill(EM_F.begin(), EM_F.end(), zero);
 
-        for (index_t k=0; k<domain->NodeIDsBottom.size()-1; k++) {
+        for (index_t k=0; k<domain->NodeIDsBottom.size(); k++) {
             int id = domain->m_faceOffset[2]+k;
             int l = domain->NodeIDsBottom[k].level;
 
@@ -2189,7 +2189,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
         if (addEM_F)
             fill(EM_F.begin(), EM_F.end(), zero);
 
-        for (index_t k=0; k<domain->NodeIDsTop.size()-1; k++) {
+        for (index_t k=0; k<domain->NodeIDsTop.size(); k++) {
             int id = domain->m_faceOffset[3]+k;
             int l = domain->NodeIDsTop[k].level;
 
@@ -2557,7 +2557,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
         if (addEM_F)
             fill(EM_F.begin(), EM_F.end(), zero);
 
-        for (index_t k=0; k<domain->NodeIDsLeft.size()-1; k++) {
+        for (index_t k=0; k<domain->NodeIDsLeft.size(); k++) {
             int id = k;
             int l = domain->NodeIDsLeft[k].level;
 
@@ -2598,7 +2598,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
         if (addEM_F)
             fill(EM_F.begin(), EM_F.end(), zero);
 
-        for (index_t k=0; k<domain->NodeIDsRight.size()-1; k++) {
+        for (index_t k=0; k<domain->NodeIDsRight.size(); k++) {
             int id = domain->m_faceOffset[1]+k;
             int l = domain->NodeIDsRight[k].level;
 
@@ -2639,7 +2639,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
         if (addEM_F)
             fill(EM_F.begin(), EM_F.end(), zero);
 
-        for (index_t k=0; k<domain->NodeIDsBottom.size()-1; k++) {
+        for (index_t k=0; k<domain->NodeIDsBottom.size(); k++) {
             int id = domain->m_faceOffset[2]+k;
             int l = domain->NodeIDsBottom[k].level;
 
@@ -2680,7 +2680,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
         if (addEM_F)
             fill(EM_F.begin(), EM_F.end(), zero);
 
-        for (index_t k=0; k<domain->NodeIDsTop.size()-1; k++) {
+        for (index_t k=0; k<domain->NodeIDsTop.size(); k++) {
             int id = domain->m_faceOffset[3]+k;
             int l = domain->NodeIDsTop[k].level;
 
