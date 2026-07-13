@@ -4102,6 +4102,13 @@ dim_t Rectangle::findNode(const double *coords) const
 {
     // Search the lnodes node coordinates for the closest node (used for Dirac
     // points). Replaces the coordinate-hash lookup.
+    // reject points outside the domain bounding box (out-of-range Dirac points)
+    const double x0=forestData.m_origin[0], y0=forestData.m_origin[1];
+    const double x1=forestData.m_lxy[0],    y1=forestData.m_lxy[1];
+    double ext = x1-x0; if(y1-y0>ext) ext=y1-y0;
+    const double tol = 1e-8*ext;
+    if(coords[0]<x0-tol || coords[0]>x1+tol || coords[1]<y0-tol || coords[1]>y1+tol)
+        return -1;
     const MeshAccess m = getMeshAccess();
     long closest = 0;
     double best = std::numeric_limits<double>::max();

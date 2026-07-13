@@ -887,15 +887,16 @@ const dim_t* Brick::borrowSampleReferenceIDs(int fsType) const
             return &m_nodeId[0];
         case DegreesOfFreedom:
         case ReducedDegreesOfFreedom: //FIXME: reduced
-            throw OxleyException("Unknown Error.");
+            // conforming serial: DOF id == node id
+            return &m_nodeId[0];
         case Elements:
         case ReducedElements:
-            throw OxleyException("borrowSampleReferenceIDs: Elements");
+            return &m_elementId[0];
         case FaceElements:
         case ReducedFaceElements:
-            throw OxleyException("borrowSampleReferenceIDs: FaceIDS");
+            return &m_faceId[0];
         case Points:
-            throw OxleyException("borrowSampleReferenceIDs: Points");
+            return &m_diracPointNodeIDs[0];
         default:
             std::stringstream msg;
             msg << "borrowSampleReferenceIDs: invalid function space type "<<fsType;
@@ -4675,6 +4676,9 @@ void Brick::updateFaceElementCount()
             m_faceTags.insert(m_faceTags.end(), m_faceCount[i], faceTag[i]);
         }
     }
+    const dim_t NFE = getNumFaceElements();
+    m_faceId.resize(NFE);
+    for(dim_t k = 0; k < NFE; ++k) m_faceId[k] = k;
     oxleytimer.toc("updateFaceElementCount... done");
 }
 
@@ -4954,6 +4958,14 @@ dim_t Brick::findNode(const double *coords) const
 {
     // Search the lnodes node coordinates for the closest node (used for Dirac
     // points). Replaces the coordinate-hash lookup.
+    // reject points outside the domain bounding box (out-of-range Dirac points)
+    const double x0=forestData->m_origin[0], y0=forestData->m_origin[1], z0=forestData->m_origin[2];
+    const double x1=forestData->m_lxyz[0],   y1=forestData->m_lxyz[1],   z1=forestData->m_lxyz[2];
+    double ext = x1-x0; if(y1-y0>ext) ext=y1-y0; if(z1-z0>ext) ext=z1-z0;
+    const double tol = 1e-8*ext;
+    if(coords[0]<x0-tol || coords[0]>x1+tol || coords[1]<y0-tol || coords[1]>y1+tol
+       || coords[2]<z0-tol || coords[2]>z1+tol)
+        return -1;
     const MeshAccess m = getMeshAccess();
     long closest = 0;
     double best = std::numeric_limits<double>::max();
@@ -4971,7 +4983,16 @@ dim_t Brick::findNode(const double *coords) const
 // adds the dirac points and tags 
 void Brick::addPoints(const std::vector<double>& coords, const std::vector<int>& tags)
 {
-    
+    for (int i = 0; i < tags.size(); i++) {
+        dim_t node = findNode(&coords[i * m_numDim]);
+        if (node >= 0) {
+            m_diracPointNodeIDs.push_back(borrowSampleReferenceIDs(Nodes)[node]);
+            DiracPoint dp;
+            dp.node = node; //local
+            dp.tag = tags[i];
+            m_diracPoints.push_back(dp);
+        }
+    }
 }
 
 static inline void

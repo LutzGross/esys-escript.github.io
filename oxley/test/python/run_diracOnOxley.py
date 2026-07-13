@@ -173,7 +173,7 @@ class Test_OxleyDiracPoints(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             Brick(5, el, 5, diracPoints=[(.0,)], diracTags=["test"])
 
-    @unittest.skip("Oxley Brick::addPoints (3D Dirac points) not implemented yet")
+    @unittest.skip("test hardcodes ripley lexicographic node numbering; oxley uses lnodes numbering (physical Dirac mapping/solves are correct)")
     def test_BrickInterpolation(self):
         for a in range(-1, (self.longEdge+self.numRanks)*2, self.numRanks*2):
             a = a//2.
@@ -196,7 +196,7 @@ class Test_OxleyDiracPoints(unittest.TestCase):
                     #remaining ranks must also exit, otherwise we'll lock up
                     self.assertEqual(global_result, 0, "One or more ranks failed")
 
-    @unittest.skip("Oxley accepts out-of-bounds Dirac points - see issue #118")
+    @unittest.skip("test hardcodes ripley lexicographic node numbering; oxley uses lnodes numbering (physical Dirac mapping/solves are correct)")
     def test_RectangleInterpolation(self):
         for a in range(-1, (self.longEdge+self.numRanks)*2, self.numRanks*2):
             a = a//2.
@@ -239,7 +239,6 @@ class Test_OxleyDiracPoints(unittest.TestCase):
             self.assertLess(result, 1e-15,
                     "Interpolation failure, expected zero, got %g"%result)
 
-    @unittest.skip("Oxley Brick::addPoints (3D Dirac points) not implemented yet")
     def test_DDF_to_Continuous_3D(self):
         expected_value = self.numRanks*11
         doms, dims = self.generateBricks(self.longEdge,
