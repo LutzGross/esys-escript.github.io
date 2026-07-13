@@ -459,12 +459,12 @@ void DefaultAssembler3D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
         const std::vector<Scalar> gD = domain->exchangeGhostCoeff<Scalar>(D);
         const std::vector<Scalar> gX = domain->exchangeGhostCoeff<Scalar>(X);
         const std::vector<Scalar> gY = domain->exchangeGhostCoeff<Scalar>(Y);
-        const size_t szA = A.isEmpty()?0:(size_t)A.getNumDataPointsPerSample()*A.getDataPointSize();
-        const size_t szB = B.isEmpty()?0:(size_t)B.getNumDataPointsPerSample()*B.getDataPointSize();
-        const size_t szC = C.isEmpty()?0:(size_t)C.getNumDataPointsPerSample()*C.getDataPointSize();
-        const size_t szD = D.isEmpty()?0:(size_t)D.getNumDataPointsPerSample()*D.getDataPointSize();
-        const size_t szX = X.isEmpty()?0:(size_t)X.getNumDataPointsPerSample()*X.getDataPointSize();
-        const size_t szY = Y.isEmpty()?0:(size_t)Y.getNumDataPointsPerSample()*Y.getDataPointSize();
+        const size_t szA = A.isEmpty()?0:(A.actsExpanded()?(size_t)A.getNumDataPointsPerSample():1)*A.getDataPointSize();
+        const size_t szB = B.isEmpty()?0:(B.actsExpanded()?(size_t)B.getNumDataPointsPerSample():1)*B.getDataPointSize();
+        const size_t szC = C.isEmpty()?0:(C.actsExpanded()?(size_t)C.getNumDataPointsPerSample():1)*C.getDataPointSize();
+        const size_t szD = D.isEmpty()?0:(D.actsExpanded()?(size_t)D.getNumDataPointsPerSample():1)*D.getDataPointSize();
+        const size_t szX = X.isEmpty()?0:(X.actsExpanded()?(size_t)X.getNumDataPointsPerSample():1)*X.getDataPointSize();
+        const size_t szY = Y.isEmpty()?0:(Y.actsExpanded()?(size_t)Y.getNumDataPointsPerSample():1)*Y.getDataPointSize();
         for (long g = 0; g < nGhost; ++g)
         {
             if(addEM_S) std::fill(EM_S.begin(), EM_S.end(), zero);
@@ -674,12 +674,12 @@ void DefaultAssembler3D<Scalar>::assemblePDESystemReduced(
         const std::vector<Scalar> gD = domain->exchangeGhostCoeff<Scalar>(D);
         const std::vector<Scalar> gX = domain->exchangeGhostCoeff<Scalar>(X);
         const std::vector<Scalar> gY = domain->exchangeGhostCoeff<Scalar>(Y);
-        const size_t szA = A.isEmpty()?0:(size_t)A.getNumDataPointsPerSample()*A.getDataPointSize();
-        const size_t szB = B.isEmpty()?0:(size_t)B.getNumDataPointsPerSample()*B.getDataPointSize();
-        const size_t szC = C.isEmpty()?0:(size_t)C.getNumDataPointsPerSample()*C.getDataPointSize();
-        const size_t szD = D.isEmpty()?0:(size_t)D.getNumDataPointsPerSample()*D.getDataPointSize();
-        const size_t szX = X.isEmpty()?0:(size_t)X.getNumDataPointsPerSample()*X.getDataPointSize();
-        const size_t szY = Y.isEmpty()?0:(size_t)Y.getNumDataPointsPerSample()*Y.getDataPointSize();
+        const size_t szA = A.isEmpty()?0:(A.actsExpanded()?(size_t)A.getNumDataPointsPerSample():1)*A.getDataPointSize();
+        const size_t szB = B.isEmpty()?0:(B.actsExpanded()?(size_t)B.getNumDataPointsPerSample():1)*B.getDataPointSize();
+        const size_t szC = C.isEmpty()?0:(C.actsExpanded()?(size_t)C.getNumDataPointsPerSample():1)*C.getDataPointSize();
+        const size_t szD = D.isEmpty()?0:(D.actsExpanded()?(size_t)D.getNumDataPointsPerSample():1)*D.getDataPointSize();
+        const size_t szX = X.isEmpty()?0:(X.actsExpanded()?(size_t)X.getNumDataPointsPerSample():1)*X.getDataPointSize();
+        const size_t szY = Y.isEmpty()?0:(Y.actsExpanded()?(size_t)Y.getNumDataPointsPerSample():1)*Y.getDataPointSize();
         for (long g = 0; g < nGhost; ++g)
         {
             if(addEM_S) std::fill(EM_S.begin(), EM_S.end(), zero);

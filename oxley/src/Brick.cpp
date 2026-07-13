@@ -4149,7 +4149,10 @@ std::vector<Scalar> Brick::exchangeGhostCoeff(const escript::Data& coef) const
         return out;
     const long nGhost  = (long) ghost->ghosts.elem_count;
     const long nMirror = (long) ghost->mirrors.elem_count;
-    const size_t sampleSize = (size_t) coef.getNumDataPointsPerSample()
+    // In-memory bytes per getSampleDataRO() sample: an expanded Data stores one
+    // value per quadrature point, a constant/tagged Data only a single point.
+    const size_t sampleSize = (coef.actsExpanded()
+                                ? (size_t) coef.getNumDataPointsPerSample() : 1)
                             * (size_t) coef.getDataPointSize();
     if (nGhost == 0 || sampleSize == 0)
         return out;
