@@ -50,6 +50,10 @@ except KeyError:
      OXLEY_TEST_DATA='.'
 
 NE=8 # initial number of elements in each spatial direction (must be even)
+# Build with refine_level>0 so CI exercises the multi-leaf-per-tree path:
+# NB blocks each subdivided RL times gives NB*2**RL == NE elements per axis.
+RL=1
+NB=NE//2
 mpiSize=getMPISizeWorld()
 
 # Domain decomposition across ranks is handled internally by p4est, so the
@@ -58,7 +62,7 @@ class Test_LinearPDEOnOxleyRectangle(Test_LinearPDE, Test_LameEquation, Test_Hel
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
     def setUp(self):
-        self.domain=Rectangle(n0=NE, n1=NE, l0=1., l1=1.)
+        self.domain=Rectangle(n0=NB, n1=NB, l0=1., l1=1., refine_level=RL)
         self.order = 1
     def tearDown(self):
         del self.domain
@@ -67,7 +71,7 @@ class Test_LinearPDEOnOxleyBrick(Test_LinearPDE, Test_LameEquation, Test_Helmhol
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
     def setUp(self):
-        self.domain = Brick(n0=NE, n1=NE, n2=NE, l0=1., l1=1., l2=1.)
+        self.domain = Brick(n0=NB, n1=NB, n2=NB, l0=1., l1=1., l2=1., refine_level=RL)
         self.order = 1
     def tearDown(self):
         del self.domain
@@ -76,7 +80,7 @@ class Test_PoissonOnOxleyRectangle(Test_Poisson):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
     def setUp(self):
-        self.domain=Rectangle(n0=NE, n1=NE, l0=1., l1=1.)
+        self.domain=Rectangle(n0=NB, n1=NB, l0=1., l1=1., refine_level=RL)
     def tearDown(self):
         del self.domain
 
@@ -84,7 +88,7 @@ class Test_PoissonOnOxleyBrick(Test_Poisson):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
     def setUp(self):
-        self.domain=Brick(n0=NE, n1=NE, n2=NE, l0=1., l1=1., l2=1.)
+        self.domain=Brick(n0=NB, n1=NB, n2=NB, l0=1., l1=1., l2=1., refine_level=RL)
     def tearDown(self):
         del self.domain
 
