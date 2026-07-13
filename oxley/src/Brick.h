@@ -458,8 +458,15 @@ private:
     /// the index of that face (where i: 0=left, 1=right, 2=bottom, 3=top)
     IndexVector m_faceOffset;
 
-    // 
+    //
     IndexVector m_nodeId;
+
+    // --- MPI overlap (A6): ghost (halo) element corner node ids in the EXTENDED
+    // local column numbering (owned + ghost lnodes nodes, then 2nd-layer ghost
+    // nodes seen only on ghost elements, appended to myColumns). Uses the p8est
+    // FULL ghost layer already kept alive in `ghost`. (8 corners per octant.)
+    IndexVector m_ghostElemNodes;
+    void buildParallelOverlap();
 
     // tolerance used when comparing doubletuples
     double tuple_tolerance=0.0;
@@ -711,6 +718,15 @@ protected:
     template<typename Scalar> void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
            bool addS, bool addF, index_t e, index_t t, int nEq=1, int nComp=1) const;
+    // MPI (A6): scatter an element matrix/RHS from explicit (extended-local)
+    // corner node ids for a ghost (halo) octant. Non-owned rows dropped. (8 nodes.)
+    template<typename Scalar> void addToMatrixAndRHSGhost(escript::AbstractSystemMatrix* S,
+           escript::Data& F, const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
+           bool addS, bool addF, const index_t* rowIndex, int nEq=1, int nComp=1) const;
+    // MPI (A6): exchange one coefficient Data's per-element samples to the ghost
+    // halo; returns num_ghosts*sampleSize Scalars (empty if coef empty or serial).
+    template<typename Scalar>
+    std::vector<Scalar> exchangeGhostCoeff(const escript::Data& coef) const;
 
     // Updates m_faceOffset for each quadrant
     void updateFaceOffset();

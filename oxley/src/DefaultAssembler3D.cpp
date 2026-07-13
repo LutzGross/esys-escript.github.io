@@ -354,31 +354,15 @@ void DefaultAssembler3D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
 
     std::vector<Scalar> EM_S(8*8*numEq*numComp, zero), EM_F(8*numEq, zero);
 
-    long idbase = 0; // running local leaf index
-    for (p8est_topidx_t t = domain->p8est->first_local_tree; t <= domain->p8est->last_local_tree; t++)
+    // Per-element kernel: computes the element matrix/RHS into EM_S/EM_F from
+    // the coefficient sample pointers (null == empty) and the element level.
+    // Runs for owned elements and the ghost (halo) octant layer. (MPI: A6.)
+    auto processElement = [&](int l, const Scalar* A_p, const Scalar* B_p, const Scalar* C_p, const Scalar* D_p, const Scalar* X_p, const Scalar* Y_p)
     {
-        p8est_tree_t * currenttree = p8est_tree_array_index(domain->p8est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-        for (int q = 0; q < Q; ++q, ++idbase)
-        {
-            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-            const int l = quad->level;
             const double hh = (double)(1 << l);
             const double h[3] = { domain->m_NX[0]/hh, domain->m_NX[1]/hh, domain->m_NX[2]/hh };
             const double V = h[0]*h[1]*h[2];
-            const double w = V/8.0;                 // Gauss weight
-            const long id = idbase;                 // element coefficient sample
-
-            if(addEM_S) std::fill(EM_S.begin(), EM_S.end(), zero);
-            if(addEM_F) std::fill(EM_F.begin(), EM_F.end(), zero);
-
-            const Scalar* A_p = A.isEmpty()? nullptr : A.getSampleDataRO(id, zero);
-            const Scalar* B_p = B.isEmpty()? nullptr : B.getSampleDataRO(id, zero);
-            const Scalar* C_p = C.isEmpty()? nullptr : C.getSampleDataRO(id, zero);
-            const Scalar* D_p = D.isEmpty()? nullptr : D.getSampleDataRO(id, zero);
-            const Scalar* X_p = X.isEmpty()? nullptr : X.getSampleDataRO(id, zero);
-            const Scalar* Y_p = Y.isEmpty()? nullptr : Y.getSampleDataRO(id, zero);
+            const double w = V/8.0;
 
             // physical gradients per (a,g)
             for(int g=0; g<8; ++g) {
@@ -437,7 +421,64 @@ void DefaultAssembler3D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
                     }
                 }
             }
+    };
+
+    // --- owned elements ---
+    long idbase = 0;
+    for (p8est_topidx_t t = domain->p8est->first_local_tree; t <= domain->p8est->last_local_tree; t++)
+    {
+        p8est_tree_t * currenttree = p8est_tree_array_index(domain->p8est->trees, t);
+        sc_array_t * tquadrants = &currenttree->quadrants;
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+        for (int q = 0; q < Q; ++q, ++idbase)
+        {
+            if(addEM_S) std::fill(EM_S.begin(), EM_S.end(), zero);
+            if(addEM_F) std::fill(EM_F.begin(), EM_F.end(), zero);
+            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+            const int l = quad->level;
+            const long id = idbase;
+            const Scalar* A_p = A.isEmpty()? nullptr : A.getSampleDataRO(id, zero);
+            const Scalar* B_p = B.isEmpty()? nullptr : B.getSampleDataRO(id, zero);
+            const Scalar* C_p = C.isEmpty()? nullptr : C.getSampleDataRO(id, zero);
+            const Scalar* D_p = D.isEmpty()? nullptr : D.getSampleDataRO(id, zero);
+            const Scalar* X_p = X.isEmpty()? nullptr : X.getSampleDataRO(id, zero);
+            const Scalar* Y_p = Y.isEmpty()? nullptr : Y.getSampleDataRO(id, zero);
+            processElement(l, A_p, B_p, C_p, D_p, X_p, Y_p);
             domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t, numEq, numComp);
+        }
+    }
+
+    // --- ghost octant halo (MPI: A6) ---
+    if (domain->ghost && !domain->m_ghostElemNodes.empty())
+    {
+        const int VN = domain->nodes->vnodes;
+        const long nGhost = (long) domain->ghost->ghosts.elem_count;
+        const std::vector<Scalar> gA = domain->exchangeGhostCoeff<Scalar>(A);
+        const std::vector<Scalar> gB = domain->exchangeGhostCoeff<Scalar>(B);
+        const std::vector<Scalar> gC = domain->exchangeGhostCoeff<Scalar>(C);
+        const std::vector<Scalar> gD = domain->exchangeGhostCoeff<Scalar>(D);
+        const std::vector<Scalar> gX = domain->exchangeGhostCoeff<Scalar>(X);
+        const std::vector<Scalar> gY = domain->exchangeGhostCoeff<Scalar>(Y);
+        const size_t szA = A.isEmpty()?0:(size_t)A.getNumDataPointsPerSample()*A.getDataPointSize();
+        const size_t szB = B.isEmpty()?0:(size_t)B.getNumDataPointsPerSample()*B.getDataPointSize();
+        const size_t szC = C.isEmpty()?0:(size_t)C.getNumDataPointsPerSample()*C.getDataPointSize();
+        const size_t szD = D.isEmpty()?0:(size_t)D.getNumDataPointsPerSample()*D.getDataPointSize();
+        const size_t szX = X.isEmpty()?0:(size_t)X.getNumDataPointsPerSample()*X.getDataPointSize();
+        const size_t szY = Y.isEmpty()?0:(size_t)Y.getNumDataPointsPerSample()*Y.getDataPointSize();
+        for (long g = 0; g < nGhost; ++g)
+        {
+            if(addEM_S) std::fill(EM_S.begin(), EM_S.end(), zero);
+            if(addEM_F) std::fill(EM_F.begin(), EM_F.end(), zero);
+            p8est_quadrant_t* gq = p8est_quadrant_array_index(&domain->ghost->ghosts, g);
+            const int l = gq->level;
+            const Scalar* A_p = gA.empty()?nullptr:&gA[(size_t)g*szA];
+            const Scalar* B_p = gB.empty()?nullptr:&gB[(size_t)g*szB];
+            const Scalar* C_p = gC.empty()?nullptr:&gC[(size_t)g*szC];
+            const Scalar* D_p = gD.empty()?nullptr:&gD[(size_t)g*szD];
+            const Scalar* X_p = gX.empty()?nullptr:&gX[(size_t)g*szX];
+            const Scalar* Y_p = gY.empty()?nullptr:&gY[(size_t)g*szY];
+            processElement(l, A_p, B_p, C_p, D_p, X_p, Y_p);
+            domain->addToMatrixAndRHSGhost(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, &domain->m_ghostElemNodes[(size_t)g*VN], numEq, numComp);
         }
     }
 }
@@ -561,29 +602,14 @@ void DefaultAssembler3D<Scalar>::assemblePDESystemReduced(
 
     std::vector<Scalar> EM_S(8*8*numEq*numComp, zero), EM_F(8*numEq, zero);
 
-    long idbase = 0;
-    for (p8est_topidx_t t = domain->p8est->first_local_tree; t <= domain->p8est->last_local_tree; t++)
+    // Per-element kernel: computes the element matrix/RHS into EM_S/EM_F from
+    // the coefficient sample pointers (null == empty) and the element level.
+    // Runs for owned elements and the ghost (halo) octant layer. (MPI: A6.)
+    auto processElement = [&](int l, const Scalar* A_p, const Scalar* B_p, const Scalar* C_p, const Scalar* D_p, const Scalar* X_p, const Scalar* Y_p)
     {
-        p8est_tree_t * currenttree = p8est_tree_array_index(domain->p8est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-        for (int q = 0; q < Q; ++q, ++idbase)
-        {
-            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-            const double hh = (double)(1 << quad->level);
+            const double hh = (double)(1 << l);
             const double h[3] = { domain->m_NX[0]/hh, domain->m_NX[1]/hh, domain->m_NX[2]/hh };
             const double V = h[0]*h[1]*h[2];
-            const long id = idbase;
-
-            if(addEM_S) std::fill(EM_S.begin(), EM_S.end(), zero);
-            if(addEM_F) std::fill(EM_F.begin(), EM_F.end(), zero);
-
-            const Scalar* A_p = A.isEmpty()? nullptr : A.getSampleDataRO(id, zero);
-            const Scalar* B_p = B.isEmpty()? nullptr : B.getSampleDataRO(id, zero);
-            const Scalar* C_p = C.isEmpty()? nullptr : C.getSampleDataRO(id, zero);
-            const Scalar* D_p = D.isEmpty()? nullptr : D.getSampleDataRO(id, zero);
-            const Scalar* X_p = X.isEmpty()? nullptr : X.getSampleDataRO(id, zero);
-            const Scalar* Y_p = Y.isEmpty()? nullptr : Y.getSampleDataRO(id, zero);
 
             double gr[8][3];
             for(int a=0;a<8;++a) for(int dd=0;dd<3;++dd) gr[a][dd]=gsign[a][dd]/h[dd];
@@ -610,7 +636,64 @@ void DefaultAssembler3D<Scalar>::assemblePDESystemReduced(
                     EM_F[INDEX2(k,a,numEq)] = V*v;
                 }
             }
+    };
+
+    // --- owned elements ---
+    long idbase = 0;
+    for (p8est_topidx_t t = domain->p8est->first_local_tree; t <= domain->p8est->last_local_tree; t++)
+    {
+        p8est_tree_t * currenttree = p8est_tree_array_index(domain->p8est->trees, t);
+        sc_array_t * tquadrants = &currenttree->quadrants;
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+        for (int q = 0; q < Q; ++q, ++idbase)
+        {
+            if(addEM_S) std::fill(EM_S.begin(), EM_S.end(), zero);
+            if(addEM_F) std::fill(EM_F.begin(), EM_F.end(), zero);
+            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+            const int l = quad->level;
+            const long id = idbase;
+            const Scalar* A_p = A.isEmpty()? nullptr : A.getSampleDataRO(id, zero);
+            const Scalar* B_p = B.isEmpty()? nullptr : B.getSampleDataRO(id, zero);
+            const Scalar* C_p = C.isEmpty()? nullptr : C.getSampleDataRO(id, zero);
+            const Scalar* D_p = D.isEmpty()? nullptr : D.getSampleDataRO(id, zero);
+            const Scalar* X_p = X.isEmpty()? nullptr : X.getSampleDataRO(id, zero);
+            const Scalar* Y_p = Y.isEmpty()? nullptr : Y.getSampleDataRO(id, zero);
+            processElement(l, A_p, B_p, C_p, D_p, X_p, Y_p);
             domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t, numEq, numComp);
+        }
+    }
+
+    // --- ghost octant halo (MPI: A6) ---
+    if (domain->ghost && !domain->m_ghostElemNodes.empty())
+    {
+        const int VN = domain->nodes->vnodes;
+        const long nGhost = (long) domain->ghost->ghosts.elem_count;
+        const std::vector<Scalar> gA = domain->exchangeGhostCoeff<Scalar>(A);
+        const std::vector<Scalar> gB = domain->exchangeGhostCoeff<Scalar>(B);
+        const std::vector<Scalar> gC = domain->exchangeGhostCoeff<Scalar>(C);
+        const std::vector<Scalar> gD = domain->exchangeGhostCoeff<Scalar>(D);
+        const std::vector<Scalar> gX = domain->exchangeGhostCoeff<Scalar>(X);
+        const std::vector<Scalar> gY = domain->exchangeGhostCoeff<Scalar>(Y);
+        const size_t szA = A.isEmpty()?0:(size_t)A.getNumDataPointsPerSample()*A.getDataPointSize();
+        const size_t szB = B.isEmpty()?0:(size_t)B.getNumDataPointsPerSample()*B.getDataPointSize();
+        const size_t szC = C.isEmpty()?0:(size_t)C.getNumDataPointsPerSample()*C.getDataPointSize();
+        const size_t szD = D.isEmpty()?0:(size_t)D.getNumDataPointsPerSample()*D.getDataPointSize();
+        const size_t szX = X.isEmpty()?0:(size_t)X.getNumDataPointsPerSample()*X.getDataPointSize();
+        const size_t szY = Y.isEmpty()?0:(size_t)Y.getNumDataPointsPerSample()*Y.getDataPointSize();
+        for (long g = 0; g < nGhost; ++g)
+        {
+            if(addEM_S) std::fill(EM_S.begin(), EM_S.end(), zero);
+            if(addEM_F) std::fill(EM_F.begin(), EM_F.end(), zero);
+            p8est_quadrant_t* gq = p8est_quadrant_array_index(&domain->ghost->ghosts, g);
+            const int l = gq->level;
+            const Scalar* A_p = gA.empty()?nullptr:&gA[(size_t)g*szA];
+            const Scalar* B_p = gB.empty()?nullptr:&gB[(size_t)g*szB];
+            const Scalar* C_p = gC.empty()?nullptr:&gC[(size_t)g*szC];
+            const Scalar* D_p = gD.empty()?nullptr:&gD[(size_t)g*szD];
+            const Scalar* X_p = gX.empty()?nullptr:&gX[(size_t)g*szX];
+            const Scalar* Y_p = gY.empty()?nullptr:&gY[(size_t)g*szY];
+            processElement(l, A_p, B_p, C_p, D_p, X_p, Y_p);
+            domain->addToMatrixAndRHSGhost(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, &domain->m_ghostElemNodes[(size_t)g*VN], numEq, numComp);
         }
     }
 }

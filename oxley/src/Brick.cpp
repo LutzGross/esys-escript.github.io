@@ -1660,7 +1660,68 @@ void Brick::renumberNodes()
     myColumns.assign(m_nodeId.begin(), m_nodeId.end());
     myRows.assign(m_nodeId.begin(), m_nodeId.begin() + nOwned);
 
+    // MPI: build the ghost octant halo and extend myColumns with any 2nd-layer
+    // ghost nodes (nodes that appear only on ghost octants). (A6.)
+    buildParallelOverlap();
+
     oxleytimer.toc("renumberNodes...Done");
+}
+
+//protected
+void Brick::buildParallelOverlap()
+{
+    m_ghostElemNodes.clear();
+    if (m_mpiInfo->size <= 1 || !ghost)
+        return;
+
+    const int V = nodes->vnodes;                       // 8 corners (degree-1)
+    const long nLocal = (long) nodes->num_local_nodes;
+    const long nLocalElem = (long) nodes->num_local_elements;
+
+    std::unordered_map<long,long> g2l;
+    g2l.reserve((size_t) nLocal * 2);
+    for (long i = 0; i < nLocal; ++i)
+        g2l[(long) m_nodeId[i]] = i;
+
+    const long nGhost  = (long) ghost->ghosts.elem_count;
+    const long nMirror = (long) ghost->mirrors.elem_count;
+
+    // Each local octant's V corner GLOBAL node ids (mirror send source).
+    std::vector<p4est_gloidx_t> localElemGN((size_t) nLocalElem * V);
+    for (long e = 0; e < nLocalElem; ++e)
+        for (int c = 0; c < V; ++c)
+            localElemGN[(size_t) e*V + c] =
+                (p4est_gloidx_t) m_nodeId[ nodes->element_nodes[(size_t) e*V + c] ];
+
+    std::vector<void*> mirror_data((size_t) nMirror, nullptr);
+    for (long m = 0; m < nMirror; ++m) {
+        p8est_quadrant_t* mq = p8est_quadrant_array_index(&ghost->mirrors, m);
+        const long le = (long) mq->p.piggy3.local_num;
+        mirror_data[m] = (void*) &localElemGN[(size_t) le*V];
+    }
+
+    std::vector<p4est_gloidx_t> ghostElemGN((size_t) nGhost * V);
+    p8est_ghost_exchange_custom(p8est, ghost,
+                                (size_t) V * sizeof(p4est_gloidx_t),
+                                mirror_data.data(), ghostElemGN.data());
+
+    m_ghostElemNodes.resize((size_t) nGhost * V);
+    long nextLocal = nLocal;
+    for (long g = 0; g < nGhost; ++g) {
+        for (int c = 0; c < V; ++c) {
+            const long gid = (long) ghostElemGN[(size_t) g*V + c];
+            auto it = g2l.find(gid);
+            long lidx;
+            if (it != g2l.end()) {
+                lidx = it->second;
+            } else {
+                lidx = nextLocal++;
+                g2l[gid] = lidx;
+                myColumns.push_back((index_t) gid);
+            }
+            m_ghostElemNodes[(size_t) g*V + c] = (index_t) lidx;
+        }
+    }
 }
 
 
@@ -4041,8 +4102,72 @@ void Brick::addToMatrixAndRHS<real_t>(escript::AbstractSystemMatrix* S, escript:
 
 template
 void Brick::addToMatrixAndRHS<cplx_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
-         const std::vector<cplx_t>& EM_S, const std::vector<cplx_t>& EM_F, 
+         const std::vector<cplx_t>& EM_S, const std::vector<cplx_t>& EM_F,
          bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const;
+
+//protected
+template<typename Scalar>
+void Brick::addToMatrixAndRHSGhost(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
+         bool addS, bool addF, const index_t* rowIndex, int nEq, int nComp) const
+{
+    // rowIndex are extended-local corner node ids of a ghost (halo) octant.
+    // Only OWNED rows (< getNumDOF()) are kept; columns may be 2nd-layer ghosts.
+    if(addF)
+    {
+        Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
+        for(int i=0; i<8; i++) {
+            if (rowIndex[i]<getNumDOF()) {
+                for(int eq=0; eq<nEq; eq++) {
+                    F_p[INDEX2(eq, rowIndex[i], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
+                }
+            }
+        }
+    }
+    if(addS)
+    {
+        IndexVector rowInd(rowIndex, rowIndex+8);
+        addToSystemMatrix<Scalar>(S, rowInd, nEq, EM_S);
+    }
+}
+
+template
+void Brick::addToMatrixAndRHSGhost<real_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<real_t>& EM_S, const std::vector<real_t>& EM_F,
+         bool addS, bool addF, const index_t* rowIndex, int nEq, int nComp) const;
+template
+void Brick::addToMatrixAndRHSGhost<cplx_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<cplx_t>& EM_S, const std::vector<cplx_t>& EM_F,
+         bool addS, bool addF, const index_t* rowIndex, int nEq, int nComp) const;
+
+//protected
+template<typename Scalar>
+std::vector<Scalar> Brick::exchangeGhostCoeff(const escript::Data& coef) const
+{
+    std::vector<Scalar> out;
+    if (!ghost || coef.isEmpty())
+        return out;
+    const long nGhost  = (long) ghost->ghosts.elem_count;
+    const long nMirror = (long) ghost->mirrors.elem_count;
+    const size_t sampleSize = (size_t) coef.getNumDataPointsPerSample()
+                            * (size_t) coef.getDataPointSize();
+    if (nGhost == 0 || sampleSize == 0)
+        return out;
+    const Scalar zero = static_cast<Scalar>(0);
+    std::vector<const void*> mirror_data((size_t) nMirror, nullptr);
+    for (long m = 0; m < nMirror; ++m) {
+        p8est_quadrant_t* mq = p8est_quadrant_array_index(&ghost->mirrors, m);
+        const long le = (long) mq->p.piggy3.local_num;
+        mirror_data[m] = (const void*) coef.getSampleDataRO(le, zero);
+    }
+    out.resize((size_t) nGhost * sampleSize);
+    p8est_ghost_exchange_custom(p8est, ghost, sampleSize * sizeof(Scalar),
+                                const_cast<void**>(mirror_data.data()), out.data());
+    return out;
+}
+
+template std::vector<real_t> Brick::exchangeGhostCoeff<real_t>(const escript::Data&) const;
+template std::vector<cplx_t> Brick::exchangeGhostCoeff<cplx_t>(const escript::Data&) const;
 
 //protected
 void Brick::interpolateNodesOnElements(escript::Data& out,
@@ -4785,6 +4910,30 @@ std::vector<IndexVector> Brick::getConnections(bool includeShared) const
                     if(dup == false)
                         indices_out[lni[i]].push_back(lni[j]);
                 }
+            }
+        }
+    }
+
+    // MPI: add couplings from the ghost octant halo for OWNED rows only, so the
+    // Trilinos colMap/graph cover the 2nd-layer columns of owned boundary nodes.
+    const long nDOF = getNumDOF();
+    const long nGhost = (long) m_ghostElemNodes.size() / (V ? V : 1);
+    for(long g = 0; g < nGhost; ++g)
+    {
+        const index_t* lni = &m_ghostElemNodes[(size_t) g * V];
+        for(int i = 0; i < V; i++)
+        {
+            const long row = (long) lni[i];
+            if(row >= nDOF)
+                continue;
+            for(int j = 0; j < V; j++)
+            {
+                const index_t col = lni[j];
+                bool dup = false;
+                for(int k = 0; k < indices_out[row].size(); k++)
+                    if(indices_out[row][k] == col) { dup = true; break; }
+                if(!dup)
+                    indices_out[row].push_back(col);
             }
         }
     }
