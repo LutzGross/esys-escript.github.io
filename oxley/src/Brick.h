@@ -723,10 +723,22 @@ protected:
     template<typename Scalar> void addToMatrixAndRHSGhost(escript::AbstractSystemMatrix* S,
            escript::Data& F, const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
            bool addS, bool addF, const index_t* rowIndex, int nEq=1, int nComp=1) const;
+    // MPI (A6): 4-node face scatter for ghost boundary faces (3D boundary kernel
+    // is a 4-node quad face). Non-owned rows dropped.
+    template<typename Scalar> void addToMatrixAndRHSGhostFace(escript::AbstractSystemMatrix* S,
+           escript::Data& F, const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
+           bool addS, bool addF, const index_t* rowIndex, int nEq=1, int nComp=1) const;
     // MPI (A6): exchange one coefficient Data's per-element samples to the ghost
     // halo; returns num_ghosts*sampleSize Scalars (empty if coef empty or serial).
     template<typename Scalar>
     std::vector<Scalar> exchangeGhostCoeff(const escript::Data& coef) const;
+    // MPI (A6): exchange boundary coefficients d,y (FaceElements) to the ghost
+    // octant halo, packed per octant as 6 sides x [flag, d-sample, y-sample]
+    // (side order Left,Right,Bottom,Top,Above,Below). Returns
+    // num_ghosts*6*(1+dSize+ySize) scalars (empty if serial/no ghosts).
+    template<typename Scalar>
+    std::vector<Scalar> exchangeGhostBoundary(const escript::Data& d,
+                            const escript::Data& y, size_t& dSize, size_t& ySize) const;
 
     // Updates m_faceOffset for each quadrant
     void updateFaceOffset();

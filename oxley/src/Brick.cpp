@@ -44,6 +44,8 @@
 #include <p8est_iterate.h>
 #include <p8est_lnodes.h>
 #include <p8est_vtk.h>
+
+#include <array>
 #include <sc_containers.h>
 #include <sc_mpi.h>
 
@@ -4171,6 +4173,125 @@ std::vector<Scalar> Brick::exchangeGhostCoeff(const escript::Data& coef) const
 
 template std::vector<real_t> Brick::exchangeGhostCoeff<real_t>(const escript::Data&) const;
 template std::vector<cplx_t> Brick::exchangeGhostCoeff<cplx_t>(const escript::Data&) const;
+
+//protected
+template<typename Scalar>
+void Brick::addToMatrixAndRHSGhostFace(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
+         bool addS, bool addF, const index_t* rowIndex, int nEq, int nComp) const
+{
+    // rowIndex are the 4 extended-local face-node ids of a ghost boundary face.
+    // Only OWNED rows (< getNumDOF()) are kept.
+    if(addF)
+    {
+        Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
+        for(int i=0; i<4; i++) {
+            if (rowIndex[i]<getNumDOF()) {
+                for(int eq=0; eq<nEq; eq++)
+                    F_p[INDEX2(eq, rowIndex[i], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
+            }
+        }
+    }
+    if(addS)
+    {
+        IndexVector rowInd(rowIndex, rowIndex+4);
+        addToSystemMatrix<Scalar>(S, rowInd, nEq, EM_S);
+    }
+}
+
+template
+void Brick::addToMatrixAndRHSGhostFace<real_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<real_t>& EM_S, const std::vector<real_t>& EM_F,
+         bool addS, bool addF, const index_t* rowIndex, int nEq, int nComp) const;
+template
+void Brick::addToMatrixAndRHSGhostFace<cplx_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<cplx_t>& EM_S, const std::vector<cplx_t>& EM_F,
+         bool addS, bool addF, const index_t* rowIndex, int nEq, int nComp) const;
+
+//protected
+template<typename Scalar>
+std::vector<Scalar> Brick::exchangeGhostBoundary(const escript::Data& d,
+                        const escript::Data& y, size_t& dSize, size_t& ySize) const
+{
+    std::vector<Scalar> out;
+    dSize = d.isEmpty()?0:(size_t)(d.actsExpanded()?d.getNumDataPointsPerSample():1)*d.getDataPointSize();
+    ySize = y.isEmpty()?0:(size_t)(y.actsExpanded()?y.getNumDataPointsPerSample():1)*y.getDataPointSize();
+    if (!ghost || (dSize==0 && ySize==0))
+        return out;
+    const long nGhost  = (long) ghost->ghosts.elem_count;
+    const long nMirror = (long) ghost->mirrors.elem_count;
+    if (nGhost == 0)
+        return out;
+
+    const Scalar zero = static_cast<Scalar>(0);
+    const size_t perSide = 1 + dSize + ySize;
+    const size_t perOct  = 6 * perSide;
+
+    // octant coords -> local leaf index (mirror piggy3.local_num is reliable)
+    struct Key { p4est_topidx_t t; p4est_qcoord_t x, y, z;
+                 bool operator==(const Key& o) const { return t==o.t && x==o.x && y==o.y && z==o.z; } };
+    struct KeyHash { size_t operator()(const Key& k) const {
+        return ((size_t)k.t*73856093u) ^ ((size_t)k.x*19349663u)
+             ^ ((size_t)k.y*83492791u) ^ ((size_t)k.z*49979687u); } };
+    std::unordered_map<Key, long, KeyHash> octKey2leaf;
+    long leaf = 0;
+    for (p8est_topidx_t tt = p8est->first_local_tree; tt <= p8est->last_local_tree; ++tt) {
+        p8est_tree_t* tree = p8est_tree_array_index(p8est->trees, tt);
+        sc_array_t* quads = &tree->quadrants;
+        const long Q = (long) quads->elem_count;
+        for (long q = 0; q < Q; ++q, ++leaf) {
+            p8est_quadrant_t* qd = p8est_quadrant_array_index(quads, q);
+            octKey2leaf[Key{ tt, qd->x, qd->y, qd->z }] = leaf;
+        }
+    }
+
+    std::unordered_map<long, std::array<long,6>> fmap;   // leaf -> per-side sample
+    const std::vector<borderNodeInfo>* lists[6] =
+        { &NodeIDsLeft, &NodeIDsRight, &NodeIDsBottom, &NodeIDsTop, &NodeIDsAbove, &NodeIDsBelow };
+    for (int s = 0; s < 6; ++s) {
+        if (m_faceOffset[s] < 0) continue;
+        const std::vector<borderNodeInfo>& Lst = *lists[s];
+        for (long k = 0; k < (long) Lst.size(); ++k) {
+            auto lit = octKey2leaf.find(Key{ Lst[k].treeid, Lst[k].x, Lst[k].y, Lst[k].z });
+            if (lit == octKey2leaf.end()) continue;
+            const long lf = lit->second;
+            auto it = fmap.find(lf);
+            if (it == fmap.end())
+                it = fmap.emplace(lf, std::array<long,6>{{-1,-1,-1,-1,-1,-1}}).first;
+            it->second[s] = (long) m_faceOffset[s] + k;
+        }
+    }
+
+    std::vector<Scalar> mirrorPacked((size_t) nMirror * perOct, zero);
+    std::vector<void*> mirror_data((size_t) nMirror, nullptr);
+    for (long m = 0; m < nMirror; ++m) {
+        p8est_quadrant_t* mq = p8est_quadrant_array_index(&ghost->mirrors, m);
+        Scalar* base = &mirrorPacked[(size_t) m * perOct];
+        mirror_data[m] = (void*) base;
+        auto it = fmap.find((long) mq->p.piggy3.local_num);
+        if (it == fmap.end()) continue;
+        for (int s = 0; s < 6; ++s) {
+            const long sample = it->second[s];
+            if (sample < 0) continue;
+            Scalar* sb = base + (size_t) s * perSide;
+            sb[0] = static_cast<Scalar>(1);
+            if (dSize) { const Scalar* dp = d.getSampleDataRO(sample, zero);
+                         std::copy(dp, dp+dSize, sb+1); }
+            if (ySize) { const Scalar* yp = y.getSampleDataRO(sample, zero);
+                         std::copy(yp, yp+ySize, sb+1+dSize); }
+        }
+    }
+
+    out.resize((size_t) nGhost * perOct, zero);
+    p8est_ghost_exchange_custom(p8est, ghost, perOct * sizeof(Scalar),
+                                mirror_data.data(), out.data());
+    return out;
+}
+
+template std::vector<real_t> Brick::exchangeGhostBoundary<real_t>(
+        const escript::Data&, const escript::Data&, size_t&, size_t&) const;
+template std::vector<cplx_t> Brick::exchangeGhostBoundary<cplx_t>(
+        const escript::Data&, const escript::Data&, size_t&, size_t&) const;
 
 //protected
 void Brick::interpolateNodesOnElements(escript::Data& out,

@@ -242,6 +242,36 @@ void DefaultAssembler3D<Scalar>::assemblePDEBoundarySingle(
             domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, L[k]);
         }
     }
+
+    // --- ghost octant boundary faces (MPI: A6): assemble the Neumann/Robin term
+    // for domain-boundary faces of neighbour-owned (ghost) octants. ---
+    if (domain->ghost && !domain->m_ghostElemNodes.empty()) {
+        static const int faceCorners[6][4]={{0,2,4,6},{1,3,5,7},{0,1,4,5},{2,3,6,7},{0,1,2,3},{4,5,6,7}};
+        static const int gPlaneAxes[6][2]={{1,2},{1,2},{0,2},{0,2},{0,1},{0,1}};
+        size_t dSize, ySize;
+        std::vector<Scalar> gB = domain->exchangeGhostBoundary<Scalar>(d, y, dSize, ySize);
+        if (!gB.empty()) {
+            const size_t perSide = 1 + dSize + ySize;
+            const long nGhostO = (long) domain->ghost->ghosts.elem_count;
+            for (long go=0; go<nGhostO; ++go) {
+                p8est_quadrant_t* gq = p8est_quadrant_array_index(&domain->ghost->ghosts, go);
+                const double hh = (double)(1 << gq->level);
+                for (int fc=0; fc<6; ++fc) {
+                    const Scalar* sb = &gB[((size_t)go*6 + fc)*perSide];
+                    if (std::abs(sb[0]) < 0.5) continue;
+                    const Scalar* d_p = dSize? sb+1 : nullptr;
+                    const Scalar* y_p = ySize? sb+1+dSize : nullptr;
+                    const double A = (domain->m_NX[gPlaneAxes[fc][0]]/hh)*(domain->m_NX[gPlaneAxes[fc][1]]/hh);
+                    std::fill(EM_S.begin(), EM_S.end(), zero);
+                    std::fill(EM_F.begin(), EM_F.end(), zero);
+                    if(addEM_S && d_p){ if(d.actsExpanded()){ for(int a=0;a<4;++a)for(int b=0;b<4;++b){Scalar s=zero;for(int g=0;g<4;++g)s+=d_p[g]*N[a][g]*N[b][g];EM_S[INDEX2(a,b,4)]=s*(A/4.);} } else { for(int a=0;a<4;++a)for(int b=0;b<4;++b){double s=0.;for(int g=0;g<4;++g)s+=N[a][g]*N[b][g];EM_S[INDEX2(a,b,4)]=d_p[0]*(A/4.)*s;} } }
+                    if(addEM_F && y_p){ if(y.actsExpanded()){ for(int a=0;a<4;++a){Scalar s=zero;for(int g=0;g<4;++g)s+=N[a][g]*y_p[g];EM_F[a]=s*(A/4.);} } else { for(int a=0;a<4;++a)EM_F[a]=y_p[0]*(A/4.); } }
+                    index_t fn[4]; for(int c=0;c<4;++c) fn[c]=domain->m_ghostElemNodes[(size_t)go*8+faceCorners[fc][c]];
+                    domain->addToMatrixAndRHSGhostFace(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, fn);
+                }
+            }
+        }
+    }
 }
 
 /****************************************************************************/
@@ -300,6 +330,36 @@ void DefaultAssembler3D<Scalar>::assemblePDEBoundarySingleReduced(
                 for(int a=0;a<4;++a) EM_F[a] = y_p[0]*(A/4.);
             }
             domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, L[k]);
+        }
+    }
+
+    // --- ghost octant boundary faces (MPI: A6): assemble the Neumann/Robin term
+    // for domain-boundary faces of neighbour-owned (ghost) octants. ---
+    if (domain->ghost && !domain->m_ghostElemNodes.empty()) {
+        static const int faceCorners[6][4]={{0,2,4,6},{1,3,5,7},{0,1,4,5},{2,3,6,7},{0,1,2,3},{4,5,6,7}};
+        static const int gPlaneAxes[6][2]={{1,2},{1,2},{0,2},{0,2},{0,1},{0,1}};
+        size_t dSize, ySize;
+        std::vector<Scalar> gB = domain->exchangeGhostBoundary<Scalar>(d, y, dSize, ySize);
+        if (!gB.empty()) {
+            const size_t perSide = 1 + dSize + ySize;
+            const long nGhostO = (long) domain->ghost->ghosts.elem_count;
+            for (long go=0; go<nGhostO; ++go) {
+                p8est_quadrant_t* gq = p8est_quadrant_array_index(&domain->ghost->ghosts, go);
+                const double hh = (double)(1 << gq->level);
+                for (int fc=0; fc<6; ++fc) {
+                    const Scalar* sb = &gB[((size_t)go*6 + fc)*perSide];
+                    if (std::abs(sb[0]) < 0.5) continue;
+                    const Scalar* d_p = dSize? sb+1 : nullptr;
+                    const Scalar* y_p = ySize? sb+1+dSize : nullptr;
+                    const double A = (domain->m_NX[gPlaneAxes[fc][0]]/hh)*(domain->m_NX[gPlaneAxes[fc][1]]/hh);
+                    std::fill(EM_S.begin(), EM_S.end(), zero);
+                    std::fill(EM_F.begin(), EM_F.end(), zero);
+                    if(addEM_S && d_p) for(int a=0;a<4;++a)for(int b=0;b<4;++b)EM_S[INDEX2(a,b,4)]=d_p[0]*(A/16.);
+                    if(addEM_F && y_p) for(int a=0;a<4;++a)EM_F[a]=y_p[0]*(A/4.);
+                    index_t fn[4]; for(int c=0;c<4;++c) fn[c]=domain->m_ghostElemNodes[(size_t)go*8+faceCorners[fc][c]];
+                    domain->addToMatrixAndRHSGhostFace(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, fn);
+                }
+            }
         }
     }
 }
@@ -561,6 +621,36 @@ void DefaultAssembler3D<Scalar>::assemblePDEBoundarySystem(
             domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, L[kk], numEq, numComp);
         }
     }
+
+    // --- ghost octant boundary faces (MPI: A6): assemble the Neumann/Robin term
+    // for domain-boundary faces of neighbour-owned (ghost) octants. ---
+    if (domain->ghost && !domain->m_ghostElemNodes.empty()) {
+        static const int faceCorners[6][4]={{0,2,4,6},{1,3,5,7},{0,1,4,5},{2,3,6,7},{0,1,2,3},{4,5,6,7}};
+        static const int gPlaneAxes[6][2]={{1,2},{1,2},{0,2},{0,2},{0,1},{0,1}};
+        size_t dSize, ySize;
+        std::vector<Scalar> gB = domain->exchangeGhostBoundary<Scalar>(d, y, dSize, ySize);
+        if (!gB.empty()) {
+            const size_t perSide = 1 + dSize + ySize;
+            const long nGhostO = (long) domain->ghost->ghosts.elem_count;
+            for (long go=0; go<nGhostO; ++go) {
+                p8est_quadrant_t* gq = p8est_quadrant_array_index(&domain->ghost->ghosts, go);
+                const double hh = (double)(1 << gq->level);
+                for (int fc=0; fc<6; ++fc) {
+                    const Scalar* sb = &gB[((size_t)go*6 + fc)*perSide];
+                    if (std::abs(sb[0]) < 0.5) continue;
+                    const Scalar* d_p = dSize? sb+1 : nullptr;
+                    const Scalar* y_p = ySize? sb+1+dSize : nullptr;
+                    const double A = (domain->m_NX[gPlaneAxes[fc][0]]/hh)*(domain->m_NX[gPlaneAxes[fc][1]]/hh);
+                    std::fill(EM_S.begin(), EM_S.end(), zero);
+                    std::fill(EM_F.begin(), EM_F.end(), zero);
+                    if(addEM_S && d_p){ const bool ex=d.actsExpanded(); for(index_t k=0;k<numEq;++k)for(index_t m=0;m<numComp;++m)for(int a=0;a<4;++a)for(int b=0;b<4;++b){Scalar s=zero; if(ex){for(int g=0;g<4;++g)s+=d_p[INDEX3(k,m,g,numEq,numComp)]*N[a][g]*N[b][g];s*=(A/4.);} else {double gg=0.;for(int g=0;g<4;++g)gg+=N[a][g]*N[b][g];s=d_p[INDEX2(k,m,numEq)]*(A/4.)*gg;} EM_S[INDEX4(k,m,a,b,numEq,numComp,4)]=s;} }
+                    if(addEM_F && y_p){ const bool ex=y.actsExpanded(); for(index_t k=0;k<numEq;++k)for(int a=0;a<4;++a){Scalar s=zero; if(ex){for(int g=0;g<4;++g)s+=N[a][g]*y_p[INDEX2(k,g,numEq)];s*=(A/4.);} else s=y_p[k]*(A/4.); EM_F[INDEX2(k,a,numEq)]=s;} }
+                    index_t fn[4]; for(int c=0;c<4;++c) fn[c]=domain->m_ghostElemNodes[(size_t)go*8+faceCorners[fc][c]];
+                    domain->addToMatrixAndRHSGhostFace(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, fn, numEq, numComp);
+                }
+            }
+        }
+    }
 }
 
 /****************************************************************************/
@@ -749,6 +839,36 @@ void DefaultAssembler3D<Scalar>::assemblePDEBoundarySystemReduced(
                     EM_F[INDEX2(k,a,numEq)] = y_p[k]*(A/4.);
             }
             domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, L[kk], numEq, numComp);
+        }
+    }
+
+    // --- ghost octant boundary faces (MPI: A6): assemble the Neumann/Robin term
+    // for domain-boundary faces of neighbour-owned (ghost) octants. ---
+    if (domain->ghost && !domain->m_ghostElemNodes.empty()) {
+        static const int faceCorners[6][4]={{0,2,4,6},{1,3,5,7},{0,1,4,5},{2,3,6,7},{0,1,2,3},{4,5,6,7}};
+        static const int gPlaneAxes[6][2]={{1,2},{1,2},{0,2},{0,2},{0,1},{0,1}};
+        size_t dSize, ySize;
+        std::vector<Scalar> gB = domain->exchangeGhostBoundary<Scalar>(d, y, dSize, ySize);
+        if (!gB.empty()) {
+            const size_t perSide = 1 + dSize + ySize;
+            const long nGhostO = (long) domain->ghost->ghosts.elem_count;
+            for (long go=0; go<nGhostO; ++go) {
+                p8est_quadrant_t* gq = p8est_quadrant_array_index(&domain->ghost->ghosts, go);
+                const double hh = (double)(1 << gq->level);
+                for (int fc=0; fc<6; ++fc) {
+                    const Scalar* sb = &gB[((size_t)go*6 + fc)*perSide];
+                    if (std::abs(sb[0]) < 0.5) continue;
+                    const Scalar* d_p = dSize? sb+1 : nullptr;
+                    const Scalar* y_p = ySize? sb+1+dSize : nullptr;
+                    const double A = (domain->m_NX[gPlaneAxes[fc][0]]/hh)*(domain->m_NX[gPlaneAxes[fc][1]]/hh);
+                    std::fill(EM_S.begin(), EM_S.end(), zero);
+                    std::fill(EM_F.begin(), EM_F.end(), zero);
+                    if(addEM_S && d_p) for(index_t k=0;k<numEq;++k)for(index_t m=0;m<numComp;++m)for(int a=0;a<4;++a)for(int b=0;b<4;++b)EM_S[INDEX4(k,m,a,b,numEq,numComp,4)]=d_p[INDEX2(k,m,numEq)]*(A/16.);
+                    if(addEM_F && y_p) for(index_t k=0;k<numEq;++k)for(int a=0;a<4;++a)EM_F[INDEX2(k,a,numEq)]=y_p[k]*(A/4.);
+                    index_t fn[4]; for(int c=0;c<4;++c) fn[c]=domain->m_ghostElemNodes[(size_t)go*8+faceCorners[fc][c]];
+                    domain->addToMatrixAndRHSGhostFace(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, fn, numEq, numComp);
+                }
+            }
         }
     }
 }
