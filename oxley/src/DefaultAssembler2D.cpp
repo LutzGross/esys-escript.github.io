@@ -1411,6 +1411,36 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
             domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsTop[k]);
         } 
     }
+
+    // --- ghost octant boundary faces (MPI: A6, reduced) ---
+    if (domain->m_ghost && !domain->m_ghostElemNodes.empty())
+    {
+        size_t dSize, ySize;
+        std::vector<Scalar> gB = domain->exchangeGhostBoundary<Scalar>(d, y, dSize, ySize);
+        if (!gB.empty()) {
+            const size_t perSide = 1 + dSize + ySize;
+            static const int na[4]={0,1,0,2}, nb[4]={2,3,1,3}, wIdx[4]={1,1,0,0};
+            const long nGhost = (long) domain->m_ghost->ghosts.elem_count;
+            for (long g=0; g<nGhost; ++g) {
+                p4est_quadrant_t* gq = p4est_quadrant_array_index(&domain->m_ghost->ghosts, g);
+                const int lvl = gq->level;
+                for (int s=0; s<4; ++s) {
+                    const Scalar* sb = &gB[((size_t)g*4 + s)*perSide];
+                    if (std::abs(sb[0]) < 0.5) continue;
+                    const Scalar* d_p = dSize? sb+1 : nullptr;
+                    const Scalar* y_p = ySize? sb+1+dSize : nullptr;
+                    fill(EM_S.begin(), EM_S.end(), zero);
+                    fill(EM_F.begin(), EM_F.end(), zero);
+                    const int a=na[s], b=nb[s]; const double wp=w[wIdx[s]][lvl];
+                    if (addEM_S && d_p) { const Scalar v=d_p[0]*wp;
+                        EM_S[INDEX2(a,a,4)]=v; EM_S[INDEX2(b,a,4)]=v; EM_S[INDEX2(a,b,4)]=v; EM_S[INDEX2(b,b,4)]=v; }
+                    if (addEM_F && y_p) { const Scalar v=2.*wp*y_p[0]; EM_F[a]=v; EM_F[b]=v; }
+                    domain->addToMatrixAndRHSGhost(mat, rhs, EM_S, EM_F, addEM_S, addEM_F,
+                                                   &domain->m_ghostElemNodes[(size_t)g*4]);
+                }
+            }
+        }
+    }
 }
 
 /****************************************************************************/
@@ -2293,6 +2323,61 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
             domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsTop[k], numEq, numComp);
         }
     }
+
+    // --- ghost octant boundary faces (MPI: A6, system) ---
+    if (domain->m_ghost && !domain->m_ghostElemNodes.empty())
+    {
+        size_t dSize, ySize;
+        std::vector<Scalar> gB = domain->exchangeGhostBoundary<Scalar>(d, y, dSize, ySize);
+        if (!gB.empty()) {
+            const size_t perSide = 1 + dSize + ySize;
+            static const int na[4]={0,1,0,2}, nb[4]={2,3,1,3};
+            static const int wAi[4]={0,0,6,6}, wBi[4]={1,1,7,7}, wMi[4]={2,2,5,5};
+            static const int wY0i[4]={3,3,8,8}, wY1i[4]={4,4,9,9};
+            const bool dexp = !d.isEmpty() && d.actsExpanded();
+            const bool yexp = !y.isEmpty() && y.actsExpanded();
+            const long nGhost = (long) domain->m_ghost->ghosts.elem_count;
+            for (long g=0; g<nGhost; ++g) {
+                p4est_quadrant_t* gq = p4est_quadrant_array_index(&domain->m_ghost->ghosts, g);
+                const int lvl = gq->level;
+                for (int s=0; s<4; ++s) {
+                    const Scalar* sb = &gB[((size_t)g*4 + s)*perSide];
+                    if (std::abs(sb[0]) < 0.5) continue;
+                    const Scalar* d_p = dSize? sb+1 : nullptr;
+                    const Scalar* y_p = ySize? sb+1+dSize : nullptr;
+                    fill(EM_S.begin(), EM_S.end(), zero);
+                    fill(EM_F.begin(), EM_F.end(), zero);
+                    const int a=na[s], b=nb[s];
+                    const double wA=w[wAi[s]][lvl], wB=w[wBi[s]][lvl], wMid=w[wMi[s]][lvl];
+                    const double wY0=w[wY0i[s]][lvl], wY1=w[wY1i[s]][lvl];
+                    if (addEM_S && d_p) {
+                        for (index_t kk=0; kk<numEq; kk++) for (index_t mm=0; mm<numComp; mm++) {
+                            if (dexp) { const Scalar d0=d_p[INDEX3(kk,mm,0,numEq,numComp)], d1=d_p[INDEX3(kk,mm,1,numEq,numComp)];
+                                const Scalar tmp0=wMid*(d0+d1);
+                                EM_S[INDEX4(kk,mm,a,a,numEq,numComp,4)]=d0*wA+d1*wB;
+                                EM_S[INDEX4(kk,mm,b,a,numEq,numComp,4)]=tmp0;
+                                EM_S[INDEX4(kk,mm,a,b,numEq,numComp,4)]=tmp0;
+                                EM_S[INDEX4(kk,mm,b,b,numEq,numComp,4)]=d0*wB+d1*wA; }
+                            else { const Scalar d0=d_p[INDEX2(kk,mm,numEq)];
+                                EM_S[INDEX4(kk,mm,a,a,numEq,numComp,4)]=4.*d0*wMid;
+                                EM_S[INDEX4(kk,mm,b,a,numEq,numComp,4)]=2.*d0*wMid;
+                                EM_S[INDEX4(kk,mm,a,b,numEq,numComp,4)]=2.*d0*wMid;
+                                EM_S[INDEX4(kk,mm,b,b,numEq,numComp,4)]=4.*d0*wMid; }
+                        }
+                    }
+                    if (addEM_F && y_p) {
+                        for (index_t kk=0; kk<numEq; kk++) {
+                            if (yexp) { const Scalar y0=y_p[INDEX2(kk,0,numEq)], y1=y_p[INDEX2(kk,1,numEq)];
+                                EM_F[INDEX2(kk,a,numEq)]=wY0*y0+wY1*y1; EM_F[INDEX2(kk,b,numEq)]=wY0*y1+wY1*y0; }
+                            else { EM_F[INDEX2(kk,a,numEq)]=6.*wMid*y_p[kk]; EM_F[INDEX2(kk,b,numEq)]=6.*wMid*y_p[kk]; }
+                        }
+                    }
+                    domain->addToMatrixAndRHSGhost(mat, rhs, EM_S, EM_F, addEM_S, addEM_F,
+                                                   &domain->m_ghostElemNodes[(size_t)g*4], numEq, numComp);
+                }
+            }
+        }
+    }
 }
 
 /****************************************************************************/
@@ -2759,6 +2844,48 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                 }
             }
             domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsTop[k], numEq, numComp);
+        }
+    }
+
+    // --- ghost octant boundary faces (MPI: A6, system reduced) ---
+    if (domain->m_ghost && !domain->m_ghostElemNodes.empty())
+    {
+        size_t dSize, ySize;
+        std::vector<Scalar> gB = domain->exchangeGhostBoundary<Scalar>(d, y, dSize, ySize);
+        if (!gB.empty()) {
+            const size_t perSide = 1 + dSize + ySize;
+            static const int na[4]={0,1,0,2}, nb[4]={2,3,1,3}, wIdx[4]={1,1,0,0};
+            const long nGhost = (long) domain->m_ghost->ghosts.elem_count;
+            for (long g=0; g<nGhost; ++g) {
+                p4est_quadrant_t* gq = p4est_quadrant_array_index(&domain->m_ghost->ghosts, g);
+                const int lvl = gq->level;
+                for (int s=0; s<4; ++s) {
+                    const Scalar* sb = &gB[((size_t)g*4 + s)*perSide];
+                    if (std::abs(sb[0]) < 0.5) continue;
+                    const Scalar* d_p = dSize? sb+1 : nullptr;
+                    const Scalar* y_p = ySize? sb+1+dSize : nullptr;
+                    fill(EM_S.begin(), EM_S.end(), zero);
+                    fill(EM_F.begin(), EM_F.end(), zero);
+                    const int a=na[s], b=nb[s]; const double wp=w[wIdx[s]][lvl];
+                    if (addEM_S && d_p) {
+                        for (index_t kk=0; kk<numEq; kk++) for (index_t mm=0; mm<numComp; mm++) {
+                            const Scalar v=d_p[INDEX2(kk,mm,numEq)]*wp;
+                            EM_S[INDEX4(kk,mm,a,a,numEq,numComp,4)]=v;
+                            EM_S[INDEX4(kk,mm,b,a,numEq,numComp,4)]=v;
+                            EM_S[INDEX4(kk,mm,a,b,numEq,numComp,4)]=v;
+                            EM_S[INDEX4(kk,mm,b,b,numEq,numComp,4)]=v;
+                        }
+                    }
+                    if (addEM_F && y_p) {
+                        for (index_t kk=0; kk<numEq; kk++) {
+                            const Scalar v=2.*wp*y_p[kk];
+                            EM_F[INDEX2(kk,a,numEq)]=v; EM_F[INDEX2(kk,b,numEq)]=v;
+                        }
+                    }
+                    domain->addToMatrixAndRHSGhost(mat, rhs, EM_S, EM_F, addEM_S, addEM_F,
+                                                   &domain->m_ghostElemNodes[(size_t)g*4], numEq, numComp);
+                }
+            }
         }
     }
 }
