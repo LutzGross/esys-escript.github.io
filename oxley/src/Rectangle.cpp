@@ -4292,6 +4292,19 @@ escript::Data Rectangle::randomFillWorker(
         throw ValueError("Unsupported random filter for Rectangle.");
     }
 
+    // Unfiltered random data (radius==0, or vector-valued): fill every node of a
+    // ContinuousFunction Data directly. The ripley-style m_NN smoothing grid below
+    // does not apply to the p4est node layout (m_NN is a stale ripley member for
+    // oxley -> the copy loop wrote out of bounds and corrupted the heap under MPI,
+    // and returned all zeros in serial). (A6.)
+    if (radius == 0 || numvals > 1) {
+        escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
+        escript::Data resdat(0, shape, fs, true);
+        escript::DataTypes::RealVectorType& dv = resdat.getExpandedVectorReference();
+        escript::randomFillArray(seed, &dv[0], dv.size(), m_mpiInfo);
+        return resdat;
+    }
+
     // number of points in the internal region
     // that is, the ones we need smoothed versions of
     const dim_t internal[2] = { m_NN[0], m_NN[1] };
