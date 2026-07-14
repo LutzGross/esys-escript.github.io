@@ -113,8 +113,10 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order,
 
     // Create a p4est - use the custom communicator.
     // fill_uniform + min_level=refine_level builds a uniform base mesh where every
-    // block is subdivided refine_level times.
-    p4est_locidx_t min_quadrants = n0*n1;
+    // block is subdivided refine_level times. min_quadrants MUST be 0: it is
+    // p4est's PER-PROCESSOR minimum, so a positive value forces extra refinement
+    // under MPI and makes the mesh depend on the rank count. (A6.)
+    p4est_locidx_t min_quadrants = 0;
     int min_level = refine_level;
     int fill_uniform = 1;
 
@@ -737,34 +739,13 @@ bool Rectangle::ownSample(int fsType, index_t id) const
             return true;
         case Elements:
         case ReducedElements:
-            // check ownership of element's bottom left node
-            // return (m_dofMap[id%m_NE[0]+m_NN[0]*(id/m_NE[0])] < getNumDOF());
-            throw OxleyException("Rectangle::ownSample Currently not implemented.");
-            return false;
         case FaceElements:
         case ReducedFaceElements:
-            {
-                // // determine which face the sample belongs to before
-                // // checking ownership of corresponding element's first node
-                // dim_t n=0;
-                // for (size_t i=0; i<4; i++) {
-                //     n+=m_faceCount[i];
-                //     if (id<n) {
-                //         index_t k;
-                //         if (i==1)
-                //             k=m_NN[0]-2;
-                //         else if (i==3)
-                //             k=m_NN[0]*(m_NN[1]-2);
-                //         else
-                //             k=0;
-                //         // determine whether to move right or up
-                //         const index_t delta=(i/2==0 ? m_NN[0] : 1);
-                //         return (m_dofMap[k+(id-n+m_faceCount[i])*delta] < getNumDOF());
-                //     }
-                // }
-                throw OxleyException("Rectangle::ownSample Currently not implemented.");
-                return false;
-            }
+        case Points:
+            // p4est partitions leaves (and hence boundary faces) uniquely across
+            // ranks, and Dirac points are claimed by a single owner (addPoints),
+            // so every local element/face/point sample is owned by this rank.
+            return true;
         default:
             break;
     }

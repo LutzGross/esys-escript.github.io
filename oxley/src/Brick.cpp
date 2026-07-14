@@ -114,8 +114,10 @@ Brick::Brick(escript::JMPI jmpi, int order,
 
     // Create the p8est - use the custom communicator.
     // fill_uniform + min_level=refine_level builds a uniform base mesh where every
-    // block is subdivided refine_level times.
-    p8est_locidx_t min_quadrants = n0*n1*n2;
+    // block is subdivided refine_level times. min_quadrants MUST be 0: it is
+    // p8est's PER-PROCESSOR minimum, so a positive value forces extra refinement
+    // under MPI and makes the mesh depend on the rank count. (A6.)
+    p8est_locidx_t min_quadrants = 0;
     int min_level = refine_level;
     int fill_uniform = 1;
     oxleytimer.toc("\t creating p8est...");
@@ -311,7 +313,7 @@ Brick::Brick(oxley::Brick& B, int order, bool update):
                                           forestData->m_origin[1], forestData->m_lxyz[1], 
                                           forestData->m_origin[2], forestData->m_lxyz[2]);    
 
-    p8est_locidx_t min_quadrants = B.m_NE[0]*B.m_NE[1]*B.m_NE[2];
+    p8est_locidx_t min_quadrants = 0;  // per-processor min; keep 0 for MPI mesh consistency (A6)
     int min_level = 0;
     int fill_uniform = 1;
     oxleytimer.toc("\t creating p8est...");
@@ -816,36 +818,13 @@ bool Brick::ownSample(int fsType, index_t id) const
             return true;
         case Elements:
         case ReducedElements:
-            {
-            // check ownership of element's bottom left node
-            // return (m_dofMap[id%m_NE[0]+m_NN[0]*(id/m_NE[0])] < getNumDOF());
-            throw OxleyException("Brick::ownSample Currently not implemented.");
-            return false;
-            }
         case FaceElements:
         case ReducedFaceElements:
-            {
-                // // check ownership of face element's last node
-                // dim_t n=0;
-                // for (size_t i=0; i<6; i++) {
-                //     n+=m_faceCount[i];
-                //     if (id<n) {
-                //         const index_t j=id-n+m_faceCount[i];
-                //         if (i>=4) { // front or back
-                //             const index_t first=(i==4 ? 0 : m_NN[0]*m_NN[1]*(m_NN[2]-1));
-                //             return (m_dofMap[first+j%m_NE[0]+1+(j/m_NE[0]+1)*m_NN[0]] < getNumDOF());
-                //         } else if (i>=2) { // bottom or top
-                //             const index_t first=(i==2 ? 0 : m_NN[0]*(m_NN[1]-1));
-                //             return (m_dofMap[first+j%m_NE[0]+1+(j/m_NE[0]+1)*m_NN[0]*m_NN[1]] < getNumDOF());
-                //         } else { // left or right
-                //             const index_t first=(i==0 ? 0 : m_NN[0]-1);
-                //             return (m_dofMap[first+(j%m_NE[1]+1)*m_NN[0]+(j/m_NE[1]+1)*m_NN[0]*m_NN[1]] < getNumDOF());
-                //         }
-                //     }
-                // }
-                throw OxleyException("Brick::ownSample Currently not implemented.");
-                return false;
-            }
+        case Points:
+            // p8est partitions leaves (and hence boundary faces) uniquely across
+            // ranks, and Dirac points are claimed by a single owner (addPoints),
+            // so every local element/face/point sample is owned by this rank.
+            return true;
         default:
             break;
     }
