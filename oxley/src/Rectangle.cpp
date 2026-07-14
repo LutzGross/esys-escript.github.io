@@ -50,6 +50,7 @@
 #include <p4est_vtk.h>
 
 #include <unordered_map>
+#include <array>
 
 #include <sc_mpi.h>
 
@@ -2054,6 +2055,96 @@ std::vector<Scalar> Rectangle::exchangeGhostCoeff(const escript::Data& coef) con
 
 template std::vector<real_t> Rectangle::exchangeGhostCoeff<real_t>(const escript::Data&) const;
 template std::vector<cplx_t> Rectangle::exchangeGhostCoeff<cplx_t>(const escript::Data&) const;
+
+//protected
+template<typename Scalar>
+std::vector<Scalar> Rectangle::exchangeGhostBoundary(const escript::Data& d,
+                        const escript::Data& y, size_t& dSize, size_t& ySize) const
+{
+    std::vector<Scalar> out;
+    // In-memory scalars per getSampleDataRO() sample (expanded: one per boundary
+    // quadrature point; constant/tagged: a single point).
+    dSize = d.isEmpty()?0:(size_t)(d.actsExpanded()?d.getNumDataPointsPerSample():1)*d.getDataPointSize();
+    ySize = y.isEmpty()?0:(size_t)(y.actsExpanded()?y.getNumDataPointsPerSample():1)*y.getDataPointSize();
+    if (!m_ghost || (dSize==0 && ySize==0))
+        return out;
+    const long nGhost  = (long) m_ghost->ghosts.elem_count;
+    const long nMirror = (long) m_ghost->mirrors.elem_count;
+    if (nGhost == 0)
+        return out;
+
+    const Scalar zero = static_cast<Scalar>(0);
+    const size_t perSide = 1 + dSize + ySize;
+    const size_t perOct  = 4 * perSide;
+
+    // Map octant -> per-side FaceElements sample index, keyed by LOCAL LEAF INDEX
+    // (mirrors carry a reliable leaf index in piggy3.local_num; piggy3.which_tree
+    // is not dependable for mirrors). Build (treeid,quad->x,quad->y) -> leaf over
+    // the local leaves, then re-key the boundary faces by leaf index.
+    struct Key { p4est_topidx_t t; p4est_qcoord_t x, y;
+                 bool operator==(const Key& o) const { return t==o.t && x==o.x && y==o.y; } };
+    struct KeyHash { size_t operator()(const Key& k) const {
+        return ((size_t)k.t*73856093u) ^ ((size_t)k.x*19349663u) ^ ((size_t)k.y*83492791u); } };
+    std::unordered_map<Key, long, KeyHash> octKey2leaf;
+    long leaf = 0;
+    for (p4est_topidx_t tt = p4est->first_local_tree; tt <= p4est->last_local_tree; ++tt) {
+        p4est_tree_t* tree = p4est_tree_array_index(p4est->trees, tt);
+        sc_array_t* quads = &tree->quadrants;
+        const long Q = (long) quads->elem_count;
+        for (long q = 0; q < Q; ++q, ++leaf) {
+            p4est_quadrant_t* qd = p4est_quadrant_array_index(quads, q);
+            octKey2leaf[Key{ tt, qd->x, qd->y }] = leaf;
+        }
+    }
+
+    std::unordered_map<long, std::array<long,4>> fmap;   // leaf -> per-side sample
+    const std::vector<borderNodeInfo>* lists[4] =
+        { &NodeIDsLeft, &NodeIDsRight, &NodeIDsBottom, &NodeIDsTop };
+    for (int s = 0; s < 4; ++s) {
+        if (m_faceOffset[s] < 0) continue;
+        const std::vector<borderNodeInfo>& Lst = *lists[s];
+        for (long k = 0; k < (long) Lst.size(); ++k) {
+            auto lit = octKey2leaf.find(Key{ Lst[k].treeid, Lst[k].x, Lst[k].y });
+            if (lit == octKey2leaf.end()) continue;
+            const long lf = lit->second;
+            auto it = fmap.find(lf);
+            if (it == fmap.end())
+                it = fmap.emplace(lf, std::array<long,4>{{-1,-1,-1,-1}}).first;
+            it->second[s] = (long) m_faceOffset[s] + k;
+        }
+    }
+
+    // Pack each mirror octant's boundary d/y samples by side (keyed by leaf index).
+    std::vector<Scalar> mirrorPacked((size_t) nMirror * perOct, zero);
+    std::vector<void*> mirror_data((size_t) nMirror, nullptr);
+    for (long m = 0; m < nMirror; ++m) {
+        p4est_quadrant_t* mq = p4est_quadrant_array_index(&m_ghost->mirrors, m);
+        Scalar* base = &mirrorPacked[(size_t) m * perOct];
+        mirror_data[m] = (void*) base;
+        auto it = fmap.find((long) mq->p.piggy3.local_num);
+        if (it == fmap.end()) continue;
+        for (int s = 0; s < 4; ++s) {
+            const long sample = it->second[s];
+            if (sample < 0) continue;
+            Scalar* sb = base + (size_t) s * perSide;
+            sb[0] = static_cast<Scalar>(1);
+            if (dSize) { const Scalar* dp = d.getSampleDataRO(sample, zero);
+                         std::copy(dp, dp+dSize, sb+1); }
+            if (ySize) { const Scalar* yp = y.getSampleDataRO(sample, zero);
+                         std::copy(yp, yp+ySize, sb+1+dSize); }
+        }
+    }
+
+    out.resize((size_t) nGhost * perOct, zero);
+    p4est_ghost_exchange_custom(p4est, m_ghost, perOct * sizeof(Scalar),
+                                mirror_data.data(), out.data());
+    return out;
+}
+
+template std::vector<real_t> Rectangle::exchangeGhostBoundary<real_t>(
+        const escript::Data&, const escript::Data&, size_t&, size_t&) const;
+template std::vector<cplx_t> Rectangle::exchangeGhostBoundary<cplx_t>(
+        const escript::Data&, const escript::Data&, size_t&, size_t&) const;
 
 //protected
 void Rectangle::interpolateNodesOnElements(escript::Data& out,

@@ -948,6 +948,54 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
             domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsTop[k]);
         }
     }    
+
+    // --- ghost octant boundary faces (MPI: A6): assemble the Neumann/Robin term
+    // for domain-boundary faces of neighbour-owned (ghost) octants so this rank's
+    // owned boundary-node rows are complete. Per-side face nodes na/nb and weight
+    // indices mirror the four owned-side blocks above. ---
+    if (domain->m_ghost && !domain->m_ghostElemNodes.empty())
+    {
+        size_t dSize, ySize;
+        std::vector<Scalar> gB = domain->exchangeGhostBoundary<Scalar>(d, y, dSize, ySize);
+        if (!gB.empty()) {
+            const size_t perSide = 1 + dSize + ySize;
+            static const int na[4]={0,1,0,2}, nb[4]={2,3,1,3};
+            static const int wAi[4]={0,0,6,6}, wBi[4]={1,1,7,7}, wMi[4]={2,2,5,5};
+            static const int wY0i[4]={3,3,8,8}, wY1i[4]={4,4,9,9};
+            const bool dexp = !d.isEmpty() && d.actsExpanded();
+            const bool yexp = !y.isEmpty() && y.actsExpanded();
+            const long nGhost = (long) domain->m_ghost->ghosts.elem_count;
+            for (long g=0; g<nGhost; ++g) {
+                p4est_quadrant_t* gq = p4est_quadrant_array_index(&domain->m_ghost->ghosts, g);
+                const int lvl = gq->level;
+                for (int s=0; s<4; ++s) {
+                    const Scalar* sb = &gB[((size_t)g*4 + s)*perSide];
+                    if (std::abs(sb[0]) < 0.5) continue;      // no boundary face here
+                    const Scalar* d_p = dSize? sb+1 : nullptr;
+                    const Scalar* y_p = ySize? sb+1+dSize : nullptr;
+                    fill(EM_S.begin(), EM_S.end(), zero);
+                    fill(EM_F.begin(), EM_F.end(), zero);
+                    const int a=na[s], b=nb[s];
+                    const double wA=w[wAi[s]][lvl], wB=w[wBi[s]][lvl], wMid=w[wMi[s]][lvl];
+                    const double wY0=w[wY0i[s]][lvl], wY1=w[wY1i[s]][lvl];
+                    if (addEM_S && d_p) {
+                        if (dexp) { const Scalar d0=d_p[0], d1=d_p[1]; const Scalar tmp0=wMid*(d0+d1);
+                            EM_S[INDEX2(a,a,4)]=d0*wA+d1*wB; EM_S[INDEX2(b,a,4)]=tmp0;
+                            EM_S[INDEX2(a,b,4)]=tmp0; EM_S[INDEX2(b,b,4)]=d0*wB+d1*wA; }
+                        else { const Scalar d0=d_p[0];
+                            EM_S[INDEX2(a,a,4)]=4.*d0*wMid; EM_S[INDEX2(b,a,4)]=2.*d0*wMid;
+                            EM_S[INDEX2(a,b,4)]=2.*d0*wMid; EM_S[INDEX2(b,b,4)]=4.*d0*wMid; }
+                    }
+                    if (addEM_F && y_p) {
+                        if (yexp) { EM_F[a]=wY0*y_p[0]+wY1*y_p[1]; EM_F[b]=wY0*y_p[1]+wY1*y_p[0]; }
+                        else { EM_F[a]=6.*wMid*y_p[0]; EM_F[b]=6.*wMid*y_p[0]; }
+                    }
+                    domain->addToMatrixAndRHSGhost(mat, rhs, EM_S, EM_F, addEM_S, addEM_F,
+                                                   &domain->m_ghostElemNodes[(size_t)g*4]);
+                }
+            }
+        }
+    }
 }
 
 /****************************************************************************/

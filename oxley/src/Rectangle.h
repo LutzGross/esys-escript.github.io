@@ -672,6 +672,16 @@ protected:
     template<typename Scalar>
     std::vector<Scalar> exchangeGhostCoeff(const escript::Data& coef) const;
 
+    // MPI (A6): exchange the boundary coefficients d,y (on FaceElements) to the
+    // ghost octant halo, packed per octant as 4 sides x [flag, d-sample, y-sample]
+    // (side order 0 left,1 right,2 bottom,3 top; flag>0 marks a domain-boundary
+    // face on that side). dSize/ySize (out) are the per-sample scalar counts (0 if
+    // that coefficient is empty). Returns num_ghosts*4*(1+dSize+ySize) scalars
+    // (empty if serial / no ghosts). Reusable across single/system/reduced.
+    template<typename Scalar>
+    std::vector<Scalar> exchangeGhostBoundary(const escript::Data& d,
+                            const escript::Data& y, size_t& dSize, size_t& ySize) const;
+
     // Updates m_faceOffset for each quadrant
     void updateFaceOffset();
 
