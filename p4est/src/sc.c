@@ -39,10 +39,19 @@ typedef void        (*sc_sig_t) (int);
 #endif
 #endif
 
-#include <errno.h>
-
 #ifdef SC_ENABLE_PTHREAD
 #include <pthread.h>
+#endif
+
+#ifdef _MSC_VER
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#endif
+
+#if _POSIX_C_SOURCE >= 199309L
+#include <time.h>
+#else
+#include <unistd.h>
 #endif
 
 typedef struct sc_package
@@ -91,6 +100,8 @@ const int sc_log2_lookup_table[256] =
 /* *INDENT-ON* */
 
 int                 sc_package_id = -1;
+int                 sc_initialized = 0;
+
 FILE               *sc_trace_file = NULL;
 int                 sc_trace_prio = SC_LP_STATISTICS;
 
@@ -112,7 +123,6 @@ static sc_abort_handler_t sc_default_abort_handler = sc_abort_handler;
 static int          sc_signals_caught = 0;
 static sc_sig_t     system_int_handler = NULL;
 static sc_sig_t     system_segv_handler = NULL;
-static sc_sig_t     system_usr2_handler = NULL;
 
 static int          sc_print_backtrace = 0;
 
@@ -120,10 +130,52 @@ static int          sc_num_packages = 0;
 static int          sc_num_packages_alloc = 0;
 static sc_package_t *sc_packages = NULL;
 
+void
+sc_extern_c_hack_1 (void)
+{
+  /* Completing the hack in sc.h on providing the prototype.
+     We use the macro SC_EXTER_C_BEGIN; after including all headers
+     and before declaring functions to ensure C linkage. */
+}
+
+void
+sc_extern_c_hack_2 (void)
+{
+  /* Completing the hack in sc.h on providing the prototype.
+     We use the macro SC_EXTER_C_END; after declaring all functions,
+     just before the final include-once check, to ensure C linkage. */
+}
+
+int
+sc_mpi_is_enabled (void)
+{
+#ifdef SC_ENABLE_MPI
+  return 1;
+#else
+  return 0;
+#endif
+}
+
+int
+sc_mpi_is_shared (void)
+{
+#ifdef SC_ENABLE_MPISHARED
+  return 1;
+#else
+  return 0;
+#endif
+}
+
 #ifdef SC_ENABLE_PTHREAD
 
 static pthread_mutex_t sc_default_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t sc_error_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+int
+sc_get_package_id (void)
+{
+  return sc_package_id;
+}
 
 static void
 sc_check_abort_thread (int condition, int package, const char *message)
@@ -181,6 +233,7 @@ sc_package_unlock (int package)
 void
 sc_package_rc_count_add (int package_id, int toadd)
 {
+#ifndef SC_NOCOUNT_REFCOUNT
   int                *pcount;
 #ifdef SC_ENABLE_DEBUG
   int                 newvalue;
@@ -202,6 +255,7 @@ sc_package_rc_count_add (int package_id, int toadd)
   sc_package_unlock (package_id);
 
   SC_ASSERT (newvalue >= 0);
+#endif
 }
 
 static void
@@ -216,9 +270,6 @@ sc_signal_handler (int sig)
   case SIGSEGV:
     sigstr = "SEGV";
     break;
-  case SIGUSR2:
-    sigstr = "USR2";
-    break;
   default:
     sigstr = "<unknown>";
     break;
@@ -228,8 +279,8 @@ sc_signal_handler (int sig)
   sc_abort ();
 }
 
-/** Installs or removes a signal handler for INT SEGV USR2 that aborts.
- * \param [in] catch    If true, catch signals INT SEGV USR2.
+/** Installs or removes a signal handler for INT SEGV that aborts.
+ * \param [in] catch    If true, catch signals INT SEGV.
  *                      If false, reinstate previous signal handler.
  */
 static void
@@ -240,8 +291,6 @@ sc_set_signal_handler (int catch_signals)
     SC_CHECK_ABORT (system_int_handler != SIG_ERR, "catching INT");
     system_segv_handler = signal (SIGSEGV, sc_signal_handler);
     SC_CHECK_ABORT (system_segv_handler != SIG_ERR, "catching SEGV");
-    system_usr2_handler = signal (SIGUSR2, sc_signal_handler);
-    SC_CHECK_ABORT (system_usr2_handler != SIG_ERR, "catching USR2");
     sc_signals_caught = 1;
   }
   else if (!catch_signals && sc_signals_caught) {
@@ -249,8 +298,6 @@ sc_set_signal_handler (int catch_signals)
     system_int_handler = NULL;
     (void) signal (SIGSEGV, system_segv_handler);
     system_segv_handler = NULL;
-    (void) signal (SIGUSR2, system_usr2_handler);
-    system_usr2_handler = NULL;
     sc_signals_caught = 0;
   }
 }
@@ -287,13 +334,19 @@ sc_log_handler (FILE * log_stream, const char *filename, int lineno,
     char                bn[BUFSIZ], *bp;
 
     snprintf (bn, BUFSIZ, "%s", filename);
+#ifdef SC_HAVE_LIBGEN_H
     bp = basename (bn);
+#else
+    bp = bn;
+#endif
     fprintf (log_stream, "%s:%d ", bp, lineno);
   }
 
   fputs (msg, log_stream);
   fflush (log_stream);
 }
+
+#ifndef SC_NOCOUNT_MALLOC
 
 static int         *
 sc_malloc_count (int package)
@@ -314,6 +367,8 @@ sc_free_count (int package)
   SC_ASSERT (sc_package_is_registered (package));
   return &sc_packages[package].free_count;
 }
+
+#endif
 
 #ifdef SC_ENABLE_MEMALIGN
 
@@ -351,6 +406,14 @@ sc_malloc_aligned (size_t alignment, size_t size)
                     "Returned NULL from aligned_alloc");
     return data;
   }
+#elif defined SC_HAVE_ANY_MEMALIGN && defined SC_HAVE_ALIGNED_MALLOC
+  /* MinGW, MSVC */
+  {
+    void               *data = _aligned_malloc (size, alignment);
+    SC_CHECK_ABORT (data != NULL || size == 0,
+                    "Returned NULL from aligned_alloc");
+    return data;
+  }
 #else
   {
 #if 0
@@ -367,8 +430,8 @@ sc_malloc_aligned (size_t alignment, size_t size)
      * size up front, then the real data shifted by at most alignment - 1
      * bytes.  This way there is always at least one stop byte at the end that
      * we can use for debugging. */
-    const ptrdiff_t     extrasize = (const ptrdiff_t) (2 * sizeof (char **));
-    const ptrdiff_t     signalign = (const ptrdiff_t) alignment;
+    const ptrdiff_t     extrasize = (ptrdiff_t) (2 * sizeof (char **));
+    const ptrdiff_t     signalign = (ptrdiff_t) alignment;
     const size_t        alloc_size = extrasize + size + alignment;
     char               *alloc_ptr = (char *) malloc (alloc_size);
     char               *ptr;
@@ -427,8 +490,8 @@ sc_free_aligned (void *ptr, size_t alignment)
     /* this mirrors the function sc_malloc_aligned above */
     char               *alloc_ptr;
 #ifdef SC_ENABLE_DEBUG
-    const ptrdiff_t     extrasize = (const ptrdiff_t) (2 * sizeof (char **));
-    const ptrdiff_t     signalign = (const ptrdiff_t) alignment;
+    const ptrdiff_t     extrasize = (ptrdiff_t) (2 * sizeof (char **));
+    const ptrdiff_t     signalign = (ptrdiff_t) alignment;
     ptrdiff_t           shift, modu, ssize, i;
 #endif
 
@@ -482,7 +545,7 @@ sc_realloc_aligned (void *ptr, size_t alignment, size_t size)
 #else
   {
 #ifdef SC_ENABLE_DEBUG
-    const ptrdiff_t     signalign = (const ptrdiff_t) alignment;
+    const ptrdiff_t     signalign = (ptrdiff_t) alignment;
 #endif
     size_t              old_size, min_size;
     void               *new_ptr;
@@ -517,10 +580,12 @@ void               *
 sc_malloc (int package, size_t size)
 {
   void               *ret;
+#ifndef SC_NOCOUNT_MALLOC
   int                *malloc_count = sc_malloc_count (package);
+#endif
 
   /* allocate memory */
-#if defined SC_ENABLE_MEMALIGN
+#ifdef SC_ENABLE_MEMALIGN
   ret = sc_malloc_aligned (SC_MEMALIGN_BYTES, size);
 #else
   ret = malloc (size);
@@ -534,12 +599,16 @@ sc_malloc (int package, size_t size)
 #ifdef SC_ENABLE_PTHREAD
   sc_package_lock (package);
 #endif
+
+#ifndef SC_NOCOUNT_MALLOC
   if (size > 0) {
     ++*malloc_count;
   }
   else {
     *malloc_count += ((ret == NULL) ? 0 : 1);
   }
+#endif
+
 #ifdef SC_ENABLE_PTHREAD
   sc_package_unlock (package);
 #endif
@@ -551,10 +620,12 @@ void               *
 sc_calloc (int package, size_t nmemb, size_t size)
 {
   void               *ret;
+#ifndef SC_NOCOUNT_MALLOC
   int                *malloc_count = sc_malloc_count (package);
+#endif
 
   /* allocate memory */
-#if defined SC_ENABLE_MEMALIGN
+#ifdef SC_ENABLE_MEMALIGN
   ret = sc_malloc_aligned (SC_MEMALIGN_BYTES, nmemb * size);
   memset (ret, 0, nmemb * size);
 #else
@@ -569,12 +640,16 @@ sc_calloc (int package, size_t nmemb, size_t size)
 #ifdef SC_ENABLE_PTHREAD
   sc_package_lock (package);
 #endif
+
+#ifndef SC_NOCOUNT_MALLOC
   if (nmemb * size > 0) {
     ++*malloc_count;
   }
   else {
     *malloc_count += ((ret == NULL) ? 0 : 1);
   }
+#endif
+
 #ifdef SC_ENABLE_PTHREAD
   sc_package_unlock (package);
 #endif
@@ -595,7 +670,7 @@ sc_realloc (int package, void *ptr, size_t size)
   else {
     void               *ret;
 
-#if defined SC_ENABLE_MEMALIGN
+#ifdef SC_ENABLE_MEMALIGN
     ret = sc_realloc_aligned (ptr, SC_MEMALIGN_BYTES, size);
 #else
     ret = realloc (ptr, size);
@@ -632,19 +707,25 @@ sc_free (int package, void *ptr)
   }
   else {
     /* uncount the allocations */
+#ifndef SC_NOCOUNT_MALLOC
     int                *free_count = sc_free_count (package);
+#endif
 
 #ifdef SC_ENABLE_PTHREAD
     sc_package_lock (package);
 #endif
+
+#ifndef SC_NOCOUNT_MALLOC
     ++*free_count;
+#endif
+
 #ifdef SC_ENABLE_PTHREAD
     sc_package_unlock (package);
 #endif
   }
 
   /* free memory */
-#if defined SC_ENABLE_MEMALIGN
+#ifdef SC_ENABLE_MEMALIGN
   sc_free_aligned (ptr, SC_MEMALIGN_BYTES);
 #else
   free (ptr);
@@ -681,32 +762,61 @@ sc_package_set_abort_alloc_mismatch (int package_id, int set_abort)
   }
 }
 
-void
-sc_memory_check (int package)
+int
+sc_memory_check_noabort (int package)
 {
-  sc_package_t       *p;
+  int                 num_errors = 0;
 
   if (package == -1) {
-    SC_CHECK_ABORT (default_rc_active == 0, "Leftover references (default)");
-    if (default_abort_mismatch) {
-      SC_CHECK_ABORT (default_malloc_count == default_free_count,
-                      "Memory balance (default)");
+    if (default_rc_active != 0) {
+      SC_LERROR ("Leftover references (default)\n");
+      ++num_errors;
     }
-    else if (default_malloc_count != default_free_count) {
-      SC_GLOBAL_LERROR ("Memory balance (default)\n");
+    if (default_malloc_count != default_free_count) {
+      SC_LERROR ("Memory balance (default)\n");
+      ++num_errors;
     }
   }
   else {
-    SC_ASSERT (sc_package_is_registered (package));
-    p = sc_packages + package;
-    SC_CHECK_ABORTF (p->rc_active == 0, "Leftover references (%s)", p->name);
-    if (p->abort_mismatch) {
-      SC_CHECK_ABORTF (p->malloc_count == p->free_count,
-                       "Memory balance (%s)", p->name);
+    if (!sc_package_is_registered (package)) {
+      SC_LERRORF ("Package %d not registered\n", package);
+      ++num_errors;
     }
-    else if (p->malloc_count != p->free_count) {
-      SC_GLOBAL_LERRORF ("Memory balance (%s)\n", p->name);
+    else {
+      sc_package_t       *p = sc_packages + package;
+
+      if (p->rc_active != 0) {
+        SC_LERRORF ("Leftover references (%s)\n", p->name);
+        ++num_errors;
+      }
+      if (p->malloc_count != p->free_count) {
+        SC_LERRORF ("Memory balance (%s)\n", p->name);
+        ++num_errors;
+      }
     }
+  }
+  return num_errors;
+}
+
+static int
+sc_query_doabort (int package)
+{
+  if (package == -1) {
+    return default_abort_mismatch;
+  }
+  else if (sc_package_is_registered (package)) {
+    return sc_packages[package].abort_mismatch;
+  }
+  else {
+    return 1;
+  }
+}
+
+void
+sc_memory_check (int package)
+{
+  if (sc_memory_check_noabort (package)) {
+    SC_CHECK_ABORT (!sc_query_doabort (package), "Memory and counter check");
   }
 }
 
@@ -762,6 +872,19 @@ sc_double_compare (const void *v1, const void *v2)
   const double        d2 = *(double *) v2;
 
   return d1 < d2 ? -1 : d1 > d2 ? 1 : 0;
+}
+
+int
+sc_atoi (const char *nptr)
+{
+  long                r = strtol (nptr, NULL, 10);
+  return r <= INT_MIN ? INT_MIN : r >= INT_MAX ? INT_MAX : (int) r;
+}
+
+long
+sc_atol (const char *nptr)
+{
+  return strtol (nptr, NULL, 10);
 }
 
 void
@@ -871,6 +994,7 @@ void
 sc_log_indent_push_count (int package, int count)
 {
   /* TODO: figure out a version that makes sense with threads */
+#ifndef SC_NOCOUNT_LOGINDENT
 #ifndef SC_ENABLE_PTHREAD
   SC_ASSERT (package < sc_num_packages);
 
@@ -878,12 +1002,14 @@ sc_log_indent_push_count (int package, int count)
     sc_packages[package].log_indent += SC_MAX (0, count);
   }
 #endif
+#endif
 }
 
 void
 sc_log_indent_pop_count (int package, int count)
 {
   /* TODO: figure out a version that makes sense with threads */
+#ifndef SC_NOCOUNT_LOGINDENT
 #ifndef SC_ENABLE_PTHREAD
   int                 new_indent;
 
@@ -893,6 +1019,7 @@ sc_log_indent_pop_count (int package, int count)
     new_indent = sc_packages[package].log_indent - SC_MAX (0, count);
     sc_packages[package].log_indent = SC_MAX (0, new_indent);
   }
+#endif
 #endif
 }
 
@@ -950,8 +1077,11 @@ sc_abort_handler (void)
 
   fflush (stdout);
   fflush (stderr);
+#ifdef _MSC_VER
+  Sleep (1);
+#else
   sleep (1);                    /* allow time for pending output */
-
+#endif
   if (sc_mpicomm != sc_MPI_COMM_NULL) {
     sc_MPI_Abort (sc_mpicomm, 1);       /* terminate all MPI processes */
   }
@@ -1000,7 +1130,11 @@ sc_abort_collective (const char *msg)
     SC_ABORT (msg);
   }
   else {
+#ifdef _MSC_VER
+    Sleep (3);
+#else
     sleep (3);                  /* wait for root rank's sc_MPI_Abort ()... */
+#endif
     abort ();                   /* ... otherwise this may call sc_MPI_Abort () */
   }
 }
@@ -1089,9 +1223,10 @@ sc_package_register (sc_log_handler_t log_handler, int log_threshold,
 int
 sc_package_is_registered (int package_id)
 {
-  SC_CHECK_ABORT (0 <= package_id, "Invalid package id");
-
-  return (package_id < sc_num_packages_alloc &&
+  if (package_id < 0) {
+    SC_LERRORF ("Invalid package id %d\n", package_id);
+  }
+  return (0 <= package_id && package_id < sc_num_packages_alloc &&
           sc_packages[package_id].is_registered);
 }
 
@@ -1111,31 +1246,46 @@ sc_package_set_verbosity (int package_id, int log_priority)
   p->log_threshold = log_priority;
 }
 
+static int
+sc_package_unregister_noabort (int package_id)
+{
+  int                 num_errors = 0;
+  sc_package_t       *p;
+
+  if (!sc_package_is_registered (package_id)) {
+    SC_LERRORF ("Package %d not registered\n", package_id);
+    ++num_errors;
+  }
+  else {
+    /* examine counter consistency */
+    num_errors += sc_memory_check_noabort (package_id);
+
+    /* clean internal package structure */
+    p = sc_packages + package_id;
+    p->is_registered = 0;
+    p->log_handler = NULL;
+    p->log_threshold = SC_LP_DEFAULT;
+    p->malloc_count = p->free_count = 0;
+    p->rc_active = 0;
+#ifdef SC_ENABLE_PTHREAD
+    if (pthread_mutex_destroy (&p->mutex)) {
+      SC_LERRORF ("Mutex destroy failed for package %s", p->name);
+      ++num_errors;
+    }
+#endif
+    p->name = p->full = NULL;
+    --sc_num_packages;
+  }
+  return num_errors;
+}
+
 void
 sc_package_unregister (int package_id)
 {
-#ifdef SC_ENABLE_PTHREAD
-  int                 i;
-#endif
-  sc_package_t       *p;
-
-  SC_CHECK_ABORT (sc_package_is_registered (package_id),
-                  "Package not registered");
-  sc_memory_check (package_id);
-
-  p = sc_packages + package_id;
-  p->is_registered = 0;
-  p->log_handler = NULL;
-  p->log_threshold = SC_LP_DEFAULT;
-  p->malloc_count = p->free_count = 0;
-  p->rc_active = 0;
-#ifdef SC_ENABLE_PTHREAD
-  i = pthread_mutex_destroy (&p->mutex);
-  SC_CHECK_ABORTF (i == 0, "Mutex destroy failed for package %s", p->name);
-#endif
-  p->name = p->full = NULL;
-
-  --sc_num_packages;
+  if (sc_package_unregister_noabort (package_id)) {
+    SC_CHECK_ABORTF (!sc_query_doabort (package_id),
+                     "Unregistering package %d", package_id);
+  }
 }
 
 void
@@ -1163,7 +1313,6 @@ sc_init (sc_MPI_Comm mpicomm,
          int catch_signals, int print_backtrace,
          sc_log_handler_t log_handler, int log_threshold)
 {
-  int                 w;
   const char         *trace_file_name;
   const char         *trace_file_prio;
 
@@ -1229,73 +1378,38 @@ sc_init (sc_MPI_Comm mpicomm,
     }
   }
 
-  w = 24;
+  /* one line of logging if the threshold is not SC_LP_SILENT */
   SC_GLOBAL_ESSENTIALF ("This is %s\n", SC_PACKAGE_STRING);
-#if 0
-  SC_GLOBAL_PRODUCTIONF ("%-*s %s\n", w, "F77", SC_F77);
-  SC_GLOBAL_PRODUCTIONF ("%-*s %s\n", w, "FFLAGS", SC_FFLAGS);
-#endif
-  SC_GLOBAL_PRODUCTIONF ("%-*s %s\n", w, "CPP", SC_CPP);
-  SC_GLOBAL_PRODUCTIONF ("%-*s %s\n", w, "CPPFLAGS", SC_CPPFLAGS);
-  SC_GLOBAL_PRODUCTIONF ("%-*s %s\n", w, "CC", SC_CC);
-#if 0
-  SC_GLOBAL_PRODUCTIONF ("%-*s %s\n", w, "C_VERSION", SC_C_VERSION);
-#endif
-  SC_GLOBAL_PRODUCTIONF ("%-*s %s\n", w, "CFLAGS", SC_CFLAGS);
-  SC_GLOBAL_PRODUCTIONF ("%-*s %s\n", w, "LDFLAGS", SC_LDFLAGS);
-  SC_GLOBAL_PRODUCTIONF ("%-*s %s\n", w, "LIBS", SC_LIBS);
-#if 0
-  SC_GLOBAL_PRODUCTIONF ("%-*s %s\n", w, "BLAS_LIBS", SC_BLAS_LIBS);
-  SC_GLOBAL_PRODUCTIONF ("%-*s %s\n", w, "LAPACK_LIBS", SC_LAPACK_LIBS);
-  SC_GLOBAL_PRODUCTIONF ("%-*s %s\n", w, "FLIBS", SC_FLIBS);
-#endif
-
-#if defined(SC_ENABLE_MPI) && defined(SC_ENABLE_MPICOMMSHARED)
-  if (mpicomm != MPI_COMM_NULL) {
-    int                 mpiret;
-    MPI_Comm            intranode, internode;
-
-    /* compute the node comms by default */
-    sc_mpi_comm_attach_node_comms (mpicomm, 0);
-    sc_mpi_comm_get_node_comms (mpicomm, &intranode, &internode);
-    if (intranode == MPI_COMM_NULL) {
-      SC_GLOBAL_STATISTICS ("No shared memory node communicators\n");
-    }
-    else {
-      int                 intrasize;
-
-      mpiret = MPI_Comm_size (intranode, &intrasize);
-      SC_CHECK_MPI (mpiret);
-
-      SC_GLOBAL_STATISTICSF ("Shared memory node communicator size: %d\n",
-                             intrasize);
-    }
-  }
-#endif
+  SC_GLOBAL_INFOF ("MPI is enabled %d shared %d\n",
+                   sc_mpi_is_enabled (), sc_mpi_is_shared ());
+  sc_initialized = 1;
 }
 
-void
-sc_finalize (void)
+int
+sc_is_initialized (void)
+{
+  return sc_initialized;
+}
+
+int
+sc_finalize_noabort (void)
 {
   int                 i;
-  int                 retval;
-
-#if defined(SC_ENABLE_MPI) && defined(SC_ENABLE_MPICOMMSHARED)
-  sc_mpi_comm_detach_node_comms (sc_mpicomm);
-#endif
+  int                 num_errors = 0;
 
   /* sc_packages is static and thus initialized to all zeros */
   for (i = sc_num_packages_alloc - 1; i >= 0; --i)
     if (sc_packages[i].is_registered)
-      sc_package_unregister (i);
+      num_errors += sc_package_unregister_noabort (i);
 
   SC_ASSERT (sc_num_packages == 0);
-  sc_memory_check (-1);
+  num_errors += sc_memory_check_noabort (-1);
 
   free (sc_packages);
   sc_packages = NULL;
   sc_num_packages_alloc = 0;
 
+  /* with this argument the function will never abort */
   sc_set_signal_handler (0);
   sc_mpicomm = sc_MPI_COMM_NULL;
 
@@ -1304,11 +1418,24 @@ sc_finalize (void)
 
   /* close trace file */
   if (sc_trace_file != NULL) {
-    retval = fclose (sc_trace_file);
-    SC_CHECK_ABORT (!retval, "Trace file close");
-
+    if (fclose (sc_trace_file)) {
+      SC_LERROR ("Trace file close");
+      ++num_errors;
+    }
     sc_trace_file = NULL;
   }
+
+  sc_package_id = -1;
+  sc_initialized = 0;
+
+  return num_errors;
+}
+
+void
+sc_finalize (void)
+{
+  SC_CHECK_ABORT (!sc_finalize_noabort () ||
+                  !default_abort_mismatch, "Finalize");
 }
 
 int
@@ -1342,8 +1469,6 @@ sc_is_root (void)
 #undef SC_ESSENTIALF
 #undef SC_LERRORF
 #endif
-
-#ifndef SC_SPLINT
 
 void
 SC_ABORTF (const char *fmt, ...)
@@ -1428,4 +1553,116 @@ SC_LOG_IMP (ESSENTIAL, ESSENTIAL)
 SC_LOG_IMP (LERROR, ERROR)
 /* *INDENT-ON* */
 
+void
+sc_strcopy (char *dest, size_t size, const char *src)
+{
+  sc_snprintf (dest, size, "%s", src);
+}
+
+void
+sc_snprintf (char *str, size_t size, const char *fmt, ...)
+{
+  int                 retval;
+  va_list             ap;
+
+  /* If there is no space, we do not access the buffer at all.
+     Further down we expect it to be at least 1 byte wide */
+  if (str == NULL || size == 0) {
+    return;
+  }
+
+  /* avoid uninitialized bytes if strlen (src) < size - 1 */
+  memset (str, 0, size);
+
+  /* Writing this function just to catch the return value.
+     Avoiding -Wnoformat-truncation gcc option this way */
+  va_start (ap, fmt);
+  retval = vsnprintf (str, size, fmt, ap);
+  if (retval < 0) {
+    str[0] = '\0';
+  }
+  /* We do not handle truncation, since it is expected in our design. */
+  va_end (ap);
+}
+
+const char         *
+sc_version (void)
+{
+  return SC_VERSION;
+}
+
+int
+sc_version_major (void)
+{
+  /* In rare cases SC_VERSION_MINOR may be a non-numerical string */
+  return sc_atoi (SC_TOSTRING (SC_VERSION_MAJOR));
+}
+
+int
+sc_version_minor (void)
+{
+  /* In rare cases SC_VERSION_MINOR may be a non-numerical string */
+  return sc_atoi (SC_TOSTRING (SC_VERSION_MINOR));
+}
+
+#if 0
+int
+sc_version_point (void)
+{
+  /* SC_VERSION_POINT may contain a dot and/or dash,
+     followed by additional information */
+  return sc_atoi (SC_TOSTRING (SC_VERSION_POINT));
+}
 #endif
+
+int
+sc_is_littleendian (void)
+{
+  /* We use the volatile keyword to deactivate compiler optimizations related
+   * to the variable uint.
+   */
+  const volatile uint32_t uint = 1;
+  return *(char *) &uint == 1;
+}
+
+int
+sc_have_zlib (void)
+{
+#ifndef SC_HAVE_ZLIB
+  return 0;
+#else
+  return 1;
+#endif
+}
+
+int
+sc_have_json (void)
+{
+#ifndef SC_HAVE_JSON
+  return 0;
+#else
+  return 1;
+#endif
+}
+
+void
+sc_sleep (unsigned milliseconds){
+#if _POSIX_C_SOURCE >= 199309L
+  struct timespec ts;
+  /* full seconds */
+  ts.tv_sec = milliseconds / 1000;
+  /* nanoseconds */
+  ts.tv_nsec = (milliseconds % 1000) * 1000000;
+  nanosleep (&ts, NULL);
+#elif defined(_POSIX_C_SOURCE)
+  /* older POSIX */
+  if (milliseconds >= 1000) {
+    sleep (milliseconds / 1000);
+  }
+  usleep ((milliseconds % 1000) * 1000);
+#elif _MSC_VER
+  Sleep (milliseconds);
+#else
+  SC_ABORT ("No suitable sleep function available.");
+#endif
+}

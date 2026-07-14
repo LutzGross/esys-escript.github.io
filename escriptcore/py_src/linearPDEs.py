@@ -1574,11 +1574,8 @@ class LinearProblem(object):
         :type data: `list`
         """
         self.getDomain().addToSystem(op, rhs, data, self.assembler)
-        if self.hasOxley():
-            self.getDomain().makeZ(self.__complex)
-            self.getDomain().makeIZ(self.__complex)
-            self.getDomain().finaliseA(op,self.__complex)
-            rhs=self.getDomain().finaliseRhs(rhs)
+        # oxley now assembles the final (element-condensed) system directly, so
+        # the old Z/IZ post-condensation hook has been removed.
 
    def addPDEToLumpedSystem(self, operator, a, b, c, hrz_lumping):
         """

@@ -22,12 +22,36 @@
   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
+/** \file p8est_communication.h
+ *
+ * Parallel messaging and support code.
+ *
+ * \ingroup p8est
+ */
+
 #ifndef P8EST_COMMUNICATION_H
 #define P8EST_COMMUNICATION_H
 
 #include <p8est.h>
 
 SC_EXTERN_C_BEGIN;
+
+/** Given target, find index p such that `gfq[p] <= target < gfq[p + 1]`.
+ * \param[in] target    The value that is searched in \a gfq. \a target
+ *                      has to satisfy `gfq[0] <= target < gfq[nmemb]`.
+ * \param[in] gfq       The sorted array (ascending) in that the function will
+ *                      search.
+ * \param [in] nmemb    Number of entries in array MINUS ONE.
+ * \return              Index p such that `gfq[p] <= target < gfq[p + 1]`.
+ * \note                This function differs from \ref p8est_find_partition
+ *                      since \ref p8est_find_partition searches for two
+ *                      targets using binary search in an optimized way
+ *                      but \ref p8est_bsearch_partition only performs a
+ *                      single binary search.
+ */
+int                 p8est_bsearch_partition (p4est_gloidx_t target,
+                                             const p4est_gloidx_t * gfq,
+                                             int nmemb);
 
 /** Assign an MPI communicator to p8est; retrieve parallel environment.
  *
@@ -69,7 +93,7 @@ int                 p8est_comm_parallel_env_is_null (p8est_t * p8est);
 
 /** Reduce MPI communicator to non-empty ranks (i.e., nonzero quadrant counts).
  *
- * \param [in/out] p8est_supercomm  Object which communicator is reduced.
+ * \param [in,out] p8est_supercomm  Object which communicator is reduced.
  *                                  Points to NULL if this p8est does not
  *                                  exists.
  *
@@ -82,7 +106,7 @@ int                 p8est_comm_parallel_env_reduce (p8est_t **
  * will remain in the reduced communicator regardless whether they are empty
  * or not.
  *
- * \param [in/out] p8est_supercomm  Object which communicator is reduced.
+ * \param [in,out] p8est_supercomm  Object which communicator is reduced.
  *                                  Points to NULL if this p8est does not
  *                                  exists.
  * \param [in] group_add         Group of ranks that will remain in
@@ -102,7 +126,7 @@ int                 p8est_comm_parallel_env_reduce_ext (p8est_t **
                                                         int add_to_beginning,
                                                         int **ranks_subcomm);
 
-/** Caculate the number and partition of quadrents.
+/** Calculate the number and partition of quadrants.
  * \param [in,out] p8est  Adds all \c p8est->local_num_quadrant counters and
  *                        puts cumulative sums in p8est->global_first_quadrant.
  */
@@ -120,6 +144,21 @@ void                p8est_comm_global_partition (p8est_t * p8est,
                                                  p8est_quadrant_t *
                                                  first_quad);
 
+/** Calculate the global fist quadrant array for a uniform partition.
+ *
+ * \param [in] global_num_quadrants   The global number of quadrants.
+ * \param [in] mpisize                The number of MPI ranks.
+ * \param [in,out] gfq                At least allocated mpisize + 1
+ *                                    p4est_gloidx_t. This array is
+ *                                    filled with the global first
+ *                                    quadrant array assuming a
+ *                                    uniform partition.
+ */
+void                p8est_comm_global_first_quadrant (p4est_gloidx_t
+                                                      global_num_quadrants,
+                                                      int mpisize,
+                                                      p4est_gloidx_t * gfq);
+
 /** Compute and distribute the cumulative number of quadrants per tree.
  * \param [in] p8est    This p8est needs to have correct values for
  *                      global_first_quadrant and global_first_position.
@@ -134,9 +173,29 @@ void                p8est_comm_count_pertree (p8est_t * p8est,
  * \param [in] p        Valid processor id.
  * \return              True if and only if processor \p is empty.
  */
-int                 p8est_comm_is_empty (p8est_t * p8est, int p);
+int                 p8est_comm_is_empty (p8est_t *p8est, int p);
 
-/** Test whether a quadrant is fully contained in a rank's owned regien.
+/** Query whether a processor has no quadrants.
+ * \param [in] gfq          An array encoding the partition offsets in the
+ *                          global quadrant array; length \a num_procs + 1.
+ * \param [in] num_procs    Number of processes in the partition.
+ * \param [in] p            Valid 0 <= \a p < \a num_procs.
+ * \return              True if and only if processor \a p is empty.
+ */
+int                 p8est_comm_is_empty_gfq (const p4est_gloidx_t *gfq,
+                                             int num_procs, int p);
+
+/** Query whether a processor has no quadrants.
+ * \param [in] gfp          An array encoding the partition shape.
+ *                          Non-decreasing; length \a num_procs + 1.
+ * \param [in] num_procs    Number of processes in the partition.
+ * \param [in] p            Valid 0 <= \a p < \a num_procs.
+ * \return              True if and only if processor \a p is empty.
+ */
+int                 p8est_comm_is_empty_gfp (const p8est_quadrant_t *gfp,
+                                             int num_procs, int p);
+
+/** Test whether a quadrant is fully contained in a rank's owned region.
  * This function may return false when \ref p8est_comm_is_owner returns true.
  * \param [in] rank    Rank whose ownership is tested.
  *                     Assumes a forest with no overlaps.
@@ -147,18 +206,37 @@ int                 p8est_comm_is_contained (p8est_t * p8est,
                                              const p8est_quadrant_t * q,
                                              int rank);
 
-/** Test ownershop of a quadrant via p8est->global_first_position.
+/** Test ownership of a quadrant via p8est->global_first_position.
  * The quadrant is considered owned if its first descendant is owned.
- * This, a positive result occurs even if its last descendant overlaps
+ * Thus, a positive result occurs even if its last descendant overlaps
  * a higher process.
- * \param [in] rank    Rank whose ownership is tested.
- *                     Assumes a forest with no overlaps.
- * \return true if rank is the owner of the first descendant.
+ * \param [in] p8est        Valid forest.
+ * \param [in] which_tree   Valid tree number wrt. the forest.
+ * \param [in] q            Valid quadrant wrt. the forest.
+ * \param [in] rank         Rank whose ownership is tested.
+ * \return      True if rank is the owner of the first descendant.
  */
-int                 p8est_comm_is_owner (p8est_t * p8est,
+int                 p8est_comm_is_owner (p8est_t *p8est,
                                          p4est_locidx_t which_tree,
-                                         const p8est_quadrant_t * q,
+                                         const p8est_quadrant_t *q,
                                          int rank);
+
+/** Test ownership of a quadrant via a global_first_position array.
+ * This array encodes part of the partition of a valid forest object.
+ * The quadrant is considered owned if its first descendant is owned.
+ * Thus, a positive result occurs even if its last descendant overlaps
+ * a higher process.
+ * \param [in] gfp          Position array of length \a num_procs + 1.
+ * \param [in] num_procs    Number of processes in this context.
+ * \param [in] num_trees    Number of trees in this context.
+ * \param [in] which_tree   Valid tree number wrt. the forest.
+ * \param [in] q            Valid quadrant wrt. the forest.
+ * \param [in] rank         Rank whose ownership is tested.
+ * \return      True if rank is the owner of the first descendant.
+ */
+int                 p8est_comm_is_owner_gfp
+  (const p8est_quadrant_t *gfp, int num_procs, p4est_topidx_t num_trees,
+   p4est_locidx_t which_tree, const p8est_quadrant_t *q, int rank);
 
 /** Searches the owner of a quadrant via p8est->global_first_position.
  * Assumes a tree with no overlaps.
@@ -174,8 +252,8 @@ int                 p8est_comm_find_owner (p8est_t * p8est,
  * This is determined separately for the beginning and end of the tree.
  * \param [in] p8est            The p8est to work on.
  * \param [in] which_tree       The tree in question must be partially owned.
- * \param [out] full_tree[2]    Full ownership of beginning and end of tree.
- * \param [out] tree_contact[6] True if there are neighbors across the face.
+ * \param [out] full_tree       Full ownership of beginning and end of tree.
+ * \param [out] tree_contact    True if there are neighbors across the face.
  * \param [out] firstq          Smallest possible first quadrant on this core.
  * \param [out] nextq           Smallest possible first quadrant on next core.
  *                          Any of tree_contact, firstq and nextq may be NULL.
@@ -190,8 +268,8 @@ void                p8est_comm_tree_info (p8est_t * p8est,
 /** Test if the 3x3 neighborhood of a quadrant is owned by this processor.
  * \param [in] p8est            The p8est to work on.
  * \param [in] which_tree       The tree index to work on.
- * \param [in] full_tree[2]     Flags as computed by p8est_comm_tree_info.
- * \param [in] tree_contact[6]  Flags as computed by p8est_comm_tree_info.
+ * \param [in] full_tree        Flags as computed by p8est_comm_tree_info.
+ * \param [in] tree_contact     Flags as computed by p8est_comm_tree_info.
  * \param [in] q                The quadrant to be checked.
  * \return          Returns true iff this quadrant's 3x3 neighborhood is owned.
  */
@@ -210,11 +288,14 @@ int                 p8est_comm_neighborhood_owned (p8est_t * p8est,
 int                 p8est_comm_sync_flag (p8est_t * p8est,
                                           int flag, sc_MPI_Op operation);
 
-/** Compute a parallel checksum out of local checksums.
+/** Compute a parallel partition-independent checksum out of local checksums.
+ * This checksum depends on the global refinement topology.
+ * It does not depend on how the mesh is partitioned.
+ * The result is available on all processors.
  * \param [in] p8est       The MPI information of this p8est will be used.
  * \param [in] local_crc   Locally computed adler32 checksum.
  * \param [in] local_bytes Number of bytes used for local checksum.
- * \return                 Parallel checksum on rank 0, 0 otherwise.
+ * \return                 Parallel checksum on all processors.
  */
 unsigned            p8est_comm_checksum (p8est_t * p8est,
                                          unsigned local_crc,
@@ -412,7 +493,7 @@ void                p8est_transfer_custom_end (p8est_transfer_context_t * tc);
 /** Transfer variable-count item data between partitions.
  * Each quadrant may have a different number of items (including 0).
  * (See \ref p8est_transfer_fixed that is optimized for fixed-count data,
- *  and \ref p8est_transfer_custem for data that is not itemized at all.)
+ *  and \ref p8est_transfer_custom for data that is not itemized at all.)
  * The destination process may not know the item count for the elements it
  * receives.  In this case the counts need to be obtained separately in advance,
  * for example by calling \ref p8est_transfer_fixed with \b src_counts as

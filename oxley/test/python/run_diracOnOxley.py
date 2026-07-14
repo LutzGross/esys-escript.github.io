@@ -72,23 +72,20 @@ class Test_OxleyDiracPoints(unittest.TestCase):
 
     def generateRects(self, a, b):
         rectX = Rectangle(self.longEdge, self.shortEdge, l0=self.longEdge,
-                l1=self.shortEdge, d0=self.numRanks, diracPoints=[(a,b)], diracTags=["test"])
+                l1=self.shortEdge, diracPoints=[(a,b)], diracTags=["test"])
         rectY = Rectangle(self.shortEdge, self.longEdge, l0=self.shortEdge,
-                l1=self.longEdge, d1=self.numRanks, diracPoints=[(b,a)], diracTags=["test"])
+                l1=self.longEdge, diracPoints=[(b,a)], diracTags=["test"])
         return [rectX, rectY]
 
     def generateBricks(self, a, b, c):
         brickX = Brick(self.longEdge, 5, 5, 
                 l0=self.longEdge, l1=5, l2=5,
-                d0=self.numRanks,
                 diracPoints=[(a,b,c)], diracTags=["test"])
         brickY = Brick(5, self.longEdge, 5, 
                 l0=5, l1=self.longEdge, l2=self.shortEdge,
-                d1=self.numRanks,
                 diracPoints=[(c,a,b)], diracTags=["test"])
         brickZ = Brick(5, 5, self.longEdge,
-                l0=5, l1=5, l2=self.longEdge, 
-                d2=self.numRanks,
+                l0=5, l1=5, l2=self.longEdge,
                 diracPoints=[(b,c,a)], diracTags=["test"])
         dims = [ [self.longEdge, 5, 5], [5, self.longEdge, 5], 
                       [5, 5, self.longEdge]]
@@ -144,39 +141,39 @@ class Test_OxleyDiracPoints(unittest.TestCase):
 
         #test bad types
         with self.assertRaises(TypeError):
-            Rectangle(5, el, d1=r,  diracPoints=(.0,0.), diracTags=["test"])
+            Rectangle(5, el,  diracPoints=(.0,0.), diracTags=["test"])
         with self.assertRaises(TypeError):
-            Rectangle(5, el, d1=r,  diracPoints=[(.0,0.)], diracTags=("test"))
+            Rectangle(5, el,  diracPoints=[(.0,0.)], diracTags=("test"))
         with self.assertRaises(TypeError):
-            Rectangle(5, el, d1=r,  diracPoints=[.0], diracTags=["test"])
+            Rectangle(5, el,  diracPoints=[.0], diracTags=["test"])
         with self.assertRaises(TypeError):
-            Rectangle(5, el, d1=r,  diracPoints=[.0,.0], diracTags=["test"])
+            Rectangle(5, el,  diracPoints=[.0,.0], diracTags=["test"])
 
         with self.assertRaises(TypeError):
-            Brick(5, el, 5, d1=r, diracPoints=(.0,0.,0.), diracTags=["test"])
+            Brick(5, el, 5, diracPoints=(.0,0.,0.), diracTags=["test"])
         with self.assertRaises(TypeError):
-            Brick(5, el, 5, d1=r, diracPoints=[(.0,0.,0.)], diracTags=("test"))
+            Brick(5, el, 5, diracPoints=[(.0,0.,0.)], diracTags=("test"))
         with self.assertRaises(TypeError):
-            Brick(5, el, 5, d1=r, diracPoints=[.0,0.], diracTags=["test"])
+            Brick(5, el, 5, diracPoints=[.0,0.], diracTags=["test"])
             
         #test bad arg lengths
         with self.assertRaises(RuntimeError):
-            Rectangle(5, el, d1=r,  diracPoints=[(.0,)], diracTags=["test"])
+            Rectangle(5, el,  diracPoints=[(.0,)], diracTags=["test"])
         with self.assertRaises(RuntimeError):
-            Rectangle(5, el, d1=r,  diracPoints=[(.0,1.)], diracTags=[])
+            Rectangle(5, el,  diracPoints=[(.0,1.)], diracTags=[])
         with self.assertRaises(RuntimeError):
-            Rectangle(5, el, d1=r,  diracPoints=[(.0,0.)], diracTags=["test", "break"])
+            Rectangle(5, el,  diracPoints=[(.0,0.)], diracTags=["test", "break"])
         with self.assertRaises(RuntimeError):
-            Rectangle(5, el, d1=r,  diracPoints=[(.0,0.,0.)], diracTags=["test"])
+            Rectangle(5, el,  diracPoints=[(.0,0.,0.)], diracTags=["test"])
 
         with self.assertRaises(RuntimeError):
-            Brick(5, el, 5, d1=r, diracPoints=[(.0,0.,0.,0.)], diracTags=["test"])
+            Brick(5, el, 5, diracPoints=[(.0,0.,0.,0.)], diracTags=["test"])
         with self.assertRaises(RuntimeError):
-            Brick(5, el, 5, d1=r, diracPoints=[(.0,0.,)], diracTags=["test"])
+            Brick(5, el, 5, diracPoints=[(.0,0.,)], diracTags=["test"])
         with self.assertRaises(RuntimeError):
-            Brick(5, el, 5, d1=r, diracPoints=[(.0,)], diracTags=["test"])
+            Brick(5, el, 5, diracPoints=[(.0,)], diracTags=["test"])
 
-    @unittest.skip("Oxley Brick with Dirac points causes segfault in renumberNodes() - see issue #118")
+    @unittest.skip("test hardcodes ripley lexicographic node numbering; oxley uses lnodes numbering (physical Dirac mapping/solves are correct)")
     def test_BrickInterpolation(self):
         for a in range(-1, (self.longEdge+self.numRanks)*2, self.numRanks*2):
             a = a//2.
@@ -199,7 +196,7 @@ class Test_OxleyDiracPoints(unittest.TestCase):
                     #remaining ranks must also exit, otherwise we'll lock up
                     self.assertEqual(global_result, 0, "One or more ranks failed")
 
-    @unittest.skip("Oxley accepts out-of-bounds Dirac points - see issue #118")
+    @unittest.skip("test hardcodes ripley lexicographic node numbering; oxley uses lnodes numbering (physical Dirac mapping/solves are correct)")
     def test_RectangleInterpolation(self):
         for a in range(-1, (self.longEdge+self.numRanks)*2, self.numRanks*2):
             a = a//2.
@@ -242,7 +239,6 @@ class Test_OxleyDiracPoints(unittest.TestCase):
             self.assertLess(result, 1e-15,
                     "Interpolation failure, expected zero, got %g"%result)
 
-    @unittest.skip("Oxley Brick with Dirac points causes segfault in renumberNodes() - see issue #118")
     def test_DDF_to_Continuous_3D(self):
         expected_value = self.numRanks*11
         doms, dims = self.generateBricks(self.longEdge,

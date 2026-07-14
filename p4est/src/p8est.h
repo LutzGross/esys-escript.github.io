@@ -38,21 +38,30 @@
 #define P8EST_H
 
 /* p8est_connectivity.h includes p4est_base.h sc_containers.h */
-#include "p8est_connectivity.h"
+#include <p8est_connectivity.h>
 
 SC_EXTERN_C_BEGIN;
 
 /** The finest level of the octree for representing nodes */
-#define P8EST_MAXLEVEL 19
+#define P8EST_OLD_MAXLEVEL 19   /* old means prior to mid-2020 */
+
+/** The finest level for representing quadrant midpoint coordinates */
+#define P8EST_MAXLEVEL 30
 
 /** The finest level of the octree for representing octants */
-#define P8EST_QMAXLEVEL 18
+#define P8EST_OLD_QMAXLEVEL 18  /* old means prior to mid-2020 */
+
+/** The finest level of the quadtree for representing quadrant corners */
+#define P8EST_QMAXLEVEL 29
 
 /** The length of a side of the root quadrant */
 #define P8EST_ROOT_LEN ((p4est_qcoord_t) 1 << P8EST_MAXLEVEL)
 
 /** The length of a quadrant of level l */
 #define P8EST_QUADRANT_LEN(l) ((p4est_qcoord_t) 1 << (P8EST_MAXLEVEL - (l)))
+
+/** Create a mask of 1-bits from the left and maxlevel-level zero bits. */
+#define P8EST_QUADRANT_MASK(l) (~(P8EST_QUADRANT_LEN (l) - 1))
 
 /** The offset of the highest (farthest from the origin) quadrant at level l
  */
@@ -67,6 +76,15 @@ typedef struct p8est_quadrant
   int8_t              level,    /**< level of refinement */
                       pad8;     /**< padding */
   int16_t             pad16;    /**< padding */
+  /** Union for quadrant data.
+   *
+   * It is important to notice that \ref piggy1 and \ref piggy2 are only used
+   * internally. Hence, they are not part of the API.
+   *
+   * Usually \ref piggy3 is also not part of the API. The only exception holds
+   * for quadrants in the [ghosts](\ref p8est_ghost_t::ghosts) array of
+   * p8est_ghost_t (cf. documentation of [ghosts](\ref p8est_ghost_t::ghosts)).
+   */
   union p8est_quadrant_data
   {
     void               *user_data;      /**< never changed by p4est */
@@ -81,21 +99,22 @@ typedef struct p8est_quadrant
       p4est_topidx_t      which_tree;
       int                 owner_rank;
     }
-    piggy1; /**< of ghost octants, store the tree and owner rank */
+    piggy1; /**< of ghost octants, store the tree and owner rank; not part of
+                 the API */
     struct
     {
       p4est_topidx_t      which_tree;
       p4est_topidx_t      from_tree;
     }
     piggy2; /**< of transformed octants, store the original tree and the
-                 target tree */
+                 target tree; not part of the API */
     struct
     {
       p4est_topidx_t      which_tree;
       p4est_locidx_t      local_num;
     }
     piggy3; /**< of ghost octants, store the tree and index in the owner's
-                 numbering */
+                 numbering; only part of the API in \ref p8est_ghost_t::ghosts */
   }
   p; /**< a union of additional data attached to a quadrant */
 }
@@ -244,7 +263,7 @@ void                p8est_qcoord_to_vertex (p8est_connectivity_t *
                                             p4est_qcoord_t y,
                                             p4est_qcoord_t z, double vxyz[3]);
 
-/** Create a new forest.
+/** Create a new forest with an initial coarse mesh.
  * The new forest consists of equi-partitioned root quadrants.
  * When there are more processors than trees, some processors are empty.
  *
@@ -362,6 +381,8 @@ void                p8est_balance (p8est_t * p8est,
  * The forest will be partitioned between processors such that they
  * have an approximately equal number of quadrants (or sum of weights).
  *
+ * The user data of a quadrant is transferred along within this function.
+ *
  * On one process, the function noops and does not call the weight callback.
  * Otherwise, the weight callback is called once per quadrant in order.
  *
@@ -372,7 +393,10 @@ void                p8est_balance (p8est_t * p8est,
  *                            for uniform partitioning.
  *                            When running with mpisize == 1, never called.
  *                            Otherwise, called in order for all quadrants
- *                            if not NULL.
+ *                            if not NULL. A weighting function with constant
+ *                            weight 1 on each quadrant is equivalent
+ *                            to weight_fn == NULL but other constant weightings
+ *                            may result in different uniform partitionings.
  */
 void                p8est_partition (p8est_t * p8est,
                                      int allow_for_coarsening,
@@ -380,9 +404,14 @@ void                p8est_partition (p8est_t * p8est,
 
 /** Compute the checksum for a forest.
  * Based on quadrant arrays only. It is independent of partition and mpisize.
- * \return  Returns the checksum on processor 0 only. 0 on other processors.
+ * \return  Returns the checksum on all processors.
  */
 unsigned            p8est_checksum (p8est_t * p8est);
+
+/** Compute a partition-dependent checksum for a forest.
+ * \return  Returns the checksum on all processors.
+ */
+unsigned            p8est_checksum_partition (p8est_t * p8est);
 
 /** Save the complete connectivity/p8est data to disk.
  *
@@ -468,14 +497,44 @@ p8est_quadrant_array_index (sc_array_t * array, size_t it)
   return (p8est_quadrant_t *) (array->array + sizeof (p8est_quadrant_t) * it);
 }
 
-/** Call sc_array_push for a quadrant array. */
+/** Push the copy of a fully initialized quadrant onto a quadrant array.
+ * \param [in,out] array        Valid array of quadrants is pushed to.
+ * \param [in] qsrc     Pointer to a quadrant with fully initialized memory.
+ *                      This means all bits in the quadrant mush have been
+ *                      written to at least once, even the compiler padding.
+ *                      This serves to make the function clean for valgrind.
+ * \return              Newly allocated quadrant with contents of \a qsrc.
+ */
+static inline p8est_quadrant_t *
+p8est_quadrant_array_push_copy (sc_array_t * array,
+                                const p8est_quadrant_t *qsrc)
+{
+  p8est_quadrant_t *q;
+
+  P4EST_ASSERT (array->elem_size == sizeof (p8est_quadrant_t));
+
+  q = (p8est_quadrant_t *) sc_array_push (array);
+  *q = *qsrc;
+  return q;
+}
+
+/** Call sc_array_push for a quadrant array and fully initialize memory.
+ * \param [in,out] array        Valid array of quadrants is pushed to.
+ * \return              Pushed array element with fully initialized memory.
+ *                      In this case, we're writing to all bits of it.
+ *                      This serves to make the quadrant clean for valgrind.
+ */
 /*@unused@*/
 static inline p8est_quadrant_t *
 p8est_quadrant_array_push (sc_array_t * array)
 {
+  p8est_quadrant_t *q;
+
   P4EST_ASSERT (array->elem_size == sizeof (p8est_quadrant_t));
 
-  return (p8est_quadrant_t *) sc_array_push (array);
+  q = (p8est_quadrant_t *) sc_array_push (array);
+  P8EST_QUADRANT_INIT(q);
+  return q;
 }
 
 /** Call sc_mempool_alloc for a mempool creating quadrants. */

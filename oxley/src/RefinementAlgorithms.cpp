@@ -43,115 +43,18 @@ int refine_uniform(p8est_t * p4est, p4est_topidx_t tree, p8est_quadrant_t * quad
 
 int refine_mare2dem(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
-    //TODO
-//     p4estData * forestData = (p4estData *) p4est->user_pointer;
-//     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
-//     std::unordered_map<long,double> * current_solution = forestData->current_solution;
-//     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> * NodeIDs = forestData->NodeIDs;
-
-//     // Get the solution value at the current node
-//     p4est_qcoord_t xy[2] = {quadrant->x,quadrant->y};
-//     long lni = NodeIDs->find(std::make_pair(xy[0],xy[1]))->second;
-//     double quad_solution = current_solution->find(lni)->second;
-
-// #ifdef OXLEY_ENABLE_DEBUG
-//     std::cout << "refine_mare2dem: " << lni << " (" << xy[0] << "," << xy[1] << ")";
-// #endif
-
-//     // Get the Node IDs at the neighbouring nodes
-//     double xyz[3] = {0};
-//     long neighbour_nodeIDs[4] = {0};
-
-//     double lx = forestData->m_dx[0][quadrant->level];
-//     double ly = forestData->m_dx[1][quadrant->level];
-
-//     p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, quadrant->x,    quadrant->y+ly, xyz); //N    
-//     neighbour_nodeIDs[0] = NodeIDs->find(std::make_pair(xyz[0],xyz[1]))->second;
-//     p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, quadrant->x,    quadrant->y-ly, xyz); //S
-//     neighbour_nodeIDs[1] = NodeIDs->find(std::make_pair(xyz[0],xyz[1]))->second;
-//     p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, quadrant->x+lx, quadrant->y,    xyz); //E
-//     neighbour_nodeIDs[2] = NodeIDs->find(std::make_pair(xyz[0],xyz[1]))->second;
-//     p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, quadrant->x-lx, quadrant->y,    xyz); //W
-//     neighbour_nodeIDs[3] = NodeIDs->find(std::make_pair(xyz[0],xyz[1]))->second;
-    
-//     // Get the solution at the neighbouring four nodes
-//     double average = 0;
-//     average += forestData->m_origin[1] >= forestData->m_length[1] ? 0 : current_solution->find(neighbour_nodeIDs[0])->second;
-//     average += forestData->m_origin[1] <= forestData->m_length[1] ? 0 : current_solution->find(neighbour_nodeIDs[1])->second;
-//     average += forestData->m_origin[0] >= forestData->m_length[0] ? 0 : current_solution->find(neighbour_nodeIDs[2])->second;
-//     average += forestData->m_origin[0] <= forestData->m_length[0] ? 0 : current_solution->find(neighbour_nodeIDs[3])->second;
-//     average /= 4.0;
-
-// #ifdef OXLEY_ENABLE_DEBUG
-//     std::cout << std::endl;
-// #endif
-
-//     // Make a decision
-//     return (std::abs(average - quad_solution) > MARE2DEM_TOL) && (quadrant->level < forestData->max_levels_refinement);
+    // Solution-driven (MARE2DEM) refinement is not reimplemented on the lnodes
+    // numbering yet (Milestone B: FieldThreshold task). No refinement.
+    (void) p4est; (void) tree; (void) quadrant;
     return 0;
 }
 
 int refine_mare2dem(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
 {
-    p8estData * forestData = (p8estData *) p8est->user_pointer;
-    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
-    std::unordered_map<long,double> * current_solution = forestData->current_solution;
-    std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> * NodeIDs = forestData->NodeIDs;
-
-    // Get the solution value at the current node
-    p4est_qcoord_t xyz[3] = {quadrant->x,quadrant->y,quadrant->z};
-    long lni = NodeIDs->find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
-    double quad_solution = current_solution->find(lni)->second;
-
-#ifdef OXLEY_ENABLE_DEBUG
-    std::cout << "refine_mare2dem: " << lni << " (" << xyz[0] << "," << xyz[1] << ")";
-#endif
-
-    // Get the Node IDs at the neighbouring nodes
-    double xy[3] = {0};
-    long neighbour_nodeIDs[8] = {0};
-
-    double lx = forestData->m_dx[0][quadrant->level];
-    double ly = forestData->m_dx[1][quadrant->level];
-    double lz = forestData->m_dx[2][quadrant->level];
-
-    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x,    quadrant->y+ly, quadrant->z, xy); //N    
-    neighbour_nodeIDs[0] = NodeIDs->find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
-    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x,    quadrant->y-ly, quadrant->z, xy); //S
-    neighbour_nodeIDs[1] = NodeIDs->find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
-    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x+lx, quadrant->y,    quadrant->z, xy); //E
-    neighbour_nodeIDs[2] = NodeIDs->find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
-    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x-lx, quadrant->y,    quadrant->z, xy); //W
-    neighbour_nodeIDs[3] = NodeIDs->find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
-    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x,    quadrant->y+ly, quadrant->z+lz, xy); //N    
-    neighbour_nodeIDs[4] = NodeIDs->find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
-    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x,    quadrant->y-ly, quadrant->z+lz, xy); //S
-    neighbour_nodeIDs[5] = NodeIDs->find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
-    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x+lx, quadrant->y,    quadrant->z+lz, xy); //E
-    neighbour_nodeIDs[6] = NodeIDs->find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
-    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x-lx, quadrant->y,    quadrant->z+lz, xy); //W
-    neighbour_nodeIDs[7] = NodeIDs->find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
-    
-    // Get the solution at the neighbouring four nodes
-    double average = 0;
-    average += forestData->m_origin[1] >= forestData->m_length[1] ? 0 : current_solution->find(neighbour_nodeIDs[0])->second;
-    average += forestData->m_origin[1] <= forestData->m_length[1] ? 0 : current_solution->find(neighbour_nodeIDs[1])->second;
-    average += forestData->m_origin[0] >= forestData->m_length[0] ? 0 : current_solution->find(neighbour_nodeIDs[2])->second;
-    average += forestData->m_origin[0] <= forestData->m_length[0] ? 0 : current_solution->find(neighbour_nodeIDs[3])->second;
-    //TODO fix below
-    average += forestData->m_origin[1] >= forestData->m_length[1] ? 0 : current_solution->find(neighbour_nodeIDs[4])->second;
-    average += forestData->m_origin[1] <= forestData->m_length[1] ? 0 : current_solution->find(neighbour_nodeIDs[5])->second;
-    average += forestData->m_origin[0] >= forestData->m_length[0] ? 0 : current_solution->find(neighbour_nodeIDs[6])->second;
-    average += forestData->m_origin[0] <= forestData->m_length[0] ? 0 : current_solution->find(neighbour_nodeIDs[7])->second;
-    average /= 8.0;
-
-#ifdef OXLEY_ENABLE_DEBUG
-    std::cout << std::endl;
-#endif
-
-    // Make a decision
-    return (std::abs(average - quad_solution) > MARE2DEM_TOL) && (quadrant->level < forestData->max_levels_refinement);
-    // return 0;
+    // Solution-driven (MARE2DEM) refinement is not reimplemented on the lnodes
+    // numbering yet (Milestone B: FieldThreshold task). No refinement.
+    (void) p8est; (void) tree; (void) quadrant;
+    return 0;
 }
 
 // Boundaries
@@ -1115,97 +1018,9 @@ void update_node_faceoffset(p8est_iter_volume_info_t * info, void *fxx)
 
 void update_RC(p4est_iter_face_info_t *info, void *user_data)
 {
-    //Get some pointers
-    update_RC_data * data = (update_RC_data *) user_data;
-    sc_array_t * sides = &(info->sides);
-
-    p4est_iter_face_side_t * side = p4est_iter_fside_array_index_int(sides, 0);
-    
-    p4est_quadrant_t * quad;
-    if(side->is_hanging)
-        return;
-    quad = side->is.full.quad;
-
-    double xy0[3], xyA[3], xyB[3];
-    
-    // Do nothing if this isn't a lower quadrant
-    p4est_qcoord_to_vertex(data->p4est->connectivity, side->treeid, quad->x, quad->y, xy0);
-    quad_info tmp;
-    tmp.x=xy0[0];
-    tmp.y=xy0[1];
-    tmp.level=quad->level;
-    bool lower_quadrant=false;
-    for(int i=0;i<data->pQuadInfo->size();i++)
-    {
-        if((tmp.x     == data->pQuadInfo[0][i].x)
-        && (tmp.y     == data->pQuadInfo[0][i].y)
-        && (tmp.level == data->pQuadInfo[0][i].level))
-        {
-            lower_quadrant=true;
-            break;
-        }
-    }
-    if(!lower_quadrant)
-        return;
-    
-    // Calculate the length of the side
-    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
-    int fn = (int) side->face;
-    long lx[4][2] = {{0,0},{l,l},{0,l},{0,l}};
-    long ly[4][2] = {{0,l},{0,l},{0,0},{l,l}};
-
-    p4est_qcoord_to_vertex(data->p4est->connectivity, side->treeid, quad->x+lx[fn][0], quad->y+ly[fn][0], xyA);
-    long lni0 = data->pNodeIDs->find(std::make_pair(xyA[0],xyA[1]))->second;
-    #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC_EXTRA
-        std::cout << "(" << xyA[0] << ", " << xyA[1] << ")\t";
-    #endif
-    p4est_qcoord_to_vertex(data->p4est->connectivity, side->treeid, quad->x+lx[fn][1], quad->y+ly[fn][1], xyB);
-    long lni1 = data->pNodeIDs->find(std::make_pair(xyB[0],xyB[1]))->second;
-    #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC_EXTRA
-        std::cout << "--\t(" << xyB[0] << ", " << xyB[1] << ")";
-        std::cout << std::endl;
-    #endif
-
-    std::vector<long> * idx0 = &data->indices[0][lni0];
-    std::vector<long> * idx1 = &data->indices[0][lni1];
-
-    bool dup = false;
-    for(int i = 1; i < idx0[0][0] + 1; i++)
-        if(idx0[0][i] == lni1)
-        {
-            dup = true;
-            break;
-        }
-
-    #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC_EXTRA
-        std::cout << "level= " << (int) quad->level ;
-        std::cout << "; hanging side " << (int) side->is_hanging;
-        std::cout << "; face= " << fn;
-        std::cout << "; (x,y)=(" << xy0[0] << ", " << xy0[1] << ")      \t";
-        if(dup)
-        {
-            std::cout << " connection " << lni0 << "---" << lni1;
-            std::cout << "\t(dupliate)" << std::endl;
-        }
-        else
-        {
-            std::cout << " connection " << lni0 << "---" << lni1;
-            std::cout << "\t(not dupliate)" << std::endl;    
-        }        
-    #endif
-
-    if(dup == false)
-    {
-#ifdef DOXLEY_ENABLE_DEBUG
-        std::cout << "update_RC " << lni1 << ": (" << xy[0] << ", " << xy[1] << ")" << std::endl; // coordinates
-#endif
-        idx0[0][0]++;
-        idx1[0][0]++;
-        ESYS_ASSERT(idx0[0][0]<=4, "update_RC index out of bound");
-        ESYS_ASSERT(idx1[0][0]<=4, "update_RC index out of bound");
-        idx0[0][idx0[0][0]]=lni1;
-        idx1[0][idx1[0][0]]=lni0;
-    }
+    // Dead: the hanging-node connectivity is now built directly from lnodes
+    // in getConnections; this p4est_iterate callback is no longer registered.
+    (void) info; (void) user_data;
 }
 
 // ae tmp
@@ -1249,114 +1064,13 @@ void get_coords(p8est_connectivity_t * connectivity,
 
 void update_RC(p8est_iter_edge_info *info, void *user_data)
 {
-    //Get some pointers
-    update_RC_data_brick * data = (update_RC_data_brick *) user_data;
-    sc_array_t * sides = &(info->sides);
-
-    p8est_iter_edge_side_t * side = p8est_iter_eside_array_index_int(sides, 0); 
-    if(side->is_hanging!='\000')
-        return;
-    p8est_quadrant_t * oct = side->is.full.quad;
-    if(oct == nullptr) // oct is allocated to another MPI process by p4est but p4est still calls this function of the octant(?) 
-        return;
-    double xy0[3], xyA[3], xyB[3];
-    p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, oct->x, oct->y, oct->z, xy0);
-
-    // Calculate the length of the side
-    p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
-    int fn = (int) side->edge;
-
-    //                           0     1     2     3     4     5     6     7     8     9     10    11       
-    std::vector<std::vector<p8est_qcoord_t>> lx = {{0,l},{0,l},{0,l},{0,l},{0,0},{l,l},{0,0},{l,l},{0,0},{l,l},{0,0},{l,l}};
-    std::vector<std::vector<p8est_qcoord_t>> ly = {{0,0},{l,l},{0,0},{l,l},{0,l},{0,l},{0,l},{0,l},{0,0},{0,0},{l,l},{l,l}};
-    std::vector<std::vector<p8est_qcoord_t>> lz = {{0,0},{0,0},{l,l},{l,l},{0,0},{0,0},{l,l},{l,l},{0,l},{0,l},{0,l},{0,l}};
-
-    // Get the neighbouring coordinates
-    // p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, oct->x+lx[fn][0], oct->y+ly[fn][0], oct->z+lz[fn][0], xyA);
-    // long lni0 = data->pNodeIDs->find(std::make_tuple(xyA[0],xyA[1],xyA[2]))->second;
-    // p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, oct->x+lx[fn][1], oct->y+ly[fn][1], oct->z+lz[fn][1], xyB);
-    // long lni1 = data->pNodeIDs->find(std::make_tuple(xyB[0],xyB[1],xyB[2]))->second;
-
-    get_coords(data->p8est->connectivity, side->treeid, oct->x+lx[fn][0], oct->y+ly[fn][0], oct->z+lz[fn][0], xyA);
-    long lni0 = data->pNodeIDs->find(std::make_tuple(xyA[0],xyA[1],xyA[2]))->second;
-    get_coords(data->p8est->connectivity, side->treeid, oct->x+lx[fn][1], oct->y+ly[fn][1], oct->z+lz[fn][1], xyB);
-    long lni1 = data->pNodeIDs->find(std::make_tuple(xyB[0],xyB[1],xyB[2]))->second;
-
-    // ae tmp
-    // std::cout << "lni01 = " << lni0 << ", " << lni1 << std::endl;
-
-
-
-
-
-
-
-    IndexVector * idx0 = &data->indices[0][lni0];
-    IndexVector * idx1 = &data->indices[0][lni1];
-
-    // Check for duplicates
-    bool dup = false;
-    for(int i = 1; i < idx0[0][0] + 1; i++)
-        if(idx0[0][i] == lni1)
-        {
-            dup = true;
-            break;
-        }
-
-    // If this is a new coordinate, add it to the index
-    if(dup == false)
-    {
-        idx0[0][0]++;
-        idx1[0][0]++;
-        ESYS_ASSERT(idx0[0][0]<7, "update_RC index out of bound");
-        ESYS_ASSERT(idx1[0][0]<7, "update_RC index out of bound");
-        idx0[0][idx0[0][0]]=lni1;
-        idx1[0][idx1[0][0]]=lni0;
-    }
+    (void) info; (void) user_data;
 }
 
 
 void update_connections(p4est_iter_volume_info_t *info, void *user_data)
 {
-    //Get some pointers
-    getConnections_data * data = (getConnections_data *) user_data;
-    p4est_quadrant_t * quad = info->quad;
-    
-    // Coordinates
-    p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
-    double xy[3];
-    long lx[4] = {0,length,0,length};
-    long ly[4] = {0,0,length,length};
-    long lni[4] = {-1};
-#pragma omp parallel for
-    for(int i = 0; i < 4; i++)
-    {
-        p4est_qcoord_to_vertex(data->p4est->connectivity, info->treeid, quad->x+lx[i], quad->y+ly[i], xy);
-        xy[0]+=data->m_origin[0];
-        xy[1]+=data->m_origin[1];
-        lni[i] = data->pNodeIDs->find(std::make_pair(xy[0],xy[1]))->second;
-    }
-
-
-#pragma omp parallel for
-    for(int i = 0; i < 4; i++)
-    {
-        std::vector<escript::DataTypes::index_t> * temp = &data->indices[0][i];
-        for(int j = 0; j < 4; j++)
-        {
-            bool dup = false;
-            for(int k = 0; k < data->indices[0][i].size(); k++)
-                if(temp[0][k] == lni[j])
-                {
-                    dup = true;
-                    break;
-                }
-            if(dup == false)
-                temp->push_back(lni[j]);
-        }
-    }
-
-    // std::cout << "xy = " << xy[0] << ", " << xy[1] << std::endl; // coordinates
+    (void) info; (void) user_data;
 }
 
 int refine_nodesToNodesFiner(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)

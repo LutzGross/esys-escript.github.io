@@ -25,10 +25,11 @@
 #define SC_KEYVALUE_H
 
 /** \file sc_keyvalue.h
+ * \ingroup sc_containers
+ *
  * This file provides a lookup structure for key-value pairs.
  */
 
-#include <sc.h>
 #include <sc_containers.h>
 
 SC_EXTERN_C_BEGIN;

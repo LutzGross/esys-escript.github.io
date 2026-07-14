@@ -57,23 +57,26 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
 
 @unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
 @unittest.skipIf(mpiSize > 1, "UMFPACK runs on single rank only.")
-@unittest.skip("Oxley Rectangle meshes have SystemMatrixPattern errors with UMFPACK - see issue #118")
 class Test_SimpleSolveOxley2D_UMFPACK(SimpleSolveTestCase):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = Rectangle(n0=NE0, n1=NE1)
         self.package = SolverOptions.UMFPACK
         self.method = SolverOptions.DIRECT
 
     def tearDown(self):
         del self.domain
         
-# @unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
-# @unittest.skipIf(mpiSize > 1, "UMFPACK runs on single rank only.")
-# class Test_SimpleSolveOxley3D_UMFPACK(SimpleSolveTestCase):
-#     def setUp(self):
-#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-#         self.package = SolverOptions.UMFPACK
-#         self.method = SolverOptions.DIRECT
+@unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
+@unittest.skipIf(mpiSize > 1, "UMFPACK runs on single rank only.")
+class Test_SimpleSolveOxley3D_UMFPACK(SimpleSolveTestCase):
+    def setUp(self):
+        self.domain = Brick(n0=NE0, n1=NE1, n2=NE2)
+        self.package = SolverOptions.UMFPACK
+        self.method = SolverOptions.DIRECT
 
     def tearDown(self):
         del self.domain
+
+
+if __name__ == '__main__':
+    run_tests(__name__, exit_on_failure=True)

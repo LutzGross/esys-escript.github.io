@@ -10,9 +10,11 @@ This is part of the libb64 project, and has been placed in the public domain.
 For details, see http://sourceforge.net/projects/libb64
 */
 
-#include <libb64.h>
+#include "libb64.h"
 
+#ifdef SC_BASE64_WRAP
 const int           CHARS_PER_LINE = 72;
+#endif
 
 static inline char
 base64_encode_value (char value_in)
@@ -47,6 +49,9 @@ base64_encode_block (const char *plaintext_in, size_t length_in,
   result = state_in->result;
 
   switch (state_in->step) {
+
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+
     while (1) {
   case step_A:
       if (plainchar == plaintextend) {

@@ -165,7 +165,7 @@ p4est_iter_tier_insert (sc_array_t * view, int level, size_t * next_tier,
 /* loop arg functions */
 typedef struct p4est_iter_loop_args
 {
-  int                 alloc_size;       /* large enough to accomodate strange
+  int                 alloc_size;       /* large enough to accommodate strange
                                            corners/edges between trees */
 #ifdef P4_TO_P8
   int8_t              loop_edge;        /* should edge_iterate be run */
@@ -175,7 +175,7 @@ typedef struct p4est_iter_loop_args
   int                 level;
   int                *level_num;        /* an array that keeps track of which
                                            branch we take at each step in the
-                                           heirarchical search areas */
+                                           hierarchical search areas */
   int                *quad_idx2;        /* an indexing variable used in
                                            the iterate functions: passed as an
                                            argument to avoid using alloc/free
@@ -184,7 +184,7 @@ typedef struct p4est_iter_loop_args
                                            local, one ghost), that contain the
                                            quadrants in each search area */
   size_t            **index;    /* for each sidetype, the indices in quadrants
-                                   that form the bounds of the heirarchical
+                                   that form the bounds of the hierarchical
                                    search areas */
   size_t             *first_index;      /* an indexing variable used in the
                                            iterate functions: passed as an
@@ -564,7 +564,7 @@ p4est_iter_init_loop_corner (p4est_iter_loop_args_t * loop_args,
 
 /* When one iterate loop calls another, e.g. volume_iterate calls face_iterate,
  * the initial bounds for the new sides of the search need to be initialized.
- * The whole heirarchy doesn't need to be copied, just the most recent bounds
+ * The whole hierarchy doesn't need to be copied, just the most recent bounds
  * from the correct starting sections (start_idx2).
  */
 static void
@@ -946,8 +946,10 @@ p4est_corner_iterate (p4est_iter_corner_args_t * args, void *user_data,
   size_t             *count = loop_args->count;
   p4est_quadrant_t  **test = loop_args->test;
   p4est_quadrant_t    temp;
-  p4est_qcoord_t      mask =
-    ((p4est_qcoord_t) - 1) << (P4EST_MAXLEVEL - level);
+  p4est_qcoord_t      mask = P4EST_QUADRANT_MASK (level);
+#if 0
+  ((p4est_qcoord_t) - 1) << (P4EST_MAXLEVEL - level);
+#endif
   sc_array_t          test_view;
   p4est_iter_corner_info_t *info = &(args->info);
   p4est_iter_corner_side_t *cside;
@@ -2515,7 +2517,7 @@ p4est_iter_init_face_from_volume (p4est_iter_face_args_t * args,
 
 /* given valid volume arguments, setup edge arguments for an edge search that
  * is called for an edge between four adjacent volumes: there are P4EST_DIM
- * directions the edge can be oriented, and each direction can be run in oen
+ * directions the edge can be oriented, and each direction can be run in one
  * of two positioins, based on the child_ids of the four volumes surrounding
  * it.
  */
@@ -2738,7 +2740,7 @@ p4est_volume_iterate (p4est_iter_volume_args_t * args, void *user_data,
     count[type] = zindex[type][quad_idx2 + 1] - first_index[type];
   }
 
-  /* if ther are no local quadrants, nothing to be done */
+  /* if there are no local quadrants, nothing to be done */
   if (!count[local]) {
     return;
   }
@@ -2892,8 +2894,13 @@ p4est_iter_get_boundaries (p4est_t * p4est, p4est_topidx_t * last_run_tree,
   p4est_topidx_t      last_local_tree = p4est->last_local_tree;
   p4est_quadrant_t   *lq = &(p4est->global_first_position[rank]);
   p4est_quadrant_t    temp;
+#ifdef P4EST_ENABLE_DEBUG
+  p4est_quadrant_t    debug_quad;
+#endif
   p4est_quadrant_t   *uq = &(p4est->global_first_position[rank + 1]);
-  uint64_t            uqid;
+#ifdef P4EST_ENABLE_DEBUG
+  p4est_lid_t         uqid, one, temp_lid;
+#endif
   p4est_quadrant_t   *tlq, *tuq;
   int                 f, nf, c, c2, nc, oc;
   p4est_topidx_t      corner;
@@ -2929,9 +2936,18 @@ p4est_iter_get_boundaries (p4est_t * p4est, p4est_topidx_t * last_run_tree,
   }
   else {
     P4EST_ASSERT (uq->p.which_tree == last_local_tree);
-    uqid = p4est_quadrant_linear_id (uq, P4EST_QMAXLEVEL);
-    p4est_quadrant_set_morton (&temp, P4EST_QMAXLEVEL, uqid - 1);
+    p4est_quadrant_predecessor (uq, &temp);
     uq = &temp;
+#ifdef P4EST_ENABLE_DEBUG
+    p4est_quadrant_copy (&(p4est->global_first_position[rank + 1]),
+                         &debug_quad);
+    p4est_quadrant_linear_id_ext128 (&debug_quad, P4EST_QMAXLEVEL, &uqid);
+    p4est_lid_set_one (&one);
+    p4est_lid_sub (&uqid, &one, &temp_lid);
+    p4est_quadrant_set_morton_ext128 (&debug_quad, P4EST_QMAXLEVEL,
+                                      &temp_lid);
+    P4EST_ASSERT (p4est_quadrant_is_equal (uq, &debug_quad));
+#endif
   }
 
   for (t = first_local_tree; t <= last_local_tree; t++) {

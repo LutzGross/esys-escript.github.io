@@ -1,45 +1,9 @@
-#ifndef _SRC_SC_CONFIG_H
-#define _SRC_SC_CONFIG_H 1
+#ifndef _CONFIG_SC_CONFIG_H
+#define _CONFIG_SC_CONFIG_H 1
  
-/* src/sc_config.h. Generated automatically at end of configure. */
-/* src/pre_config.h.  Generated from pre_config.h.in by configure.  */
-/* src/pre_config.h.in.  Generated from configure.ac by autoheader.  */
-
-/* Define if building universal (internal helper macro) */
-/* #undef AC_APPLE_UNIVERSAL_BUILD */
-
-/* C compiler */
-#ifndef SC_CC
-#define SC_CC "gcc"
-#endif
-
-/* C compiler flags */
-#ifndef SC_CFLAGS
-#define SC_CFLAGS "-g -O2 "
-#endif
-
-/* C preprocessor */
-#ifndef SC_CPP
-#define SC_CPP "gcc -E"
-#endif
-
-/* C preprocessor flags */
-#ifndef SC_CPPFLAGS
-#define SC_CPPFLAGS ""
-#endif
-
-/* CXX compiler */
-#ifndef SC_CXX
-#define SC_CXX "g++"
-#endif
-
-/* CXX compiler flags */
-#ifndef SC_CXXFLAGS
-#define SC_CXXFLAGS "-g -O2"
-#endif
-
-/* Define to 1 if your C++ compiler doesn't accept -c and -o together. */
-/* #undef CXX_NO_MINUS_C_MINUS_O */
+/* config/sc_config.h. Generated automatically at end of configure. */
+/* config/sc_config_autotools.h.  Generated from sc_config_autotools.h.in by configure.  */
+/* config/sc_config_autotools.h.in.  Generated from configure.ac by autoheader.  */
 
 /* DEPRECATED (use SC_ENABLE_DEBUG instead) */
 /* #undef DEBUG */
@@ -47,36 +11,47 @@
 /* enable debug mode (assertions and extra checks) */
 /* #undef ENABLE_DEBUG */
 
-/* Undefine if: use aligned malloc (optionally use --enable-memalign=<bytes>)
-   */
+/* Undefine if: disable tests that use file i/o functions */
+#ifndef SC_ENABLE_FILE_CHECKS
+#define SC_ENABLE_FILE_CHECKS 1
+#endif
+
+/* Undefine if: while the default alignment is sizeof (void *), this switch
+   will choose the standard system malloc. For custom alignment use
+   --enable-memalign=<bytes> */
 #ifndef SC_ENABLE_MEMALIGN
 #define SC_ENABLE_MEMALIGN 1
 #endif
 
 /* Define to 1 if we are using MPI */
-/* #undef ENABLE_MPI */
+#ifndef SC_ENABLE_MPI
+#define SC_ENABLE_MPI 1
+#endif
 
 /* Define to 1 if we can use MPI_COMM_TYPE_SHARED */
-/* #undef ENABLE_MPICOMMSHARED */
-// #define ENABLE_MPICOMMSHARED 1
+#ifndef SC_ENABLE_MPICOMMSHARED
+#define SC_ENABLE_MPICOMMSHARED 1
+#endif
 
 /* Define to 1 if we are using MPI I/O */
-/* #undef ENABLE_MPIIO */
-// #define ENABLE_MPIIO 1
+#ifndef SC_ENABLE_MPIIO
+#define SC_ENABLE_MPIIO 1
+#endif
+
+/* Define to 1 if we can use MPI split nodes and shared memory */
+#ifndef SC_ENABLE_MPISHARED
+#define SC_ENABLE_MPISHARED 1
+#endif
 
 /* Define to 1 if we are using MPI_Init_thread */
- // #undef ENABLE_MPITHREAD 
-// #define ENABLE_MPITHREAD 1
+#ifndef SC_ENABLE_MPITHREAD
+#define SC_ENABLE_MPITHREAD 1
+#endif
 
 /* Define to 1 if we can use MPI_Win_allocate_shared */
-/* #undef ENABLE_MPIWINSHARED */
-
-
-/* enable OpenMP: Using --enable-openmp without arguments does not specify any
-   CFLAGS; to supply CFLAGS use --enable-openmp=<OPENMP_CFLAGS>. We check
-   first for linking without any libraries and then with -lgomp; to avoid the
-   latter, specify LIBS=<OPENMP_LIBS> on configure line */
-/* #undef ENABLE_OPENMP */
+#ifndef SC_ENABLE_MPIWINSHARED
+#define SC_ENABLE_MPIWINSHARED 1
+#endif
 
 /* enable POSIX threads: Using --enable-pthread without arguments does not
    specify any CFLAGS; to supply CFLAGS use --enable-pthread=<PTHREAD_CFLAGS>.
@@ -84,72 +59,38 @@
    to avoid the latter, specify LIBS=<PTHREAD_LIBS> on configure line */
 /* #undef ENABLE_PTHREAD */
 
-/* Undefine if: replace array/dmatrix resize with malloc/copy/free */
+/* Undefine if: disable non-thread-safe internal debug counters */
+#ifndef SC_ENABLE_USE_COUNTERS
+#define SC_ENABLE_USE_COUNTERS 1
+#endif
+
+/* Undefine if: resize arrays with malloc/copy/free (HISTORIC) */
 #ifndef SC_ENABLE_USE_REALLOC
 #define SC_ENABLE_USE_REALLOC 1
 #endif
 
-/* F77 compiler */
-#ifndef SC_F77
-#define SC_F77 "gfortran"
+/* Development with V4L2 devices works */
+#ifndef SC_ENABLE_V4L2
+#define SC_ENABLE_V4L2 1
 #endif
 
-/* Define to dummy `main' function (if any) required to link to the Fortran
-   libraries. */
-/* #undef F77_DUMMY_MAIN */
+/* Enable valgrind in executing tests */
+/* #undef ENABLE_VALGRIND */
 
-/* Define to a macro mangling the given C identifier (in lower and upper
-   case), which must not contain underscores, for linking with Fortran. */
-#ifndef SC_F77_FUNC
-#define SC_F77_FUNC(name,NAME) name ## _
+/* DEPRECATED (use SC_ENABLE_FILE_CHECKS instead) */
+#ifndef SC_FILE_CHECKS
+#define SC_FILE_CHECKS 1
 #endif
 
-/* As F77_FUNC, but for C identifiers containing underscores. */
-#ifndef SC_F77_FUNC_
-#define SC_F77_FUNC_(name,NAME) name ## _
-#endif
-
-/* Define to 1 if your Fortran compiler doesn't accept -c and -o together. */
-/* #undef F77_NO_MINUS_C_MINUS_O */
-
-/* FC compiler */
-#ifndef SC_FC
-#define SC_FC "gfortran"
-#endif
-
-/* FC compiler flags */
-#ifndef SC_FCFLAGS
-#define SC_FCFLAGS "-g -O2"
-#endif
-
-/* Define to dummy `main' function (if any) required to link to the Fortran
-   libraries. */
-/* #undef FC_DUMMY_MAIN */
-
-/* Define if F77 and FC dummy `main' functions are identical. */
-/* #undef FC_DUMMY_MAIN_EQ_F77 */
-
-/* Define to a macro mangling the given C identifier (in lower and upper
-   case), which must not contain underscores, for linking with Fortran. */
-#ifndef SC_FC_FUNC
-#define SC_FC_FUNC(name,NAME) name ## _
-#endif
-
-/* As FC_FUNC, but for C identifiers containing underscores. */
-#ifndef SC_FC_FUNC_
-#define SC_FC_FUNC_(name,NAME) name ## _
-#endif
-
-/* Define to 1 if your Fortran compiler doesn't accept -c and -o together. */
-/* #undef FC_NO_MINUS_C_MINUS_O */
-
-/* F77 compiler flags */
-#ifndef SC_FFLAGS
-#define SC_FFLAGS "-g -O2"
+/* Define to 1 if we have MPI_Aint_diff */
+#ifndef SC_HAVE_AINT_DIFF
+#define SC_HAVE_AINT_DIFF 1
 #endif
 
 /* Define to 1 if you have the `aligned_alloc' function. */
-/* #undef HAVE_ALIGNED_ALLOC */
+#ifndef SC_HAVE_ALIGNED_ALLOC
+#define SC_HAVE_ALIGNED_ALLOC 1
+#endif
 
 /* Define to 1 if you have the `backtrace' function. */
 #ifndef SC_HAVE_BACKTRACE
@@ -159,6 +100,19 @@
 /* Define to 1 if you have the `backtrace_symbols' function. */
 #ifndef SC_HAVE_BACKTRACE_SYMBOLS
 #define SC_HAVE_BACKTRACE_SYMBOLS 1
+#endif
+
+/* Define to 1 if you have the `basename' function. */
+#ifndef SC_HAVE_BASENAME
+#define SC_HAVE_BASENAME 1
+#endif
+
+/* Define to 1 if qsort_r conforms to BSD standard */
+/* #undef HAVE_BSD_QSORT_R */
+
+/* Define to 1 if you have the `dirname' function. */
+#ifndef SC_HAVE_DIRNAME
+#define SC_HAVE_DIRNAME 1
 #endif
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
@@ -171,31 +125,55 @@
 #define SC_HAVE_EXECINFO_H 1
 #endif
 
+/* Define to 1 if you have the <fcntl.h> header file. */
+#ifndef SC_HAVE_FCNTL_H
+#define SC_HAVE_FCNTL_H 1
+#endif
+
+/* Define to 1 if you have the `fsync' function. */
+#ifndef SC_HAVE_FSYNC
+#define SC_HAVE_FSYNC 1
+#endif
+
+/* Define to 1 if you have the `gettimeofday' function. */
+#ifndef SC_HAVE_GETTIMEOFDAY
+#define SC_HAVE_GETTIMEOFDAY 1
+#endif
+
+/* Define to 1 if qsort_r conforms to GNU standard */
+#ifndef SC_HAVE_GNU_QSORT_R
+#define SC_HAVE_GNU_QSORT_R 1
+#endif
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #ifndef SC_HAVE_INTTYPES_H
 #define SC_HAVE_INTTYPES_H 1
 #endif
 
+/* Define to 1 if json_integer and json_real link */
+/* #undef HAVE_JSON */
+
+/* Define to 1 if you have the <libgen.h> header file. */
+#ifndef SC_HAVE_LIBGEN_H
+#define SC_HAVE_LIBGEN_H 1
+#endif
+
+/* Define to 1 if you have the <linux/version.h> header file. */
+#ifndef SC_HAVE_LINUX_VERSION_H
+#define SC_HAVE_LINUX_VERSION_H 1
+#endif
+
+/* Define to 1 if you have the <linux/videodev2.h> header file. */
+#ifndef SC_HAVE_LINUX_VIDEODEV2_H
+#define SC_HAVE_LINUX_VIDEODEV2_H 1
+#endif
+
 /* Have we found function pthread_create. */
 /* #undef HAVE_LPTHREAD */
 
-/* Have we found function lua_createtable. */
-#ifndef SC_HAVE_LUA
-#define SC_HAVE_LUA 1
-#endif
-
-/* Define to 1 if you have the <lua5.1/lua.h> header file. */
-/* #undef HAVE_LUA5_1_LUA_H */
-
-/* Define to 1 if you have the <lua5.2/lua.h> header file. */
-/* #undef HAVE_LUA5_2_LUA_H */
-
-/* Define to 1 if you have the <lua5.3/lua.h> header file. */
-/* #undef HAVE_LUA5_3_LUA_H */
-
-/* Define to 1 if you have the <lua.h> header file. */
-#ifndef SC_HAVE_LUA_H
-#define SC_HAVE_LUA_H 1
+/* Define to 1 if sqrt links successfully */
+#ifndef SC_HAVE_MATH
+#define SC_HAVE_MATH 1
 #endif
 
 /* Define to 1 if you have the <memory.h> header file. */
@@ -203,12 +181,29 @@
 #define SC_HAVE_MEMORY_H 1
 #endif
 
-/* Have we found function omp_get_thread_num. */
-/* #undef HAVE_OPENMP */
+/* Define to 1 if we have MPI_INT8_T */
+#ifndef SC_HAVE_MPI_INT8_T
+#define SC_HAVE_MPI_INT8_T 1
+#endif
+
+/* Define to 1 if we have MPI_SIGNED_CHAR */
+#ifndef SC_HAVE_MPI_SIGNED_CHAR
+#define SC_HAVE_MPI_SIGNED_CHAR 1
+#endif
+
+/* Define to 1 if we have MPI_UNSIGNED_LONG_LONG */
+#ifndef SC_HAVE_MPI_UNSIGNED_LONG_LONG
+#define SC_HAVE_MPI_UNSIGNED_LONG_LONG 1
+#endif
 
 /* Define to 1 if you have the `posix_memalign' function. */
 #ifndef SC_HAVE_POSIX_MEMALIGN
 #define SC_HAVE_POSIX_MEMALIGN 1
+#endif
+
+/* Define to 1 if you have the `qsort_r' function. */
+#ifndef SC_HAVE_QSORT_R
+#define SC_HAVE_QSORT_R 1
 #endif
 
 /* Define to 1 if you have the <signal.h> header file. */
@@ -236,6 +231,11 @@
 #define SC_HAVE_STRING_H 1
 #endif
 
+/* Define to 1 if you have the `strtok_r' function. */
+#ifndef SC_HAVE_STRTOK_R
+#define SC_HAVE_STRTOK_R 1
+#endif
+
 /* Define to 1 if you have the `strtol' function. */
 #ifndef SC_HAVE_STRTOL
 #define SC_HAVE_STRTOL 1
@@ -244,6 +244,16 @@
 /* Define to 1 if you have the `strtoll' function. */
 #ifndef SC_HAVE_STRTOLL
 #define SC_HAVE_STRTOLL 1
+#endif
+
+/* Define to 1 if you have the <sys/ioctl.h> header file. */
+#ifndef SC_HAVE_SYS_IOCTL_H
+#define SC_HAVE_SYS_IOCTL_H 1
+#endif
+
+/* Define to 1 if you have the <sys/select.h> header file. */
+#ifndef SC_HAVE_SYS_SELECT_H
+#define SC_HAVE_SYS_SELECT_H 1
 #endif
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
@@ -271,22 +281,9 @@
 #define SC_HAVE_UNISTD_H 1
 #endif
 
-/* Have we found function adler32_combine. */
+/* Define to 1 if zlib's adler32_combine links */
 #ifndef SC_HAVE_ZLIB
 #define SC_HAVE_ZLIB 1
-#endif
-
-/* Define to 1 on a bigendian machine */
-/* #undef IS_BIGENDIAN */
-
-/* Linker flags */
-#ifndef SC_LDFLAGS
-#define SC_LDFLAGS ""
-#endif
-
-/* Libraries */
-#ifndef SC_LIBS
-#define SC_LIBS "  -llua -lz -lm   "
 #endif
 
 /* minimal log priority */
@@ -304,22 +301,21 @@
 
 /* desired alignment of allocations in bytes */
 #ifndef SC_MEMALIGN_BYTES
-#define SC_MEMALIGN_BYTES (SC_SIZEOF_VOID_P)
+#define SC_MEMALIGN_BYTES (8)
 #endif
 
 /* DEPRECATED (use SC_ENABLE_MPI instead) */
-/* #undef MPI */
-#define SC_ENABLE_MPI 1
+#ifndef SC_MPI
+#define SC_MPI 1
+#endif
 
 /* DEPRECATED (use SC_ENABLE_MPIIO instead) */
-/* #undef MPIIO */
-#define SC_ENABLE_MPIIO 1
+#ifndef SC_MPIIO
+#define SC_MPIIO 1
+#endif
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 /* #undef NO_MINUS_C_MINUS_O */
-
-/* DEPRECATED (use SC_ENABLE_OPENMP instead) */
-/* #undef OPENMP */
 
 /* Name of package */
 #ifndef SC_PACKAGE
@@ -328,7 +324,7 @@
 
 /* Define to the address where bug reports for this package should be sent. */
 #ifndef SC_PACKAGE_BUGREPORT
-#define SC_PACKAGE_BUGREPORT "info@p4est.org"
+#define SC_PACKAGE_BUGREPORT "p4est@ins.uni-bonn.de"
 #endif
 
 /* Define to the full name of this package. */
@@ -338,7 +334,7 @@
 
 /* Define to the full name and version of this package. */
 #ifndef SC_PACKAGE_STRING
-#define SC_PACKAGE_STRING "libsc 2.2"
+#define SC_PACKAGE_STRING "libsc 2.8.7"
 #endif
 
 /* Define to the one symbol short name of this package. */
@@ -353,7 +349,7 @@
 
 /* Define to the version of this package. */
 #ifndef SC_PACKAGE_VERSION
-#define SC_PACKAGE_VERSION "2.2"
+#define SC_PACKAGE_VERSION "2.8.7"
 #endif
 
 /* DEPRECATED (use SC_WITH_PAPI instead) */
@@ -362,45 +358,17 @@
 /* Use builtin getopt */
 /* #undef PROVIDE_GETOPT */
 
-/* Use builtin obstack */
-/* #undef PROVIDE_OBSTACK */
-
 /* DEPRECATED (use SC_ENABLE_PTHREAD instead) */
 /* #undef PTHREAD */
-
-/* The size of `int', as computed by sizeof. */
-#ifndef SC_SIZEOF_INT
-#define SC_SIZEOF_INT 4
-#endif
-
-/* The size of `long', as computed by sizeof. */
-#ifndef SC_SIZEOF_LONG
-#define SC_SIZEOF_LONG 8
-#endif
-
-/* The size of `long long', as computed by sizeof. */
-#ifndef SC_SIZEOF_LONG_LONG
-#define SC_SIZEOF_LONG_LONG 8
-#endif
-
-/* The size of `unsigned long', as computed by sizeof. */
-#ifndef SC_SIZEOF_UNSIGNED_LONG
-#define SC_SIZEOF_UNSIGNED_LONG 8
-#endif
-
-/* The size of `unsigned long long', as computed by sizeof. */
-#ifndef SC_SIZEOF_UNSIGNED_LONG_LONG
-#define SC_SIZEOF_UNSIGNED_LONG_LONG 8
-#endif
-
-/* The size of `void *', as computed by sizeof. */
-#ifndef SC_SIZEOF_VOID_P
-#define SC_SIZEOF_VOID_P 8
-#endif
 
 /* Define to 1 if you have the ANSI C header files. */
 #ifndef SC_STDC_HEADERS
 #define SC_STDC_HEADERS 1
+#endif
+
+/* DEPRECATED (use SC_ENABLE_USE_COUNTERS instead) */
+#ifndef SC_USE_COUNTERS
+#define SC_USE_COUNTERS 1
 #endif
 
 /* DEPRECATED (use SC_ENABLE_USE_REALLOC instead) */
@@ -408,9 +376,14 @@
 #define SC_USE_REALLOC 1
 #endif
 
+/* Define to 1 if using autoconf build */
+#ifndef SC_USING_AUTOCONF
+#define SC_USING_AUTOCONF 1
+#endif
+
 /* Version number of package */
 #ifndef SC_VERSION
-#define SC_VERSION "2.2"
+#define SC_VERSION "2.8.7"
 #endif
 
 /* Package major version */
@@ -420,34 +393,16 @@
 
 /* Package minor version */
 #ifndef SC_VERSION_MINOR
-#define SC_VERSION_MINOR 2
+#define SC_VERSION_MINOR 8
 #endif
 
 /* Package point version */
 #ifndef SC_VERSION_POINT
-#define SC_VERSION_POINT 2.2
+#define SC_VERSION_POINT 7
 #endif
-
-/* Define to 1 if BLAS is used */
-/* #undef WITH_BLAS */
-
-/* Define to 1 if LAPACK is used */
-/* #undef WITH_LAPACK */
 
 /* enable Flop counting with papi */
 /* #undef WITH_PAPI */
-
-/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
-   significant byte first (like Motorola and SPARC, unlike Intel). */
-#if defined AC_APPLE_UNIVERSAL_BUILD
-# if defined __BIG_ENDIAN__
-#  define WORDS_BIGENDIAN 1
-# endif
-#else
-# ifndef WORDS_BIGENDIAN
-/* #  undef WORDS_BIGENDIAN */
-# endif
-#endif
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */
@@ -480,5 +435,5 @@
 /* Define to `int' if <sys/types.h> does not define. */
 /* #undef ssize_t */
  
-/* once: _SRC_SC_CONFIG_H */
+/* once: _CONFIG_SC_CONFIG_H */
 #endif

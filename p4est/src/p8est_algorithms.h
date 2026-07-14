@@ -22,28 +22,42 @@
   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
+/** \file p8est_algorithms.h
+ *
+ * Routines for managing quadrants as elements of trees and subtrees.
+ * In addition, some high level algorithms such as \ref p4est_partition_given.
+ *
+ * \ingroup p8est
+ */
+
 #ifndef P8EST_ALGORITHMS_H
 #define P8EST_ALGORITHMS_H
 
-#include <p8est.h>
 #include <p8est_extended.h>
 
 SC_EXTERN_C_BEGIN;
 
-/** Alloc and initialize the user data of a valid quadrant.
- * \param [in]  which_tree 0-based index of this quadrant's tree.
- * \param [in,out]  quad       The quadrant to be initialized.
- * \param [in]  init_fn    User-supplied callback function to init data.
+/** Create a memory pool for quadrants that initializes compiler padding.
+ * \return          Initialized mempool with zero_and_persist setting.
  */
-void                p8est_quadrant_init_data (p8est_t * p8est,
+sc_mempool_t       *p8est_quadrant_mempool_new (void);
+
+/** Alloc and initialize the user data of a valid quadrant.
+ * \param [in,out] p4est    Forest for accessing the memory pool.
+ * \param [in] which_tree   0-based index of this quadrant's tree.
+ * \param [in,out] quad     The quadrant to be initialized.
+ * \param [in] init_fn      User-supplied callback function to init data.
+ */
+void                p8est_quadrant_init_data (p8est_t * p4est,
                                               p4est_topidx_t which_tree,
                                               p8est_quadrant_t * quad,
                                               p8est_init_t init_fn);
 
 /** Free the user data of a valid quadrant.
- * \param [in,out]  quad The quadrant whose data shall be freed.
+ * \param [in,out] p4est    Forest for accessing the memory pool.
+ * \param [in,out] quad     The quadrant whose data shall be freed.
  */
-void                p8est_quadrant_free_data (p8est_t * p8est,
+void                p8est_quadrant_free_data (p8est_t * p4est,
                                               p8est_quadrant_t * quad);
 
 /** Computes a machine-independent checksum of a list of quadrants.
@@ -97,6 +111,7 @@ int                 p8est_tree_is_linear (p8est_tree_t * tree);
 int                 p8est_tree_is_complete (p8est_tree_t * tree);
 
 /** Check if a tree is sorted/linear except across edges or corners.
+ * \param [in]  tree             Tree data structure of a forest.
  * \param [in]  check_linearity  Boolean for additional check for linearity.
  * \return Returns true if almost sorted/linear, false otherwise.
  */
@@ -114,6 +129,7 @@ int                 p8est_tree_is_almost_sorted (p8est_tree_t * tree,
  *   D   for a descendant
  *   Nn   for a next quadrant in the tree with no holes in between and child id n
  *   qn  for a general quadrant whose child id is n
+ * \param [in] log_priority     Priority for log message (see sc.h).
  * \param [in] tree        Any (possibly incomplete, unsorted) tree to be printed.
  */
 void                p8est_tree_print (int log_priority, p8est_tree_t * tree);
@@ -149,7 +165,7 @@ int                 p8est_is_valid (p8est_t * p8est);
  * reproduce those splits when \a in is balanced.
  * Note: Use this version if you are using less than full balance.
  *
- * \param [in] p4est    The p8est to work on.
+ * \param [in] p4est    The forest to work on.
  * \param [in] in       A piggy-sorted linear list of quadrants.
  *                      The piggy2->from_tree member must be set.
  * \param [in,out] out  A piggy-sorted subset of tree->quadrants.
@@ -158,7 +174,7 @@ int                 p8est_is_valid (p8est_t * p8est);
  *                      this will be used to fill \a out.
  * \param [in] inseeds  The seeds that \a in generates locally.
  */
-void                p8est_tree_compute_overlap (p8est_t * p8est,
+void                p8est_tree_compute_overlap (p8est_t * p4est,
                                                 sc_array_t * in,
                                                 sc_array_t * out,
                                                 p8est_connect_type_t
@@ -182,7 +198,7 @@ size_t              p8est_tree_remove_nonowned (p8est_t * p8est,
 
 /** Constructs a minimal linear octree between two octants.
  *
- * This is alogorithm 2 from H. Sundar, R.S. Sampath and G. Biros
+ * This is algorithm 2 from H. Sundar, R.S. Sampath and G. Biros
  * with the additional improvements that we do not require sorting
  * and the runtime is O(N).
  *
@@ -244,7 +260,7 @@ void                p8est_balance_border (p8est_t * p8est,
 
 /** Remove overlaps from a sorted list of quadrants.
  *
- * This is alogorithm 8 from H. Sundar, R.S. Sampath and G. Biros
+ * This is algorithm 8 from H. Sundar, R.S. Sampath and G. Biros
  * with the additional improvement that it works in-place.
  *
  * \param [in]     p8est used for the memory pool and quadrant free.
@@ -303,7 +319,7 @@ p4est_gloidx_t      p8est_partition_for_coarsening (p8est_t * p8est,
  * \a num_quadrants_in_proc.
  *
  * \param [in] rank                  process id where search starts
- * \param [in] num_proc              number of processes
+ * \param [in] num_procs             number of processes
  * \param [in] num_quadrants_in_proc number of quadrants for each process
  * \return                           process id of a non empty process
  */
@@ -325,6 +341,22 @@ int                 p8est_next_nonempty_process (int rank,
 p4est_gloidx_t      p8est_partition_given (p8est_t * p8est,
                                            const p4est_locidx_t *
                                            num_quadrants_in_proc);
+
+/** Checks if a quadrant's face is on the boundary of the forest.
+ *
+ * \param [in] p4est  The forest in which to search for \a q
+ * \param [in] treeid The tree to which \a q belongs.
+ * \param [in] q      The quadrant that is in question.
+ * \param [in] face   The face of the quadrant that is in question.
+ *
+ * \return true if the quadrant's face is on the boundary of the forest and
+ *         false otherwise.
+ */
+int                 p8est_quadrant_on_face_boundary (p8est_t * p4est,
+                                                     p4est_topidx_t treeid,
+                                                     int face,
+                                                     const p8est_quadrant_t *
+                                                     q);
 
 SC_EXTERN_C_END;
 

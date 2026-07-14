@@ -50,54 +50,45 @@ except KeyError:
      OXLEY_TEST_DATA='.'
 
 NE=8 # initial number of elements in each spatial direction (must be even)
+# Build with refine_level>0 so CI exercises the multi-leaf-per-tree path:
+# NB blocks each subdivided RL times gives NB*2**RL == NE elements per axis.
+RL=1
+NB=NE//2
 mpiSize=getMPISizeWorld()
 
-# class Test_LinearPDEOnOxleyRectangle(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1, Test_TransportPDE):
-@unittest.skip("Oxley Rectangle meshes have SystemMatrixPattern errors with LinearPDE - see issue #118")
+# Domain decomposition across ranks is handled internally by p4est, so the
+# meshes are built from a block grid (n0/n1[/n2] blocks) regardless of mpiSize.
 class Test_LinearPDEOnOxleyRectangle(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
     def setUp(self):
-        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
-            NX=x
-            NY=mpiSize//x
-            if NX*NY == mpiSize:
-                break
-        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=Rectangle(n0=NB, n1=NB, l0=1., l1=1., refine_level=RL)
         self.order = 1
     def tearDown(self):
         del self.domain
 
-# class Test_LinearPDEOnOxleyBrick(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_3Do1, Test_TransportPDE):
-#TODO
-# class Test_LinearPDEOnOxleyBrick(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_3Do1):
-#     RES_TOL=1.e-7
-#     ABS_TOL=1.e-8
-#     def setUp(self):
-#         for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
-#             NX=x[0]
-#             NY=x[1]
-#             NZ=mpiSize//(x[0]*x[1])
-#             if NX*NY*NZ == mpiSize:
-#                 break
-
-#         self.domain = Brick(n0=NE*NX-1, n1=NE*NY-1, n2=NE*NZ-1, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
-#         self.order = 1
-
-#     def tearDown(self):
-#         del self.domain
-
-@unittest.skip("Oxley Rectangle meshes have SystemMatrixPattern errors with Poisson - see issue #118")
-class Test_PoissonOnOxley(Test_Poisson):
+class Test_LinearPDEOnOxleyBrick(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_3Do1):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
     def setUp(self):
-        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
-            NX=x
-            NY=mpiSize//x
-            if NX*NY == mpiSize:
-                break
-        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain = Brick(n0=NB, n1=NB, n2=NB, l0=1., l1=1., l2=1., refine_level=RL)
+        self.order = 1
+    def tearDown(self):
+        del self.domain
+
+class Test_PoissonOnOxleyRectangle(Test_Poisson):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        self.domain=Rectangle(n0=NB, n1=NB, l0=1., l1=1., refine_level=RL)
+    def tearDown(self):
+        del self.domain
+
+class Test_PoissonOnOxleyBrick(Test_Poisson):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        self.domain=Brick(n0=NB, n1=NB, n2=NB, l0=1., l1=1., l2=1., refine_level=RL)
     def tearDown(self):
         del self.domain
 

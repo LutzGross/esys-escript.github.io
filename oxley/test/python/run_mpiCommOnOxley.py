@@ -59,7 +59,7 @@ class Test_MPI_Comm_Oxley2D(Test_MPI_Comm_Retrieval):
     def createDomain(self, comm=None):
         """Create a 2D Rectangle domain"""
         if comm is None:
-            return Rectangle(n0=20, n1=20, d0=NX, d1=NY)
+            return Rectangle(n0=20, n1=20)
         else:
             # For custom communicators, let oxley auto-detect subdivision
             return Rectangle(n0=20, n1=20, comm=comm)
@@ -72,7 +72,7 @@ class Test_MPI_Comm_Oxley3D(Test_MPI_Comm_Retrieval):
     def createDomain(self, comm=None):
         """Create a 3D Brick domain"""
         if comm is None:
-            return Brick(n0=12, n1=12, n2=12, d0=NXb, d1=NYb, d2=NZb)
+            return Brick(n0=12, n1=12, n2=12)
         else:
             # For custom communicators, let oxley auto-detect subdivision
             return Brick(n0=12, n1=12, n2=12, comm=comm)

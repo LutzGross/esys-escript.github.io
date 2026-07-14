@@ -19,6 +19,7 @@
 #include <oxley/Oxley.h>
 #include <oxley/OxleyException.h>
 #include <oxley/AbstractAssembler.h>
+#include <oxley/MeshAccess.h>
 #include <oxley/domainhelpers.h>
 #include <oxley/tictoc.h>
 
@@ -34,6 +35,7 @@
 #endif
 
 #include <boost/python/tuple.hpp>
+#include <boost/python/dict.hpp>
 #include <boost/python/to_python_converter.hpp>
 
 #ifdef ESYS_HAVE_TRILINOS
@@ -597,29 +599,9 @@ public:
       finalises the matrix system
    */
    #ifdef ESYS_HAVE_TRILINOS
-   void makeZ(bool complex);
-   template<typename S> void makeZworker(const S half,Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>& Z,
-               Teuchos::RCP<const Tpetra::Map<>>,Teuchos::RCP<const Tpetra::Map<>>);
-   void makeIZ(bool complex);
-   template<typename S> void makeIZworker(Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> &Z,
-               Teuchos::RCP<const Tpetra::Map<>>,Teuchos::RCP<const Tpetra::Map<>>);
 
    bool z_needs_update=false;
    bool iz_needs_update=false;
-   // Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * getZ(bool complex);
-   // Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * getIZ(bool complex);
-   
-   void finaliseA(escript::AbstractSystemMatrix& mat, bool isComplex);
-   template<typename S>
-   void finaliseAworker(escript::AbstractSystemMatrix& mat, 
-      Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>& Z);
-   
-   
-   escript::Data finaliseRhs(escript::Data& rhs);
-   template<typename S> 
-   void finaliseRhsworker(escript::Data& rhs, 
-      Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>& Z);
-
    void resetRhs(escript::Data& rhs) const;
    #endif //ESYS_HAVE_TRILINOS
    
@@ -779,35 +761,11 @@ public:
     // Converts the Teuchos CRS matrix to a boost::numpy array
     // typedef Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> crs_matrix_type;
     #ifdef ESYS_HAVE_TRILINOS
-    typedef Tpetra::CrsMatrix<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> real_matrix_type;
-    typedef Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> cplx_matrix_type;
     Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
 
-    void initZ(bool complex);
-    void initIZ(bool complex);
     // void updateZ();
     // void updateIZ();
 
-    IndexVector zYaleRows;
-    IndexVector zYaleCols;
-    std::vector<IndexVector> zconnections;
-    esys_trilinos::TrilinosGraph_ptr zgraph;
-    IndexVector izYaleRows;
-    IndexVector izYaleCols;
-    std::vector<IndexVector> izconnections;
-    esys_trilinos::TrilinosGraph_ptr izgraph;
-    Teuchos::RCP<const Tpetra::Map<>> zccolMap;
-    Teuchos::RCP<const Tpetra::Map<>> zcrowMap;
-    Teuchos::RCP<const Tpetra::Map<>> zrcolMap;
-    Teuchos::RCP<const Tpetra::Map<>> zrrowMap;
-    Teuchos::RCP<const Tpetra::Map<>> izccolMap;
-    Teuchos::RCP<const Tpetra::Map<>> izcrowMap;
-    Teuchos::RCP<const Tpetra::Map<>> izrcolMap;
-    Teuchos::RCP<const Tpetra::Map<>> izrrowMap;
-    Teuchos::RCP<const Tpetra::Map<>> zdomainMap;
-    Teuchos::RCP<const Tpetra::Map<>> izdomainMap;
-    Teuchos::RCP<const Tpetra::Map<>> zrangeMap;
-    Teuchos::RCP<const Tpetra::Map<>> izrangeMap;
 
     Teuchos::RCP<Tpetra::Map<>> f_map;
     Teuchos::RCP<Tpetra::Map<>> g_map;
@@ -828,10 +786,6 @@ public:
     // const Teuchos::RCP<const Teuchos::Comm<int>> tril_comm = Teuchos::RCP<const Teuchos::SerialComm<int>>();
     // #endif
 
-    Teuchos::RCP<real_matrix_type> rZ;
-    Teuchos::RCP<real_matrix_type> rIZ;
-    Teuchos::RCP<cplx_matrix_type> cZ;
-    Teuchos::RCP<cplx_matrix_type> cIZ;
     // Teuchos::RCP<Tpetra::CrsMatrix<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * pZ;
     // Teuchos::RCP<Tpetra::CrsMatrix<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * pIZ;
     // Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * cpZ;
@@ -899,9 +853,21 @@ protected:
     /// returns the number of face elements on current MPI rank
     virtual dim_t getNumFaceElements() const = 0;
 
-    #ifdef ESYS_HAVE_BOOST_NUMPY    
+    #ifdef ESYS_HAVE_BOOST_NUMPY
       virtual boost::python::numpy::ndarray getNumpyX() const;
     #endif
+
+public:
+    /// returns an lnodes-based, p4est-independent view of the mesh (see MeshAccess).
+    /// This is the single public description of the mesh topology consumed by
+    /// output and (later) assembly; the node numbering stays inside the domain.
+    virtual MeshAccess getMeshAccess() const = 0;
+
+    #ifdef ESYS_HAVE_BOOST_NUMPY
+      /// Python view of getMeshAccess(): a dict of scalars and numpy arrays.
+      boost::python::dict getMeshInfo() const;
+    #endif
+protected:
 
     // Tagmap
     TagMap m_tagMap;
@@ -935,8 +901,6 @@ protected:
     esys_trilinos::TrilinosGraph_ptr createTrilinosGraph(
             const IndexVector& myRows,  const IndexVector& myColumns) const;
 
-    esys_trilinos::TrilinosGraph_ptr createTrilinosGraph(
-            const IndexVector& myRows,  const IndexVector& myColumns, dim_t dof, dim_t numRows, std::vector<IndexVector> connections) const;
 #endif
 
     /// returns occupied matrix column indices for all matrix rows
@@ -1023,8 +987,6 @@ private:
 
     #ifdef ESYS_HAVE_TRILINOS
     /// calls the right PDE assembly routine after performing input checks
-    void assemblePDEHanging(Teuchos::RCP<Tpetra::CrsMatrix<double,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>* mat,
-                          Assembler_ptr assembler) const;
     #endif //ESYS_HAVE_TRILINOS
 
     template<typename Scalar>

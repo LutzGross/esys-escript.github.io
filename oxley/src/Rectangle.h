@@ -62,15 +62,6 @@ public:
               rectangle [x0,x1] x [y0,y1].
        \param
     */
-#if 0  // DEPRECATED: mpiInfo must be handed over from caller
-    Rectangle(int order, dim_t n0, dim_t n1,
-        double x0, double y0, double x1, double y1,
-        int d0, int d1,
-        const std::vector<double>& points, const std::vector<int>& tags,
-        const TagMap& tagnamestonums,
-        int periodic0, int periodic1);
-#endif
-
     /**
        \brief creates a rectangular mesh with n0 x n1 elements over the
               rectangle [x0,x1] x [y0,y1] with a custom MPI communicator.
@@ -78,10 +69,8 @@ public:
     */
     Rectangle(escript::JMPI jmpi, int order, dim_t n0, dim_t n1,
         double x0, double y0, double x1, double y1,
-        int d0, int d1,
         const std::vector<double>& points, const std::vector<int>& tags,
-        const TagMap& tagnamestonums,
-        int periodic0, int periodic1);
+        const TagMap& tagnamestonums, int refine_level=0);
 
     /**
        \brief creates a rectangular mesh from numpy arrays [x,y].
@@ -329,7 +318,6 @@ public:
     p4est_t * p4est;
 
     // Rectangle needs to keep track of this information
-    std::unordered_map<DoublePair,long,boost::hash<DoublePair>> NodeIDs; //global ids of the nodes
 
         /**
        \brief
@@ -359,7 +347,6 @@ public:
        \brief
        Returns the ID numbers of the neighbouring four nodes
     */
-    void getNeighouringNodeIDs(int8_t level, p4est_qcoord_t x, p4est_qcoord_t y, p4est_topidx_t treeid, long (&ids) [4]) const;
 
     /**
        \brief
@@ -427,7 +414,6 @@ private:
     std::vector<bool> is_hanging; // element x is true if node id x is a hanging node
     // std::vector<std::vector<long>> is_hanging_face; // if face x-y is hanging then element x is y
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> treeIDs; //global ids of the hanging nodes
-    std::vector<long> quadrantIDs; // IDs of the quadrants
     std::vector<quad_info> quadrantInfo;
 
     std::vector<borderNodeInfo> NodeIDsTop;
@@ -444,8 +430,20 @@ private:
     // vector that maps each node to a DOF index (used for the coupler)
     IndexVector m_dofMap;
 
-    // 
+    //
     IndexVector m_nodeId;
+
+    // --- MPI overlap (A6): p4est ghost element layer kept alive so that each
+    // rank can assemble the elements incident to its owned nodes that are owned
+    // by a neighbour (a one-element halo), completing its owned matrix/RHS rows.
+    // m_ghost is a FULL (face+corner) ghost of the current p4est. m_ghostElemNodes
+    // holds, per ghost quadrant, its vnodes corner node ids in the EXTENDED local
+    // column numbering (lnodes local nodes first, then any 2nd-layer ghost nodes
+    // that appear only on ghost elements). myColumns is extended to match.
+    p4est_ghost_t* m_ghost = nullptr;
+    IndexVector m_ghostElemNodes;
+    // builds m_ghost, m_ghostElemNodes and the extended myColumns from lnodes.
+    void buildParallelOverlap();
 
     // This is a modified version of the p4est library function new_connectivity
 p4est_connectivity_t *
@@ -464,7 +462,6 @@ new_rectangle_connectivity(int mi, int ni, int periodic_a, int periodic_b,
       \brief
       Returns the ID of a quad from the ID of it's bottom left node
     */
-    long getQuadID(long nodeid) const;
 
     template<typename Scalar>
     void assembleIntegrateImpl(std::vector<Scalar>& integrals, const escript::Data& arg) const;
@@ -489,6 +486,12 @@ protected:
        Returns the number of elements
     */
     virtual dim_t getNumElements() const;
+
+    /**
+       \brief
+       Returns an lnodes-based, p4est-independent view of the mesh.
+    */
+    virtual MeshAccess getMeshAccess() const;
 
     /**
        \brief
@@ -656,6 +659,28 @@ protected:
     template<typename Scalar> void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
            bool addS, bool addF, index_t e, index_t t, int nEq=1, int nComp=1) const;
+    // MPI (A6): scatter an element matrix/RHS given explicit (extended-local)
+    // corner node ids -- used for the ghost element halo. Non-owned rows are
+    // dropped (matrix wrapper + RHS guard), owned rows completed. (2D: 4 nodes.)
+    template<typename Scalar> void addToMatrixAndRHSGhost(escript::AbstractSystemMatrix* S,
+           escript::Data& F, const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
+           bool addS, bool addF, const index_t* rowIndex, int nEq=1, int nComp=1) const;
+
+    // MPI (A6): exchange one PDE-coefficient Data's per-element samples to the
+    // ghost element halo. Returns a buffer of num_ghosts*sampleSize Scalars
+    // (empty if 'coef' is empty or serial); ghost g's sample is at [g*sampleSize].
+    template<typename Scalar>
+    std::vector<Scalar> exchangeGhostCoeff(const escript::Data& coef) const;
+
+    // MPI (A6): exchange the boundary coefficients d,y (on FaceElements) to the
+    // ghost octant halo, packed per octant as 4 sides x [flag, d-sample, y-sample]
+    // (side order 0 left,1 right,2 bottom,3 top; flag>0 marks a domain-boundary
+    // face on that side). dSize/ySize (out) are the per-sample scalar counts (0 if
+    // that coefficient is empty). Returns num_ghosts*4*(1+dSize+ySize) scalars
+    // (empty if serial / no ghosts). Reusable across single/system/reduced.
+    template<typename Scalar>
+    std::vector<Scalar> exchangeGhostBoundary(const escript::Data& d,
+                            const escript::Data& y, size_t& dSize, size_t& ySize) const;
 
     // Updates m_faceOffset for each quadrant
     void updateFaceOffset();

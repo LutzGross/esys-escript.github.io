@@ -23,10 +23,11 @@
 */
 
 #include <p4est_to_p8est.h>
-#include <p8est_connectivity.h>
-#include <sc_io.h>
+#include "p4est_connectivity.c"
 
 /* *INDENT-OFF* */
+const int           p8est_volume_point = 13;
+
 const int           p8est_face_corners[6][4] =
 {{ 0, 2, 4, 6 },
  { 1, 3, 5, 7 },
@@ -41,7 +42,9 @@ const int           p8est_face_edges[6][4] =
  { 1, 3, 10, 11 },
  { 0, 1,  4,  5 },
  { 2, 3,  6,  7 }};
+const int           p8est_face_points[6] = { 12, 14, 10, 16, 4, 22 };
 const int           p8est_face_dual[6] = { 1, 0, 3, 2, 5, 4 };
+
 const int           p8est_face_permutations[8][4] =
 {{ 0, 1, 2, 3 },                /* no.  0 of 0..23 */
  { 0, 2, 1, 3 },                /* no.  2 of 0..23 */
@@ -103,6 +106,10 @@ const int           p8est_edge_corners[12][2] =
  { 1, 5 },
  { 2, 6 },
  { 3, 7 }};
+const int           p8est_edge_points[12] =
+{ 1,  7, 19, 25,
+  3,  5, 21, 23,
+  9, 11, 15, 17 };
 const int           p8est_edge_edge_corners[12][8] =
 {{  0,  1, -1, -1, -1, -1, -1, -1},
  { -1, -1,  0,  1, -1, -1, -1, -1},
@@ -161,6 +168,7 @@ const int           p8est_corner_edges[8][3] =
  { 2, 7,  9 },
  { 3, 6, 10 },
  { 3, 7, 11 }};
+const int           p8est_corner_points[8] = { 0, 2, 6, 8, 18, 20, 24, 26 };
 const int           p8est_corner_face_corners[8][6] =
 {{  0, -1,  0, -1,  0, -1 },
  { -1,  0,  1, -1,  1, -1 },
@@ -313,6 +321,103 @@ p8est_connectivity_new_rotwrap (void)
 
   return p4est_connectivity_new_copy (num_vertices, num_trees,
                                       num_edges, num_corners,
+                                      vertices, tree_to_vertex,
+                                      tree_to_tree, tree_to_face,
+                                      tree_to_edge, ett_offset,
+                                      edge_to_tree, edge_to_edge,
+                                      tree_to_corner, ctt_offset,
+                                      corner_to_tree, corner_to_corner);
+}
+
+p4est_connectivity_t *
+p8est_connectivity_new_drop (void)
+{
+/* *INDENT-OFF* */
+  const p4est_topidx_t num_vertices = 24;
+  const p4est_topidx_t num_trees = 5;
+  const p4est_topidx_t num_ett = 2;
+  const p4est_topidx_t num_ctt = 1;
+  const double        vertices[24 * 3] = {
+    0, 0, 0,
+    1, 0, 0,
+    0, 1, 0,
+    1, 1, 0,
+    3, 1, 0,
+    1, 2, 0,
+    3, 2, 0,
+    0, 0, 1,
+    1, 0, 1,
+    0, 1, 1,
+    1, 1, 1,
+    2, 1, 1,
+    1, 2, 1,
+    2, 2, 1,
+    1, 0, 2,
+    1, 1, 2,
+    2, 1, 2,
+    2, 2, 2,
+    0, 0, 3,
+    0, 1, 3,
+    3, 1, 3,
+    3, 2, 3,
+    0, 2, 3,
+    1, 2, 2,
+  };
+  const p4est_topidx_t tree_to_vertex[5 * 8] = {
+     0,  1,  2,  3,  7,  8,  9, 10,
+     3,  4,  5,  6, 10, 11, 12, 13,
+    11,  4, 13,  6, 16, 20, 17, 21,
+    15, 16, 23, 17, 19, 20, 22, 21,
+     7,  8,  9, 10, 18, 14, 19, 15,
+  };
+  const p4est_topidx_t tree_to_tree[5 * 6] = {
+    0, 0, 0, 0, 0, 4,
+    1, 2, 1, 1, 1, 1,
+    2, 2, 2, 2, 1, 3,
+    3, 2, 3, 3, 3, 3,
+    4, 4, 4, 4, 0, 4,
+  };
+  const int8_t        tree_to_face[5 * 6] = {
+    0,  1, 2, 3, 4, 4,
+    0, 10, 2, 3, 4, 5,
+    0,  1, 2, 3, 7, 1,
+    0,  5, 2, 3, 4, 5,
+    0,  1, 2, 3, 5, 5,
+  };
+  const p4est_topidx_t tree_to_edge[5 * 12] = {
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  0,
+    -1, -1, -1, -1, -1, -1, -1, -1,  0, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1,  1, -1, -1, -1,
+    -1, -1, -1,  1, -1, -1, -1, -1, -1, -1, -1, -1,
+  };
+  const p4est_topidx_t ett_offset[2 + 1] = { 0, 2, 4 };
+  const p4est_topidx_t edge_to_tree[4] = {
+    0, 1, 3, 4
+  };
+  const int8_t edge_to_edge[4] = {
+    11, 8, 8, 15
+  };
+  const p4est_topidx_t tree_to_corner[5 * 8] = {
+    -1, -1, -1, -1, -1, -1, -1,  0,
+    -1, -1, -1, -1,  0, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1,  0, -1, -1, -1, -1,
+  };
+  const p4est_topidx_t ctt_offset[1 + 1] = {
+    0, 3
+  };
+  const p4est_topidx_t corner_to_tree[3] = {
+    0, 1, 4
+  };
+  const int8_t corner_to_corner[3] = {
+    7, 4, 3
+  };
+/* *INDENT-ON* */
+
+  return p4est_connectivity_new_copy (num_vertices, num_trees,
+                                      num_ett, num_ctt,
                                       vertices, tree_to_vertex,
                                       tree_to_tree, tree_to_face,
                                       tree_to_edge, ett_offset,
@@ -497,6 +602,63 @@ p8est_connectivity_new_rotcubes (void)
                                       edge_to_tree, edge_to_edge,
                                       tree_to_corner, ctt_offset,
                                       corner_to_tree, corner_to_corner);
+}
+
+p4est_connectivity_t *
+p8est_connectivity_new_pillow (void)
+{
+  const p4est_topidx_t num_vertices = 12;
+  const p4est_topidx_t num_trees = 2;
+  const p4est_topidx_t num_edges = 4;
+  const p4est_topidx_t num_ctt = 0;
+  const double        vertices[12 * 3] = {
+    0, 0, -1,
+    1, 0, -1,
+    0, 1, -1,
+    1, 1, -1,
+    0, 0, 0,
+    1, 0, 0,
+    0, 1, 0,
+    1, 1, 0,
+    0, 0, 1,
+    1, 0, 1,
+    0, 1, 1,
+    1, 1, 1,
+  };
+  const p4est_topidx_t tree_to_vertex[2 * 8] = {
+    0, 1, 2, 3, 4, 5, 6, 7,     /* lower hemisphere */
+    4, 5, 6, 7, 8, 9, 10, 11    /* upper hemisphere */
+  };
+  const p4est_topidx_t tree_to_tree[2 * 6] = {
+    1, 1, 1, 1, 0, 0,
+    0, 0, 0, 0, 1, 1,
+  };
+  const int8_t        tree_to_face[2 * 6] = {
+    12, 13, 14, 15, 4, 5,
+    12, 13, 14, 15, 4, 5,
+  };
+
+  const p4est_topidx_t tree_to_edge[2 * 12] = {
+    -1, -1, -1, -1, -1, -1, -1, -1, 0, 1, 2, 3,
+    -1, -1, -1, -1, -1, -1, -1, -1, 0, 1, 2, 3,
+  };
+
+  const p4est_topidx_t ett_offset[4 + 1] = { 0, 2, 4, 6, 8 };
+
+  const p4est_topidx_t edge_to_tree[4 * 2] = {
+    0, 1, 0, 1, 0, 1, 0, 1,
+  };
+
+  const int8_t        edge_to_edge[4 * 2] = {
+    20, 8, 21, 9, 22, 10, 23, 11
+  };
+
+  return p4est_connectivity_new_copy (num_vertices, num_trees, num_edges, 0,
+                                      vertices, tree_to_vertex,
+                                      tree_to_tree, tree_to_face,
+                                      tree_to_edge, ett_offset,
+                                      edge_to_tree, edge_to_edge,
+                                      NULL, &num_ctt, NULL, NULL);
 }
 
 p4est_connectivity_t *
@@ -856,12 +1018,484 @@ p8est_connectivity_new_sphere (void)
                                       NULL, &ctt_offset, NULL, NULL);
 }
 
+/*
+ * Torus section, displaying here treeId's in the first segment.
+ *       ______
+ *      /      \
+ *     /\   3  /\
+ *    /  \ __ /  \
+ *   |  2 | 4|  0 |
+ *   |    |__|    |
+ *    \  /    \  /
+ *     \/  1   \/
+ *      \______/
+ *
+ * There are 8 edges per segment on the -z face (see drawing below):
+ *
+ * - 4 edges around -z faces of tree 4,
+ *   * tree 0 <-> tree 4
+ *   * tree 1 <-> tree 4
+ *   * tree 2 <-> tree 4
+ *   * tree 3 <-> tree 4
+ * - 4 edges:
+ *   * tree 0 <-> tree 1
+ *   * tree 1 <-> tree 2
+ *   * tree 2 <-> tree 3
+ *   * tree 3 <-> tree 0
+ *
+ *  6     7
+ *   \_3_/
+ *   |   |
+ *   2   0
+ *   |_1_|
+ *  /     \
+ * 5       4
+ *
+ * There are no corners (linking 8 trees).
+ */
+
+p8est_connectivity_t *
+p8est_connectivity_new_torus (int nSegments)
+{
+
+/* *INDENT-OFF* */
+  const p4est_topidx_t num_vertices = 12;
+  const p4est_topidx_t nTreesPS     =  5; /* number of trees per segment */
+  const p4est_topidx_t num_trees    =  nTreesPS*nSegments;
+  const p4est_topidx_t nEdgesPS     =  8; /* number of edges per segment */
+  const p4est_topidx_t num_edges    =  nEdgesPS*nSegments;
+  const p4est_topidx_t num_corners  =  0;
+  const p4est_topidx_t num_ctt      =  0; /* corner to tree */
+  const p4est_topidx_t num_ett      =  nEdgesPS*nSegments*4; /* edge to tree */
+  int i, j, iSegment, nbItems, iTree, iEdge;
+  p4est_connectivity_t *conn;
+
+  conn = p4est_connectivity_new (num_vertices, num_trees,
+                                 num_edges, num_ett,
+                                 num_corners, num_ctt);
+
+  {
+    const double vertices[12 * 3] = {
+      -1,  -1,  0,
+       1,  -1,  0,
+      -1,   1,  0,
+       1,   1,  0,
+      -1,   2,  0,
+       1,   2,  0,
+      -1,  -1,  1,
+       1,  -1,  1,
+      -1,   1,  1,
+       1,   1,  1,
+      -1,   2,  1,
+       1,   2,  1,
+    };
+
+    for (i=0; i<num_vertices*3; ++i)
+      conn->vertices[i] = vertices[i];
+  }
+
+  /* tree to vertex */
+  {
+    const p4est_topidx_t tree_to_vertex[5 * 8] = {
+      2, 3, 4, 5, 8, 9, 10, 11,  /* tree 0 */
+      2, 3, 4, 5, 8, 9, 10, 11,  /* tree 1 */
+      2, 3, 4, 5, 8, 9, 10, 11,  /* tree 2 */
+      2, 3, 4, 5, 8, 9, 10, 11,  /* tree 3 */
+      0, 1, 2, 3, 6, 7,  8,  9,  /* tree 4  - center*/
+    };
+
+    nbItems = nTreesPS*8; /* per segment */
+
+    /* all segments use the same pattern */
+    for (iSegment=0; iSegment<nSegments; ++iSegment)
+    {
+      for (j=0; j<nbItems; ++j)
+      {
+        conn->tree_to_vertex[j+iSegment*nbItems] = tree_to_vertex[j];
+      }
+    }
+  }
+/* *INDENT-ON* */
+
+  /*  tree to tree */
+  {
+    /*  return global tree id from local tree id and segment id */
+#define tGlob(tLoc,iSeg) ( (tLoc) + (iSeg) * nTreesPS )
+
+    /* return global tree id above (+z) */
+#define tGlobZp(tLoc,iSeg) ( ( tGlob(tLoc,iSeg) >= num_trees) ? tGlob(tLoc,iSeg) - num_trees : tGlob(tLoc,iSeg) )
+
+    /* return global tree id below (-z) */
+#define tGlobZm(tLoc,iSeg) ( ( tGlob(tLoc,iSeg) < 0) ? tGlob(tLoc,iSeg) + num_trees : tGlob(tLoc,iSeg) )
+
+    /* const p4est_topidx_t tree_to_tree[5 * 6] = { */
+    /*   3, 1, 4, self, 0, 0,  /\* tree 0 *\/ */
+    /*   0, 2, 4, self, 1, 1,  /\* tree 1 *\/ */
+    /*   1, 3, 4, self, 2, 2,  /\* tree 2 *\/ */
+    /*   2, 0, 4, self, 3, 3,  /\* tree 3 *\/ */
+    /*   2, 0, 1, 3, 4, 4,  /\* tree 4 - center *\/ */
+    /* }; */
+
+    nbItems = nTreesPS * 6;     /* 5 trees per segment x 6 faces */
+
+    /*  Global tree id */
+    for (iSegment = 0; iSegment < nSegments; ++iSegment) {
+
+      iTree = 0;
+
+      conn->tree_to_tree[0 + iTree * 6 + iSegment * nbItems] = tGlob (3, iSegment);     /* tree = 0 modulo 5  */
+      conn->tree_to_tree[1 + iTree * 6 + iSegment * nbItems] =
+        tGlob (1, iSegment);
+      conn->tree_to_tree[2 + iTree * 6 + iSegment * nbItems] =
+        tGlob (4, iSegment);
+      conn->tree_to_tree[3 + iTree * 6 + iSegment * nbItems] =
+        tGlob (iTree, iSegment);
+      conn->tree_to_tree[4 + iTree * 6 + iSegment * nbItems] =
+        tGlobZm (iTree - nTreesPS, iSegment);
+      conn->tree_to_tree[5 + iTree * 6 + iSegment * nbItems] =
+        tGlobZp (iTree + nTreesPS, iSegment);
+
+      iTree++;
+
+      conn->tree_to_tree[0 + iTree * 6 + iSegment * nbItems] = tGlob (0, iSegment);     /* tree = 1 modulo 5  */
+      conn->tree_to_tree[1 + iTree * 6 + iSegment * nbItems] =
+        tGlob (2, iSegment);
+      conn->tree_to_tree[2 + iTree * 6 + iSegment * nbItems] =
+        tGlob (4, iSegment);
+      conn->tree_to_tree[3 + iTree * 6 + iSegment * nbItems] =
+        tGlob (iTree, iSegment);
+      conn->tree_to_tree[4 + iTree * 6 + iSegment * nbItems] =
+        tGlobZm (iTree - nTreesPS, iSegment);
+      conn->tree_to_tree[5 + iTree * 6 + iSegment * nbItems] =
+        tGlobZp (iTree + nTreesPS, iSegment);
+
+      iTree++;
+
+      conn->tree_to_tree[0 + iTree * 6 + iSegment * nbItems] = tGlob (1, iSegment);     /* tree = 2 modulo 5  */
+      conn->tree_to_tree[1 + iTree * 6 + iSegment * nbItems] =
+        tGlob (3, iSegment);
+      conn->tree_to_tree[2 + iTree * 6 + iSegment * nbItems] =
+        tGlob (4, iSegment);
+      conn->tree_to_tree[3 + iTree * 6 + iSegment * nbItems] =
+        tGlob (iTree, iSegment);
+      conn->tree_to_tree[4 + iTree * 6 + iSegment * nbItems] =
+        tGlobZm (iTree - nTreesPS, iSegment);
+      conn->tree_to_tree[5 + iTree * 6 + iSegment * nbItems] =
+        tGlobZp (iTree + nTreesPS, iSegment);
+
+      iTree++;
+
+      conn->tree_to_tree[0 + iTree * 6 + iSegment * nbItems] = tGlob (2, iSegment);     /* tree = 3 modulo 5  */
+      conn->tree_to_tree[1 + iTree * 6 + iSegment * nbItems] =
+        tGlob (0, iSegment);
+      conn->tree_to_tree[2 + iTree * 6 + iSegment * nbItems] =
+        tGlob (4, iSegment);
+      conn->tree_to_tree[3 + iTree * 6 + iSegment * nbItems] = tGlob (iTree, iSegment); /* self */
+      conn->tree_to_tree[4 + iTree * 6 + iSegment * nbItems] =
+        tGlobZm (iTree - nTreesPS, iSegment);
+      conn->tree_to_tree[5 + iTree * 6 + iSegment * nbItems] =
+        tGlobZp (iTree + nTreesPS, iSegment);
+
+      iTree++;
+
+      conn->tree_to_tree[0 + iTree * 6 + iSegment * nbItems] = tGlob (2, iSegment);     /* tree = 4 modulo 5  */
+      conn->tree_to_tree[1 + iTree * 6 + iSegment * nbItems] =
+        tGlob (0, iSegment);
+      conn->tree_to_tree[2 + iTree * 6 + iSegment * nbItems] =
+        tGlob (1, iSegment);
+      conn->tree_to_tree[3 + iTree * 6 + iSegment * nbItems] =
+        tGlob (3, iSegment);
+      conn->tree_to_tree[4 + iTree * 6 + iSegment * nbItems] =
+        tGlobZm (iTree - nTreesPS, iSegment);
+      conn->tree_to_tree[5 + iTree * 6 + iSegment * nbItems] =
+        tGlobZp (iTree + nTreesPS, iSegment);
+
+      iTree++;
+
+    }
+
+#undef tGlobZm
+#undef tGlobZp
+#undef tGlob
+
+  }
+
+  /* tree to face */
+  {
+    /* const int8_t         tree_to_face[5 * 6] = { */
+    /*   1, 0, 7, 3, 4, 5,  /\* tree 0 *\/ */
+    /*   1, 0, 8, 3, 4, 5,  /\* tree 1 *\/ */
+    /*   1, 0, 0, 3, 4, 5,  /\* tree 2 *\/ */
+    /*   1, 0, 3, 3, 4, 5,  /\* tree 3 *\/ */
+    /*   2, 8, 8, 2, 4, 5,  /\* tree 4 - center *\/ */
+    /* }; */
+
+    /* all segments use the same pattern */
+    iTree = 0;                  /* global treeId */
+    for (iSegment = 0; iSegment < nSegments; ++iSegment) {
+
+      conn->tree_to_face[0 + iTree * 6] = 1;    /* tree = 0 modulo 5  */
+      conn->tree_to_face[1 + iTree * 6] = 0;
+      conn->tree_to_face[2 + iTree * 6] = 7;
+      conn->tree_to_face[3 + iTree * 6] = 3;
+      conn->tree_to_face[4 + iTree * 6] = 5;
+      conn->tree_to_face[5 + iTree * 6] = 4;
+      iTree++;
+
+      conn->tree_to_face[0 + iTree * 6] = 1;    /* tree = 1 modulo 5  */
+      conn->tree_to_face[1 + iTree * 6] = 0;
+      conn->tree_to_face[2 + iTree * 6] = 8;
+      conn->tree_to_face[3 + iTree * 6] = 3;
+      conn->tree_to_face[4 + iTree * 6] = 5;
+      conn->tree_to_face[5 + iTree * 6] = 4;
+      iTree++;
+
+      conn->tree_to_face[0 + iTree * 6] = 1;    /* tree = 2 modulo 5  */
+      conn->tree_to_face[1 + iTree * 6] = 0;
+      conn->tree_to_face[2 + iTree * 6] = 0;
+      conn->tree_to_face[3 + iTree * 6] = 3;
+      conn->tree_to_face[4 + iTree * 6] = 5;
+      conn->tree_to_face[5 + iTree * 6] = 4;
+      iTree++;
+
+      conn->tree_to_face[0 + iTree * 6] = 1;    /* tree = 3 modulo 5  */
+      conn->tree_to_face[1 + iTree * 6] = 0;
+      conn->tree_to_face[2 + iTree * 6] = 3;
+      conn->tree_to_face[3 + iTree * 6] = 3;
+      conn->tree_to_face[4 + iTree * 6] = 5;
+      conn->tree_to_face[5 + iTree * 6] = 4;
+      iTree++;
+
+      conn->tree_to_face[0 + iTree * 6] = 2;    /* tree = 4 modulo 5  */
+      conn->tree_to_face[1 + iTree * 6] = 8;
+      conn->tree_to_face[2 + iTree * 6] = 8;
+      conn->tree_to_face[3 + iTree * 6] = 2;
+      conn->tree_to_face[4 + iTree * 6] = 5;
+      conn->tree_to_face[5 + iTree * 6] = 4;
+      iTree++;
+
+    }
+
+  }
+
+  /* tree to edge */
+  {
+    /* helper macro to compute global edge id */
+#define eGlob(eLoc,iSeg) ( (eLoc) + (iSeg) * nEdgesPS )
+
+    /* same as above but taking into account torus periodicity */
+#define eGlob2(eLoc,iSeg) ( eGlob((eLoc),(iSeg)) < num_edges ? eGlob((eLoc),(iSeg)) : eGlob((eLoc),(iSeg)) - num_edges )
+
+    /* all segments use the same pattern */
+    iTree = 0;                  /*  global tree id */
+    for (iSegment = 0; iSegment < nSegments; ++iSegment) {
+      /* tree = 0 modulo 5  */
+      conn->tree_to_edge[0 + iTree * 12] = eGlob (0, iSegment);
+      conn->tree_to_edge[1 + iTree * 12] = -1;
+      conn->tree_to_edge[2 + iTree * 12] = eGlob2 (0 + nEdgesPS, iSegment);
+      conn->tree_to_edge[3 + iTree * 12] = -1;
+      conn->tree_to_edge[4 + iTree * 12] = eGlob (7, iSegment);
+      conn->tree_to_edge[5 + iTree * 12] = eGlob (4, iSegment);
+      conn->tree_to_edge[6 + iTree * 12] = eGlob2 (7 + nEdgesPS, iSegment);
+      conn->tree_to_edge[7 + iTree * 12] = eGlob2 (4 + nEdgesPS, iSegment);
+      conn->tree_to_edge[8 + iTree * 12] = -1;
+      conn->tree_to_edge[9 + iTree * 12] = -1;
+      conn->tree_to_edge[10 + iTree * 12] = -1;
+      conn->tree_to_edge[11 + iTree * 12] = -1;
+      iTree++;
+
+      /* tree = 1 modulo 5  */
+      conn->tree_to_edge[0 + iTree * 12] = eGlob (1, iSegment);
+      conn->tree_to_edge[1 + iTree * 12] = -1;
+      conn->tree_to_edge[2 + iTree * 12] = eGlob2 (1 + nEdgesPS, iSegment);
+      conn->tree_to_edge[3 + iTree * 12] = -1;
+      conn->tree_to_edge[4 + iTree * 12] = eGlob (4, iSegment);
+      conn->tree_to_edge[5 + iTree * 12] = eGlob (5, iSegment);
+      conn->tree_to_edge[6 + iTree * 12] = eGlob2 (4 + nEdgesPS, iSegment);
+      conn->tree_to_edge[7 + iTree * 12] = eGlob2 (5 + nEdgesPS, iSegment);
+      conn->tree_to_edge[8 + iTree * 12] = -1;
+      conn->tree_to_edge[9 + iTree * 12] = -1;
+      conn->tree_to_edge[10 + iTree * 12] = -1;
+      conn->tree_to_edge[11 + iTree * 12] = -1;
+      iTree++;
+
+      /* tree = 2 modulo 5  */
+      conn->tree_to_edge[0 + iTree * 12] = eGlob (2, iSegment);
+      conn->tree_to_edge[1 + iTree * 12] = -1;
+      conn->tree_to_edge[2 + iTree * 12] = eGlob2 (2 + nEdgesPS, iSegment);
+      conn->tree_to_edge[3 + iTree * 12] = -1;
+      conn->tree_to_edge[4 + iTree * 12] = eGlob (5, iSegment);
+      conn->tree_to_edge[5 + iTree * 12] = eGlob (6, iSegment);
+      conn->tree_to_edge[6 + iTree * 12] = eGlob2 (5 + nEdgesPS, iSegment);
+      conn->tree_to_edge[7 + iTree * 12] = eGlob2 (6 + nEdgesPS, iSegment);
+      conn->tree_to_edge[8 + iTree * 12] = -1;
+      conn->tree_to_edge[9 + iTree * 12] = -1;
+      conn->tree_to_edge[10 + iTree * 12] = -1;
+      conn->tree_to_edge[11 + iTree * 12] = -1;
+      iTree++;
+
+      /* tree = 3 modulo 5  */
+      conn->tree_to_edge[0 + iTree * 12] = eGlob (3, iSegment);
+      conn->tree_to_edge[1 + iTree * 12] = -1;
+      conn->tree_to_edge[2 + iTree * 12] = eGlob2 (3 + nEdgesPS, iSegment);
+      conn->tree_to_edge[3 + iTree * 12] = -1;
+      conn->tree_to_edge[4 + iTree * 12] = eGlob (6, iSegment);
+      conn->tree_to_edge[5 + iTree * 12] = eGlob (7, iSegment);
+      conn->tree_to_edge[6 + iTree * 12] = eGlob2 (6 + nEdgesPS, iSegment);
+      conn->tree_to_edge[7 + iTree * 12] = eGlob2 (7 + nEdgesPS, iSegment);
+      conn->tree_to_edge[8 + iTree * 12] = -1;
+      conn->tree_to_edge[9 + iTree * 12] = -1;
+      conn->tree_to_edge[10 + iTree * 12] = -1;
+      conn->tree_to_edge[11 + iTree * 12] = -1;
+      iTree++;
+
+      /* tree = 4 modulo 5  */
+      conn->tree_to_edge[0 + iTree * 12] = eGlob (1, iSegment);
+      conn->tree_to_edge[1 + iTree * 12] = eGlob (3, iSegment);
+      conn->tree_to_edge[2 + iTree * 12] = eGlob2 (1 + nEdgesPS, iSegment);
+      conn->tree_to_edge[3 + iTree * 12] = eGlob2 (3 + nEdgesPS, iSegment);
+      conn->tree_to_edge[4 + iTree * 12] = eGlob (2, iSegment);
+      conn->tree_to_edge[5 + iTree * 12] = eGlob (0, iSegment);
+      conn->tree_to_edge[6 + iTree * 12] = eGlob2 (2 + nEdgesPS, iSegment);
+      conn->tree_to_edge[7 + iTree * 12] = eGlob2 (0 + nEdgesPS, iSegment);
+      conn->tree_to_edge[8 + iTree * 12] = -1;
+      conn->tree_to_edge[9 + iTree * 12] = -1;
+      conn->tree_to_edge[10 + iTree * 12] = -1;
+      conn->tree_to_edge[11 + iTree * 12] = -1;
+      iTree++;
+
+    }
+
+#undef eGlob2
+#undef eGlob
+
+#define tGlob(tLoc,iSeg) ( (tLoc) + (iSeg) * nTreesPS )
+
+#define tGlob2(tLoc,iSeg) ( ( tGlob(tLoc,iSeg) < 0) ? tGlob(tLoc,iSeg) + num_trees : tGlob(tLoc,iSeg) )
+
+    /* remember, there are 8 edges per segments */
+    iEdge = 0;
+    for (iSegment = 0; iSegment < nSegments; ++iSegment) {
+      conn->edge_to_tree[iEdge + 0] = tGlob2 (0, iSegment);
+      conn->edge_to_tree[iEdge + 1] = tGlob2 (4, iSegment);
+      conn->edge_to_tree[iEdge + 2] = tGlob2 (0 - nTreesPS, iSegment);
+      conn->edge_to_tree[iEdge + 3] = tGlob2 (4 - nTreesPS, iSegment);
+      iEdge += 4;
+
+      conn->edge_to_tree[iEdge + 0] = tGlob2 (1, iSegment);
+      conn->edge_to_tree[iEdge + 1] = tGlob2 (4, iSegment);
+      conn->edge_to_tree[iEdge + 2] = tGlob2 (1 - nTreesPS, iSegment);
+      conn->edge_to_tree[iEdge + 3] = tGlob2 (4 - nTreesPS, iSegment);
+      iEdge += 4;
+
+      conn->edge_to_tree[iEdge + 0] = tGlob2 (2, iSegment);
+      conn->edge_to_tree[iEdge + 1] = tGlob2 (4, iSegment);
+      conn->edge_to_tree[iEdge + 2] = tGlob2 (2 - nTreesPS, iSegment);
+      conn->edge_to_tree[iEdge + 3] = tGlob2 (4 - nTreesPS, iSegment);
+      iEdge += 4;
+
+      conn->edge_to_tree[iEdge + 0] = tGlob2 (3, iSegment);
+      conn->edge_to_tree[iEdge + 1] = tGlob2 (4, iSegment);
+      conn->edge_to_tree[iEdge + 2] = tGlob2 (3 - nTreesPS, iSegment);
+      conn->edge_to_tree[iEdge + 3] = tGlob2 (4 - nTreesPS, iSegment);
+      iEdge += 4;
+
+      conn->edge_to_tree[iEdge + 0] = tGlob2 (0, iSegment);
+      conn->edge_to_tree[iEdge + 1] = tGlob2 (1, iSegment);
+      conn->edge_to_tree[iEdge + 2] = tGlob2 (0 - nTreesPS, iSegment);
+      conn->edge_to_tree[iEdge + 3] = tGlob2 (1 - nTreesPS, iSegment);
+      iEdge += 4;
+
+      conn->edge_to_tree[iEdge + 0] = tGlob2 (1, iSegment);
+      conn->edge_to_tree[iEdge + 1] = tGlob2 (2, iSegment);
+      conn->edge_to_tree[iEdge + 2] = tGlob2 (1 - nTreesPS, iSegment);
+      conn->edge_to_tree[iEdge + 3] = tGlob2 (2 - nTreesPS, iSegment);
+      iEdge += 4;
+
+      conn->edge_to_tree[iEdge + 0] = tGlob2 (2, iSegment);
+      conn->edge_to_tree[iEdge + 1] = tGlob2 (3, iSegment);
+      conn->edge_to_tree[iEdge + 2] = tGlob2 (2 - nTreesPS, iSegment);
+      conn->edge_to_tree[iEdge + 3] = tGlob2 (3 - nTreesPS, iSegment);
+      iEdge += 4;
+
+      conn->edge_to_tree[iEdge + 0] = tGlob2 (3, iSegment);
+      conn->edge_to_tree[iEdge + 1] = tGlob2 (0, iSegment);
+      conn->edge_to_tree[iEdge + 2] = tGlob2 (3 - nTreesPS, iSegment);
+      conn->edge_to_tree[iEdge + 3] = tGlob2 (0 - nTreesPS, iSegment);
+      iEdge += 4;
+    }
+
+#undef tGlob2
+#undef tGlob
+
+    for (i = 0; i <= nEdgesPS * nSegments; ++i) {
+      conn->ett_offset[i] = 4 * i;
+    }
+
+    /*  edge to edge */
+    iEdge = 0;
+    for (iSegment = 0; iSegment < nSegments; ++iSegment) {
+      conn->edge_to_edge[iEdge + 0] = 0;
+      conn->edge_to_edge[iEdge + 1] = 17;
+      conn->edge_to_edge[iEdge + 2] = 2;
+      conn->edge_to_edge[iEdge + 3] = 19;
+      iEdge += 4;
+
+      conn->edge_to_edge[iEdge + 0] = 0;
+      conn->edge_to_edge[iEdge + 1] = 12;
+      conn->edge_to_edge[iEdge + 2] = 2;
+      conn->edge_to_edge[iEdge + 3] = 14;
+      iEdge += 4;
+
+      conn->edge_to_edge[iEdge + 0] = 0;
+      conn->edge_to_edge[iEdge + 1] = 4;
+      conn->edge_to_edge[iEdge + 2] = 2;
+      conn->edge_to_edge[iEdge + 3] = 6;
+      iEdge += 4;
+
+      conn->edge_to_edge[iEdge + 0] = 0;
+      conn->edge_to_edge[iEdge + 1] = 1;
+      conn->edge_to_edge[iEdge + 2] = 2;
+      conn->edge_to_edge[iEdge + 3] = 3;
+      iEdge += 4;
+
+      conn->edge_to_edge[iEdge + 0] = 5;
+      conn->edge_to_edge[iEdge + 1] = 4;
+      conn->edge_to_edge[iEdge + 2] = 7;
+      conn->edge_to_edge[iEdge + 3] = 6;
+      iEdge += 4;
+
+      conn->edge_to_edge[iEdge + 0] = 5;
+      conn->edge_to_edge[iEdge + 1] = 4;
+      conn->edge_to_edge[iEdge + 2] = 7;
+      conn->edge_to_edge[iEdge + 3] = 6;
+      iEdge += 4;
+
+      conn->edge_to_edge[iEdge + 0] = 5;
+      conn->edge_to_edge[iEdge + 1] = 4;
+      conn->edge_to_edge[iEdge + 2] = 7;
+      conn->edge_to_edge[iEdge + 3] = 6;
+      iEdge += 4;
+
+      conn->edge_to_edge[iEdge + 0] = 5;
+      conn->edge_to_edge[iEdge + 1] = 4;
+      conn->edge_to_edge[iEdge + 2] = 7;
+      conn->edge_to_edge[iEdge + 3] = 6;
+      iEdge += 4;
+    }
+
+  }
+
+  return conn;
+
+}
+
 static int
-p8est_find_edge_transform_internal (p4est_connectivity_t * conn,
+p8est_find_edge_transform_internal (p4est_connectivity_t *conn,
                                     p4est_topidx_t itree, int iedge,
-                                    p8est_edge_info_t * ei,
-                                    const p4est_topidx_t * ett,
-                                    const int8_t * ete,
+                                    p8est_edge_info_t *ei,
+                                    const p4est_topidx_t *ett,
+                                    const int8_t *ete,
                                     p4est_topidx_t edge_trees)
 {
   int                 i, j;
@@ -1003,8 +1637,6 @@ p8est_find_edge_transform_internal (p4est_connectivity_t * conn,
   return distinct;
 }
 
-#include "p4est_connectivity.c"
-
 int
 p8est_connectivity_face_neighbor_face_edge (int fe, int f, int nf, int o)
 {
@@ -1074,9 +1706,9 @@ p8est_connectivity_edge_neighbor_corner (int c, int e, int ne, int o)
 }
 
 void
-p8est_find_edge_transform (p4est_connectivity_t * conn,
+p8est_find_edge_transform (p4est_connectivity_t *conn,
                            p4est_topidx_t itree, int iedge,
-                           p8est_edge_info_t * ei)
+                           p8est_edge_info_t *ei)
 {
   p4est_topidx_t      edge_trees, aedge, ettae;
   sc_array_t         *ta = &ei->edge_transforms;

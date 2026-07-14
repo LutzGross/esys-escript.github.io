@@ -35,16 +35,27 @@
 #include <sc_io.h>
 #include <p6est_extended.h>
 
-/* htonl is in either of these two */
+/* htonl is in either of these three */
 #ifdef P4EST_HAVE_ARPA_NET_H
 #include <arpa/inet.h>
 #endif
 #ifdef P4EST_HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
+#ifdef _WIN32                   /* we assume Winsock2.h is always available, if _WIN32 */
+#define WIN32_LEAN_AND_MEAN     /* make sure Winsock.h is never included */
+#include <winsock2.h>
+#endif
+
 #ifdef P4EST_HAVE_ZLIB
 #include <zlib.h>
 #endif
+
+static sc_mempool_t *
+p2est_quadrant_mempool_new (void)
+{
+  return sc_mempool_new_zero_and_persist (sizeof (p2est_quadrant_t));
+}
 
 p6est_connectivity_t *
 p6est_connectivity_new (p4est_connectivity_t * conn4,
@@ -158,8 +169,8 @@ p6est_connectivity_memory_used (p6est_connectivity_t * conn)
 {
   return
     p4est_connectivity_memory_used (conn->conn4) +
-    conn->top_vertices == NULL ? 0 :
-    (conn->conn4->num_vertices * 3 * sizeof (double));
+    ((conn->top_vertices == NULL) ? 0 :
+     (conn->conn4->num_vertices * 3 * sizeof (double)));
 }
 
 int
@@ -285,7 +296,7 @@ p6est_connectivity_save (const char *filename, p6est_connectivity_t * conn)
 }
 
 p6est_connectivity_t *
-p6est_connectivity_load (const char *filename, size_t * bytes)
+p6est_connectivity_load (const char *filename, size_t *bytes)
 {
   int                 retval;
   size_t              bytes_in;
@@ -406,7 +417,7 @@ p6est_new_ext (sc_MPI_Comm mpicomm, p6est_connectivity_t * connectivity,
     user_data_pool = NULL;
   }
 
-  p6est->layer_pool = sc_mempool_new (sizeof (p2est_quadrant_t));
+  p6est->layer_pool = p2est_quadrant_mempool_new ();
 
   p6est->data_size = data_size;
   p6est->user_pointer = user_pointer;
@@ -497,7 +508,7 @@ p6est_new_from_p4est (p4est_t * p4est, double *top_vertices, double height[3],
 
   conn = p6est_connectivity_new (p4est->connectivity, top_vertices, height);
 
-  p6est->layer_pool = sc_mempool_new (sizeof (p2est_quadrant_t));
+  p6est->layer_pool = p2est_quadrant_mempool_new ();
 
   p6est->data_size = data_size;
   p6est->user_pointer = user_pointer;
@@ -599,7 +610,7 @@ p6est_copy_ext (p6est_t * input, int copy_data, int duplicate_comm)
   else {
     p6est->data_size = 0;
   }
-  p6est->layer_pool = sc_mempool_new (sizeof (p2est_quadrant_t));
+  p6est->layer_pool = p2est_quadrant_mempool_new ();
 
   if (p6est->data_size > 0) {
     P4EST_ASSERT (copy_data);
@@ -748,19 +759,17 @@ p6est_save_ext (const char *filename, p6est_t * p6est,
     }
   }
 
-  /* save the columns */
+  /* save the columns; this function calls sc_MPI_Barrier at the end */
   p4est_save_ext (filename, savecolumns, 1, save_partition);
-
   p4est_destroy (savecolumns);
-
-  /* we need a barrier so that all files have finished writing in
-   * p4est_save_ext before we start writing additional data to the file */
-  mpiret = sc_MPI_Barrier (p6est->mpicomm);
-  SC_CHECK_MPI (mpiret);
 
   if (rank == 0) {
     file = fopen (filename, "ab");
     SC_CHECK_ABORT (file != NULL, "file open");
+
+    /* explicitly seek to end to avoid bad ftell return value on Windows */
+    retval = fseek (file, 0, SEEK_END);
+    SC_CHECK_ABORT (retval == 0, "file seek");
 
     /* align */
     fpos = ftell (file);
@@ -801,16 +810,8 @@ p6est_save_ext (const char *filename, p6est_t * p6est,
     }
 
 #ifdef P4EST_MPIIO_WRITE
-    /* We will close the sequential access to the file */
-    /* best attempt to flush file to disk */
-    retval = fflush (file);
-    SC_CHECK_ABORT (retval == 0, "file flush");
-#ifdef P4EST_HAVE_FSYNC
-    retval = fsync (fileno (file));
-    SC_CHECK_ABORT (retval == 0, "file fsync");
-#endif
-    retval = fclose (file);
-    SC_CHECK_ABORT (retval == 0, "file close");
+    /* we will close the sequential access to the file */
+    sc_fflush_fsync_fclose (file);
     file = NULL;
 #else
     /* file is still open for sequential write mode */
@@ -881,15 +882,7 @@ p6est_save_ext (const char *filename, p6est_t * p6est,
   P4EST_FREE (lbuf);
 
 #ifndef P4EST_MPIIO_WRITE
-  /* best attempt to flush file to disk */
-  retval = fflush (file);
-  SC_CHECK_ABORT (retval == 0, "file flush");
-#ifdef P4EST_HAVE_FSYNC
-  retval = fsync (fileno (file));
-  SC_CHECK_ABORT (retval == 0, "file fsync");
-#endif
-  retval = fclose (file);
-  SC_CHECK_ABORT (retval == 0, "file close");
+  sc_fflush_fsync_fclose (file);
   file = NULL;
 
   /* initiate sequential synchronization */
@@ -902,6 +895,9 @@ p6est_save_ext (const char *filename, p6est_t * p6est,
   mpiret = MPI_File_close (&mpifile);
   SC_CHECK_MPI (mpiret);
 #endif
+  /* make sure subsequent code finds the final result on disk */
+  mpiret = sc_MPI_Barrier (p6est->mpicomm);
+  SC_CHECK_MPI (mpiret);
 
   p4est_log_indent_pop ();
   P4EST_GLOBAL_PRODUCTION ("Done p6est_save\n");
@@ -1018,7 +1014,7 @@ p6est_load_ext (const char *filename, sc_MPI_Comm mpicomm, size_t data_size,
                                                  p6est->mpisize + 1);
   p6est->layers =
     sc_array_new_size (sizeof (p2est_quadrant_t), (size_t) nlayers);
-  p6est->layer_pool = sc_mempool_new (sizeof (p2est_quadrant_t));
+  p6est->layer_pool = p2est_quadrant_mempool_new ();
   p6est->user_pointer = user_pointer;
   p6est->user_data_pool = data_size ? sc_mempool_new (data_size) : NULL;
 
@@ -1336,7 +1332,7 @@ p6est_refine_layers_ext (p6est_t * p6est, int refine_recursive,
           }
           else {
             /* parent is accepted */
-            newq = (p2est_quadrant_t *) sc_array_push (newcol);
+            newq = p2est_quadrant_array_push (newcol);
             *newq = *parent;
             if (parent == &p) {
               parent = &nextq[level];
@@ -1611,7 +1607,7 @@ p6est_replace_column_join (p4est_t * p4est, p4est_topidx_t which_tree,
       P4EST_ASSERT (zw[j] < nlayers[j]);
       q[j] = p2est_quadrant_array_index (layers, first[j] + zw[j]);
     }
-    p = (p2est_quadrant_t *) sc_array_push (work_array);
+    p = p2est_quadrant_array_push (work_array);
     *p = *q[0];
     p6est_layer_init_data (p6est, which_tree, incoming[0], p, init_fn);
     for (j = 1; j < num_outgoing; j++) {

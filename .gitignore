@@ -49,3 +49,6 @@ test_*.log
 test_*.txt
 scons_py_tests*.log
 uniform_mesh_ae.silo/removed_code/
+
+# design working notes, kept out of the repo
+oxley-designs/DESIGN.md

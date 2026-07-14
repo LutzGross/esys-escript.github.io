@@ -48,6 +48,8 @@ SC_EXTERN_C_BEGIN;
  * This is a more general form of p6est_new().
  * See the documentation of p6est_new() for basic usage.
  *
+ * \param [in] mpicomm          Used und remembered in the result.
+ * \param [in] connectivity     Valid connectivity of tree topologies.
  * \param [in] min_quadrants    Minimum initial quadrants per processor.
  *                              Makes the refinement pattern mpisize-specific.
  * \param [in] min_level        The forest is horizontally refined at least to
@@ -56,12 +58,16 @@ SC_EXTERN_C_BEGIN;
  * \param [in] min_zlevel       The forest is vertically refined at least to
  *                              this level.  May be negative or 0, then it has
  *                              no effect.
- * \parem [in] num_zroot        The number of "root" vertical layers
+ * \param [in] num_zroot        The number of "root" vertical layers
  *                              (used when non-power-of-2 layers are desired)
  * \param [in] fill_uniform     If true, fill the forest with a uniform mesh
  *                              instead of the coarsest possible one.
  *                              The latter is partition-specific so that
  *                              is usually not a good idea.
+ * \param [in] data_size        Size of per-quadrant stored user data.
+ * \param [in] init_fn          If not NULL, called on every quadrant created.
+ * \param [in] user_pointer     Stored as is in the result for later reference.
+ * \return                      A valid forest structure.
  */
 p6est_t            *p6est_new_ext (sc_MPI_Comm mpicomm,
                                    p6est_connectivity_t * connectivity,

@@ -25,7 +25,6 @@
 #define SC_SHMEM_H
 
 #include <sc.h>
-#include <sc_mpi.h>
 
 SC_EXTERN_C_BEGIN;
 
@@ -38,7 +37,7 @@ typedef enum
 {
   SC_SHMEM_BASIC = 0,      /**< use allgathers, then sum to simulate scan */
   SC_SHMEM_PRESCAN,        /**< mpi_scan, then allgather */
-#if defined(SC_ENABLE_MPIWINSHARED)
+#ifdef SC_ENABLE_MPIWINSHARED
   SC_SHMEM_WINDOW,         /**< MPI_Win (requires MPI 3) */
   SC_SHMEM_WINDOW_PRESCAN, /**< mpi_scan, then MPI_Win (requires MPI 3) */
 #endif

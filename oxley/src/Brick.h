@@ -69,24 +69,14 @@ public:
     */
     // Brick();
 
-#if 0  // DEPRECATED: mpiInfo must be handed over from caller
-    Brick(int order, dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
-      double x1, double y1, double z1, int d0, int d1, int d2,
-      const std::vector<double>& points, const std::vector<int>& tags,
-      const TagMap& tagnamestonums,
-      int periodic0, int periodic1, int periodic2);
-#endif
-
     /**
        \brief creates a brick mesh with custom MPI communicator
        \param jmpi MPI communicator info from caller (required)
     */
     Brick(escript::JMPI jmpi, int order, dim_t n0, dim_t n1, dim_t n2,
       double x0, double y0, double z0, double x1, double y1, double z1,
-      int d0, int d1, int d2,
       const std::vector<double>& points, const std::vector<int>& tags,
-      const TagMap& tagnamestonums,
-      int periodic0, int periodic1, int periodic2);
+      const TagMap& tagnamestonums, int refine_level=0);
 
     // DANGEROUS: If update is false then the mesh is not properly initialised
     Brick(oxley::Brick& B, int order, bool update);
@@ -348,14 +338,11 @@ public:
     // This is not private as it is used by weipa
     // A p8est
     p8est_t * p8est;
-    std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> NodeIDs; //global ids of the nodes
 
     /**
        \brief
        Returns the ID numbers of the neighbouring four nodes
     */
-    void getNeighouringNodeIDs(int8_t level, p8est_qcoord_t x, p8est_qcoord_t y, p8est_qcoord_t z, 
-                                             p8est_topidx_t treeid, long (&ids) [8]) const;
 
     /**
        \brief
@@ -441,7 +428,6 @@ private:
 
     // Brick needs to keep track of this information
     std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> treeIDs; //global ids of the hanging nodes
-    std::vector<long> octantIDs; // IDs of the octants
     std::vector<oct_info> octantInfo;
 
     std::vector<borderNodeInfo> NodeIDsTop;
@@ -472,8 +458,15 @@ private:
     /// the index of that face (where i: 0=left, 1=right, 2=bottom, 3=top)
     IndexVector m_faceOffset;
 
-    // 
+    //
     IndexVector m_nodeId;
+
+    // --- MPI overlap (A6): ghost (halo) element corner node ids in the EXTENDED
+    // local column numbering (owned + ghost lnodes nodes, then 2nd-layer ghost
+    // nodes seen only on ghost elements, appended to myColumns). Uses the p8est
+    // FULL ghost layer already kept alive in `ghost`. (8 corners per octant.)
+    IndexVector m_ghostElemNodes;
+    void buildParallelOverlap();
 
     // tolerance used when comparing doubletuples
     double tuple_tolerance=0.0;
@@ -491,7 +484,6 @@ private:
       \brief
       Returns the ID of a quad from the ID of it's bottom left node
     */
-    long getQuadID(long nodeid) const;
 
     template<typename Scalar>
     void assembleIntegrateImpl(std::vector<Scalar>& integrals, const escript::Data& arg) const;
@@ -516,6 +508,12 @@ protected:
        Returns the number of elements
     */
     virtual dim_t getNumElements() const;
+
+    /**
+       \brief
+       Returns an lnodes-based, p4est-independent view of the mesh.
+    */
+    virtual MeshAccess getMeshAccess() const;
 
     /**
        \brief
@@ -720,6 +718,27 @@ protected:
     template<typename Scalar> void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
            bool addS, bool addF, index_t e, index_t t, int nEq=1, int nComp=1) const;
+    // MPI (A6): scatter an element matrix/RHS from explicit (extended-local)
+    // corner node ids for a ghost (halo) octant. Non-owned rows dropped. (8 nodes.)
+    template<typename Scalar> void addToMatrixAndRHSGhost(escript::AbstractSystemMatrix* S,
+           escript::Data& F, const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
+           bool addS, bool addF, const index_t* rowIndex, int nEq=1, int nComp=1) const;
+    // MPI (A6): 4-node face scatter for ghost boundary faces (3D boundary kernel
+    // is a 4-node quad face). Non-owned rows dropped.
+    template<typename Scalar> void addToMatrixAndRHSGhostFace(escript::AbstractSystemMatrix* S,
+           escript::Data& F, const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
+           bool addS, bool addF, const index_t* rowIndex, int nEq=1, int nComp=1) const;
+    // MPI (A6): exchange one coefficient Data's per-element samples to the ghost
+    // halo; returns num_ghosts*sampleSize Scalars (empty if coef empty or serial).
+    template<typename Scalar>
+    std::vector<Scalar> exchangeGhostCoeff(const escript::Data& coef) const;
+    // MPI (A6): exchange boundary coefficients d,y (FaceElements) to the ghost
+    // octant halo, packed per octant as 6 sides x [flag, d-sample, y-sample]
+    // (side order Left,Right,Bottom,Top,Above,Below). Returns
+    // num_ghosts*6*(1+dSize+ySize) scalars (empty if serial/no ghosts).
+    template<typename Scalar>
+    std::vector<Scalar> exchangeGhostBoundary(const escript::Data& d,
+                            const escript::Data& y, size_t& dSize, size_t& ySize) const;
 
     // Updates m_faceOffset for each quadrant
     void updateFaceOffset();

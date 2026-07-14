@@ -44,6 +44,8 @@
 #include <p8est_iterate.h>
 #include <p8est_lnodes.h>
 #include <p8est_vtk.h>
+
+#include <array>
 #include <sc_containers.h>
 #include <sc_mpi.h>
 
@@ -64,210 +66,6 @@ namespace bp = boost::python;
 
 namespace oxley {
 
-    /**
-       \brief
-       OLD Constructor - DEPRECATED - Uses sc_MPI_COMM_WORLD which causes compilation issues with mpi4py
-       This constructor is not used - all code uses the JMPI-based constructor below
-    */
-#if 0
-Brick::Brick(int order,
-    dim_t n0, dim_t n1, dim_t n2,
-    double x0, double y0, double z0,
-    double x1, double y1, double z1,
-    int d0, int d1, int d2,
-    const std::vector<double>& points,
-    const std::vector<int>& tags,
-    const TagMap& tagnamestonums,
-    int periodic0, int periodic1, int periodic2):
-    OxleyDomain(3, order)
-{
-
-    oxleytimer.toc("Creating an oxley::Brick...");
-
-    // makeInfo will ensure MPI is initialized and throw exception if not
-    m_mpiInfo = escript::makeInfo(sc_MPI_COMM_WORLD);
-
-    // Possible error: User passes invalid values for the dimensions
-    if(n0 <= 0 || n1 <= 0 || n2 <= 0)
-        throw OxleyException("Number of elements in each spatial dimension must be positive");
-
-    // Ignore d0 and d1 if we are running in serial
-    if(m_mpiInfo->size == 1) {
-        d0=1;
-        d1=1;
-        d2=1;
-    }
-
-    // If the user did not set the number of divisions manually
-    if(d0 == -1 && d1 == -1 && d2 == -1)
-    {
-        d0 = m_mpiInfo->size < 3 ? 1 : m_mpiInfo->size / 3;
-        d1 = m_mpiInfo->size < 3 ? 1 : m_mpiInfo->size / 3;
-        d2 = m_mpiInfo->size / (d0*d1);
-
-        if(d0*d1*d2 != m_mpiInfo->size)
-            d2=m_mpiInfo->size-d0-d1;
-    }
-
-    oxleytimer.toc("\t creating connectivity");
-    connectivity = new_brick_connectivity(n0, n1, n2, false, false, false, x0, x1, y0, y1, z0, z1);    
-
-#ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS
-    std::cout << "In Brick() constructor..." << std::endl;
-    std::cout << "Checking connectivity ... " << std::endl;
-    if(!p8est_connectivity_is_valid(connectivity))
-    // if(!p8est_connectivity_is_valid_fast(connectivity))
-        std::cout << "\t\tbroken" << std::endl;
-    else
-        std::cout << "\t\tOK" << std::endl;
-#endif
-
-    // create the forestdata
-    forestData = new p8estData;
-
-    // Create the p8est
-    p8est_locidx_t min_quadrants = n0*n1*n2;
-    int min_level = 0;
-    int fill_uniform = 1;
-    oxleytimer.toc("\t creating p8est...");
-    p8est = p8est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
-            min_level, fill_uniform, sizeof(octantData), &init_brick_data, (void *) &forestData);
-
-#ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
-    std::cout << "Checking p8est ... ";
-    if(!p8est_is_valid(p8est))
-        std::cout << "broken" << std::endl;
-    else
-        std::cout << "OK" << std::endl;
-#endif
-
-    // Nodes numbering
-    oxleytimer.toc("\t creating ghost...");
-    ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
-    nodes = p8est_lnodes_new(p8est, ghost, 1);
-    
-    oxleytimer.toc("\t saving forestData information...");
-    // This information is needed by the assembler
-    m_NE[0] = n0;
-    m_NE[1] = n1;
-    m_NE[2] = n2;
-    m_NX[0] = (x1-x0)/n0;
-    m_NX[1] = (y1-y0)/n1;
-    m_NX[2] = (z1-z0)/n2;
-
-    // Record the physical dimensions of the domain and the location of the origin
-    forestData->m_origin[0] = x0;
-    forestData->m_origin[1] = y0;
-    forestData->m_origin[2] = z0;
-    forestData->m_lxyz[0] = x1;
-    forestData->m_lxyz[1] = y1;
-    forestData->m_lxyz[2] = z1;
-    forestData->m_length[0] = x1-x0;
-    forestData->m_length[1] = y1-y0;
-    forestData->m_length[2] = z1-z0;
-    // forestData->m_lxyz[0] = (x1-x0)/n0;
-    // forestData->m_lxyz[1] = (y1-y0)/n1;
-    // forestData->m_lxyz[2] = (z1-z0)/n2;
-
-    // Whether or not we have periodic boundaries
-    forestData->periodic[0] = periodic0;
-    forestData->periodic[1] = periodic1;
-    forestData->periodic[2] = periodic2;
-
-
-    double multiplier =  sqrt(x0*x0+y0*y0+z0*z0);
-    if(multiplier == 0.0)
-        multiplier = 1.0;
-
-    tuple_tolerance = TOLERANCE * multiplier;
-
-    // Find the grid spacing for each level of refinement in the mesh
-#pragma omp parallel for
-    for(int i = 0; i <= P8EST_MAXLEVEL; i++){
-        double numberOfSubDivisions = (p8est_qcoord_t) (1 << (P8EST_MAXLEVEL - i));
-        forestData->m_dx[0][i] = forestData->m_length[0] / numberOfSubDivisions;
-        forestData->m_dx[1][i] = forestData->m_length[1] / numberOfSubDivisions;
-        forestData->m_dx[2][i] = forestData->m_length[2] / numberOfSubDivisions;
-    }
-
-    // max levels of refinement
-    forestData->max_levels_refinement = MAXREFINEMENTLEVELS;
-
-    // element order
-    m_order = order;
-
-    // initial tag
-    // tags[0] = 0;
-    // numberOfTags=1;
-
-    // Number of dimensions
-    m_numDim=3;
-
-    //  // Distribute the p8est across the processors
-    oxleytimer.toc("\t partitioning...");
-    int allow_coarsening = 0;
-    p8est_partition(p8est, allow_coarsening, NULL);
-
-    // Indices
-    indices = new std::vector<IndexVector>;
-
-    nodeIncrements = new long[MAXTREES];
-
-    // Number the nodes
-    updateMesh();
-
-    // Tags
-    oxleytimer.toc("\t populating sample ids...");
-    // TODO
-    // populateSampleIds(); // very slow
-
-    oxleytimer.toc("\t populating tags ("+std::to_string(tagnamestonums.size())+")...");
-    for (TagMap::const_iterator i = tagnamestonums.begin(); i != tagnamestonums.end(); i++) {
-        setTagMap(i->first, i->second);
-    }
-
-    // Dirac points and tags
-    oxleytimer.toc("\t adding Dirac points...");
-    addPoints(points, tags);
-    oxleytimer.toc("\t\tdone");
-
-    // To prevent segmentation faults when using numpy ndarray
-#ifdef ESYS_HAVE_BOOST_NUMPY
-    oxleytimer.toc("\tpy_initialise");
-    Py_Initialize();
-    oxleytimer.toc("\tboost numpy initialise");
-    boost::python::numpy::initialize(); // Not MPI safe?
-#endif
-
-#ifdef ESYS_HAVE_PASO
-
-    /// local array length shared
-    // dim_t local_length = p8est->local_num_quadrants;
-    dim_t local_length = 0;
-
-    /// list of the processors sharing values with this processor
-    std::vector<int> neighbour = {};
-
-    /// offsetInShared[i] points to the first input value in array shared
-    /// for processor i. Has length numNeighbors+1
-    std::vector<index_t> offsetInShared = {0};
-
-    /// list of the (local) components which are shared with other processors.
-    /// Has length numSharedComponents
-    index_t* shared = {};
-
-    /// = offsetInShared[numNeighbours]
-    dim_t numSharedComponents = 0;
-
-    IndexVector sendShared, recvShared;
-
-    createPasoConnector(neighbour, offsetInShared, offsetInShared, sendShared, recvShared);
-#endif
-
-    oxleytimer.toc("Brick initialised");
-}
-#endif  // End of deprecated constructor
-
 /**
    \brief
    Constructor with custom MPI communicator
@@ -276,11 +74,10 @@ Brick::Brick(escript::JMPI jmpi, int order,
     dim_t n0, dim_t n1, dim_t n2,
     double x0, double y0, double z0,
     double x1, double y1, double z1,
-    int d0, int d1, int d2,
     const std::vector<double>& points,
     const std::vector<int>& tags,
     const TagMap& tagnamestonums,
-    int periodic0, int periodic1, int periodic2):
+    int refine_level):
     OxleyDomain(3, order, jmpi)
 {
 
@@ -289,27 +86,15 @@ Brick::Brick(escript::JMPI jmpi, int order,
     // MPI communicator passed to base class constructor
     // Caller is responsible for ensuring MPI is initialized
 
-    // Possible error: User passes invalid values for the dimensions
+    // n0/n1/n2 are the number of BLOCKS (p8est trees) per axis; refine_level is the
+    // uniform subdivision applied to every block.
     if(n0 <= 0 || n1 <= 0 || n2 <= 0)
-        throw OxleyException("Number of elements in each spatial dimension must be positive");
+        throw OxleyException("Number of blocks in each spatial dimension must be positive");
+    if(refine_level < 0)
+        throw OxleyException("refine_level must be non-negative");
 
-    // Ignore d0 and d1 if we are running in serial
-    if(m_mpiInfo->size == 1) {
-        d0=1;
-        d1=1;
-        d2=1;
-    }
-
-    // If the user did not set the number of divisions manually
-    if(d0 == -1 && d1 == -1 && d2 == -1)
-    {
-        d0 = m_mpiInfo->size < 3 ? 1 : m_mpiInfo->size / 3;
-        d1 = m_mpiInfo->size < 3 ? 1 : m_mpiInfo->size / 3;
-        d2 = m_mpiInfo->size / (d0*d1);
-
-        if(d0*d1*d2 != m_mpiInfo->size)
-            d2=m_mpiInfo->size-d0-d1;
-    }
+    // Domain decomposition across MPI ranks is handled by p4est/p8est (see
+    // p4est_partition below), not by a Cartesian d0 x d1 x d2 block grid.
 
     oxleytimer.toc("\t creating connectivity");
     connectivity = new_brick_connectivity(n0, n1, n2, false, false, false, x0, x1, y0, y1, z0, z1);
@@ -327,9 +112,13 @@ Brick::Brick(escript::JMPI jmpi, int order,
     // create the forestdata
     forestData = new p8estData;
 
-    // Create the p8est - use the custom communicator
-    p8est_locidx_t min_quadrants = n0*n1*n2;
-    int min_level = 0;
+    // Create the p8est - use the custom communicator.
+    // fill_uniform + min_level=refine_level builds a uniform base mesh where every
+    // block is subdivided refine_level times. min_quadrants MUST be 0: it is
+    // p8est's PER-PROCESSOR minimum, so a positive value forces extra refinement
+    // under MPI and makes the mesh depend on the rank count. (A6.)
+    p8est_locidx_t min_quadrants = 0;
+    int min_level = refine_level;
     int fill_uniform = 1;
     oxleytimer.toc("\t creating p8est...");
     p8est = p8est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
@@ -368,10 +157,8 @@ Brick::Brick(escript::JMPI jmpi, int order,
     forestData->m_length[1] = y1-y0;
     forestData->m_length[2] = z1-z0;
 
-    // Whether or not we have periodic boundaries
-    forestData->periodic[0] = periodic0;
-    forestData->periodic[1] = periodic1;
-    forestData->periodic[2] = periodic2;
+    // Periodic boundaries are not implemented: the connectivity is built
+    // non-periodic. forestData->periodic stays at its default (false).
 
     double multiplier =  sqrt(x0*x0+y0*y0+z0*z0);
     if(multiplier == 0.0)
@@ -526,7 +313,7 @@ Brick::Brick(oxley::Brick& B, int order, bool update):
                                           forestData->m_origin[1], forestData->m_lxyz[1], 
                                           forestData->m_origin[2], forestData->m_lxyz[2]);    
 
-    p8est_locidx_t min_quadrants = B.m_NE[0]*B.m_NE[1]*B.m_NE[2];
+    p8est_locidx_t min_quadrants = 0;  // per-processor min; keep 0 for MPI mesh consistency (A6)
     int min_level = 0;
     int fill_uniform = 1;
     oxleytimer.toc("\t creating p8est...");
@@ -798,7 +585,7 @@ void Brick::setToNormal(escript::Data& out) const
         {
             if(m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k);
                     // set vector at four quadrature points
                     *o++ = -1.; *o++ = 0.; *o++ = 0.;
@@ -810,7 +597,7 @@ void Brick::setToNormal(escript::Data& out) const
             
             if(m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsRight.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k);
                     // set vector at four quadrature points
                     *o++ = 1.; *o++ = 0.; *o++ = 0.;
@@ -822,7 +609,7 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k);                    
                     // set vector at four quadrature points
                     *o++ = 0.; *o++ = -1.; *o++ = 0.;
@@ -834,7 +621,7 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsTop.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k);
                     // set vector at four quadrature points
                     *o++ = 0.; *o++ = 1.; *o++ = 0.;
@@ -844,9 +631,9 @@ void Brick::setToNormal(escript::Data& out) const
                 }
             }
 
-            if(m_faceOffset[4]) {
+            if(m_faceOffset[4] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsAbove.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsAbove.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[4]+k);
                     // set vector at four quadrature points
                     *o++ = 0.; *o++ = 0.; *o++ = -1.;
@@ -858,7 +645,7 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[5] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsBelow.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsBelow.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[5]+k);
                     // set vector at four quadrature points
                     *o++ = 0.; *o++ = 0.; *o++ = 1.;
@@ -877,7 +664,7 @@ void Brick::setToNormal(escript::Data& out) const
         {
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k);
                     *o++ = -1.;
                     *o++ = 0.;
@@ -887,7 +674,7 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsRight.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k);
                     *o++ = 1.;
                     *o++ = 0.;
@@ -897,7 +684,7 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k);
                     *o++ = 0.;
                     *o++ = -1.;
@@ -907,7 +694,7 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsTop.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k);
                     *o++ = 0.;
                     *o++ = 1.;
@@ -917,7 +704,7 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[4] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsAbove.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsAbove.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[4]+k);
                     *o++ = 0.;
                     *o++ = 0.;
@@ -925,9 +712,9 @@ void Brick::setToNormal(escript::Data& out) const
                 }
             }
 
-            if (m_faceOffset[4] > -1) {
+            if (m_faceOffset[5] > -1) {
 #pragma omp for nowait
-                for (index_t k=0; k<NodeIDsBelow.size()-1; k++) {
+                for (index_t k=0; k<NodeIDsBelow.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[5]+k);
                     *o++ = 0.;
                     *o++ = 0.;
@@ -970,75 +757,41 @@ void Brick::setToSize(escript::Data& out) const
         }
 
         const dim_t numQuad=out.getNumDataPointsPerSample();
-        for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++) 
+        long id = 0;   // running local leaf index (element sample order)
+        for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++)
         {
             p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p8est_qcoord_t Q = (p8est_qcoord_t) tquadrants->elem_count;
-            for (int q = 0; q < Q; ++q)  
+            for (int q = 0; q < Q; ++q, ++id)
             {
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
                 int l = quad->level;
                 const double size = size_vect[l];
-                double xyz[3];
-                p8est_qcoord_to_vertex(p8est->connectivity, t, quad->x, quad->y, quad->z, xyz);
-                long id = getQuadID(NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second);
                 double* o = out.getSampleDataRW(id);
                 std::fill(o, o+numQuad, size);
             }
         }
-    } 
+    }
     else if (out.getFunctionSpace().getTypeCode() == FaceElements
             || out.getFunctionSpace().getTypeCode() == ReducedFaceElements) 
     {
         out.requireWrite();
         const dim_t numQuad=out.getNumDataPointsPerSample();
-
-        if (m_faceOffset[0] > -1) {
-            for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
-                borderNodeInfo tmp = NodeIDsLeft[k];
-                double* o = out.getSampleDataRW(m_faceOffset[0]+k);
-                std::fill(o, o+numQuad, forestData->m_dx[1][P8EST_MAXLEVEL-tmp.level]);
-            }
-        }
-
-        if (m_faceOffset[0] > -1) {
-            for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
-                borderNodeInfo tmp = NodeIDsRight[k];
-                double* o = out.getSampleDataRW(m_faceOffset[1]+k);
-                std::fill(o, o+numQuad, forestData->m_dx[1][P8EST_MAXLEVEL-tmp.level]);
-            }
-        }
-
-        if (m_faceOffset[0] > -1) {
-            for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
-                borderNodeInfo tmp = NodeIDsBottom[k];
-                double* o = out.getSampleDataRW(m_faceOffset[2]+k);
-                std::fill(o, o+numQuad, forestData->m_dx[0][P8EST_MAXLEVEL-tmp.level]);
-            }
-        }
-
-        if (m_faceOffset[0] > -1) {
-            for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
-                borderNodeInfo tmp = NodeIDsTop[k];
-                double* o = out.getSampleDataRW(m_faceOffset[3]+k);
-                std::fill(o, o+numQuad, forestData->m_dx[0][P8EST_MAXLEVEL-tmp.level]);
-            }
-        }
-
-        if (m_faceOffset[0] > -1) {
-            for (index_t k=0; k<NodeIDsAbove.size()-1; k++) {
-                borderNodeInfo tmp = NodeIDsAbove[k];
-                double* o = out.getSampleDataRW(m_faceOffset[4]+k);
-                std::fill(o, o+numQuad, forestData->m_dx[2][P8EST_MAXLEVEL-tmp.level]);
-            }
-        }
-
-        if (m_faceOffset[0] > -1) {
-            for (index_t k=0; k<NodeIDsBelow.size()-1; k++) {
-                borderNodeInfo tmp = NodeIDsBelow[k];
-                double* o = out.getSampleDataRW(m_faceOffset[5]+k);
-                std::fill(o, o+numQuad, forestData->m_dx[2][P8EST_MAXLEVEL-tmp.level]);
+        // characteristic face size = sqrt(face area); in-plane sizes are
+        // m_NX/2^level (per-block length / 2^level).
+        const std::vector<borderNodeInfo>* lists[6] = {
+            &NodeIDsLeft, &NodeIDsRight, &NodeIDsBottom, &NodeIDsTop,
+            &NodeIDsAbove, &NodeIDsBelow };
+        static const int planeAxes[6][2] = {{1,2},{1,2},{0,2},{0,2},{0,1},{0,1}};
+        for(int fc = 0; fc < 6; ++fc) {
+            if(m_faceOffset[fc] < 0) continue;
+            const std::vector<borderNodeInfo>& L = *lists[fc];
+            for (index_t k=0; k<L.size(); k++) {
+                const double h = (double)(1 << L[k].level);
+                const double sz = std::sqrt((m_NX[planeAxes[fc][0]]/h) * (m_NX[planeAxes[fc][1]]/h));
+                double* o = out.getSampleDataRW(m_faceOffset[fc]+k);
+                std::fill(o, o+numQuad, sz);
             }
         }
     } 
@@ -1065,36 +818,13 @@ bool Brick::ownSample(int fsType, index_t id) const
             return true;
         case Elements:
         case ReducedElements:
-            {
-            // check ownership of element's bottom left node
-            // return (m_dofMap[id%m_NE[0]+m_NN[0]*(id/m_NE[0])] < getNumDOF());
-            throw OxleyException("Brick::ownSample Currently not implemented.");
-            return false;
-            }
         case FaceElements:
         case ReducedFaceElements:
-            {
-                // // check ownership of face element's last node
-                // dim_t n=0;
-                // for (size_t i=0; i<6; i++) {
-                //     n+=m_faceCount[i];
-                //     if (id<n) {
-                //         const index_t j=id-n+m_faceCount[i];
-                //         if (i>=4) { // front or back
-                //             const index_t first=(i==4 ? 0 : m_NN[0]*m_NN[1]*(m_NN[2]-1));
-                //             return (m_dofMap[first+j%m_NE[0]+1+(j/m_NE[0]+1)*m_NN[0]] < getNumDOF());
-                //         } else if (i>=2) { // bottom or top
-                //             const index_t first=(i==2 ? 0 : m_NN[0]*(m_NN[1]-1));
-                //             return (m_dofMap[first+j%m_NE[0]+1+(j/m_NE[0]+1)*m_NN[0]*m_NN[1]] < getNumDOF());
-                //         } else { // left or right
-                //             const index_t first=(i==0 ? 0 : m_NN[0]-1);
-                //             return (m_dofMap[first+(j%m_NE[1]+1)*m_NN[0]+(j/m_NE[1]+1)*m_NN[0]*m_NN[1]] < getNumDOF());
-                //         }
-                //     }
-                // }
-                throw OxleyException("Brick::ownSample Currently not implemented.");
-                return false;
-            }
+        case Points:
+            // p8est partitions leaves (and hence boundary faces) uniquely across
+            // ranks, and Dirac points are claimed by a single owner (addPoints),
+            // so every local element/face/point sample is owned by this rank.
+            return true;
         default:
             break;
     }
@@ -1106,7 +836,12 @@ bool Brick::ownSample(int fsType, index_t id) const
 
 dim_t Brick::getNumDataPointsGlobal() const
 {
-    return getNumNodes();
+    // total number of (owned) nodes across all ranks
+    if(!nodes) return 0;
+    dim_t total = 0;
+    for(int r = 0; r < m_mpiInfo->size; ++r)
+        total += (dim_t) nodes->global_owned_count[r];
+    return total;
 }
 
 
@@ -1120,277 +855,12 @@ escript::Data Brick::randomFill(const escript::DataTypes::ShapeType& shape,
     throw OxleyException("randomFill"); //TODO this is temporary
 }
 
-void Brick::dump(const std::string& fileName) const 
+void Brick::dump(const std::string& fileName) const
 {
-#ifdef ESYS_HAVE_SILO
-
-    #ifdef ESYS_MPI
-        
-        // Add the suffix to the filename if required
-        std::string fn = fileName;
-        if (fileName.length() < 6 || fileName.compare(fileName.length()-5, 5, ".silo") != 0) {
-            fn+=".silo";
-        }
-
-        // Silo file pointer
-        DBfile* dbfile = NULL; 
-
-        // The coordinate arrays
-        float *pNodex = nullptr;
-        float *pNodey = nullptr;
-        float *pNodez = nullptr;
-        long int *pNode_ids = nullptr;
-        double * pValues = nullptr;
-
-        pNodex = new float[MAXP4ESTNODES];
-        pNodey = new float[MAXP4ESTNODES];
-        pNodez = new float[MAXP4ESTNODES];
-        pNode_ids = new long int [MAXP4ESTNODES];
-
-        // //ae tmp
-        // std::cout << "Copying info to pNode " << std::endl;
-        // std::cout << "NodeIDs: " << NodeIDs.size() << " of " << MAXP4ESTNODES << std::endl;
-        // std::cout << sizeof(*this) << std::endl;
-
-        int counter=0;
-        if(m_mpiInfo->rank == 0)
-        {
-            for(std::pair<DoubleTuple,long> element : NodeIDs)
-            {
-                // // ae tmp
-                // std::cout << "writing " << element.second << std::endl;
-
-
-                pNodex[element.second]=std::get<0>(element.first);
-                pNodey[element.second]=std::get<1>(element.first);
-                pNodez[element.second]=std::get<2>(element.first);
-                pNode_ids[element.second]=element.second;
-                counter++;
-            }
-        }
-
-        // Array of the coordinate arrays
-        float * pCoordinates[3];
-        pCoordinates[0]=pNodex;
-        pCoordinates[1]=pNodey;
-        pCoordinates[2]=pNodez;
-
-
-        // //ae tmp
-        // std::cout << "Opening file " << std::endl;
-
-
-
-        // Create the file
-        if(m_mpiInfo->rank == 0)
-        {
-            dbfile = DBCreate(fn.c_str(), DB_CLOBBER, DB_LOCAL, getDescription().c_str(), DB_HDF5);
-            if (!dbfile)
-                throw escript::IOError("dump: Could not create Silo file");
-        }
-        MPI_Barrier(m_mpiInfo->comm);
-
-        // create the nodelist
-        // //ae tmp
-        // std::cout << "Creating the nodelist" << std::endl;
-
-        std::vector<int> nodelist;
-        long ids[8]={0};
-        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
-            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-            sc_array_t * tquadrants = &tree->quadrants;
-            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-            for(long q = 0; q < Q; q++)
-            {
-                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);          
-                getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
-                nodelist.push_back(ids[2]); // Silo uses a different node ordering to p4est
-                nodelist.push_back(ids[0]);
-                nodelist.push_back(ids[1]);
-                nodelist.push_back(ids[3]);
-                nodelist.push_back(ids[6]);
-                nodelist.push_back(ids[4]);
-                nodelist.push_back(ids[5]);
-                nodelist.push_back(ids[7]);
-            }
-        }
-
-        //communication
-        // //ae tmp
-        // std::cout << "Communicating" << std::endl;
-
-        if(m_mpiInfo->size > 1)
-        {
-            if(m_mpiInfo->rank != 0)
-            {
-                int num = nodelist.size();
-                MPI_Send(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
-                MPI_Send(nodelist.data(), num, MPI_INT, 0, 0, m_mpiInfo->comm);
-            }
-            else
-            {
-                for(int r = 1; r < m_mpiInfo->size; r++)
-                {
-                    int num;
-                    MPI_Recv(&num, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                    std::vector<int> tempnodelist;
-                    tempnodelist.resize(num);
-                    MPI_Recv(tempnodelist.data(), num, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                    std::vector<int>::iterator it;
-                    it=nodelist.begin();
-                    nodelist.insert(it, tempnodelist.begin(), tempnodelist.end());
-                }
-            }
-        }
-
-        // //ae tmp
-        // std::cout << "Writing to file" << std::endl;
-
-        if(m_mpiInfo->rank == 0)
-        {
-            // write mesh
-            int ndims = 3;
-            int* nodelistarray = &nodelist[0];
-            int lnodelist = nodelist.size();
-
-            int shapecounts[] = {octantIDs.size()};
-            int shapetype[1] = {DB_ZONETYPE_HEX};
-            int shapesize[1] = {8}; // Number of nodes used by each zone
-            int nshapetypes = 1;
-            int nzones = octantIDs.size();
-
-            // This is deprecated
-            DBPutZonelist2(dbfile, "p8est", nzones, ndims, nodelistarray, lnodelist, 
-                        0, 0, 0,  shapetype, shapesize,  shapecounts, nshapetypes, NULL); 
-            
-
-            DBPutUcdmesh(dbfile, "mesh", ndims, NULL, pCoordinates, getNumNodes(), getNumElements(), 
-                            "p8est", NULL, DB_FLOAT, NULL);
-
-            // Coordinates
-            DBPutPointmesh(dbfile, "nodes", ndims, pCoordinates, getNumNodes(), DB_FLOAT, NULL) ;
-
-            // Node IDs
-            DBPutPointvar1(dbfile, "id", "nodes", pNode_ids, getNumNodes(), DB_LONG, NULL);
-
-            DBClose(dbfile);
-        }
-
-        delete [] pNodex;
-        delete [] pNodey;
-        delete [] pNodez;
-        delete [] pNode_ids;
-
-        MPI_Barrier(m_mpiInfo->comm);
-
-    #else // no MPI
-
-        // Add the suffix to the filename if required
-        std::string fn = fileName;
-        if (fileName.length() < 6 || fileName.compare(fileName.length()-5, 5, ".silo") != 0) {
-            fn+=".silo";
-        }
-
-        // int driver=DB_HDF5;
-
-        // Silo file pointer
-        DBfile* dbfile = NULL; 
-
-        // The coordinate arrays
-        float *pNodex = nullptr;
-        float *pNodey = nullptr;
-        float *pNodez = nullptr;
-        long int *pNode_ids = nullptr;
-        double * pValues = nullptr;
-
-        pNodex = new float[MAXP4ESTNODES];
-        pNodey = new float[MAXP4ESTNODES];
-        pNodez = new float[MAXP4ESTNODES];
-        pNode_ids = new long int [MAXP4ESTNODES];
-
-        int counter=0;
-        for(std::pair<DoubleTuple,long> element : NodeIDs)
-        {
-            pNodex[element.second]=std::get<0>(element.first);
-            pNodey[element.second]=std::get<1>(element.first);
-            pNodez[element.second]=std::get<2>(element.first);
-            pNode_ids[element.second]=element.second;
-        #ifdef OXLEY_ENABLE_DEBUG_DUMP
-            std::cout << "Adding " << element.second << ": (" << std::get<0>(element.first) << ", " 
-                                                              << std::get<1>(element.first) << ", "  
-                                                              << std::get<2>(element.first) << ") " << counter++ << std::endl;
-        #endif
-        }
-
-        // Array of the coordinate arrays
-        float * pCoordinates[3];
-        pCoordinates[0]=pNodex;
-        pCoordinates[1]=pNodey;
-        pCoordinates[2]=pNodez;
-
-        // Create the file
-        dbfile = DBCreate(fn.c_str(), DB_CLOBBER, DB_LOCAL, getDescription().c_str(), DB_HDF5);
-        if (!dbfile)
-            throw escript::IOError("dump: Could not create Silo file");
-
-        // create the nodelist
-        std::vector<int> nodelist;
-        long ids[8]={0};
-        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
-            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-            sc_array_t * tquadrants = &tree->quadrants;
-            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-            for(long q = 0; q < Q; q++)
-            {
-                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);          
-                getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
-                nodelist.push_back(ids[2]); // Silo uses a different node ordering to p4est
-                nodelist.push_back(ids[0]);
-                nodelist.push_back(ids[1]);
-                nodelist.push_back(ids[3]);
-                nodelist.push_back(ids[6]);
-                nodelist.push_back(ids[4]);
-                nodelist.push_back(ids[5]);
-                nodelist.push_back(ids[7]);
-            }
-        }
-
-        // write mesh
-        int ndims = 3;
-        int* nodelistarray = &nodelist[0];
-        int lnodelist = nodelist.size();
-        int shapecounts[] = {getNumElements()};
-        int shapetype[1] = {DB_ZONETYPE_HEX};
-        int shapesize[1] = {8}; // Number of nodes used by each zone
-        int nshapetypes = 1;
-        int nzones = getNumElements();
-
-        // This is deprecated
-        DBPutZonelist2(dbfile, "p8est", nzones, ndims, nodelistarray, lnodelist, 
-                    0, 0, 0,  shapetype, shapesize,  shapecounts, nshapetypes, NULL); 
-            
-
-        DBPutUcdmesh(dbfile, "mesh", ndims, NULL, pCoordinates, getNumNodes(), getNumElements(), 
-                        "p8est", NULL, DB_FLOAT, NULL);
-
-        // Coordinates
-        DBPutPointmesh(dbfile, "nodes", ndims, pCoordinates, getNumNodes(), DB_FLOAT, NULL) ;
-
-        // Node IDs
-        DBPutPointvar1(dbfile, "id", "nodes", pNode_ids, getNumNodes(), DB_LONG, NULL);
-
-        DBClose(dbfile);
-
-        delete [] pNodex;
-        delete [] pNodey;
-        delete [] pNodez;
-        delete [] pNode_ids;
-
-    #endif
-
-#else // ESYS_HAVE_SILO
-    throw OxleyException("dump: escript was not compiled with Silo enabled");
-#endif
+    // The bespoke Silo dump was demoted in favour of the standard weipa output
+    // path (saveSilo / saveVTK), which consumes the lnodes mesh-access interface
+    // and works in parallel. (design A4.8)
+    throw OxleyException("Brick::dump: use saveSilo()/saveVTK() (weipa) instead");
 }
 
 const dim_t* Brick::borrowSampleReferenceIDs(int fsType) const
@@ -1398,18 +868,21 @@ const dim_t* Brick::borrowSampleReferenceIDs(int fsType) const
     switch (fsType) {
         case Nodes:
         case ReducedNodes: //FIXME: reduced
-            return &myColumns[0];
+            // node reference ids live in m_nodeId (populated by renumberNodes);
+            // myColumns is the Yale-format matrix column array, not node ids.
+            return &m_nodeId[0];
         case DegreesOfFreedom:
         case ReducedDegreesOfFreedom: //FIXME: reduced
-            throw OxleyException("Unknown Error.");
+            // conforming serial: DOF id == node id
+            return &m_nodeId[0];
         case Elements:
         case ReducedElements:
-            throw OxleyException("borrowSampleReferenceIDs: Elements");
+            return &m_elementId[0];
         case FaceElements:
         case ReducedFaceElements:
-            throw OxleyException("borrowSampleReferenceIDs: FaceIDS");
+            return &m_faceId[0];
         case Points:
-            throw OxleyException("borrowSampleReferenceIDs: Points");
+            return &m_diracPointNodeIDs[0];
         default:
             std::stringstream msg;
             msg << "borrowSampleReferenceIDs: invalid function space type "<<fsType;
@@ -1562,14 +1035,9 @@ void Brick::updateMesh()
     updateNodeIncrements();
     oxleytimer.toc("\t renumbering nodes");
     renumberNodes();
-    // oxleytimer.toc("\t updating Yale index vectors");
-    // updateRowsColumns();
-    // oxleytimer.toc("\t updating element ids");
-    // updateElementIds();
-    // oxleytimer.toc("\t updating face offset");
-    // updateFaceOffset();
-    // oxleytimer.toc("\t updating face element count");
-    // updateFaceElementCount();
+    updateRowsColumns();
+    updateElementIds();
+    updateFaceElementCount();
     // oxleytimer.toc("Brick::updateMesh: Finished...");
 
 }
@@ -1639,8 +1107,6 @@ void Brick::refineMesh(std::string algorithmname)
 {
     z_needs_update=true;
     iz_needs_update=true;
-
-    forestData->NodeIDs = &NodeIDs;
 
     if(!algorithmname.compare("uniform"))
     {
@@ -2152,2002 +1618,91 @@ void Brick::updateNodeIncrements()
 
 void Brick::renumberNodes()
 {
-    oxleytimer.toc("Starting renumberNodes...");
-
-    // Clear some variables
-    octantIDs.clear();
-    NodeIDs.clear();
-    hanging_face_orientation.clear();
-    hanging_edge_orientation.clear();
-    hanging_edge_node_connections.clear();
-    hanging_face_node_connections.clear();
-    false_node_connections.clear();
-
-    //                                                                              
-    //                       0         1         2         3         4         5
-    std::vector<std::vector<int>> xface = {{0,0,0,0},{1,1,1,1},{1,0,1,0},{1,0,1,0},{1,0,1,0},{1,0,1,0}};
-    std::vector<std::vector<int>> yface = {{1,0,1,0},{1,0,1,0},{0,0,0,0},{1,1,1,1},{1,1,0,0},{1,1,0,0}};
-    std::vector<std::vector<int>> zface = {{1,1,0,0},{1,1,0,0},{1,1,0,0},{1,1,0,0},{0,0,0,0},{1,1,1,1}};
-    
-    // used to calculate up the coordinate of the final node in each octant
-    //                       0         1         2         3         4         5
-    std::vector<std::vector<int>> xface0 = {{0,0,0,0},{1,1,1,1},{0,1,0,1},{0,1,0,1},{0,1,0,1},{0,1,0,1}};
-    std::vector<std::vector<int>> yface0 = {{0,1,0,1},{0,1,0,1},{0,0,0,0},{1,1,1,1},{0,0,1,1},{0,0,1,1}};
-    std::vector<std::vector<int>> zface0 = {{0,0,1,1},{0,0,1,1},{0,0,1,1},{0,0,1,1},{0,0,0,0},{1,1,1,1}};
-    
-    // // used to look up the coordinate of the final node in each octant
-    // //                              0            1            2           3            4          5
-    std::vector<std::vector<signed int>> xface1 = {{0, 0, 0, 0},{1, 1, 1, 1},{2,-1,0, 1},{2,-1, 0, 1},{0,0,0, 1},{2,-1, 0,0}};
-    std::vector<std::vector<signed int>> yface1 = {{2,-1, 0, 1},{2,-1, 0, 1},{0, 0,0, 0},{1, 1, 1, 1},{0,0,0,-1},{0, 0,-1,0}};
-    std::vector<std::vector<signed int>> zface1 = {{0, 0,-1,-1},{0, 0,-1,-1},{0, 0,0,-1},{0, 0,-1, 1},{0,0,0, 0},{1, 1, 1,0}};
-    std::vector<std::vector<signed int>> xface2 = {{0, 0, 0, 0},{1, 1, 1, 1},{0, 1,2,-1},{0, 0, 2,-1},{0,1,2,-1},{0, 0, 0,0}};
-    std::vector<std::vector<signed int>> yface2 = {{0, 1, 2,-1},{0, 1, 2,-1},{0, 0,0, 0},{1, 0, 1, 1},{0,2,1, 1},{2, 0, 0,0}};
-    std::vector<std::vector<signed int>> zface2 = {{2, 2, 1, 1},{2, 2, 1, 1},{0, 2,1, 1},{2, 0, 1, 1},{0,0,0, 0},{1, 0, 0,0}};
-
-    // three dimensions, six octant faces, four orientations (relative to parent octant), two edge nodes
-    //                           0     1     2     3
-    std::vector<std::vector<std::vector<int>>> xedge =
-                                                 {{{0,0},{0,0},{0,0},{0,0}}, //0
-                                                {{1,1},{1,1},{1,1},{1,1}}, //1
-                                                {{1,0},{0,1},{0,1},{1,0}}, //2
-                                                {{1,0},{0,1},{0,1},{1,0}}, //3
-                                                {{1,0},{0,1},{0,1},{1,0}}, //4
-                                                {{1,0},{0,1},{0,1},{1,0}}};//5
-    //                           0     1     2     3
-    std::vector<std::vector<std::vector<int>>> yedge =
-                                                 {{{1,0},{0,1},{0,1},{1,0}}, //0
-                                                {{1,0},{0,1},{0,1},{1,0}}, //1
-                                                {{0,0},{0,0},{0,0},{0,0}}, //2
-                                                {{1,1},{1,1},{1,1},{1,1}}, //3
-                                                {{0,1},{0,1},{0,1},{0,1}}, //4
-                                                {{0,1},{0,1},{0,1},{0,1}}};//5
-    //                           0     1     2     3
-    std::vector<std::vector<std::vector<int>>> zedge =
-                                                 {{{0,1},{0,1},{0,1},{0,1}}, //0
-                                                {{0,1},{0,1},{0,1},{0,1}}, //1
-                                                {{0,1},{0,1},{0,1},{0,1}}, //2
-                                                {{0,1},{0,1},{0,1},{0,1}}, //3
-                                                {{0,0},{0,0},{0,0},{0,0}}, //4
-                                                {{1,1},{1,1},{1,1},{1,1}}};//5
-
-    // six faces, four orientations (relative to parent octant), two edges
-    //                                0       1       2       3
-    std::vector<std::vector<std::vector<int>>> edge_lookup = {{{4,8},  {4,10}, {8,6},  {10,6}}, //0
-                                                              {{5,9},  {5,11}, {9,7},  {11,7}}, //1
-                                                              {{0,8},  {0,9},  {8,2},  {9,2}},  //2
-                                                              {{1,10}, {1,11}, {10,3}, {11,3}}, //3
-                                                              {{0,4},  {0,5},  {4,1},  {5,1}},  //4
-                                                              {{2,6},  {2,7},  {6,3},  {7,3}}}; //5
-
-    // Write in NodeIDs
-// #pragma omp for
-    int k = 0;
-    std::vector<DoubleTuple> NormalNodesTmp;
-    NormalNodes.clear();
-    std::vector<long> HangingFaceNodesTmp;
-    HangingFaceNodes.clear();
-    std::vector<long> HangingEdgeNodesTmp;
-    HangingEdgeNodes.clear();
-
-    std::vector<std::vector<float>> lxy_nodes = {{0,0,0},{1,0,0},{0,1,0},{1,1,0},{0,0,1},{1,0,1},{0,1,1},{1,1,1}};
-
-#ifdef ESYS_MPI 
-    // Do the calculation   
-    oxleytimer.toc("\tDoing the calculation");
-    // int guessSize = 0;
-    // for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
-    // {
-    //     p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-    //     sc_array_t * tquadrants = &tree->quadrants;
-    //     p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-    //     guessSize+=Q;
-    // }
-
-    std::vector<double> treevecX;
-    std::vector<double> treevecY;
-    std::vector<double> treevecZ;
-    std::vector<DoubleTuple> localNodes;
-    int actualSize = 0;
-    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
-    {
-        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-        for(int q = 0; q < Q; ++q) { 
-            p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
-            p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
-            for(int n = 0; n < 8; n++) {
-                double xyzB[3];
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyzB);
-                if(m_mpiInfo->rank == 0)
-                {
-                    std::tuple<double,double,double> point = std::make_tuple(xyzB[0],xyzB[1],xyzB[2]);
-                    if(!gotPoint(point,NormalNodesTmp))
-                    {
-                        NormalNodesTmp.push_back(point);    
-                        actualSize++;            
-                    }
-                }
-                else
-                {
-                    std::tuple<double,double,double> point = std::make_tuple(xyzB[0],xyzB[1],xyzB[2]);
-                    if(!gotPoint(point,localNodes))
-                    {
-                        localNodes.push_back(point);
-                        treevecX.push_back(xyzB[0]);
-                        treevecY.push_back(xyzB[1]);
-                        treevecZ.push_back(xyzB[2]);
-                        actualSize++;
-                    }
-                }
-
-            }
-        }
-    }
-
-    oxleytimer.toc("\tcommunicating A");
-    // MPI_Barrier(m_mpiInfo->comm);
-
-
-
-    // // // ae tmp
-    // if(m_mpiInfo->rank == 0)
-    // {
-    //     for(int i = 0; i < NormalNodesTmp.size(); i++)
-    //         std::cout << "NormalNodesTmp (" << std::get<0>(NormalNodesTmp[i]) << ", "
-    //                                         << std::get<1>(NormalNodesTmp[i]) << ", "
-    //                                         << std::get<2>(NormalNodesTmp[i]) << ") " << std::endl;
-    // }
-    // else
-    // {
-    //     for(int i = 0; i < localNodes.size(); i++)
-    //         std::cout << "localNodes (" << std::get<0>(localNodes[i]) << ", "
-    //                                     << std::get<1>(localNodes[i]) << ", "
-    //                                     << std::get<2>(localNodes[i]) << ") " << std::endl;
-    // }
-    // std::cout << "actual size " << actualSize << std::endl;
-
-
-
-
-
-
-    if(m_mpiInfo->size > 1)
-    {
-        // Send info to rank 0
-        if(m_mpiInfo->rank != 0)
-        {
-            // broadcast
-            // int numPoints = treevecX.size();
-            int numPoints = actualSize;
-            MPI_Send(&numPoints, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
-            MPI_Send(treevecX.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm);
-            MPI_Send(treevecY.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm);
-            MPI_Send(treevecZ.data(), numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm);
-        }
-        else if(m_mpiInfo->rank == 0)
-        {
-            for(int i = 1; i < m_mpiInfo->size; i++)
-            {   
-                std::vector<double> tmpX;
-                std::vector<double> tmpY;
-                std::vector<double> tmpZ;
-                
-                int numPoints = 0;
-                MPI_Recv(&numPoints, 1, MPI_INT, i, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-
-                tmpX.resize(numPoints);
-                tmpY.resize(numPoints);
-                tmpZ.resize(numPoints);
-
-                MPI_Recv(tmpX.data(), numPoints, MPI_DOUBLE, i, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(tmpY.data(), numPoints, MPI_DOUBLE, i, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(tmpZ.data(), numPoints, MPI_DOUBLE, i, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                for(int j = 0; j < numPoints; j++)
-                    NormalNodesTmp.push_back(std::make_tuple(tmpX[j],tmpY[j],tmpZ[j]));
-            }
-        }
-    }
-    oxleytimer.toc("\t\t\t....done");
-
-
-
-
-
-
-    // // // ae tmp
-    // if(m_mpiInfo->rank == 0)
-    // {
-    //     for(int i = 0; i < NormalNodesTmp.size(); i++)
-    //         std::cout << "NormalNodesTmp (" << std::get<0>(NormalNodesTmp[i]) << ", "
-    //                                         << std::get<1>(NormalNodesTmp[i]) << ", "
-    //                                         << std::get<2>(NormalNodesTmp[i]) << ") " << std::endl;
-    // }
-    // else
-    // {
-    //     for(int i = 0; i < localNodes.size(); i++)
-    //         std::cout << "localNodes (" << std::get<0>(localNodes[i]) << ", "
-    //                                     << std::get<1>(localNodes[i]) << ", "
-    //                                     << std::get<2>(localNodes[i]) << ") " << std::endl;
-    // }
-
-
-
-
-
-    if(m_mpiInfo->size > 1)
-    {
-        // Send info to the other ranks
-        oxleytimer.toc("\tcommunicating");
-        if(m_mpiInfo->size > 1)
-        {
-            if(m_mpiInfo->rank == 0)
-            {
-                int numPoints = NormalNodesTmp.size();
-                for(int i = 1; i < m_mpiInfo->size; i++)
-                {
-                    MPI_Send(&numPoints, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                    MPI_Send(NormalNodesTmp.data(), 3*NormalNodesTmp.size(), MPI_DOUBLE, i, 0, m_mpiInfo->comm);
-                }
-            }
-            else
-            {
-                int numPoints = 0;
-                MPI_Recv(&numPoints, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);        
-                std::vector<DoubleTuple> temp(numPoints, std::make_tuple(-1.,-1.,-1.));
-                MPI_Recv(temp.data(), 3*numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE );
-                NormalNodesTmp = temp;
-            }
-        }
-        oxleytimer.toc("\t\t\t...done");
- 
-        oxleytimer.toc("\tsearching for duplicates");
-        int proportion = NormalNodesTmp.size() / m_mpiInfo->size;
-        int first_point = m_mpiInfo->rank * proportion;
-        int last_point = ((m_mpiInfo->rank + 1) * proportion) - 1;
-        if(m_mpiInfo->rank == m_mpiInfo->size - 1)
-            last_point = NormalNodesTmp.size();
-
-        std::vector<int> locats(NormalNodesTmp.size(),false);
-        for(int i = first_point; i < last_point; i++)
-        {
-            // skip points already tagged as duplicates
-            if(locats[i]==true)
-                continue;
-
-            // get point
-            auto point = NormalNodesTmp[i];
-            bool duplicatePoint = hasDuplicate(point,NormalNodesTmp, true);
-            if(duplicatePoint)
-            {
-                bool firstOccurance = true;
-                for(int j = 0; j < NormalNodesTmp.size(); j++) // find location of duplicate points
-                {
-                    if(     (std::abs(std::get<0>(NormalNodesTmp[j]) - std::get<0>(point)) < tuple_tolerance)
-                         && (std::abs(std::get<1>(NormalNodesTmp[j]) - std::get<1>(point)) < tuple_tolerance) 
-                         && (std::abs(std::get<2>(NormalNodesTmp[j]) - std::get<2>(point)) < tuple_tolerance))
-                    {
-                        if(firstOccurance)
-                        {
-                            firstOccurance = false;
-                            continue;
-                        }
-                        else
-                        {
-                            locats[j] = 1;
-                        }
-                    }
-                }
-            }
-        }
-
-        // tell rank 0 which points need to be erased
-        if(m_mpiInfo->rank == 0)
-        {
-            for(int r = 1; r < m_mpiInfo->size; r++)
-            {
-                std::vector<int> new_locats(NormalNodesTmp.size(),false);
-                MPI_Recv(new_locats.data(),NormalNodesTmp.size(),MPI_INT,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
-
-                for(int i = 0; i < locats.size(); i++)
-                {
-                    if(new_locats[i] == 1)
-                        locats[i] = 1;
-                }
-            }
-
-            // erase duplicates
-            int num_duplicates = 0;
-            for(int i = 0; i < locats.size(); i++)
-                if(locats[i] == 1)
-                    num_duplicates++;
-            std::vector<DoubleTuple> NormalNodes_NoDuplicates(NormalNodesTmp.size()-num_duplicates,std::make_tuple(-1.,-1.,-1));
-            int duplicatecounter=0;
-            for(int i = 0; i < NormalNodesTmp.size(); i++)
-            {
-                if(locats[i] == 0)
-                {
-                    NormalNodes_NoDuplicates[duplicatecounter]=NormalNodesTmp[i];
-                    duplicatecounter++;
-                }
-            }
-            NormalNodesTmp=NormalNodes_NoDuplicates;
-        }
-        else
-        {
-            MPI_Send(locats.data(),locats.size(),MPI_INT,0,0,m_mpiInfo->comm);
-        }
-
-        MPI_Barrier(m_mpiInfo->comm);
-        // send info to the other ranks
-        if(m_mpiInfo->rank == 0)
-        {
-            int num = NormalNodesTmp.size();
-            for(int r = 1; r < m_mpiInfo->size; r++)
-            {
-                MPI_Send(&num,1,MPI_INT,r,0,m_mpiInfo->comm);
-                MPI_Send(NormalNodesTmp.data(),3*num,MPI_DOUBLE,r,0,m_mpiInfo->comm);
-            }
-        }
-        else
-        {
-            int num;
-            MPI_Recv(&num,1,MPI_INT,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
-            MPI_Recv(NormalNodesTmp.data(),3*num,MPI_DOUBLE,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
-        }
-
-
-        // // copy of local collection of points
-        // oxleytimer.toc("\terasing duplicates");
-        // std::vector<DoubleTuple> points_to_send(last_point - first_point - num_local_duplicate_points,std::make_tuple(-10.,-10.,-10.));
-        // int counter=0;
-        // for(int i = first_point; i < last_point; i++)
-        // {
-        //     if(locats[i] != 1) //if not duplicate
-        //         points_to_send[counter++]=NormalNodesTmp[i];
-        // }
-
-        // oxleytimer.toc("communicating");
-        // oxleytimer.toc("\ttalking to 0");
-        // if(m_mpiInfo->rank == 0)
-        // {
-        //     NormalNodesTmp=points_to_send;
-
-
-        //     for(int r = 1; r < m_mpiInfo->size; r++)
-        //     {
-        //         int num;
-        //         MPI_Recv(&num,1,MPI_INT,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
-        //         std::vector<DoubleTuple> temp;
-        //         temp.assign(num,std::make_tuple(-1.,-1.,-1.));
-        //         MPI_Recv(temp.data(),3*num,MPI_DOUBLE,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
-        //         std::vector<DoubleTuple> temp2;
-        //         temp2.reserve(NormalNodesTmp.size()+temp.size());
-        //         temp2.insert(temp2.end(),NormalNodesTmp.begin(),NormalNodesTmp.end());
-        //         temp2.insert(temp2.end(),temp.begin(),temp.end());
-        //         NormalNodesTmp=temp2;
-        //     }
-        // }
-        // else
-        // {
-        //     int num = points_to_send.size();
-        //     MPI_Send(&num,1,MPI_INT,0,0,m_mpiInfo->comm);
-        //     MPI_Send(points_to_send.data(),3*num,MPI_DOUBLE,0,0,m_mpiInfo->comm);
-        // }
-        // oxleytimer.toc("\t\t\t....done");
-        // oxleytimer.toc("\tlistening to 0");
-        // MPI_Barrier(m_mpiInfo->comm);
-        // if(m_mpiInfo->rank == 0)
-        // {
-        //     int num = NormalNodesTmp.size();
-        //     for(int r = 1; r < m_mpiInfo->size; r++)
-        //     {
-        //         MPI_Send(&num,1,MPI_INT,r,0,m_mpiInfo->comm);
-        //         MPI_Send(NormalNodesTmp.data(),3*num,MPI_DOUBLE,r,0,m_mpiInfo->comm);
-        //     }
-        // }
-        // else
-        // {
-        //     int num;
-        //     MPI_Recv(&num,1,MPI_INT,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
-        //     // ESYS_ASSERT(num==NormalNodesTmp.size(),"A point got lost (or added) somehow");
-        //     MPI_Recv(NormalNodesTmp.data(),3*num,MPI_DOUBLE,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
-        // }
-        // oxleytimer.toc("\t\t\t....done");
-
-        // // Write information into NodeIDs
-        oxleytimer.toc("Writing NodeIDs");
-        for(int i = 0; i < NormalNodesTmp.size(); i++)
-            NodeIDs[NormalNodesTmp[i]]=i;
-
-    }
-    else // being run on a single process
-    {
-        oxleytimer.toc("\t\tchecking for duplicates");
-        if(m_mpiInfo->rank == 0) // Redundant for mpi size = 1
-        {
-            //check for duplicates
-            std::vector<bool> locats(NormalNodesTmp.size(),false);
-            for(int i = 0; i < NormalNodesTmp.size(); i++)
-            {
-                // skip points already tagged as duplicates
-                if(locats[i]==true)
-                    continue;
-
-                // get point
-                auto point = NormalNodesTmp[i];
-                double tol = 1e-12;
-                bool duplicatePoint = hasDuplicate(point,NormalNodesTmp, false);
-                if(duplicatePoint)
-                {
-                    bool firstOccurance = true;
-                    for(int j = 0; j < NormalNodesTmp.size(); j++) // find location of duplicate points
-                    {
-                        if((std::abs(std::get<0>(NormalNodesTmp[j]) - std::get<0>(point)) < 1e-12)
-                            && (std::abs(std::get<1>(NormalNodesTmp[j]) - std::get<1>(point)) < 1e-12) 
-                                && (std::abs(std::get<2>(NormalNodesTmp[j]) - std::get<2>(point)) < 1e-12))
-                        {
-                            if(firstOccurance)
-                            {
-                                firstOccurance = false;
-                                continue;
-                            }
-                            else
-                            {
-                                locats[j] = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            // erase duplicates
-            for(int j = NormalNodesTmp.size(); j > 0; j--)
-                if(locats[j] == true)
-                    NormalNodesTmp.erase(NormalNodesTmp.begin()+j);
-
-            // Write information into NodeIDs
-            for(int i = 0; i < NormalNodesTmp.size(); i++)
-                NodeIDs[NormalNodesTmp[i]]=i;
-        }
-        oxleytimer.toc("\t\t\t...done");
-    }
-
-    // Send info to the other ranks
-    oxleytimer.toc("\tcommunicating");
-    MPI_Barrier(m_mpiInfo->comm); // have the other ranks wait until rank 0 arrives
-    if(m_mpiInfo->size > 1)
-    {
-        if(m_mpiInfo->rank == 0)
-        {
-            for(int i = 1; i < m_mpiInfo->size; i++)
-            {
-                int numPoints = NormalNodesTmp.size();
-                MPI_Send(&numPoints, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                MPI_Send(NormalNodesTmp.data(), 3*NormalNodesTmp.size(), MPI_DOUBLE, i, 0, m_mpiInfo->comm);
-            }
-        }
-        else
-        {
-            int numPoints = 0;
-            MPI_Recv(&numPoints, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            NormalNodesTmp.resize(numPoints);
-            MPI_Recv(NormalNodesTmp.data(), 3*numPoints, MPI_DOUBLE, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE );
-
-            NodeIDs.clear();
-            for(int i = 0; i < NormalNodesTmp.size(); i++)
-                NodeIDs[NormalNodesTmp[i]]=i;
-        }
-    }
-    oxleytimer.toc("\t\t\t...done");
-
-
-    // // // ae tmp
-    // if(m_mpiInfo->rank == 0)
-    // {
-    //     for(int i = 0; i < NormalNodesTmp.size(); i++)
-    //         std::cout << "NormalNodesTmp (" << std::get<0>(NormalNodesTmp[i]) << ", "
-    //                                         << std::get<1>(NormalNodesTmp[i]) << ", "
-    //                                         << std::get<2>(NormalNodesTmp[i]) << ") " << std::endl;
-    // }
-    // else
-    // {
-    //     for(int i = 0; i < localNodes.size(); i++)
-    //         std::cout << "localNodes (" << std::get<0>(localNodes[i]) << ", "
-    //                                     << std::get<1>(localNodes[i]) << ", "
-    //                                     << std::get<2>(localNodes[i]) << ") " << std::endl;
-    // }
-
-
-
-
-
-
-#else // no mpi
-    #ifdef OPENMPFLAG
-    omp_set_num_threads(omp_get_max_threads());
-    #endif
-    // Do the calculation
-    int numOfTrees=m_NE[0]*m_NE[1]*m_NE[2];
-    // std::vector<std::vector<std::tuple<double,double,double>>> storage;
-    // storage.resize(numOfTrees+1);
-
-
-    int numOfPoints=0;
-    int * increment = new int[numOfTrees+1];
-    increment[0]=0;
-    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
-    {
-        std::vector<std::tuple<double,double,double>> treevec;
-        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-        numOfPoints+=8*Q;
-        increment[treeid+1]=numOfPoints;
-    }
-
-    double * x = new double [numOfPoints];
-    double * y = new double [numOfPoints];
-    double * z = new double [numOfPoints];
-
-
-    oxleytimer.toc("\tdoing the calculation");
-    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
-    {
-        std::vector<std::tuple<double,double,double>> treevec;
-        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-        for(int q = 0; q < Q; ++q) { 
-            p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
-            p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
-            for(int n = 0; n < 8; n++) {
-                double xyzB[3];
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyzB);
-
-                x[increment[treeid]+8*q+n]=xyzB[0];
-                y[increment[treeid]+8*q+n]=xyzB[1];
-                z[increment[treeid]+8*q+n]=xyzB[2];
-            }
-        }
-    }
-    // Copy the data to NormalNodesTmp
-    oxleytimer.toc("\tcopying data");
-    NormalNodesTmp.assign(numOfPoints,std::make_tuple(-1.,-1.,-1.));
-    for(int i = 0; i < numOfPoints; i++)
-    {
-        NormalNodesTmp[i] = std::make_tuple(x[i],y[i],z[i]);
-    }
-    delete[] x;
-    delete[] y;
-    delete[] z;
-    delete[] increment;
-    oxleytimer.toc("\t\tdone");
-
-    //check for duplicates
-    oxleytimer.toc("\tchecking for duplicates");
-    for(int i = NormalNodesTmp.size()-1; i > 0 ; i--)
-    {
-        auto point = NormalNodesTmp[i];
-        double tol = 1e-12;
-        bool duplicatePoint = hasDuplicate(point,NormalNodesTmp,false);
-        if(duplicatePoint)
-        {
-            bool locats[NormalNodesTmp.size()] = {false};
-        #pragma omp parallel shared(locats)
-        {
-        #pragma omp parallel for
-            for(int j = 0; j < NormalNodesTmp.size(); j++) // find location of duplicate points
-            {
-                if((std::abs(std::get<0>(NormalNodesTmp[j]) - std::get<0>(point)) < tol)
-                    && (std::abs(std::get<1>(NormalNodesTmp[j]) - std::get<1>(point)) < tol) 
-                        && (std::abs(std::get<2>(NormalNodesTmp[j]) - std::get<2>(point)) < tol))
-                            locats[j] = true;
-            }
-        } // #pragma omp parallel shared(locats)
-            int firstOccurance = 0;
-            for(int j = 0; j < NormalNodesTmp.size(); j++) // find the first occurance of the point
-                if(locats[j] == true)
-                {
-                    firstOccurance=j;
-                    break;
-                }
-            for(int j = NormalNodesTmp.size(); j > firstOccurance; j--) // erase duplicates
-                if(locats[j] == true)
-                    NormalNodesTmp.erase(NormalNodesTmp.begin()+j);
-            i = NormalNodesTmp.size()-1;
-        }
-    }
-    oxleytimer.toc("\t\tdone");
-    // Write information into NodeIDs
-    for(int i = 0; i < NormalNodesTmp.size(); i++)
-        NodeIDs[NormalNodesTmp[i]]=i;
-#endif
-
-    oxleytimer.toc("\tinformation loop");
-
-    // Now work out the connections
-    octantIDs.clear();
-
-#ifdef ESYS_MPI
-    if(m_mpiInfo->rank == 0)
-    {
-        k=0;
-        // Do this process's nodes first
-        oxleytimer.toc("\tdoing rank 0 nodes");
-        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
-            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-            sc_array_t * tquadrants = &tree->quadrants;
-            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-
-            // Loop over octants
-            for(int q = 0; q < Q; ++q) 
-            { 
-                p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
-                p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
-
-                // Save octant information
-                double xyz[3];
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyz);
-                octantIDs.push_back(NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second);
-                // oct_info tmp;
-                // tmp.x=xyz[0];
-                // tmp.y=xyz[1];
-                // tmp.z=xyz[2];
-                // tmp.level=oct->level;
-                // octantInfo.push_back(tmp);
-
-                // // Get the hanging edge and face information for this octant
-                int hanging_faces[6];
-                int hanging_edges[12];
-                getHangingInfo(nodes->face_code[k++], hanging_faces, hanging_edges);
-
-                // #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
-                //     std::cout << "Octant  " << k-1 << ":" << std::endl;
-                //     int faceCount=6, edgeCount=12;
-                //     for(int i=0;i<6;i++) faceCount+=hanging_faces[i];
-                //     for(int i=0;i<12;i++) edgeCount+=hanging_edges[i];
-                //     std::cout << "\tHanging faces : ";
-                //     if(faceCount==0)
-                //         std::cout << "[none]";
-                //     else
-                //         for(int i=0; i<6;i++)
-                //             if(hanging_faces[i]!=-1)
-                //                 std::cout << i << "(" << hanging_faces[i] << "), " ;
-                //     std::cout << std::endl;
-                //     std::cout << "\tHanging edges : ";
-                //     if(edgeCount==0)
-                //         std::cout << "[none]";
-                //     else
-                //         for(int i=0; i<12;i++)
-                //             if(hanging_edges[i]!=-1)
-                //                 std::cout << i << "(" << hanging_edges[i] << "), " ;
-
-                //     std::cout << std::endl;
-                // #endif
-            
-                // Record hanging node information
-                // Loop over faces
-                for(int n = 0; n < 6; n++)
-                {
-                    // If the face does not have any hanging nodes then skip ahead
-                    if(hanging_faces[n]==-1)
-                        continue;
-
-                    // *******************************************************************
-                    // Corner node
-                    // *******************************************************************
-                    double xyzC[3];
-                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyzC);
-                    auto cornerPoint = std::make_tuple(xyzC[0],xyzC[1],xyzC[2]);
-                    long nodeidC = NodeIDs.find(cornerPoint)->second;
-
-                    // *******************************************************************
-                    // Face node
-                    // *******************************************************************
-                    // shift to the corner of the face
-                    signed long x_corner = ((int) xface[n][hanging_faces[n]]) * l;
-                    signed long y_corner = ((int) yface[n][hanging_faces[n]]) * l;
-                    signed long z_corner = ((int) zface[n][hanging_faces[n]]) * l;
-
-                    double xyz[3];
-                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
-                                            oct->x+x_corner, 
-                                            oct->y+y_corner, 
-                                            oct->z+z_corner, xyz);
-
-                    // Add to list of nodes
-                    DoubleTuple point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-                    long nodeid = NodeIDs.find(point)->second;
-                    std::vector<long>::iterator have_node = std::find(HangingFaceNodesTmp.begin(), HangingFaceNodesTmp.end(),nodeid);
-                    if(have_node == HangingFaceNodesTmp.end())
-                          HangingFaceNodesTmp.push_back(nodeid);
-
-                    // *******************************************************************
-                    // Get the parent octant
-                    // *******************************************************************
-                    p8est_quadrant_t parentOct;
-                    p8est_quadrant_t * parent = &parentOct;
-                    p8est_quadrant_parent(oct, parent);
-                    
-                    // *******************************************************************
-                    // Get the octant neighbouring this face
-                    // *******************************************************************
-                    // Get the neighbouring face
-                    p8est_quadrant_t neighbourOct;
-                    p8est_quadrant_t * neighbour = &neighbourOct;
-                    // p8est_quadrant_face_neighbor(parent, n, neighbour);
-                    int faceNeighbourTree=p8est_quadrant_face_neighbor_extra(parent,treeid,n,neighbour,NULL,connectivity);
-
-                    // Save this information
-                    hangingFaceInfo tmp;
-                    tmp.x=oct->x;
-                    tmp.y=oct->y;
-                    tmp.z=oct->z;
-                    tmp.level=oct->level;
-                    tmp.treeid=treeid;
-                    tmp.face_type=n;
-                    tmp.neighbour_x=neighbour->x;
-                    tmp.neighbour_y=neighbour->y;
-                    tmp.neighbour_z=neighbour->z;
-                    tmp.neighbour_level=neighbour->level;
-                    tmp.neighbour_tree=faceNeighbourTree;
-                    hanging_face_orientation.push_back(tmp);
-
-                    // *******************************************************************
-                    // Calculate the edge nodes
-                    // *******************************************************************
-                    signed long x_e_corner[2] = {((int) xedge[n][hanging_faces[n]][0]) * l,((int) xedge[n][hanging_faces[n]][1]) * l};
-                    signed long y_e_corner[2] = {((int) yedge[n][hanging_faces[n]][0]) * l,((int) yedge[n][hanging_faces[n]][1]) * l};
-                    signed long z_e_corner[2] = {((int) zedge[n][hanging_faces[n]][0]) * l,((int) zedge[n][hanging_faces[n]][1]) * l};
-                    double xyzA[2][3];
-                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_e_corner[0], oct->y+y_e_corner[0], oct->z+z_e_corner[0], xyzA[0]);
-                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_e_corner[1], oct->y+y_e_corner[1], oct->z+z_e_corner[1], xyzA[1]);
-                    DoubleTuple pointB[2] = {{std::make_tuple(xyzA[0][0],xyzA[0][1],xyzA[0][2])},{std::make_tuple(xyzA[1][0],xyzA[1][1],xyzA[1][2])}};
-                    long nodeidB[2]= {NodeIDs.find(pointB[0])->second,NodeIDs.find(pointB[1])->second};
-
-                    // Add to list of nodes
-                    std::vector<long>::iterator have_edge;
-                    have_edge = std::find(HangingEdgeNodesTmp.begin(), HangingEdgeNodesTmp.end(), nodeidB[0]);
-                    if(have_edge == HangingEdgeNodesTmp.end())
-                          HangingEdgeNodesTmp.push_back(nodeidB[0]);
-                    have_edge = std::find(HangingEdgeNodesTmp.begin(), HangingEdgeNodesTmp.end(), nodeidB[1]);
-                    if(have_edge == HangingEdgeNodesTmp.end())
-                          HangingEdgeNodesTmp.push_back(nodeidB[1]);
-
-                    // // *******************************************************************
-                    // // Get the neighbouring edge(s)
-                    // // *******************************************************************
-                    // // Get the neighbours
-                    // p8est_quadrant_t EdgeNeighbourOct;
-                    // p8est_quadrant_t * EdgeNeighbour = &EdgeNeighbourOct;
-                    // int edge_number[2]={edge_lookup[n][hanging_faces[n]][0],edge_lookup[n][hanging_faces[n]][1]};
-                    // sc_array_t quads[2];
-                    // sc_array_t treeids[2];
-                    // sc_array_t nedges[2];
-                    // sc_array_t * pQuads[2] = {&quads[0],&quads[1]};
-                    // sc_array_t * pTreeids[2] = {&treeids[0],&treeids[1]};
-                    // sc_array_t * pNEdges[2] = {&nedges[0],&nedges[1]};
-                    // sc_array_init(pQuads[0], (size_t) sizeof(p4est_quadrant_t));
-                    // sc_array_init(pQuads[1], (size_t) sizeof(p4est_quadrant_t));
-                    // sc_array_init(pTreeids[0], (size_t) sizeof(p4est_topidx_t));
-                    // sc_array_init(pTreeids[1], (size_t) sizeof(p4est_topidx_t));
-                    // sc_array_init(pNEdges[0], (size_t) sizeof(int));
-                    // sc_array_init(pNEdges[1], (size_t) sizeof(int));
-
-                    // // Check for boundaries            
-                    // bool onBoundary[2];
-                    // onBoundary[0] = xyzA[0][0]<=0 || xyzA[0][0]>=forestData->m_length[0] ||
-                    //                 xyzA[0][1]<=0 || xyzA[0][1]>=forestData->m_length[1] ||
-                    //                 xyzA[0][2]<=0 || xyzA[0][2]>=forestData->m_length[2];
-                    // onBoundary[1] = xyzA[1][0]<=0 || xyzA[1][0]>=forestData->m_length[0] ||
-                    //                 xyzA[1][1]<=0 || xyzA[1][1]>=forestData->m_length[1] ||
-                    //                 xyzA[1][2]<=0 || xyzA[1][2]>=forestData->m_length[2];
-
-                    // hangingEdgeInfo temp;
-                    // if(!onBoundary[0])
-                    // {
-                    //     p8est_quadrant_edge_neighbor_extra(parent,treeid,edge_number[0],pQuads[0],pTreeids[0],pNEdges[0],connectivity);
-                    //     temp.nodeid=nodeidC;
-                    //     temp.x=oct->x;
-                    //     temp.y=oct->y;
-                    //     temp.z=oct->z;
-                    //     temp.level=oct->level;
-                    //     temp.treeid=treeid;
-                    //     temp.edge_type=n;
-                    //     p8est_quadrant_t * tempB = (p8est_quadrant_t *) (*pQuads[0]).array;
-                    //     temp.neighbour_x=tempB->x;
-                    //     temp.neighbour_y=tempB->y;
-                    //     temp.neighbour_z=tempB->z;
-                    //     temp.neighbour_level=tempB->level;
-                    //     p8est_topidx_t * tempC = (p8est_topidx_t *) (*pTreeids[0]).array;
-                    //     temp.neighbour_tree=*tempC;
-                    //     hanging_edge_orientation.push_back(temp);
-                    // }
-                    // if(!onBoundary[1])
-                    // {
-                    //     p8est_quadrant_edge_neighbor_extra(parent,treeid,edge_number[1],pQuads[1],pTreeids[1],pNEdges[1],connectivity);
-                    //     temp.nodeid=nodeidC;
-                    //     temp.x=oct->x;
-                    //     temp.y=oct->y;
-                    //     temp.z=oct->z;
-                    //     temp.level=oct->level;
-                    //     temp.treeid=treeid;
-                    //     temp.edge_type=n;
-                    //     p8est_quadrant_t * tempB = (p8est_quadrant_t *) (*pQuads[1]).array;
-                    //     temp.neighbour_x=tempB->x;
-                    //     temp.neighbour_y=tempB->y;
-                    //     temp.neighbour_z=tempB->z;
-                    //     temp.neighbour_level=tempB->level;
-                    //     p8est_topidx_t * tempC = (p8est_topidx_t *) (*pTreeids[1]).array;
-                    //     temp.neighbour_tree=*tempC;
-                    //     hanging_edge_orientation.push_back(temp);
-                    // }
-
-                    // // *******************************************************************
-                    // // Store connection information for updateRowsColumns
-                    // // *******************************************************************
-
-                    // signed long x_corner0 = xface0[n][hanging_faces[n]] * l;
-                    // signed long y_corner0 = yface0[n][hanging_faces[n]] * l;
-                    // signed long z_corner0 = zface0[n][hanging_faces[n]] * l;
-                
-                    // double xyzD[3];
-                    // p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner0, oct->y+y_corner0, oct->z+z_corner0, xyzD);
-                    // auto otherCornerPoint = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
-                    // long nodeA = NodeIDs.find(otherCornerPoint)->second;
-
-                    // p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner, oct->y+y_corner, oct->z+z_corner, xyzC);
-                    // auto facecornerPoint = std::make_tuple(xyzC[0],xyzC[1],xyzC[2]);
-                    // long facenodeidB = NodeIDs.find(facecornerPoint)->second;
-
-                    // long need_edgeA[4] = {std::count(hanging_edge_node_connections.begin(), hanging_edge_node_connections.end(), std::make_pair(nodeA,nodeidB[0])),
-                    //                      std::count(hanging_edge_node_connections.begin(), hanging_edge_node_connections.end(), std::make_pair(nodeidB[0],nodeA)),
-                    //                      std::count(hanging_edge_node_connections.begin(), hanging_edge_node_connections.end(), std::make_pair(nodeA,nodeidB[1])),
-                    //                      std::count(hanging_edge_node_connections.begin(), hanging_edge_node_connections.end(), std::make_pair(nodeidB[1],nodeA))};
-                    // long need_edgeB[4] = {std::count(hanging_face_node_connections.begin(), hanging_face_node_connections.end(), std::make_pair(facenodeidB,nodeidB[0])),
-                    //                      std::count(hanging_face_node_connections.begin(), hanging_face_node_connections.end(), std::make_pair(nodeidB[0],facenodeidB)),
-                    //                      std::count(hanging_face_node_connections.begin(), hanging_face_node_connections.end(), std::make_pair(facenodeidB,nodeidB[1])),
-                    //                      std::count(hanging_face_node_connections.begin(), hanging_face_node_connections.end(), std::make_pair(nodeidB[1],facenodeidB))};
-
-                    
-                    // // std::cout << " index[" << n << "][" << hanging_faces[n] << "]" << std::endl;
-
-                    // if(need_edgeA[0]+need_edgeA[1] == 0)
-                    // {
-                    //     // Calculate fallacious node connection that was generated by p8est
-                    //     signed long x_corner1 = xface1[n][hanging_faces[n]] * l;
-                    //     signed long y_corner1 = yface1[n][hanging_faces[n]] * l;
-                    //     signed long z_corner1 = zface1[n][hanging_faces[n]] * l;
-                    //     p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner1, oct->y+y_corner1, oct->z+z_corner1, xyzD);
-                    //     auto otherCornerPoint1 = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
-                    //     long defunct1 = NodeIDs.find(otherCornerPoint1)->second;
-
-                    //     // std::cout << " defunct connection1 = " << nodeA << ", " << nodeidB[0] << ", " << defunct1 << std::endl;
-
-                    //     hanging_edge_node_connections.push_back(std::make_pair(nodeA,nodeidB[0]));
-                    //     false_node_connections.push_back(std::make_pair(nodeA,defunct1));
-
-                    //     hanging_edge_node_connections.push_back(std::make_pair(nodeidB[0],defunct1));
-                    //     false_node_connections.push_back(std::make_pair(defunct1,nodeA));
-                    // }
-                    // if(need_edgeA[2]+need_edgeA[3] == 0)
-                    // {
-                    //     // Calculate fallacious node connection that was generated by p8est
-                    //     signed long x_corner2 = xface2[n][hanging_faces[n]] * l;
-                    //     signed long y_corner2 = yface2[n][hanging_faces[n]] * l;
-                    //     signed long z_corner2 = zface2[n][hanging_faces[n]] * l;
-                    //     p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner2, oct->y+y_corner2, oct->z+z_corner2, xyzD);
-                    //     auto otherCornerPoint2 = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
-                    //     long defunct2 = NodeIDs.find(otherCornerPoint2)->second;
-
-                    //     // std::cout << " defunct connection2 = " << nodeA << ", " << nodeidB[1] << ", " << defunct2 << std::endl;
-
-                    //     hanging_edge_node_connections.push_back(std::make_pair(nodeA,nodeidB[1]));
-                    //     false_node_connections.push_back(std::make_pair(nodeA,defunct2));
-
-                    //     hanging_edge_node_connections.push_back(std::make_pair(nodeidB[1],defunct2));
-                    //     false_node_connections.push_back(std::make_pair(defunct2,nodeA));
-                    // }
-                    // if(need_edgeB[0]+need_edgeB[1] == 0)
-                    // {
-                    //     hanging_face_node_connections.push_back(std::make_pair(nodeidB[0],facenodeidB));
-                    // }
-                    // if(need_edgeB[2]+need_edgeB[3] == 0)
-                    // {
-                    //     hanging_face_node_connections.push_back(std::make_pair(nodeidB[1],facenodeidB));
-                    // }
-
-
-                    // // *******************************************************************
-                    // // Debuging output
-                    // // *******************************************************************
-                    // #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
-                    //     std::cout << "\t\toctant = \033[1;36m" << k-1 << "\033[0m, corner node = " << nodeidC << std::endl;
-                    //     std::cout << "\t\tface node = \033[1;36m" << facenodeidB << "\033[0m" << std::endl;
-                    //     std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "]" << std::endl;
-                    //     // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_corner << ", " << y_corner << ", " << z_corner << ")" << std::endl;
-                    //     std::cout << "\t\tedge nodes: \033[1;36m" << nodeidB[0] << " & " << nodeidB[1] << "\033[0m" << std::endl;
-                    //     std::cout << "\t\t    index[" << (int) n << "][" << (int) hanging_faces[n] << "][-]" << std::endl;
-                    //     // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[0] << " ," << y_e_corner[0] << ", " << z_e_corner[0] << ")" << std::endl;
-                    //     // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[1] << " ," << y_e_corner[1] << ", " << z_e_corner[1] << ")" << std::endl;
-                    //     std::cout << "\t\tcorner nodes: \033[1;36m" << nodeA << "\033[0m" << std::endl;
-                    //     std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "][-]" << std::endl;
-                    //     std::cout << "\t\tFace nodes: \033[1;36m" << facenodeidB << "--" << nodeidB[1] << "--" << nodeA << "--" << nodeidB[0] << "\033[0m" << std::endl;
-                    //     std::cout << "\t\tedge numbers: \033[1;36m" << edge_number[0] << " & " << edge_number[1] << "\033[0m" << std::endl;
-                    //     std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "][-]" << std::endl;
-                    // #endif
-                }
-            }
-        }
-    }
-
-    MPI_Barrier(m_mpiInfo->comm);
-
-    std::vector<int> treeidVec;
-    std::vector<p8est_quadrant_t> octantVec;
-    int num_of_iterations=0;
-    if(m_mpiInfo->size > 1)
-    {
-        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
-        {
-            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-            sc_array_t * tquadrants = &tree->quadrants;
-            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-            num_of_iterations+= ((int) Q);
-        }
-
-        octantVec.resize(num_of_iterations);
-        treeidVec.resize(num_of_iterations);
-        int count = 0;
-        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
-        {
-            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-            sc_array_t * tquadrants = &tree->quadrants;
-            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-            for(int q=0; q<Q; q++)
-            {
-                p8est_quadrant_t * octant = p8est_quadrant_array_index(tquadrants, q);
-                octantVec[count] = *octant;
-                treeidVec[count++]=treeid;
-            }
-        }
-    }
-
-    if(m_mpiInfo->size > 1)
-        MPI_Barrier(m_mpiInfo->comm);
-
-    int num_iter[m_mpiInfo->size] = {0};
-    if(m_mpiInfo->size > 1)
-    {
-        if(m_mpiInfo->rank == 0)
-        {
-            for(int r = 1; r < m_mpiInfo->size; r++)
-                MPI_Recv(&num_iter[r], 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-        }
-        else
-        {
-            MPI_Send(&num_of_iterations, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
-        }
-    }
-
-    if(m_mpiInfo->size > 1)
-        MPI_Barrier(m_mpiInfo->comm);
-
-    if(m_mpiInfo->size > 1)
-    {
-        if(m_mpiInfo->rank == 0)
-        {
-            for(int r = 1; r < m_mpiInfo->size; r++)
-                MPI_Send(&num_iter[0], m_mpiInfo->size, MPI_INT, r, 0, m_mpiInfo->comm);
-        }
-        else
-        {
-            MPI_Recv(&num_iter[0], m_mpiInfo->size, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-        }
-    }
-
-    if(m_mpiInfo->size > 1)
-        MPI_Barrier(m_mpiInfo->comm);
-
-    int total_iter = 0;
-    for(int i = 0; i < m_mpiInfo->size ; i++)
-        total_iter += num_iter[i];
-
-    if(m_mpiInfo->size > 1)
-    {
-        int octantcounter = NodeIDs.size();
-
-        oxleytimer.toc("\tDoing other ranks...");
-        for(int r = 1; r < m_mpiInfo->size; r++)
-        {
-            for(int j = 0; j < num_iter[r]; j++) 
-            {
-                MPI_Barrier(m_mpiInfo->comm);
-                if(m_mpiInfo->rank == r)
-                {
-                    int treeid = treeidVec[j];
-                    p8est_quadrant_t oct = octantVec[j];
-                    MPI_Send(&oct.x, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
-                    MPI_Send(&oct.y, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
-                    MPI_Send(&oct.z, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
-                    MPI_Send(&oct.level, 1, MPI_INT8_T, 0, 0, m_mpiInfo->comm);
-                    MPI_Send(&oct.pad8, 1, MPI_INT8_T, 0, 0, m_mpiInfo->comm);
-                    MPI_Send(&oct.pad16, 1, MPI_INT16_T, 0, 0, m_mpiInfo->comm);
-                    MPI_Send(&treeid, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
-                    int hanging_code=nodes->face_code[k++];
-                    MPI_Send(&hanging_code, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
-                }
-                else if(m_mpiInfo->rank == 0)
-                {
-                    p8est_quadrant_t * oct;
-                    p8est_quadrant_t octant;
-                    int x, y, z, treeid;
-                    MPI_Recv(&octant.x, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                    MPI_Recv(&octant.y, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                    MPI_Recv(&octant.z, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                    MPI_Recv(&octant.level, 1, MPI_INT8_T, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                    MPI_Recv(&octant.pad8, 1, MPI_INT8_T, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                    MPI_Recv(&octant.pad16, 1, MPI_INT16_T, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                    MPI_Recv(&treeid, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                    oct = &octant;
-                    int hanging_code;
-                    MPI_Recv(&hanging_code, 1, MPI_INT, r, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-
-
-                    // Save octant information
-                    p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
-                    double xyz[3];
-                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyz);
-
-
-                    // octantIDs.push_back(NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second);
-                    octantIDs.push_back(octantcounter++);
-
-                    oct_info tmp;
-                    tmp.x=xyz[0];
-                    tmp.y=xyz[1];
-                    tmp.z=xyz[2];
-                    tmp.level=oct->level;
-                    octantInfo.push_back(tmp);
-
-                    // Get the hanging edge and face information for this octant
-                    int hanging_faces[6];
-                    int hanging_edges[12];
-                    // getHangingInfo(nodes->face_code[k++], hanging_faces, hanging_edges);
-                    getHangingInfo(hanging_code, hanging_faces, hanging_edges);
-
-                    #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
-                        std::cout << "Octant  " << k-1 << ":" << std::endl;
-                        int faceCount=6, edgeCount=12;
-                        for(int i=0;i<6;i++) faceCount+=hanging_faces[i];
-                        for(int i=0;i<12;i++) edgeCount+=hanging_edges[i];
-                        std::cout << "\tHanging faces : ";
-                        if(faceCount==0)
-                            std::cout << "[none]";
-                        else
-                            for(int i=0; i<6;i++)
-                                if(hanging_faces[i]!=-1)
-                                    std::cout << i << "(" << hanging_faces[i] << "), " ;
-                        std::cout << std::endl;
-                        std::cout << "\tHanging edges : ";
-                        if(edgeCount==0)
-                            std::cout << "[none]";
-                        else
-                            for(int i=0; i<12;i++)
-                                if(hanging_edges[i]!=-1)
-                                    std::cout << i << "(" << hanging_edges[i] << "), " ;
-
-                        std::cout << std::endl;
-                    #endif
-                
-                    // Record hanging node information
-                    // Loop over faces
-                    for(int n = 0; n < 6; n++)
-                    {
-                        // If the face does not have any hanging nodes then skip ahead
-                        if(hanging_faces[n]==-1)
-                            continue;
-
-                        // *******************************************************************
-                        // Corner node
-                        // *******************************************************************
-                        double xyzC[3];
-                        p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyzC);
-                        auto cornerPoint = std::make_tuple(xyzC[0],xyzC[1],xyzC[2]);
-                        long nodeidC = NodeIDs.find(cornerPoint)->second;
-
-                        // *******************************************************************
-                        // Face node
-                        // *******************************************************************
-                        // shift to the corner of the face
-                        signed long x_corner = ((int) xface[n][hanging_faces[n]]) * l;
-                        signed long y_corner = ((int) yface[n][hanging_faces[n]]) * l;
-                        signed long z_corner = ((int) zface[n][hanging_faces[n]]) * l;
-
-                        double xyz[3];
-                        p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
-                                                oct->x+x_corner, 
-                                                oct->y+y_corner, 
-                                                oct->z+z_corner, xyz);
-
-                        // Add to list of nodes
-                        DoubleTuple point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-                        long nodeid = NodeIDs.find(point)->second;
-
-                        // // ae tmp
-                        // std::cout << "nodeid = " <<nodeid << std::endl;
-
-
-                        std::vector<long>::iterator have_node = std::find(HangingFaceNodesTmp.begin(), HangingFaceNodesTmp.end(),nodeid);
-                        if(have_node == HangingFaceNodesTmp.end())
-                              HangingFaceNodesTmp.push_back(nodeid);
-
-                        // *******************************************************************
-                        // Get the parent octant
-                        // *******************************************************************
-                        p8est_quadrant_t parentOct;
-                        p8est_quadrant_t * parent = &parentOct;
-                        p8est_quadrant_parent(oct, parent);
-                        
-                        // *******************************************************************
-                        // Get the octant neighbouring this face
-                        // *******************************************************************
-                        // Get the neighbouring face
-                        p8est_quadrant_t neighbourOct;
-                        p8est_quadrant_t * neighbour = &neighbourOct;
-                        // p8est_quadrant_face_neighbor(parent, n, neighbour);
-                        int faceNeighbourTree=p8est_quadrant_face_neighbor_extra(parent,treeid,n,neighbour,NULL,connectivity);
-
-                        // Save this information
-                        hangingFaceInfo tmp;
-                        tmp.x=oct->x;
-                        tmp.y=oct->y;
-                        tmp.z=oct->z;
-                        tmp.level=oct->level;
-                        tmp.treeid=treeid;
-                        tmp.face_type=n;
-                        tmp.neighbour_x=neighbour->x;
-                        tmp.neighbour_y=neighbour->y;
-                        tmp.neighbour_z=neighbour->z;
-                        tmp.neighbour_level=neighbour->level;
-                        tmp.neighbour_tree=faceNeighbourTree;
-                        hanging_face_orientation.push_back(tmp);
-
-                        // *******************************************************************
-                        // Calculate the edge nodes
-                        // *******************************************************************
-                        signed long x_e_corner[2] = {((int) xedge[n][hanging_faces[n]][0]) * l,((int) xedge[n][hanging_faces[n]][1]) * l};
-                        signed long y_e_corner[2] = {((int) yedge[n][hanging_faces[n]][0]) * l,((int) yedge[n][hanging_faces[n]][1]) * l};
-                        signed long z_e_corner[2] = {((int) zedge[n][hanging_faces[n]][0]) * l,((int) zedge[n][hanging_faces[n]][1]) * l};
-                        double xyzA[2][3];
-                        p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_e_corner[0], oct->y+y_e_corner[0], oct->z+z_e_corner[0], xyzA[0]);
-                        p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_e_corner[1], oct->y+y_e_corner[1], oct->z+z_e_corner[1], xyzA[1]);
-                        DoubleTuple pointB[2] = {{std::make_tuple(xyzA[0][0],xyzA[0][1],xyzA[0][2])},{std::make_tuple(xyzA[1][0],xyzA[1][1],xyzA[1][2])}};
-                        long nodeidB[2]= {NodeIDs.find(pointB[0])->second,NodeIDs.find(pointB[1])->second};
-
-                        // Add to list of nodes
-                        std::vector<long>::iterator have_edge;
-                        have_edge = std::find(HangingEdgeNodesTmp.begin(), HangingEdgeNodesTmp.end(), nodeidB[0]);
-                        if(have_edge == HangingEdgeNodesTmp.end())
-                              HangingEdgeNodesTmp.push_back(nodeidB[0]);
-                        have_edge = std::find(HangingEdgeNodesTmp.begin(), HangingEdgeNodesTmp.end(), nodeidB[1]);
-                        if(have_edge == HangingEdgeNodesTmp.end())
-                              HangingEdgeNodesTmp.push_back(nodeidB[1]);
-
-                        // // *******************************************************************
-                        // // Get the neighbouring edge(s)
-                        // // *******************************************************************
-                        // // Get the neighbours
-                        // p8est_quadrant_t EdgeNeighbourOct;
-                        // p8est_quadrant_t * EdgeNeighbour = &EdgeNeighbourOct;
-                        // int edge_number[2]={edge_lookup[n][hanging_faces[n]][0],edge_lookup[n][hanging_faces[n]][1]};
-                        // sc_array_t quads[2];
-                        // sc_array_t treeids[2];
-                        // sc_array_t nedges[2];
-                        // sc_array_t * pQuads[2] = {&quads[0],&quads[1]};
-                        // sc_array_t * pTreeids[2] = {&treeids[0],&treeids[1]};
-                        // sc_array_t * pNEdges[2] = {&nedges[0],&nedges[1]};
-                        // sc_array_init(pQuads[0], (size_t) sizeof(p4est_quadrant_t));
-                        // sc_array_init(pQuads[1], (size_t) sizeof(p4est_quadrant_t));
-                        // sc_array_init(pTreeids[0], (size_t) sizeof(p4est_topidx_t));
-                        // sc_array_init(pTreeids[1], (size_t) sizeof(p4est_topidx_t));
-                        // sc_array_init(pNEdges[0], (size_t) sizeof(int));
-                        // sc_array_init(pNEdges[1], (size_t) sizeof(int));
-
-                        // // Check for boundaries            
-                        // bool onBoundary[2];
-                        // onBoundary[0] = xyzA[0][0]<=0 || xyzA[0][0]>=forestData->m_length[0] ||
-                        //                 xyzA[0][1]<=0 || xyzA[0][1]>=forestData->m_length[1] ||
-                        //                 xyzA[0][2]<=0 || xyzA[0][2]>=forestData->m_length[2];
-                        // onBoundary[1] = xyzA[1][0]<=0 || xyzA[1][0]>=forestData->m_length[0] ||
-                        //                 xyzA[1][1]<=0 || xyzA[1][1]>=forestData->m_length[1] ||
-                        //                 xyzA[1][2]<=0 || xyzA[1][2]>=forestData->m_length[2];
-
-                        // hangingEdgeInfo temp;
-                        // if(!onBoundary[0])
-                        // {
-                        //     p8est_quadrant_edge_neighbor_extra(parent,treeid,edge_number[0],pQuads[0],pTreeids[0],pNEdges[0],connectivity);
-                        //     temp.nodeid=nodeidC;
-                        //     temp.x=oct->x;
-                        //     temp.y=oct->y;
-                        //     temp.z=oct->z;
-                        //     temp.level=oct->level;
-                        //     temp.treeid=treeid;
-                        //     temp.edge_type=n;
-                        //     p8est_quadrant_t * tempB = (p8est_quadrant_t *) (*pQuads[0]).array;
-                        //     temp.neighbour_x=tempB->x;
-                        //     temp.neighbour_y=tempB->y;
-                        //     temp.neighbour_z=tempB->z;
-                        //     temp.neighbour_level=tempB->level;
-                        //     p8est_topidx_t * tempC = (p8est_topidx_t *) (*pTreeids[0]).array;
-                        //     temp.neighbour_tree=*tempC;
-                        //     hanging_edge_orientation.push_back(temp);
-                        // }
-                        // if(!onBoundary[1])
-                        // {
-                        //     p8est_quadrant_edge_neighbor_extra(parent,treeid,edge_number[1],pQuads[1],pTreeids[1],pNEdges[1],connectivity);
-                        //     temp.nodeid=nodeidC;
-                        //     temp.x=oct->x;
-                        //     temp.y=oct->y;
-                        //     temp.z=oct->z;
-                        //     temp.level=oct->level;
-                        //     temp.treeid=treeid;
-                        //     temp.edge_type=n;
-                        //     p8est_quadrant_t * tempB = (p8est_quadrant_t *) (*pQuads[1]).array;
-                        //     temp.neighbour_x=tempB->x;
-                        //     temp.neighbour_y=tempB->y;
-                        //     temp.neighbour_z=tempB->z;
-                        //     temp.neighbour_level=tempB->level;
-                        //     p8est_topidx_t * tempC = (p8est_topidx_t *) (*pTreeids[1]).array;
-                        //     temp.neighbour_tree=*tempC;
-                        //     hanging_edge_orientation.push_back(temp);
-                        // }
-
-                        // // *******************************************************************
-                        // // Store connection information for updateRowsColumns
-                        // // *******************************************************************
-
-                        // signed long x_corner0 = xface0[n][hanging_faces[n]] * l;
-                        // signed long y_corner0 = yface0[n][hanging_faces[n]] * l;
-                        // signed long z_corner0 = zface0[n][hanging_faces[n]] * l;
-                    
-                        // double xyzD[3];
-                        // p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner0, oct->y+y_corner0, oct->z+z_corner0, xyzD);
-                        // auto otherCornerPoint = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
-                        // long nodeA = NodeIDs.find(otherCornerPoint)->second;
-
-                        // p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner, oct->y+y_corner, oct->z+z_corner, xyzC);
-                        // auto facecornerPoint = std::make_tuple(xyzC[0],xyzC[1],xyzC[2]);
-                        // long facenodeidB = NodeIDs.find(facecornerPoint)->second;
-
-                        // long need_edgeA[4] = {std::count(hanging_edge_node_connections.begin(), hanging_edge_node_connections.end(), std::make_pair(nodeA,nodeidB[0])),
-                        //                      std::count(hanging_edge_node_connections.begin(), hanging_edge_node_connections.end(), std::make_pair(nodeidB[0],nodeA)),
-                        //                      std::count(hanging_edge_node_connections.begin(), hanging_edge_node_connections.end(), std::make_pair(nodeA,nodeidB[1])),
-                        //                      std::count(hanging_edge_node_connections.begin(), hanging_edge_node_connections.end(), std::make_pair(nodeidB[1],nodeA))};
-                        // long need_edgeB[4] = {std::count(hanging_face_node_connections.begin(), hanging_face_node_connections.end(), std::make_pair(facenodeidB,nodeidB[0])),
-                        //                      std::count(hanging_face_node_connections.begin(), hanging_face_node_connections.end(), std::make_pair(nodeidB[0],facenodeidB)),
-                        //                      std::count(hanging_face_node_connections.begin(), hanging_face_node_connections.end(), std::make_pair(facenodeidB,nodeidB[1])),
-                        //                      std::count(hanging_face_node_connections.begin(), hanging_face_node_connections.end(), std::make_pair(nodeidB[1],facenodeidB))};
-
-                        
-                        // // std::cout << " index[" << n << "][" << hanging_faces[n] << "]" << std::endl;
-
-                        // if(need_edgeA[0]+need_edgeA[1] == 0)
-                        // {
-                        //     // Calculate fallacious node connection that was generated by p8est
-                        //     signed long x_corner1 = xface1[n][hanging_faces[n]] * l;
-                        //     signed long y_corner1 = yface1[n][hanging_faces[n]] * l;
-                        //     signed long z_corner1 = zface1[n][hanging_faces[n]] * l;
-                        //     p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner1, oct->y+y_corner1, oct->z+z_corner1, xyzD);
-                        //     auto otherCornerPoint1 = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
-                        //     long defunct1 = NodeIDs.find(otherCornerPoint1)->second;
-
-                        //     // std::cout << " defunct connection1 = " << nodeA << ", " << nodeidB[0] << ", " << defunct1 << std::endl;
-
-                        //     hanging_edge_node_connections.push_back(std::make_pair(nodeA,nodeidB[0]));
-                        //     false_node_connections.push_back(std::make_pair(nodeA,defunct1));
-
-                        //     hanging_edge_node_connections.push_back(std::make_pair(nodeidB[0],defunct1));
-                        //     false_node_connections.push_back(std::make_pair(defunct1,nodeA));
-                        // }
-                        // if(need_edgeA[2]+need_edgeA[3] == 0)
-                        // {
-                        //     // Calculate fallacious node connection that was generated by p8est
-                        //     signed long x_corner2 = xface2[n][hanging_faces[n]] * l;
-                        //     signed long y_corner2 = yface2[n][hanging_faces[n]] * l;
-                        //     signed long z_corner2 = zface2[n][hanging_faces[n]] * l;
-                        //     p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner2, oct->y+y_corner2, oct->z+z_corner2, xyzD);
-                        //     auto otherCornerPoint2 = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
-                        //     long defunct2 = NodeIDs.find(otherCornerPoint2)->second;
-
-                        //     // std::cout << " defunct connection2 = " << nodeA << ", " << nodeidB[1] << ", " << defunct2 << std::endl;
-
-                        //     hanging_edge_node_connections.push_back(std::make_pair(nodeA,nodeidB[1]));
-                        //     false_node_connections.push_back(std::make_pair(nodeA,defunct2));
-
-                        //     hanging_edge_node_connections.push_back(std::make_pair(nodeidB[1],defunct2));
-                        //     false_node_connections.push_back(std::make_pair(defunct2,nodeA));
-                        // }
-                        // if(need_edgeB[0]+need_edgeB[1] == 0)
-                        // {
-                        //     hanging_face_node_connections.push_back(std::make_pair(nodeidB[0],facenodeidB));
-                        // }
-                        // if(need_edgeB[2]+need_edgeB[3] == 0)
-                        // {
-                        //     hanging_face_node_connections.push_back(std::make_pair(nodeidB[1],facenodeidB));
-                        // }
-
-
-                        // // *******************************************************************
-                        // // Debuging output
-                        // // *******************************************************************
-                        // #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
-                        //     std::cout << "\t\toctant = \033[1;36m" << k-1 << "\033[0m, corner node = " << nodeidC << std::endl;
-                        //     std::cout << "\t\tface node = \033[1;36m" << facenodeidB << "\033[0m" << std::endl;
-                        //     std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "]" << std::endl;
-                        //     // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_corner << ", " << y_corner << ", " << z_corner << ")" << std::endl;
-                        //     std::cout << "\t\tedge nodes: \033[1;36m" << nodeidB[0] << " & " << nodeidB[1] << "\033[0m" << std::endl;
-                        //     std::cout << "\t\t    index[" << (int) n << "][" << (int) hanging_faces[n] << "][-]" << std::endl;
-                        //     // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[0] << " ," << y_e_corner[0] << ", " << z_e_corner[0] << ")" << std::endl;
-                        //     // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[1] << " ," << y_e_corner[1] << ", " << z_e_corner[1] << ")" << std::endl;
-                        //     std::cout << "\t\tcorner nodes: \033[1;36m" << nodeA << "\033[0m" << std::endl;
-                        //     std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "][-]" << std::endl;
-                        //     std::cout << "\t\tFace nodes: \033[1;36m" << facenodeidB << "--" << nodeidB[1] << "--" << nodeA << "--" << nodeidB[0] << "\033[0m" << std::endl;
-                        //     std::cout << "\t\tedge numbers: \033[1;36m" << edge_number[0] << " & " << edge_number[1] << "\033[0m" << std::endl;
-                        //     std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "][-]" << std::endl;
-                        // #endif
-                    }
-                }
-            }
-        }
-    }
-
-
-    // // // ae tmp
-    // if(m_mpiInfo->rank == 0)
-    // {
-    //     for(int i = 0; i < NormalNodesTmp.size(); i++)
-    //         std::cout << "NormalNodesTmp (" << std::get<0>(NormalNodesTmp[i]) << ", "
-    //                                         << std::get<1>(NormalNodesTmp[i]) << ", "
-    //                                         << std::get<2>(NormalNodesTmp[i]) << ") " << std::endl;
-    // }
-    // else
-    // {
-    //     for(int i = 0; i < localNodes.size(); i++)
-    //         std::cout << "localNodes (" << std::get<0>(localNodes[i]) << ", "
-    //                                     << std::get<1>(localNodes[i]) << ", "
-    //                                     << std::get<2>(localNodes[i]) << ") " << std::endl;
-    // }
-
-
-
-
-
-
-
-
-
-
-
-
-
-    MPI_Barrier(m_mpiInfo->comm);
-    oxleytimer.toc("\tcommunicating");
-    if(m_mpiInfo->size > 1)
-    {
-        if(m_mpiInfo->rank == 0)
-        {
-            for(int i = 1; i < m_mpiInfo->size; i++)
-            {
-                int num;
-                num = octantIDs.size();
-                MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                MPI_Send(octantIDs.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
-
-                num=hanging_face_orientation.size();
-                MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                for(int j = 0; j < hanging_face_orientation.size(); j++ )
-                {
-                    hangingFaceInfo t = hanging_face_orientation[j];
-                    MPI_Send(&t.x, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.y, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.z, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.level, 1, MPI_INT8_T, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.treeid, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.face_type, 1, MPI_INT8_T, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.neighbour_x, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.neighbour_y, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.neighbour_z, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.neighbour_level, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.neighbour_tree, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                }
-
-                num=hanging_face_node_connections.size();
-                MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                MPI_Send(hanging_face_node_connections.data(), 2*num, MPI_LONG, i, 0, m_mpiInfo->comm);
-                
-                num=hanging_edge_orientation.size();
-                MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                for(int j = 0; j < hanging_edge_orientation.size(); j++ )
-                {
-                    hangingEdgeInfo t = hanging_edge_orientation[j];
-                    MPI_Send(&t.nodeid, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.x, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.y, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.z, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.level, 1, MPI_INT8_T, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.treeid, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.edge_type, 1, MPI_INT8_T, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.neighbour_x, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.neighbour_y, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.neighbour_z, 1, MPI_LONG, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.neighbour_level, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                    MPI_Send(&t.neighbour_tree, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                }
-
-                num=2*hanging_edge_node_connections.size();
-                MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                MPI_Send(hanging_edge_node_connections.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
-
-                num=2*false_node_connections.size();
-                MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                MPI_Send(false_node_connections.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
-
-                num=3*NormalNodesTmp.size();
-                MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                MPI_Send(NormalNodesTmp.data(), num, MPI_DOUBLE, i, 0, m_mpiInfo->comm);
-
-                num=2*HangingFaceNodesTmp.size();
-                MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                MPI_Send(HangingFaceNodesTmp.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
-
-                num=HangingEdgeNodesTmp.size();
-                MPI_Send(&num, 1, MPI_INT, i, 0, m_mpiInfo->comm);
-                MPI_Send(HangingEdgeNodesTmp.data(), num, MPI_LONG, i, 0, m_mpiInfo->comm);
-            }        
-        }
-        else
-        {
-            int num;
-            MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-
-            octantIDs.resize(num);
-            MPI_Recv(octantIDs.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            hanging_face_orientation.clear();
-
-            for(int j = 0; j < num; j++ )
-            {
-                hangingFaceInfo t;
-                MPI_Recv(&t.x, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.y, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.z, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.level, 1, MPI_INT8_T, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.treeid, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.face_type, 1, MPI_INT8_T, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.neighbour_x, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.neighbour_y, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.neighbour_z, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.neighbour_level, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.neighbour_tree, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                hanging_face_orientation.push_back(t);
-            }
-
-            MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            std::vector<std::pair<long,long>> temp_face_node_connections;
-            temp_face_node_connections.resize(num);
-            MPI_Recv(temp_face_node_connections.data(), 2*num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            hanging_face_node_connections=temp_face_node_connections;
-            MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            hanging_edge_orientation.clear();
-            for(int j = 0; j < num; j++ )
-            {
-                hangingEdgeInfo t;
-                MPI_Recv(&t.nodeid, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.x, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.y, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.z, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.level, 1, MPI_INT8_T, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.treeid, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.edge_type, 1, MPI_INT8_T, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.neighbour_x, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.neighbour_y, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.neighbour_z, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.neighbour_level, 1, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                MPI_Recv(&t.neighbour_tree, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-                hanging_edge_orientation.push_back(t);
-            }
-
-            MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            hanging_edge_node_connections.clear();
-            hanging_edge_node_connections.resize(0.5*num);
-            MPI_Recv(hanging_edge_node_connections.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-
-            MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            false_node_connections.clear();
-            false_node_connections.resize(0.5*num);
-            MPI_Recv(false_node_connections.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-
-            MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            NormalNodesTmp.clear();
-            NormalNodesTmp.resize(num/3);
-            MPI_Recv(NormalNodesTmp.data(), num, MPI_DOUBLE, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-
-            MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            HangingFaceNodesTmp.clear();
-            HangingFaceNodesTmp.resize(0.5*num);
-            MPI_Recv(HangingFaceNodesTmp.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-
-            MPI_Recv(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-            HangingEdgeNodesTmp.clear();
-            HangingEdgeNodesTmp.resize(num);
-            MPI_Recv(HangingEdgeNodesTmp.data(), num, MPI_LONG, 0, 0, m_mpiInfo->comm, MPI_STATUS_IGNORE);
-        }
-    }
-    oxleytimer.toc("\t\t\t....done 3");
-    MPI_Barrier(m_mpiInfo->comm);
-#else
-    k=0;
-    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
-        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-        // Loop over octants
-        for(int q = 0; q < Q; ++q) { 
-            p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
-            p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
-
-            // Save octant information
-            double xyz[3];
-            p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyz);
-
-            octantIDs.push_back(NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second);
-            oct_info tmp;
-            tmp.x=xyz[0];
-            tmp.y=xyz[1];
-            tmp.z=xyz[2];
-            tmp.level=oct->level;
-            octantInfo.push_back(tmp);
-
-            // Get the hanging edge and face information for this octant
-            int hanging_faces[6];
-            int hanging_edges[12];
-            getHangingInfo(nodes->face_code[k++], hanging_faces, hanging_edges);
-
-            #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
-                std::cout << "Octant  " << k-1 << ":" << std::endl;
-                int faceCount=6, edgeCount=12;
-                for(int i=0;i<6;i++) faceCount+=hanging_faces[i];
-                for(int i=0;i<12;i++) edgeCount+=hanging_edges[i];
-                std::cout << "\tHanging faces : ";
-                if(faceCount==0)
-                    std::cout << "[none]";
-                else
-                    for(int i=0; i<6;i++)
-                        if(hanging_faces[i]!=-1)
-                            std::cout << i << "(" << hanging_faces[i] << "), " ;
-                std::cout << std::endl;
-                std::cout << "\tHanging edges : ";
-                if(edgeCount==0)
-                    std::cout << "[none]";
-                else
-                    for(int i=0; i<12;i++)
-                        if(hanging_edges[i]!=-1)
-                            std::cout << i << "(" << hanging_edges[i] << "), " ;
-
-                std::cout << std::endl;
-            #endif
-        
-            // Record hanging node information
-            // Loop over faces
-            for(int n = 0; n < 6; n++)
-            {
-                // If the face does not have any hanging nodes then skip ahead
-                if(hanging_faces[n]==-1)
-                    continue;
-
-                // *******************************************************************
-                // Corner node
-                // *******************************************************************
-                double xyzC[3];
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyzC);
-                auto cornerPoint = std::make_tuple(xyzC[0],xyzC[1],xyzC[2]);
-                long nodeidC = NodeIDs.find(cornerPoint)->second;
-
-                // *******************************************************************
-                // Face node
-                // *******************************************************************
-                // shift to the corner of the face
-                signed long x_corner = ((int) xface[n][hanging_faces[n]]) * l;
-                signed long y_corner = ((int) yface[n][hanging_faces[n]]) * l;
-                signed long z_corner = ((int) zface[n][hanging_faces[n]]) * l;
-
-                double xyz[3];
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
-                                        oct->x+x_corner, 
-                                        oct->y+y_corner, 
-                                        oct->z+z_corner, xyz);
-
-                // Add to list of nodes
-                DoubleTuple point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-                long nodeid = NodeIDs.find(point)->second;
-                std::vector<long>::iterator have_node = std::find(HangingFaceNodesTmp.begin(), HangingFaceNodesTmp.end(),nodeid);
-                if(have_node == HangingFaceNodesTmp.end())
-                      HangingFaceNodesTmp.push_back(nodeid);
-
-                // *******************************************************************
-                // Get the parent octant
-                // *******************************************************************
-                p8est_quadrant_t parentOct;
-                p8est_quadrant_t * parent = &parentOct;
-                p8est_quadrant_parent(oct, parent);
-                
-                // *******************************************************************
-                // Get the octant neighbouring this face
-                // *******************************************************************
-                // Get the neighbouring face
-                p8est_quadrant_t neighbourOct;
-                p8est_quadrant_t * neighbour = &neighbourOct;
-                // p8est_quadrant_face_neighbor(parent, n, neighbour);
-                int faceNeighbourTree=p8est_quadrant_face_neighbor_extra(parent,treeid,n,neighbour,NULL,connectivity);
-
-                // Save this information
-                hangingFaceInfo tmp;
-                tmp.x=oct->x;
-                tmp.y=oct->y;
-                tmp.z=oct->z;
-                tmp.level=oct->level;
-                tmp.treeid=treeid;
-                tmp.face_type=n;
-                tmp.neighbour_x=neighbour->x;
-                tmp.neighbour_y=neighbour->y;
-                tmp.neighbour_z=neighbour->z;
-                tmp.neighbour_level=neighbour->level;
-                tmp.neighbour_tree=faceNeighbourTree;
-                hanging_face_orientation.push_back(tmp);
-
-                // *******************************************************************
-                // Calculate the edge nodes
-                // *******************************************************************
-                signed long x_e_corner[2] = {((int) xedge[n][hanging_faces[n]][0]) * l,((int) xedge[n][hanging_faces[n]][1]) * l};
-                signed long y_e_corner[2] = {((int) yedge[n][hanging_faces[n]][0]) * l,((int) yedge[n][hanging_faces[n]][1]) * l};
-                signed long z_e_corner[2] = {((int) zedge[n][hanging_faces[n]][0]) * l,((int) zedge[n][hanging_faces[n]][1]) * l};
-                double xyzA[2][3];
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_e_corner[0], oct->y+y_e_corner[0], oct->z+z_e_corner[0], xyzA[0]);
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_e_corner[1], oct->y+y_e_corner[1], oct->z+z_e_corner[1], xyzA[1]);
-                DoubleTuple pointB[2] = {{std::make_tuple(xyzA[0][0],xyzA[0][1],xyzA[0][2])},{std::make_tuple(xyzA[1][0],xyzA[1][1],xyzA[1][2])}};
-                long nodeidB[2]= {NodeIDs.find(pointB[0])->second,NodeIDs.find(pointB[1])->second};
-
-                // Add to list of nodes
-                std::vector<long>::iterator have_edge;
-                have_edge = std::find(HangingEdgeNodesTmp.begin(), HangingEdgeNodesTmp.end(), nodeidB[0]);
-                if(have_edge == HangingEdgeNodesTmp.end())
-                      HangingEdgeNodesTmp.push_back(nodeidB[0]);
-                have_edge = std::find(HangingEdgeNodesTmp.begin(), HangingEdgeNodesTmp.end(), nodeidB[1]);
-                if(have_edge == HangingEdgeNodesTmp.end())
-                      HangingEdgeNodesTmp.push_back(nodeidB[1]);
-
-                // *******************************************************************
-                // Get the neighbouring edge(s)
-                // *******************************************************************
-                // Get the neighbours
-                p8est_quadrant_t EdgeNeighbourOct;
-                p8est_quadrant_t * EdgeNeighbour = &EdgeNeighbourOct;
-                int edge_number[2]={edge_lookup[n][hanging_faces[n]][0],edge_lookup[n][hanging_faces[n]][1]};
-                sc_array_t quads[2];
-                sc_array_t treeids[2];
-                sc_array_t nedges[2];
-                sc_array_t * pQuads[2] = {&quads[0],&quads[1]};
-                sc_array_t * pTreeids[2] = {&treeids[0],&treeids[1]};
-                sc_array_t * pNEdges[2] = {&nedges[0],&nedges[1]};
-                sc_array_init(pQuads[0], (size_t) sizeof(p4est_quadrant_t));
-                sc_array_init(pQuads[1], (size_t) sizeof(p4est_quadrant_t));
-                sc_array_init(pTreeids[0], (size_t) sizeof(p4est_topidx_t));
-                sc_array_init(pTreeids[1], (size_t) sizeof(p4est_topidx_t));
-                sc_array_init(pNEdges[0], (size_t) sizeof(int));
-                sc_array_init(pNEdges[1], (size_t) sizeof(int));
-
-                // Check for boundaries            
-                bool onBoundary[2];
-                onBoundary[0] = xyzA[0][0]<=0 || xyzA[0][0]>=forestData->m_length[0] ||
-                                xyzA[0][1]<=0 || xyzA[0][1]>=forestData->m_length[1] ||
-                                xyzA[0][2]<=0 || xyzA[0][2]>=forestData->m_length[2];
-                onBoundary[1] = xyzA[1][0]<=0 || xyzA[1][0]>=forestData->m_length[0] ||
-                                xyzA[1][1]<=0 || xyzA[1][1]>=forestData->m_length[1] ||
-                                xyzA[1][2]<=0 || xyzA[1][2]>=forestData->m_length[2];
-
-                hangingEdgeInfo temp;
-                if(!onBoundary[0])
-                {
-                    p8est_quadrant_edge_neighbor_extra(parent,treeid,edge_number[0],pQuads[0],pTreeids[0],pNEdges[0],connectivity);
-                    temp.nodeid=nodeidC;
-                    temp.x=oct->x;
-                    temp.y=oct->y;
-                    temp.z=oct->z;
-                    temp.level=oct->level;
-                    temp.treeid=treeid;
-                    temp.edge_type=n;
-                    p8est_quadrant_t * tempB = (p8est_quadrant_t *) (*pQuads[0]).array;
-                    temp.neighbour_x=tempB->x;
-                    temp.neighbour_y=tempB->y;
-                    temp.neighbour_z=tempB->z;
-                    temp.neighbour_level=tempB->level;
-                    p8est_topidx_t * tempC = (p8est_topidx_t *) (*pTreeids[0]).array;
-                    temp.neighbour_tree=*tempC;
-                    hanging_edge_orientation.push_back(temp);
-                }
-                if(!onBoundary[1])
-                {
-                    p8est_quadrant_edge_neighbor_extra(parent,treeid,edge_number[1],pQuads[1],pTreeids[1],pNEdges[1],connectivity);
-                    temp.nodeid=nodeidC;
-                    temp.x=oct->x;
-                    temp.y=oct->y;
-                    temp.z=oct->z;
-                    temp.level=oct->level;
-                    temp.treeid=treeid;
-                    temp.edge_type=n;
-                    p8est_quadrant_t * tempB = (p8est_quadrant_t *) (*pQuads[1]).array;
-                    temp.neighbour_x=tempB->x;
-                    temp.neighbour_y=tempB->y;
-                    temp.neighbour_z=tempB->z;
-                    temp.neighbour_level=tempB->level;
-                    p8est_topidx_t * tempC = (p8est_topidx_t *) (*pTreeids[1]).array;
-                    temp.neighbour_tree=*tempC;
-                    hanging_edge_orientation.push_back(temp);
-                }
-
-                // *******************************************************************
-                // Store connection information for updateRowsColumns
-                // *******************************************************************
-
-                signed long x_corner0 = xface0[n][hanging_faces[n]] * l;
-                signed long y_corner0 = yface0[n][hanging_faces[n]] * l;
-                signed long z_corner0 = zface0[n][hanging_faces[n]] * l;
-            
-                double xyzD[3];
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner0, oct->y+y_corner0, oct->z+z_corner0, xyzD);
-                auto otherCornerPoint = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
-                long nodeA = NodeIDs.find(otherCornerPoint)->second;
-
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner, oct->y+y_corner, oct->z+z_corner, xyzC);
-                auto facecornerPoint = std::make_tuple(xyzC[0],xyzC[1],xyzC[2]);
-                long facenodeidB = NodeIDs.find(facecornerPoint)->second;
-
-                long need_edgeA[4] = {std::count(hanging_edge_node_connections.begin(), hanging_edge_node_connections.end(), std::make_pair(nodeA,nodeidB[0])),
-                                     std::count(hanging_edge_node_connections.begin(), hanging_edge_node_connections.end(), std::make_pair(nodeidB[0],nodeA)),
-                                     std::count(hanging_edge_node_connections.begin(), hanging_edge_node_connections.end(), std::make_pair(nodeA,nodeidB[1])),
-                                     std::count(hanging_edge_node_connections.begin(), hanging_edge_node_connections.end(), std::make_pair(nodeidB[1],nodeA))};
-                long need_edgeB[4] = {std::count(hanging_face_node_connections.begin(), hanging_face_node_connections.end(), std::make_pair(facenodeidB,nodeidB[0])),
-                                     std::count(hanging_face_node_connections.begin(), hanging_face_node_connections.end(), std::make_pair(nodeidB[0],facenodeidB)),
-                                     std::count(hanging_face_node_connections.begin(), hanging_face_node_connections.end(), std::make_pair(facenodeidB,nodeidB[1])),
-                                     std::count(hanging_face_node_connections.begin(), hanging_face_node_connections.end(), std::make_pair(nodeidB[1],facenodeidB))};
-
-                
-                // std::cout << " index[" << n << "][" << hanging_faces[n] << "]" << std::endl;
-
-                if(need_edgeA[0]+need_edgeA[1] == 0)
-                {
-                    // Calculate fallacious node connection that was generated by p8est
-                    signed long x_corner1 = xface1[n][hanging_faces[n]] * l;
-                    signed long y_corner1 = yface1[n][hanging_faces[n]] * l;
-                    signed long z_corner1 = zface1[n][hanging_faces[n]] * l;
-                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner1, oct->y+y_corner1, oct->z+z_corner1, xyzD);
-                    auto otherCornerPoint1 = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
-                    long defunct1 = NodeIDs.find(otherCornerPoint1)->second;
-
-                    // std::cout << " defunct connection1 = " << nodeA << ", " << nodeidB[0] << ", " << defunct1 << std::endl;
-
-                    hanging_edge_node_connections.push_back(std::make_pair(nodeA,nodeidB[0]));
-                    false_node_connections.push_back(std::make_pair(nodeA,defunct1));
-
-                    hanging_edge_node_connections.push_back(std::make_pair(nodeidB[0],defunct1));
-                    false_node_connections.push_back(std::make_pair(defunct1,nodeA));
-                }
-                if(need_edgeA[2]+need_edgeA[3] == 0)
-                {
-                    // Calculate fallacious node connection that was generated by p8est
-                    signed long x_corner2 = xface2[n][hanging_faces[n]] * l;
-                    signed long y_corner2 = yface2[n][hanging_faces[n]] * l;
-                    signed long z_corner2 = zface2[n][hanging_faces[n]] * l;
-                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner2, oct->y+y_corner2, oct->z+z_corner2, xyzD);
-                    auto otherCornerPoint2 = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
-                    long defunct2 = NodeIDs.find(otherCornerPoint2)->second;
-
-                    // std::cout << " defunct connection2 = " << nodeA << ", " << nodeidB[1] << ", " << defunct2 << std::endl;
-
-                    hanging_edge_node_connections.push_back(std::make_pair(nodeA,nodeidB[1]));
-                    false_node_connections.push_back(std::make_pair(nodeA,defunct2));
-
-                    hanging_edge_node_connections.push_back(std::make_pair(nodeidB[1],defunct2));
-                    false_node_connections.push_back(std::make_pair(defunct2,nodeA));
-                }
-                if(need_edgeB[0]+need_edgeB[1] == 0)
-                {
-                    hanging_face_node_connections.push_back(std::make_pair(nodeidB[0],facenodeidB));
-                }
-                if(need_edgeB[2]+need_edgeB[3] == 0)
-                {
-                    hanging_face_node_connections.push_back(std::make_pair(nodeidB[1],facenodeidB));
-                }
-
-
-                // *******************************************************************
-                // Debuging output
-                // *******************************************************************
-                #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
-                    std::cout << "\t\toctant = \033[1;36m" << k-1 << "\033[0m, corner node = " << nodeidC << std::endl;
-                    std::cout << "\t\tface node = \033[1;36m" << facenodeidB << "\033[0m" << std::endl;
-                    std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "]" << std::endl;
-                    // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_corner << ", " << y_corner << ", " << z_corner << ")" << std::endl;
-                    std::cout << "\t\tedge nodes: \033[1;36m" << nodeidB[0] << " & " << nodeidB[1] << "\033[0m" << std::endl;
-                    std::cout << "\t\t    index[" << (int) n << "][" << (int) hanging_faces[n] << "][-]" << std::endl;
-                    // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[0] << " ," << y_e_corner[0] << ", " << z_e_corner[0] << ")" << std::endl;
-                    // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[1] << " ," << y_e_corner[1] << ", " << z_e_corner[1] << ")" << std::endl;
-                    std::cout << "\t\tcorner nodes: \033[1;36m" << nodeA << "\033[0m" << std::endl;
-                    std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "][-]" << std::endl;
-                    std::cout << "\t\tFace nodes: \033[1;36m" << facenodeidB << "--" << nodeidB[1] << "--" << nodeA << "--" << nodeidB[0] << "\033[0m" << std::endl;
-                    std::cout << "\t\tedge numbers: \033[1;36m" << edge_number[0] << " & " << edge_number[1] << "\033[0m" << std::endl;
-                    std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "][-]" << std::endl;
-                #endif
-            }
-        }
-    }
-    oxleytimer.toc("\t\tdone");
-#endif // ESYS_MPI
-
-    // Update num_hanging
-    num_hanging=HangingFaceNodesTmp.size()+HangingEdgeNodesTmp.size();
-
-    // Populate NodeIDs
-    std::vector<bool> is_hanging_tmp;
-    int num_nodes=NormalNodesTmp.size();
-    is_hanging_tmp.resize(num_nodes,false);
-    
-
-    // // ae tmp
-    // for(int i = 0; i < NormalNodesTmp.size(); i++)
-    //     std::cout << "Final NormalNodesTmp (" << std::get<0>(NormalNodesTmp[i]) << ", "
-    //                                     << std::get<1>(NormalNodesTmp[i]) << ", "
-    //                                     << std::get<2>(NormalNodesTmp[i]) << ") " << std::endl;
-
-    
-    NodeIDs.clear();
-    for(int i=0;i<num_nodes;i++)
-        NodeIDs[NormalNodesTmp[i]]=i;
-    for(int i=0;i<HangingFaceNodesTmp.size();i++)
-        is_hanging_tmp[HangingFaceNodesTmp[i]]=true;
-    for(int i=0;i<HangingEdgeNodesTmp.size();i++)
-        is_hanging_tmp[HangingEdgeNodesTmp[i]]=true;
-
-    // Renumber hanging nodes
-    // By custom, hanging numbers are numbered last
-    std::vector<int> new_node_ids(num_nodes,-1);
-    int count1=0;
-    int count2=num_nodes-num_hanging;
-    for(int i = 0; i < num_nodes; i++)
-    {
-        if(!is_hanging_tmp[i])
-            new_node_ids[i]=count1++;
-        else
-            new_node_ids[i]=count2++;
-    }
-    #ifdef OXLEY_ENABLE_DEBUG
-    ESYS_ASSERT(count1==num_nodes-num_hanging, "Unknown error (count1)");
-    ESYS_ASSERT(count2==num_nodes, "Unknown error (count2)");
-    #endif
-
-    // TODO vectorise
-
-    for(std::pair<DoubleTuple,long> e : NodeIDs)
-    {
-        NodeIDs[e.first]=new_node_ids[e.second];
-    }
-
-    for(int i = 0; i<num_nodes; i++)
-        NormalNodes.push_back(NormalNodesTmp[new_node_ids[i]]);
-
-    HangingFaceNodes.clear();
-    HangingFaceNodes.resize(HangingFaceNodesTmp.size());
-    for(int i = 0; i<HangingFaceNodesTmp.size();i++)
-        HangingFaceNodes[i]=new_node_ids[HangingFaceNodesTmp[i]]; 
-
-    HangingEdgeNodes.clear();
-    HangingEdgeNodes.resize(HangingEdgeNodesTmp.size());
-    for(int i = 0; i<HangingEdgeNodesTmp.size();i++)
-        HangingEdgeNodes[i]=new_node_ids[HangingEdgeNodesTmp[i]];
-
-    is_hanging.clear();
-    is_hanging.resize(num_nodes,false);
-    for(int i = 0; i<getNumNodes(); i++)
-        is_hanging[i]=is_hanging_tmp[new_node_ids[i]];
-
-    // hanging_face_orientation
-
-    for(int i = 0; i < hanging_edge_orientation.size(); i++)
-        hanging_edge_orientation[i].nodeid=new_node_ids[hanging_edge_orientation[i].nodeid];
-
-    for(int i = 0; i < hanging_edge_node_connections.size(); i++)
-    {
-        hanging_edge_node_connections[i].first=new_node_ids[hanging_edge_node_connections[i].first];
-        hanging_edge_node_connections[i].second=new_node_ids[hanging_edge_node_connections[i].second];
-    }
-    
-    for(int i = 0; i < hanging_face_node_connections.size(); i++)
-    {
-        hanging_face_node_connections[i].first=new_node_ids[hanging_face_node_connections[i].first];
-        hanging_face_node_connections[i].second=new_node_ids[hanging_face_node_connections[i].second];
-    }
-    
-    for(int i = 0; i < false_node_connections.size(); i++)
-    {
-        false_node_connections[i].first=new_node_ids[false_node_connections[i].first];
-        false_node_connections[i].second=new_node_ids[false_node_connections[i].second];
-    }
-
-    // Populate m_nodeIDs
+    oxleytimer.toc("renumberNodes...");
+
+    // The global node numbering now comes from p4est_lnodes (built in the
+    // constructor / after refinement); this routine only derives m_nodeId,
+    // the global id of each local node, from the lnodes owned/ghost partition.
+    // The legacy coordinate-hash containers are retired.
+    octantInfo.clear();
+
+    const long nOwned = (long) nodes->owned_count;
+    const long nLocal = (long) nodes->num_local_nodes;
     m_nodeId.clear();
-    m_nodeId.resize(num_nodes);
-    long count=0;
-    for(std::pair<DoubleTuple,long> e : NodeIDs)
-        m_nodeId[count++]=e.second;
+    m_nodeId.resize(nLocal);
+    for(long i = 0; i < nOwned; ++i)
+        m_nodeId[i] = (long) nodes->global_offset + i;
+    for(long i = nOwned; i < nLocal; ++i)
+        m_nodeId[i] = (long) nodes->nonlocal_nodes[i - nOwned];
+    m_nodeId.shrink_to_fit();
 
+    // Trilinos map inputs: row map = owned global ids; col map = all local
+    // global ids (owned first, then ghost -- the lnodes local ordering).
+    myColumns.assign(m_nodeId.begin(), m_nodeId.end());
+    myRows.assign(m_nodeId.begin(), m_nodeId.begin() + nOwned);
 
-#ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_PRINT_OCTANT_INFO
-    std::cout << "There are " << quadrantIDs.size() << " octants" << std::endl;
-    for(int i = 0; i < quadrantInfo.size(); i++)
-    {
-        std::cout << i << ": (" << quadrantInfo[i].x << ", " << quadrantInfo[i].y << "), l =" 
-                << quadrantInfo[i].level << std::endl;
+    // MPI: build the ghost octant halo and extend myColumns with any 2nd-layer
+    // ghost nodes (nodes that appear only on ghost octants). (A6.)
+    buildParallelOverlap();
+
+    oxleytimer.toc("renumberNodes...Done");
+}
+
+//protected
+void Brick::buildParallelOverlap()
+{
+    m_ghostElemNodes.clear();
+    if (m_mpiInfo->size <= 1 || !ghost)
+        return;
+
+    const int V = nodes->vnodes;                       // 8 corners (degree-1)
+    const long nLocal = (long) nodes->num_local_nodes;
+    const long nLocalElem = (long) nodes->num_local_elements;
+
+    std::unordered_map<long,long> g2l;
+    g2l.reserve((size_t) nLocal * 2);
+    for (long i = 0; i < nLocal; ++i)
+        g2l[(long) m_nodeId[i]] = i;
+
+    const long nGhost  = (long) ghost->ghosts.elem_count;
+    const long nMirror = (long) ghost->mirrors.elem_count;
+
+    // Each local octant's V corner GLOBAL node ids (mirror send source).
+    std::vector<p4est_gloidx_t> localElemGN((size_t) nLocalElem * V);
+    for (long e = 0; e < nLocalElem; ++e)
+        for (int c = 0; c < V; ++c)
+            localElemGN[(size_t) e*V + c] =
+                (p4est_gloidx_t) m_nodeId[ nodes->element_nodes[(size_t) e*V + c] ];
+
+    std::vector<void*> mirror_data((size_t) nMirror, nullptr);
+    for (long m = 0; m < nMirror; ++m) {
+        p8est_quadrant_t* mq = p8est_quadrant_array_index(&ghost->mirrors, m);
+        const long le = (long) mq->p.piggy3.local_num;
+        mirror_data[m] = (void*) &localElemGN[(size_t) le*V];
     }
-#endif
 
-#ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_PRINT_NODEIDS
-    std::cout << "Printing NodeIDs " << std::endl;
-    double xyf[NodeIDs.size()][3]={{0}};
-    for(std::pair<DoubleTuple,long> e : NodeIDs)
-    {
-        xyf[e.second][0]=std::get<0>(e.first);
-        xyf[e.second][1]=std::get<1>(e.first);
-        xyf[e.second][2]=std::get<2>(e.first);
+    std::vector<p4est_gloidx_t> ghostElemGN((size_t) nGhost * V);
+    p8est_ghost_exchange_custom(p8est, ghost,
+                                (size_t) V * sizeof(p4est_gloidx_t),
+                                mirror_data.data(), ghostElemGN.data());
+
+    m_ghostElemNodes.resize((size_t) nGhost * V);
+    long nextLocal = nLocal;
+    for (long g = 0; g < nGhost; ++g) {
+        for (int c = 0; c < V; ++c) {
+            const long gid = (long) ghostElemGN[(size_t) g*V + c];
+            auto it = g2l.find(gid);
+            long lidx;
+            if (it != g2l.end()) {
+                lidx = it->second;
+            } else {
+                lidx = nextLocal++;
+                g2l[gid] = lidx;
+                myColumns.push_back((index_t) gid);
+            }
+            m_ghostElemNodes[(size_t) g*V + c] = (index_t) lidx;
+        }
     }
-    for(int i=0; i<NodeIDs.size(); i++)
-        std::cout << i << ": " << xyf[i][0] << ", " << xyf[i][1] << ", " << xyf[i][2] << std::endl;
-    std::cout << "-------------------------------" << std::endl;
-#endif
-
-#ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_PRINT_NODEIDS_HANGING
-    std::cout << "Hanging nodes on edges : ";
-    if(HangingEdgeNodes.size()==0)
-        std::cout << "[none]";
-    else
-        for(int i = 0; i < HangingEdgeNodes.size(); i++)
-            std::cout << HangingEdgeNodes[i] << ", ";
-    std::cout << std::endl;
-    std::cout << "Hanging nodes on faces : ";
-    if(HangingFaceNodes.size()==0)
-        std::cout << "[none]";
-    else
-        for(int i = 0; i < HangingFaceNodes.size(); i++)
-            std::cout << HangingFaceNodes[i] << ", ";
-    std::cout << std::endl;
-#endif
-
-#ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_PRINT_HANGING_NODE_CONNECTIONS
-    std::cout << "Hanging nodes connections : ";
-    if(hanging_node_connections.size()==0)
-        std::cout << "[none]";
-    else
-        for(int i = 0; i < hanging_node_connections.size(); i++)
-            std::cout << hanging_node_connections[i].first << "---" << hanging_node_connections[i].second << ", ";
-    std::cout << std::endl;
-#endif
-
-#ifdef ESYS_MPI
-    MPI_Barrier(m_mpiInfo->comm);
-#endif
-
-    oxleytimer.toc("Nodes renumbered"); 
 }
 
 
@@ -6426,12 +3981,14 @@ void Brick::assembleCoordinates(escript::Data& arg) const
 
     std::vector<bool> duplicates(getNumNodes(),false);
 
-    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
+    const int V = nodes->vnodes;   // 8 corners (degree-1 lnodes)
+    long e = 0;                    // running local leaf index (lnodes order)
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid)
     {
         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
         p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-        for(int q = 0; q < Q; ++q) 
+        for(int q = 0; q < Q; ++q, ++e)
         {
             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
             p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
@@ -6443,7 +4000,8 @@ void Brick::assembleCoordinates(escript::Data& arg) const
 #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_COORDINATES
                 std::cout << "(" << xy[0] << ", " << xy[1] << ", " << xy[2] << ")" << std::endl;
 #endif
-                long lni = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+                // lnodes local node id for this corner (no coordinate hashing)
+                long lni = (long) nodes->element_nodes[(size_t) e * V + n];
                 if(duplicates[lni] == true)
                     continue;
                 else
@@ -6487,12 +4045,15 @@ void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F
          const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F, 
          bool addS, bool addF, borderNodeInfo quad, int nEq, int nComp) const
 {    
-    long rowIndex[8] = {0};
-    getNeighouringNodeIDs(quad.level, quad.x, quad.y, quad.z, quad.treeid, rowIndex);
+    // A boundary face element has 4 nodes (stored in neighbours[0..3]); EM_S is
+    // 4x4 and EM_F length 4 (per equation component).
+    IndexVector rowIndex(4);
+    for(int i = 0; i < 4; i++)
+        rowIndex[i] = (index_t) quad.neighbours[i];
     if(addF)
     {
         Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
-        for(index_t i=0; i < 8; i++) {
+        for(int i=0; i < 4; i++) {
             if (rowIndex[i]<getNumDOF()) {
                 for(int eq=0; eq<nEq; eq++) {
                     F_p[INDEX2(eq, rowIndex[i], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
@@ -6501,13 +4062,7 @@ void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F
         }
     }
     if(addS)
-    {
-        IndexVector rowInd(6);
-    #pragma omp for
-        for(int i = 0; i < 6; i++)
-            rowInd[i]=rowIndex[i];
-        addToSystemMatrix<Scalar>(S, rowInd, nEq, EM_S);
-    }
+        addToSystemMatrix<Scalar>(S, rowIndex, nEq, EM_S);
 }
 
 
@@ -6528,8 +4083,194 @@ void Brick::addToMatrixAndRHS<real_t>(escript::AbstractSystemMatrix* S, escript:
 
 template
 void Brick::addToMatrixAndRHS<cplx_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
-         const std::vector<cplx_t>& EM_S, const std::vector<cplx_t>& EM_F, 
+         const std::vector<cplx_t>& EM_S, const std::vector<cplx_t>& EM_F,
          bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const;
+
+//protected
+template<typename Scalar>
+void Brick::addToMatrixAndRHSGhost(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
+         bool addS, bool addF, const index_t* rowIndex, int nEq, int nComp) const
+{
+    // rowIndex are extended-local corner node ids of a ghost (halo) octant.
+    // Only OWNED rows (< getNumDOF()) are kept; columns may be 2nd-layer ghosts.
+    if(addF)
+    {
+        Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
+        for(int i=0; i<8; i++) {
+            if (rowIndex[i]<getNumDOF()) {
+                for(int eq=0; eq<nEq; eq++) {
+                    F_p[INDEX2(eq, rowIndex[i], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
+                }
+            }
+        }
+    }
+    if(addS)
+    {
+        IndexVector rowInd(rowIndex, rowIndex+8);
+        addToSystemMatrix<Scalar>(S, rowInd, nEq, EM_S);
+    }
+}
+
+template
+void Brick::addToMatrixAndRHSGhost<real_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<real_t>& EM_S, const std::vector<real_t>& EM_F,
+         bool addS, bool addF, const index_t* rowIndex, int nEq, int nComp) const;
+template
+void Brick::addToMatrixAndRHSGhost<cplx_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<cplx_t>& EM_S, const std::vector<cplx_t>& EM_F,
+         bool addS, bool addF, const index_t* rowIndex, int nEq, int nComp) const;
+
+//protected
+template<typename Scalar>
+std::vector<Scalar> Brick::exchangeGhostCoeff(const escript::Data& coef) const
+{
+    std::vector<Scalar> out;
+    if (!ghost || coef.isEmpty())
+        return out;
+    const long nGhost  = (long) ghost->ghosts.elem_count;
+    const long nMirror = (long) ghost->mirrors.elem_count;
+    // In-memory bytes per getSampleDataRO() sample: an expanded Data stores one
+    // value per quadrature point, a constant/tagged Data only a single point.
+    const size_t sampleSize = (coef.actsExpanded()
+                                ? (size_t) coef.getNumDataPointsPerSample() : 1)
+                            * (size_t) coef.getDataPointSize();
+    if (nGhost == 0 || sampleSize == 0)
+        return out;
+    const Scalar zero = static_cast<Scalar>(0);
+    std::vector<const void*> mirror_data((size_t) nMirror, nullptr);
+    for (long m = 0; m < nMirror; ++m) {
+        p8est_quadrant_t* mq = p8est_quadrant_array_index(&ghost->mirrors, m);
+        const long le = (long) mq->p.piggy3.local_num;
+        mirror_data[m] = (const void*) coef.getSampleDataRO(le, zero);
+    }
+    out.resize((size_t) nGhost * sampleSize);
+    p8est_ghost_exchange_custom(p8est, ghost, sampleSize * sizeof(Scalar),
+                                const_cast<void**>(mirror_data.data()), out.data());
+    return out;
+}
+
+template std::vector<real_t> Brick::exchangeGhostCoeff<real_t>(const escript::Data&) const;
+template std::vector<cplx_t> Brick::exchangeGhostCoeff<cplx_t>(const escript::Data&) const;
+
+//protected
+template<typename Scalar>
+void Brick::addToMatrixAndRHSGhostFace(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
+         bool addS, bool addF, const index_t* rowIndex, int nEq, int nComp) const
+{
+    // rowIndex are the 4 extended-local face-node ids of a ghost boundary face.
+    // Only OWNED rows (< getNumDOF()) are kept.
+    if(addF)
+    {
+        Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
+        for(int i=0; i<4; i++) {
+            if (rowIndex[i]<getNumDOF()) {
+                for(int eq=0; eq<nEq; eq++)
+                    F_p[INDEX2(eq, rowIndex[i], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
+            }
+        }
+    }
+    if(addS)
+    {
+        IndexVector rowInd(rowIndex, rowIndex+4);
+        addToSystemMatrix<Scalar>(S, rowInd, nEq, EM_S);
+    }
+}
+
+template
+void Brick::addToMatrixAndRHSGhostFace<real_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<real_t>& EM_S, const std::vector<real_t>& EM_F,
+         bool addS, bool addF, const index_t* rowIndex, int nEq, int nComp) const;
+template
+void Brick::addToMatrixAndRHSGhostFace<cplx_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<cplx_t>& EM_S, const std::vector<cplx_t>& EM_F,
+         bool addS, bool addF, const index_t* rowIndex, int nEq, int nComp) const;
+
+//protected
+template<typename Scalar>
+std::vector<Scalar> Brick::exchangeGhostBoundary(const escript::Data& d,
+                        const escript::Data& y, size_t& dSize, size_t& ySize) const
+{
+    std::vector<Scalar> out;
+    dSize = d.isEmpty()?0:(size_t)(d.actsExpanded()?d.getNumDataPointsPerSample():1)*d.getDataPointSize();
+    ySize = y.isEmpty()?0:(size_t)(y.actsExpanded()?y.getNumDataPointsPerSample():1)*y.getDataPointSize();
+    if (!ghost || (dSize==0 && ySize==0))
+        return out;
+    const long nGhost  = (long) ghost->ghosts.elem_count;
+    const long nMirror = (long) ghost->mirrors.elem_count;
+    if (nGhost == 0)
+        return out;
+
+    const Scalar zero = static_cast<Scalar>(0);
+    const size_t perSide = 1 + dSize + ySize;
+    const size_t perOct  = 6 * perSide;
+
+    // octant coords -> local leaf index (mirror piggy3.local_num is reliable)
+    struct Key { p4est_topidx_t t; p4est_qcoord_t x, y, z;
+                 bool operator==(const Key& o) const { return t==o.t && x==o.x && y==o.y && z==o.z; } };
+    struct KeyHash { size_t operator()(const Key& k) const {
+        return ((size_t)k.t*73856093u) ^ ((size_t)k.x*19349663u)
+             ^ ((size_t)k.y*83492791u) ^ ((size_t)k.z*49979687u); } };
+    std::unordered_map<Key, long, KeyHash> octKey2leaf;
+    long leaf = 0;
+    for (p8est_topidx_t tt = p8est->first_local_tree; tt <= p8est->last_local_tree; ++tt) {
+        p8est_tree_t* tree = p8est_tree_array_index(p8est->trees, tt);
+        sc_array_t* quads = &tree->quadrants;
+        const long Q = (long) quads->elem_count;
+        for (long q = 0; q < Q; ++q, ++leaf) {
+            p8est_quadrant_t* qd = p8est_quadrant_array_index(quads, q);
+            octKey2leaf[Key{ tt, qd->x, qd->y, qd->z }] = leaf;
+        }
+    }
+
+    std::unordered_map<long, std::array<long,6>> fmap;   // leaf -> per-side sample
+    const std::vector<borderNodeInfo>* lists[6] =
+        { &NodeIDsLeft, &NodeIDsRight, &NodeIDsBottom, &NodeIDsTop, &NodeIDsAbove, &NodeIDsBelow };
+    for (int s = 0; s < 6; ++s) {
+        if (m_faceOffset[s] < 0) continue;
+        const std::vector<borderNodeInfo>& Lst = *lists[s];
+        for (long k = 0; k < (long) Lst.size(); ++k) {
+            auto lit = octKey2leaf.find(Key{ Lst[k].treeid, Lst[k].x, Lst[k].y, Lst[k].z });
+            if (lit == octKey2leaf.end()) continue;
+            const long lf = lit->second;
+            auto it = fmap.find(lf);
+            if (it == fmap.end())
+                it = fmap.emplace(lf, std::array<long,6>{{-1,-1,-1,-1,-1,-1}}).first;
+            it->second[s] = (long) m_faceOffset[s] + k;
+        }
+    }
+
+    std::vector<Scalar> mirrorPacked((size_t) nMirror * perOct, zero);
+    std::vector<void*> mirror_data((size_t) nMirror, nullptr);
+    for (long m = 0; m < nMirror; ++m) {
+        p8est_quadrant_t* mq = p8est_quadrant_array_index(&ghost->mirrors, m);
+        Scalar* base = &mirrorPacked[(size_t) m * perOct];
+        mirror_data[m] = (void*) base;
+        auto it = fmap.find((long) mq->p.piggy3.local_num);
+        if (it == fmap.end()) continue;
+        for (int s = 0; s < 6; ++s) {
+            const long sample = it->second[s];
+            if (sample < 0) continue;
+            Scalar* sb = base + (size_t) s * perSide;
+            sb[0] = static_cast<Scalar>(1);
+            if (dSize) { const Scalar* dp = d.getSampleDataRO(sample, zero);
+                         std::copy(dp, dp+dSize, sb+1); }
+            if (ySize) { const Scalar* yp = y.getSampleDataRO(sample, zero);
+                         std::copy(yp, yp+ySize, sb+1+dSize); }
+        }
+    }
+
+    out.resize((size_t) nGhost * perOct, zero);
+    p8est_ghost_exchange_custom(p8est, ghost, perOct * sizeof(Scalar),
+                                mirror_data.data(), out.data());
+    return out;
+}
+
+template std::vector<real_t> Brick::exchangeGhostBoundary<real_t>(
+        const escript::Data&, const escript::Data&, size_t&, size_t&) const;
+template std::vector<cplx_t> Brick::exchangeGhostBoundary<cplx_t>(
+        const escript::Data&, const escript::Data&, size_t&, size_t&) const;
 
 //protected
 void Brick::interpolateNodesOnElements(escript::Data& out,
@@ -6589,21 +4330,19 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
         std::vector<S> f_110(numComp);
         std::vector<S> f_111(numComp);
 
-        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
+        const int V = nodes->vnodes;
+        long e = 0;
+        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid)
         {
             p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
             sc_array_t * tquadrants = &tree->quadrants;
             p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-            // #pragma omp parallel for
-            for(int q = 0; q < Q; q++)
+            for(int q = 0; q < Q; q++, ++e)
             {
-                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-               
-                long ids[8]={0};
-                getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
-                int quadID=getQuadID(ids[0]);
-                //TODO check order of indices ids[x]
-                memcpy(&f_000[0], in.getSampleDataRO(ids[0], sentinel), numComp*sizeof(S)); 
+                long ids[8];
+                for(int n = 0; n < V; ++n) ids[n] = (long) nodes->element_nodes[(size_t) e * V + n];
+                const long quadID = e;
+                memcpy(&f_000[0], in.getSampleDataRO(ids[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_001[0], in.getSampleDataRO(ids[1], sentinel), numComp*sizeof(S));
                 memcpy(&f_010[0], in.getSampleDataRO(ids[2], sentinel), numComp*sizeof(S));
                 memcpy(&f_011[0], in.getSampleDataRO(ids[3], sentinel), numComp*sizeof(S));
@@ -6635,18 +4374,17 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
         std::vector<S> f_110(numComp);
         std::vector<S> f_111(numComp);
 
+        const int V = nodes->vnodes;
+        long e = 0;
         for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
             p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
             sc_array_t * tquadrants = &tree->quadrants;
             p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-            // #pragma omp parallel for
-            for(int q = 0; q < Q; q++)
-            {        
-                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-
-                long ids[8]={0};
-                getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
-                long quadId = getQuadID(ids[0]);
+            for(int q = 0; q < Q; q++, ++e)
+            {
+                long ids[8];
+                for(int n = 0; n < V; ++n) ids[n] = (long) nodes->element_nodes[(size_t) e * V + n];
+                const long quadId = e;
 
                 #ifdef OXLEY_ENABLE_DEBUG_INTERPOLATE_QUADIDS
                     std::cout << "interpolateNodesOnElementsWorker quadID: " << quadId << ", node IDs " << 
@@ -6683,32 +4421,7 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
 }
 
 //protected
-void Brick::getNeighouringNodeIDs(int8_t level, p8est_qcoord_t x, p8est_qcoord_t y, p8est_qcoord_t z, p8est_topidx_t treeid, long (&ids) [8]) const
-{
-    p8est_qcoord_t l = P8EST_QUADRANT_LEN(level);
-    int adj[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
-                     {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
 
-    for(int i=0; i<8;i++)
-    {
-        double xy[3];
-        p8est_qcoord_to_vertex(p8est->connectivity, treeid, x+adj[i][0], y+adj[i][1], z+adj[i][2], xy);
-
-        //ae tmp
-        // std::cout << "(" << xy[0] << ", " << xy[1] << ", " << xy[2] << ")" << std::endl;
-
-
-        ids[i]=(long) NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
-    }
-}
-
-long Brick::getQuadID(long nodeid) const
-{
-    for(int i = 0; i < octantIDs.size(); i++)
-        if(octantIDs[i]==nodeid)
-            return i;
-    throw OxleyException("getQuadID: Octant id "+ std::to_string(nodeid) +" was not found.");
-}
 
 //private
 template <typename S>
@@ -6730,7 +4443,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
 
         if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                 borderNodeInfo tmp = NodeIDsLeft[k];
                 memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -6745,7 +4458,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
 
         if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsRight.size(); k++) {
                 borderNodeInfo tmp = NodeIDsRight[k];
                 memcpy(&f_100[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_101[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -6759,7 +4472,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         }
         if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                 borderNodeInfo tmp = NodeIDsBottom[k];
                 memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -6773,7 +4486,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         }
         if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsTop.size(); k++) {
                 borderNodeInfo tmp = NodeIDsTop[k];
                 memcpy(&f_010[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_011[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -6787,7 +4500,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         }
         if (m_faceOffset[4] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsAbove.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsAbove.size(); k++) {
                 borderNodeInfo tmp = NodeIDsAbove[k];
                 memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_010[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -6801,7 +4514,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         }
         if (m_faceOffset[5] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsBelow.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsBelow.size(); k++) {
                 borderNodeInfo tmp = NodeIDsBelow[k];
                 memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_011[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -6831,7 +4544,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         //TODO fix tmp.neighbours indices below
         if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                 borderNodeInfo tmp = NodeIDsLeft[k];
                 memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -6848,7 +4561,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         }
         if (m_faceOffset[1] > -1) {
     #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsRight.size(); k++) {
                 borderNodeInfo tmp = NodeIDsRight[k];
                 memcpy(&f_100[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_101[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -6865,7 +4578,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         }
         if (m_faceOffset[2] > -1) {
     #pragma omp for nowait
-             for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+             for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                 borderNodeInfo tmp = NodeIDsBottom[k];
                 memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -6882,7 +4595,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         }
         if (m_faceOffset[3] > -1) {
     #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsTop.size(); k++) {
             borderNodeInfo tmp = NodeIDsTop[k];
                 memcpy(&f_010[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_011[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -6899,7 +4612,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         }
         if (m_faceOffset[4] > -1) {
     #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsAbove.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsAbove.size(); k++) {
             borderNodeInfo tmp = NodeIDsAbove[k];
                 memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_010[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -6916,7 +4629,7 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         }
         if (m_faceOffset[5] > -1) {
     #pragma omp for nowait
-            for (index_t k=0; k<NodeIDsBelow.size()-1; k++) {
+            for (index_t k=0; k<NodeIDsBelow.size(); k++) {
             borderNodeInfo tmp = NodeIDsBelow[k];
                 memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_011[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
@@ -6937,7 +4650,9 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
 //protected
 inline dim_t Brick::getNumNodes() const
 {
-    return NodeIDs.size();
+    // lnodes-based node count (owned + ghost). Replaces the coordinate-hash
+    // NodeIDs.size(); for a conforming mesh the two counts agree.
+    return nodes ? (dim_t) nodes->num_local_nodes : 0;
 }
 
 inline dim_t Brick::getNumHangingNodes() const
@@ -6951,6 +4666,61 @@ inline dim_t Brick::getNumElements() const
     return nodes->num_local_elements;
 }
 
+MeshAccess Brick::getMeshAccess() const
+{
+    MeshAccess m;
+    m.numDim = 3;
+    m.nodesPerElement = nodes->vnodes;                 // 8 for degree 1
+    m.numNodes = nodes->num_local_nodes;
+    m.numOwnedNodes = nodes->owned_count;
+    m.numElements = nodes->num_local_elements;
+    m.globalNodeOffset = (long) nodes->global_offset;
+
+    m.nodeCoords.assign((size_t) m.numNodes * m.numDim, 0.0);
+    m.nodeGlobalId.resize(m.numNodes);
+    m.elementNodes.resize((size_t) m.numElements * m.nodesPerElement);
+    m.elementTags.resize(m.numElements);
+
+    // global node ids: owned nodes are contiguous from global_offset, ghost
+    // nodes carry their explicit global id in nonlocal_nodes.
+    for (long i = 0; i < m.numOwnedNodes; ++i)
+        m.nodeGlobalId[i] = m.globalNodeOffset + i;
+    for (long i = m.numOwnedNodes; i < m.numNodes; ++i)
+        m.nodeGlobalId[i] = (long) nodes->nonlocal_nodes[i - m.numOwnedNodes];
+
+    // walk the leaves in lnodes element order, filling connectivity, tags and
+    // (deduplicated by node index) coordinates.
+    const int V = m.nodesPerElement;
+    long e = 0;
+    for (p4est_topidx_t treeid = p8est->first_local_tree;
+         treeid <= p8est->last_local_tree; ++treeid) {
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * octs = &tree->quadrants;
+        const p4est_locidx_t Q = (p4est_locidx_t) octs->elem_count;
+        for (p4est_locidx_t q = 0; q < Q; ++q, ++e) {
+            p8est_quadrant_t * oct = p8est_quadrant_array_index(octs, q);
+            const octantData * od = (const octantData *) oct->p.user_data;
+            m.elementTags[e] = od ? od->octantTag : 0;
+            const p4est_qcoord_t len = P8EST_QUADRANT_LEN(oct->level);
+            for (int c = 0; c < V; ++c) {
+                const long ni = (long) nodes->element_nodes[(size_t) e * V + c];
+                m.elementNodes[(size_t) e * V + c] = ni;
+                const int cx = c & 1;          // z-order corner: bit0=x,bit1=y,bit2=z
+                const int cy = (c >> 1) & 1;
+                const int cz = (c >> 2) & 1;
+                double xyz[3] = {0., 0., 0.};
+                p8est_qcoord_to_vertex(p8est->connectivity, treeid,
+                                       oct->x + cx * len, oct->y + cy * len,
+                                       oct->z + cz * len, xyz);
+                m.nodeCoords[(size_t) ni * m.numDim + 0] = xyz[0];
+                m.nodeCoords[(size_t) ni * m.numDim + 1] = xyz[1];
+                m.nodeCoords[(size_t) ni * m.numDim + 2] = xyz[2];
+            }
+        }
+    }
+    return m;
+}
+
 //protected
 dim_t Brick::getNumFaceElements() const
 {
@@ -6962,7 +4732,9 @@ dim_t Brick::getNumFaceElements() const
 //protected
 inline dim_t Brick::getNumDOF() const
 {
-    return getNumNodes();
+    // owned nodes only (each owned node is one real DOF). Ghost/shared nodes
+    // are columns, not rows. (MPI: A6.)
+    return nodes ? (dim_t) nodes->owned_count : 0;
 }
 
 void Brick::updateTreeIDs()
@@ -6982,547 +4754,14 @@ void Brick::updateTreeIDs()
 
 void Brick::updateRowsColumns()
 {
-    oxleytimer.toc("Updating rows and columns..");
-
-    indices->clear();
-    int initial[] = {0, -1, -1, -1, -1, -1, -1};
-    indices->resize(getNumNodes(), IndexVector(initial, initial+7));
-
-    #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-        std::cout << "\033[1;34m[oxley]\033[0m updateRowsColumns..." << std::endl;
-        std::cout << "\033[1;34m[oxley]\033[0m Allocated memory for " << getNumNodes() << " nodes. " << std::endl;
-    #endif
-
-    // *******************************************************************
-    // Internal edges
-    // *******************************************************************
-    // This function loops over all interior edges
-    // Note that it does not loop over the nodes on the boundaries
-    // x = Lx, y = Ly or z = Lz
-    // *******************************************************************
-
-    #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-        std::cout << "\033[1;34m[oxley]\033[0m....looping over internal edges" << std::endl;
-    #endif
-
-    // Initialise info needed by p4est
-    update_RC_data_brick * data;
-    data = new update_RC_data_brick;
-    data->indices = indices;
-    data->pNodeIDs = &NodeIDs;
-    data->m_origin[0]=forestData->m_origin[0];
-    data->m_origin[1]=forestData->m_origin[1];
-    data->m_origin[2]=forestData->m_origin[2];
-    data->pOctInfo = &octantInfo;
-
-    p8est_t * tempP8est;
-    tempP8est = p8est_copy(p8est,1);
-    data->p8est = tempP8est;
-    // p8est_connectivity_t tempConnect(connectivity);
-    // data->connectivity = &tempConnect;
-
-    // update_RC_data_brick * ghost_data;
-    // ghost_data = (update_RC_data_brick *) malloc(ghost->ghosts.elem_count);
-    // p8est_ghost_exchange_data(p8est, ghost, ghost_data);
-    oxleytimer.toc("\tresetting the ghost...");
-    reset_ghost();
-    // p8est_ghost_exchange_data(p8est, ghost, NULL);
-
-#ifdef ESYS_MPI
-    if(m_mpiInfo->size > 1)
-    {
-        if(m_mpiInfo->rank == 0)
-        {
-            for(int r = 1; r < m_mpiInfo->size; r++)
-            {
-                // int num=indices.size();
-                // MPI_Send(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
-                // for(int i = 0; i < num; i++)
-                // {
-
-
-
-                // }
-            }
-        }
-        else
-        {
-            // int num;
-            // MPI_Recv(&num,1,MPI_INT,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
-            // for(int i = 0; i < num; i++)
-            // {
-
-
-
-
-            // }
-        }
-    }
-#endif
-
-    oxleytimer.toc("\tBackend loop...");
-    p8est_iterate_ext(p8est, ghost, data, NULL, NULL, update_RC, NULL, true);
-    oxleytimer.toc("\t\tdone");
-    delete data;
-
-#ifdef ESYS_MPI
-    oxleytimer.toc("communicating A");
-    oxleytimer.toc("\trelaying info to 0");
-    MPI_Barrier(m_mpiInfo->comm);
-    if(m_mpiInfo->size > 1)
-    {
-        if(m_mpiInfo->rank == 0)
-        {
-            for(int r = 1; r < m_mpiInfo->size; r++)
-            {
-                int num;
-                MPI_Recv(&num,1,MPI_INT,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
-                for(int i = 0; i < num; i++)
-                {
-                    std::vector<int> idx_tmp(7,-1);
-                    MPI_Recv(idx_tmp.data(),7,MPI_INT,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
-                    std::vector<int> * idx = &indices[0][i];
-                    ESYS_ASSERT(!(idx==nullptr), "idx nullptr");
-                    for(int j = 1; j < 7; j++)
-                    {
-                        if(idx_tmp[j] == -1)
-                            break;
-
-                        bool duplicate = false;
-                        for(int k = 0; k < 7; k++)
-                        {
-                            if(idx[0][k] == idx_tmp[j])
-                                duplicate = true;
-                        }
-                        
-                        if(!duplicate)
-                        {
-                            idx[0][0]++;
-                            ESYS_ASSERT(idx[0][0]<7, "updateRowsColumns index out of bound ");
-                            idx[0][idx[0][0]]=idx_tmp[j];
-                        }
-                    }
-                }
-            }
-        }
-        else
-        {
-            int num = indices->size();
-            MPI_Send(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
-            for(int i = 0; i < indices->size(); i++)
-            {
-                MPI_Send(&indices[0][i][0], 7, MPI_INT, 0, 0, m_mpiInfo->comm);
-            }
-        }
-    }
-
-    oxleytimer.toc("\tcollecting info from 0");
-    MPI_Barrier(m_mpiInfo->comm);
-    if(m_mpiInfo->size > 1)
-    {
-        if(m_mpiInfo->rank == 0)
-        {
-            for(int r = 1; r < m_mpiInfo->size; r++)
-            {
-                int num = indices->size();
-                MPI_Send(&num, 1, MPI_INT, r, 0, m_mpiInfo->comm);
-                for(int i = 0; i < indices->size(); i++)
-                {
-                    MPI_Send(&indices[0][i][0], 7, MPI_INT, r, 0, m_mpiInfo->comm);                    
-                }
-            }
-        }
-        else
-        {
-            int num;
-            MPI_Recv(&num,1,MPI_INT,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
-            for(int i = 0; i < num; i++)
-            {
-                std::vector<int> idx_tmp(7,-1);
-                MPI_Recv(idx_tmp.data(),7,MPI_INT,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
-                if(idx_tmp[0]!=0)
-                {
-                    std::vector<int> * idx = &indices[0][i];
-                    for(int j = 0; j < 7; j++)
-                    {
-                        idx[0][j] = idx_tmp[j];
-                    }
-                }
-            }
-        }
-    }
-
-    oxleytimer.toc("\t\tdone");
-#endif // ESYS_MPI
-
-    // *******************************************************************
-    // Boundary edges
-    // *******************************************************************
-
-    oxleytimer.toc("....looping over boundary edges");
-
-    // Find the indices of the nodes on the boundaries x = Lx and y = Ly
-    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
-        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-        for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
-            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-            p8est_qcoord_t length = P8EST_QUADRANT_LEN(quad->level);
-            double xyz0[3];
-            p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x, quad->y, quad->z, xyz0);
-            long lni0 = NodeIDs.find(std::make_tuple(xyz0[0],xyz0[1],xyz0[2]))->second;
-
-            #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-                std::cout << lni0 << " at (x,y,z)=(" << xyz0[0] << "," << xyz0[1] << "," << xyz0[2] << ")" << std::endl;
-            #endif
-
-            // If the node is on the boundary x=Lx
-            if(xyz0[0] == forestData->m_lxyz[0])
-            {
-                // Get the node IDs
-                double xyz[3];
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+length, quad->y, quad->z, xyz);
-                long lni1 = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
-                #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-                std::cout << "(" << xyz0[0] << ", " << xyz0[1] << ", " << xyz0[2] << ") " << lni0 << " --- (" << 
-                                    xyz[0] << ", " << xyz[1] << ", " << xyz[2] << ") " << lni1 << " [x boundary]" << std::endl;
-                #endif                
-
-                IndexVector * idx0 = &indices[0][lni0];
-                IndexVector * idx1 = &indices[0][lni1];
-
-                // Check for duplicates
-                bool dup = false;
-                for(int i = 1; i < idx0[0][0] + 1; i++)
-                    if(idx0[0][i] == lni1)
-                        dup = true;
-
-                // Add the new indices
-                if(dup == false)
-                {
-                    idx0[0][0]++;
-                    idx1[0][0]++;
-                    ESYS_ASSERT(idx0[0][0]<7, "updateRowsColumns index out of bound ");
-                    ESYS_ASSERT(idx1[0][0]<7, "updateRowsColumns index out of bound ");
-                    idx0[0][idx0[0][0]]=lni1;
-                    idx1[0][idx1[0][0]]=lni0;
-                }
-            }
-
-            //If the node is on the boundary  y=Ly
-            if(xyz0[1] == forestData->m_lxyz[1])
-            {
-                // Get the node IDs
-                double xyz[3];
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x, quad->y+length, quad->z, xyz);
-                long lni1 = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
-                #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-                std::cout << "(" << xyz0[0] << ", " << xyz0[1] << ", " << xyz0[2] << ") " << lni0 << " --- (" << 
-                                    xyz[0] << ", " << xyz[1] << ", " << xyz[2] << ") " << lni1 << " [y boundary]" << std::endl;
-                #endif
-
-                std::vector<int> * idx0 = &indices[0][lni0];
-                std::vector<int> * idx1 = &indices[0][lni1];
-
-                // Check for duplicates
-                bool dup = false;
-                for(int i = 1; i < idx0[0][0] + 1; i++)
-                    if(idx0[0][i] == lni1)
-                        dup = true;
-
-                // Add the new indices
-                if(dup == false)
-                {
-                    idx0[0][0]++;
-                    idx1[0][0]++;
-                    ESYS_ASSERT(idx0[0][0]<7, "updateRowsColumns index out of bound ");
-                    ESYS_ASSERT(idx1[0][0]<7, "updateRowsColumns index out of bound ");
-                    idx0[0][idx0[0][0]]=lni1;
-                    idx1[0][idx1[0][0]]=lni0;
-                }
-            }
-
-            //If the node is on the boundary z=Lz
-            if(xyz0[2] == forestData->m_lxyz[2])
-            {
-                // Get the node IDs
-                double xyz[3];
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x, quad->y, quad->z+length, xyz);
-                long lni1 = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
-                #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-                std::cout << "(" << xyz0[0] << ", " << xyz0[1] << ", " << xyz0[2] << ") " << lni0 << " --- (" << 
-                                    xyz[0] << ", " << xyz[1] << ", " << xyz[2] << ") " << lni1 << " [z boundary]" << std::endl;
-                #endif
-
-                std::vector<int> * idx0 = &indices[0][lni0];
-                std::vector<int> * idx1 = &indices[0][lni1];
-
-                // Check for duplicates
-                bool dup = false;
-                for(int i = 1; i < idx0[0][0] + 1; i++)
-                    if(idx0[0][i] == lni1)
-                        dup = true;
-
-                // Add the new indices
-                if(dup == false)
-                {
-                    idx0[0][0]++;
-                    idx1[0][0]++;
-                    ESYS_ASSERT(idx0[0][0]<7, "updateRowsColumns index out of bound ");
-                    ESYS_ASSERT(idx1[0][0]<7, "updateRowsColumns index out of bound ");
-                    idx0[0][idx0[0][0]]=lni1;
-                    idx1[0][idx1[0][0]]=lni0;
-                }
-            }
-        }
-    }
-
-    // *******************************************************************
-    // Hanging nodes on edges
-    // *******************************************************************
-    oxleytimer.toc("....looping over hanging nodes on edges");
-
-    // Nodes on hanging edges
-    // hanging_edges.clear();
-    for(int i = 0; i < hanging_edge_node_connections.size(); i++)
-    {
-        // The two nodes
-        long node[2]={hanging_edge_node_connections[i].first,hanging_edge_node_connections[i].second};
-
-        std::vector<int> * idx0 = &indices[0][node[0]];
-        std::vector<int> * idx1 = &indices[0][node[1]];
-        
-        bool newconnection=true;
-
-        int false_node = (node[0] == false_node_connections[i].second) 
-                ? false_node_connections[i].second : false_node_connections[i].first;
-
-        // Find the index of the defunct connection
-        for(int j = 1; j < idx0[0][0]+1; j++)
-            if(idx0[0][j]==false_node)
-            {
-                int tmp = 
-                idx0[0][j]=node[1];
-                idx1[0][idx1[0][0]]=node[0];
-                newconnection=false;
-                break;
-            }
-
-        if(newconnection==true)
-        {
-            idx0[0][0]++;
-            ESYS_ASSERT(idx0[0][0]<7,"Index out of bounds");
-            idx0[0][idx0[0][0]]=node[1];
-            idx1[0][0]++;
-            ESYS_ASSERT(idx1[0][0]<7,"Index out of bounds");
-            idx1[0][idx1[0][0]]=node[0];
-        }
-    }
-
-    // Nodes on hanging faces
-    // hanging_edges.clear();
-    oxleytimer.toc("....looping over hanging nodes on faces");
-    for(int i = 0; i < hanging_face_node_connections.size(); i++) 
-    {
-        // The two nodes
-        long node[2]={hanging_face_node_connections[i].first,hanging_face_node_connections[i].second};
-
-        // Get pointers to the appropriate section of the indices vector
-        std::vector<int> * idx0 = &indices[0][node[0]];
-        std::vector<int> * idx1 = &indices[0][node[1]];
-
-        // If they are new then add them to the vectors
-        idx0[0][0]++;
-        ESYS_ASSERT(idx0[0][0]<7, "updateRowsColumns index out of bound ");
-        idx0[0][idx0[0][0]]=node[1];
-
-        idx1[0][0]++;
-        ESYS_ASSERT(idx1[0][0]<7, "updateRowsColumns index out of bound ");
-        idx1[0][idx1[0][0]]=node[0];
-    }
-
-#ifdef ESYS_MPI
-    oxleytimer.toc("communicating B");
-    oxleytimer.toc("\trelaying info to 0");
-    MPI_Barrier(m_mpiInfo->comm);
-    if(m_mpiInfo->size > 1)
-    {
-        if(m_mpiInfo->rank == 0)
-        {
-            for(int r = 1; r < m_mpiInfo->size; r++)
-            {
-                int num;
-                MPI_Recv(&num,1,MPI_INT,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
-                for(int i = 0; i < num; i++)
-                {
-                    std::vector<int> idx_tmp(7,-1);
-                    MPI_Recv(idx_tmp.data(),7,MPI_INT,r,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
-                    std::vector<int> * idx = &indices[0][i];
-                    ESYS_ASSERT(!(idx==nullptr), "idx nullptr");
-                    for(int j = 1; j < 7; j++)
-                    {
-                        if(idx_tmp[j] == -1)
-                            break;
-
-                        bool duplicate = false;
-                        for(int k = 0; k < 7; k++)
-                        {
-                            if(idx[0][k] == idx_tmp[j])
-                                duplicate = true;
-                        }
-                        
-                        if(!duplicate)
-                        {
-                            idx[0][0]++;
-                            ESYS_ASSERT(idx[0][0]<7, "updateRowsColumns index out of bound ");
-                            idx[0][idx[0][0]]=idx_tmp[j];
-                        }
-                    }
-                }
-            }
-        }
-        else
-        {
-            int num = indices->size();
-            MPI_Send(&num, 1, MPI_INT, 0, 0, m_mpiInfo->comm);
-            for(int i = 0; i < indices->size(); i++)
-            {
-                MPI_Send(&indices[0][i][0], 7, MPI_INT, 0, 0, m_mpiInfo->comm);
-            }
-        }
-    }
-
-    oxleytimer.toc("\tcollecting info from 0");
-    MPI_Barrier(m_mpiInfo->comm);
-    if(m_mpiInfo->size > 1)
-    {
-        if(m_mpiInfo->rank == 0)
-        {
-            for(int r = 1; r < m_mpiInfo->size; r++)
-            {
-                int num = indices->size();
-                MPI_Send(&num, 1, MPI_INT, r, 0, m_mpiInfo->comm);
-                for(int i = 0; i < indices->size(); i++)
-                {
-                    MPI_Send(&indices[0][i][0], 7, MPI_INT, r, 0, m_mpiInfo->comm);                    
-                }
-            }
-        }
-        else
-        {
-            int num;
-            MPI_Recv(&num,1,MPI_INT,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
-            for(int i = 0; i < num; i++)
-            {
-                std::vector<int> idx_tmp(7,-1);
-                MPI_Recv(idx_tmp.data(),7,MPI_INT,0,0,m_mpiInfo->comm,MPI_STATUS_IGNORE);
-                if(idx_tmp[0]!=0)
-                {
-                    std::vector<int> * idx = &indices[0][i];
-                    ESYS_ASSERT(idx[0][0]<7, "unknown error");
-                    for(int j = 0; j < 7; j++)
-                    {
-                        idx[0][j] = idx_tmp[j];
-                    }
-                }
-            }
-        }
-    }
-
-    oxleytimer.toc("\t\tdone");
-#endif // ESYS_MPI
-
-
-    // *******************************************************************
-    // Sort
-    // *******************************************************************
-
-    #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-        std::cout << "\033[1;34m[oxley]\033[0m....sorting indices" << std::endl;
-    #endif
-
-    // Sorting
-    for(int i = 0; i < getNumNodes(); i++)
-    {
-        int * point1 = indices[0][i].data()+1;
-        int * point2 = indices[0][i].data()+indices[0][i][0]+1;
-        std::sort(point1, point2);
-    }
-
-// #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-//     std::cout << "\033[1;34m[oxley]\033[0mNode connections: " << std::endl;
-//     for(int i = 0; i < getNumNodes(); i++){
-//         std::vector<int> * idx0 = &indices[0][i];
-//         std::cout << i << ": ";
-//         for(int j = 1; j < idx0[0][0]+1; j++)
-//             std::cout << idx0[0][j] << ", ";
-//         std::cout << std::endl;
-//     }
-// #endif
-
-
-// #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-//     std::cout << "Final set of indices" << std::endl;
-//     for(int i = 0; i < indices->size(); i++)
-//     {
-//         std::cout << i << ": ";
-//         std::vector<int> * idx = &indices[0][i];
-//         for(int j = 0; j < 7; j++)
-//         {
-//             std::cout << idx[0][j] << ", ";
-//         }
-//         std::cout << std::endl;
-//     }
-// #endif
-
-    // *******************************************************************
-    // Convert to CRS
-    // *******************************************************************
-    myRows.clear();
-    myRows.push_back(0);
-    myColumns.clear();
-    m_dofMap.assign(getNumNodes(), 0);
-    long counter = 0;
-    for(int i = 0; i < getNumNodes(); i++)
-    {
-        std::vector<int> * idx0 = &indices[0][i];
-        std::vector<int> temp; 
-        for(int j = 1; j < idx0[0][0]+1; j++)
-        {
-            temp.push_back(idx0[0][j]);
-            counter++;
-        }
-        std::sort(temp.begin(),temp.end());
-        for(int i = 0; i < temp.size(); i++)
-        {
-            myColumns.push_back(temp[i]);
-        }
-
-        m_dofMap[i] = counter-myRows[i];
-
-        if(i < getNumNodes()-1)
-            myRows.push_back(counter);
-    }
-    myRows.push_back(myColumns.size());
-
-#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-    std::cout << "\033[1;34m[oxley]\033[0m Converted to Yale format... "<< std::endl;
-    std::cout << "COL_INDEX [";
-    for(auto i = myColumns.begin(); i < myColumns.end(); i++)
-        std::cout << *i << " ";
-    std::cout << "]" << std::endl;
-    std::cout << "ROW_INDEX [";
-    for(auto i = myRows.begin(); i < myRows.end(); i++)
-        std::cout << *i << " ";
-    std::cout << "]" << std::endl;
-    std::cout << "m_dofMap [";
-    for(auto i = m_dofMap.begin(); i < m_dofMap.end(); i++)
-        std::cout << *i << " ";
-    std::cout << "]" << std::endl;
-#endif
-
-    oxleytimer.toc("Finished updating rows and columns");
+    // Conforming lnodes numbering: every local node is a real DOF numbered
+    // identically (serially). ownSample() consults m_dofMap, so keep it the
+    // identity map. The legacy hanging-node connectivity build is retired;
+    // getConnections now derives the matrix graph directly from lnodes.
+    const dim_t n = getNumNodes();
+    m_dofMap.assign(n, 0);
+    for(dim_t i = 0; i < n; ++i)
+        m_dofMap[i] = i;
 }
 
 #ifdef ESYS_HAVE_TRILINOS
@@ -7603,187 +4842,84 @@ void Brick::populateSampleIds()
 void Brick::updateFaceElementCount()
 {
     oxleytimer.toc("updateFaceElementCount");
-    // TODO
 
-//     for(int i = 0; i < 4; i++)
-//         m_faceCount[i]=-1;
+    // Build the six boundary-face element lists directly from the lnodes
+    // connectivity. A face element stores in neighbours[0..3] the four nodes of
+    // the quad face it lies on, ordered (a0b0, a1b0, a0b1, a1b1) in the face's
+    // two in-plane axes (a,b) -- the order interpolateNodesOnFaces expects.
+    //
+    // Face id : boundary        : (a,b) axes : quad z-order corners
+    //   0 Left   x = xmin (-x)   : (y,z)      : 0,2,4,6
+    //   1 Right  x = xmax (+x)   : (y,z)      : 1,3,5,7
+    //   2 Bottom y = ymin (-y)   : (x,z)      : 0,1,4,5
+    //   3 Top    y = ymax (+y)   : (x,z)      : 2,3,6,7
+    //   4 (z-min, normal -z)     : (x,y)      : 0,1,2,3
+    //   5 (z-max, normal +z)     : (x,y)      : 4,5,6,7
+    static const int faceCorners[6][4] = {
+        {0,2,4,6}, {1,3,5,7}, {0,1,4,5}, {2,3,6,7}, {0,1,2,3}, {4,5,6,7}
+    };
 
-//     NodeIDsTop.clear();
-//     NodeIDsBottom.clear();
-//     NodeIDsLeft.clear();
-//     NodeIDsRight.clear();
-//     NodeIDsAbove.clear();
-//     NodeIDsBelow.clear();
+    for(int i = 0; i < 6; ++i)
+        m_faceCount[i] = 0;
+    NodeIDsLeft.clear();   NodeIDsRight.clear();
+    NodeIDsBottom.clear(); NodeIDsTop.clear();
+    NodeIDsAbove.clear();  NodeIDsBelow.clear();
+    std::vector<borderNodeInfo>* lists[6] = {
+        &NodeIDsLeft, &NodeIDsRight, &NodeIDsBottom, &NodeIDsTop,
+        &NodeIDsAbove, &NodeIDsBelow };
 
-//     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
-//     {
-//         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-//         sc_array_t * tquadrants = &tree->quadrants;
-//         p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-//         for(int q = 0; q < Q; ++q) 
-//         {
-//             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-//             p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
-//             // int k = q - Q + nodeIncrements[treeid - p8est->first_local_tree];
-//             p8est_qcoord_t lxy[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
-//                                         {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
-//             double xyz[4][3] = {{0}};
-//             int nodeids[4]={-1};
-//             bool do_check_yes_no[4]={false};
-//             for(int n = 0; n < 4; n++)
-//             {
-//                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], xyz[n]);
-//                 nodeids[n]=NodeIDs.find(std::make_tuple(xyz[n][0],xyz[n][1],xyz[n][2]))->second;
+    const int V = nodes->vnodes;   // 8
+    const double x0 = forestData->m_origin[0], y0 = forestData->m_origin[1], z0 = forestData->m_origin[2];
+    const double x1 = forestData->m_lxyz[0],   y1 = forestData->m_lxyz[1],   z1 = forestData->m_lxyz[2];
 
-//                 //TODO
-//                 if(n==0)
-//                     do_check_yes_no[n]=true;
-//                 else if(n==1 && xyz[n][0]==forestData->m_lxyz[0])
-//                     do_check_yes_no[n]=true;
-//                 else if(n==2 && xyz[n][1]==forestData->m_lxyz[1])
-//                     do_check_yes_no[n]=true;
-//                 else if(n==3 && xyz[n][0]==forestData->m_lxyz[0] && xyz[n][1]==forestData->m_lxyz[1])
-//                     do_check_yes_no[n]=true;
-//                 else
-//                     do_check_yes_no[n]=false;
-//             }
+    long e = 0;
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid)
+    {
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; ++q, ++e)
+        {
+            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+            const p8est_qcoord_t len = P8EST_QUADRANT_LEN(quad->level);
+            double lo[3], hi[3];
+            p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x,       quad->y,       quad->z,       lo);
+            p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+len,   quad->y+len,   quad->z+len,   hi);
 
-//             for(int n = 0; n < 4; n++)
-//             {
-//                 if(do_check_yes_no[n] == false)
-//                     continue;
+            const bool onFace[6] = {
+                lo[0]==x0, hi[0]==x1, lo[1]==y0, hi[1]==y1, lo[2]==z0, hi[2]==z1 };
 
-//                 borderNodeInfo tmp;
-//                 // tmp.nodeid=NodeIDs.find(std::make_pair(xy[n][0],xy[n][1]))->second;
-//                 tmp.nodeid=nodeids[n];
-//                 tmp.neighbours[0]=nodeids[0];
-//                 tmp.neighbours[1]=nodeids[1];
-//                 tmp.neighbours[2]=nodeids[2];
-//                 tmp.neighbours[3]=nodeids[3];
-//                 tmp.x=quad->x;
-//                 tmp.y=quad->y;
-//                 tmp.y=quad->z;
-//                 tmp.level=quad->level;
-//                 tmp.treeid=treeid;
+            for(int fc = 0; fc < 6; ++fc)
+            {
+                if(!onFace[fc]) continue;
+                borderNodeInfo tmp;
+                for(int c = 0; c < 4; ++c)
+                    tmp.neighbours[c] = (int) nodes->element_nodes[(size_t) e * V + faceCorners[fc][c]];
+                tmp.nodeid  = tmp.neighbours[0];
+                tmp.x = quad->x; tmp.y = quad->y; tmp.z = quad->z;
+                tmp.level = quad->level; tmp.treeid = treeid;
+                lists[fc]->push_back(tmp);
+                m_faceCount[fc]++;
+            }
+        }
+    }
 
-//                 if(isLeftBoundaryNode(quad, n, treeid, l))
-//                 {
-//                     NodeIDsLeft.push_back(tmp);
-//                     m_faceCount[0]++;
-//                 }
-
-//                 if(isRightBoundaryNode(quad, n, treeid, l))
-//                 {
-//                     NodeIDsRight.push_back(tmp);
-//                     m_faceCount[1]++;
-//                 }
-                    
-//                 if(isBottomBoundaryNode(quad, n, treeid, l))
-//                 {
-//                     NodeIDsBottom.push_back(tmp);
-//                     m_faceCount[2]++;
-//                 }
-                    
-//                 if(isTopBoundaryNode(quad, n, treeid, l))
-//                 {
-//                     NodeIDsTop.push_back(tmp);
-//                     m_faceCount[3]++;
-//                 }
-
-//                 if(isAboveBoundaryNode(quad, n, treeid, l))
-//                 {
-//                     NodeIDsAbove.push_back(tmp);
-//                     m_faceCount[4]++;
-//                 }
-
-//                 if(isBelowBoundaryNode(quad, n, treeid, l))
-//                 {
-//                     NodeIDsBelow.push_back(tmp);
-//                     m_faceCount[5]++;
-//                 }
-            
-//                 #ifdef OXLEY_ENABLE_DEBUG_FACEELEMENTS_POINTS
-//                     double xyz[3];
-//                     p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], &xyz[n]);
-//                     std::cout << nodeids[n] << ": quad (x,y,z) = ( " << xyz[0] 
-//                                             << ", " << xyz[1] << ", " << xyz[2] << " ) ";
-//                     if(isLeftBoundaryNode(quad, n, treeid, l))
-//                         std::cout << "L";
-//                     if(isRightBoundaryNode(quad, n, treeid, l))
-//                         std::cout << "R";
-//                     if(isBottomBoundaryNode(quad, n, treeid, l))
-//                         std::cout << "B";
-//                     if(isTopBoundaryNode(quad, n, treeid, l))
-//                         std::cout << "T";
-//                     if(isAboveBoundaryNode(quad, n, treeid, l))
-//                         std::cout << "A";
-//                     if(isBelowBoundaryNode(quad, n, treeid, l))
-//                         std::cout << "B";
-//                     std::cout << std::endl;
-//                 #endif
-//             }
-//         }
-//     }
-
-//     const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20, ABOVE=100, BELOW=200;
-//     m_faceTags.clear();
-//     const index_t faceTag[] = { LEFT, RIGHT, BOTTOM, TOP, ABOVE, BELOW };
-//     m_faceOffset.clear();
-//     m_faceOffset.resize(6);
-//     m_faceOffset.assign(6, -1);
-//     index_t offset=0;
-//     for (size_t i=0; i<6; i++) {
-//         if (m_faceCount[i]>0) {
-//             m_faceOffset[i]=offset;
-//             offset+=m_faceCount[i];
-//             m_faceTags.insert(m_faceTags.end(), m_faceCount[i], faceTag[i]);
-//         }
-//     }
-
-// #ifdef OXLEY_ENABLE_DEBUG_FACEELEMENTS
-//     std::cout << "NodeIDsLeft" << std::endl;
-//     for(int i = 0; i < NodeIDsLeft.size()-1;i++)
-//         std::cout << NodeIDsLeft[i].nodeid << " ";
-//     std::cout << std::endl;
-//     std::cout << "NodeIDsRight" << std::endl;
-//     for(int i = 0; i < NodeIDsRight.size()-1;i++)
-//         std::cout << NodeIDsRight[i].nodeid << " ";
-//     std::cout << std::endl;
-//     std::cout << "NodeIDsTop" << std::endl;
-//     for(int i = 0; i < NodeIDsTop.size()-1;i++)
-//         std::cout << NodeIDsTop[i].nodeid << " ";
-//     std::cout << std::endl;
-//     std::cout << "NodeIDsBottom" << std::endl;
-//     for(int i = 0; i < NodeIDsBottom.size()-1;i++)
-//         std::cout << NodeIDsBottom[i].nodeid << " ";
-//     std::cout << std::endl;
-//     std::cout << "NodeIDsAbove" << std::endl;
-//     for(int i = 0; i < NodeIDsAbove.size()-1;i++)
-//         std::cout << NodeIDsAbove[i].nodeid << " ";
-//     std::cout << std::endl;
-//     std::cout << "NodeIDsBelow" << std::endl;
-//     for(int i = 0; i < NodeIDsBelow.size()-1;i++)
-//         std::cout << NodeIDsBelow[i].nodeid << " ";
-//     std::cout << std::endl;
-//     std::cout << "-------------------------------------------------------" << std::endl;
-// #endif
-
-//     // set face tags
-//     setTagMap("left", LEFT);
-//     setTagMap("right", RIGHT);
-//     setTagMap("bottom", BOTTOM);
-//     setTagMap("top", TOP);
-//     setTagMap("above", ABOVE);
-//     setTagMap("below", BELOW);
-//     updateTagsInUse(FaceElements);
-
-
-//     // Update faceElementId
-//     const dim_t NFE = getNumFaceElements();
-//     m_faceId.resize(NFE);
-//     for (dim_t k=0; k<NFE; k++)
-//         m_faceId[k]=k;
-    oxleytimer.toc("done");
+    // face sample offsets and face tags (x-/x+/y-/y+/z-/z+ -> 1/2/10/20/100/200)
+    const index_t faceTag[6] = { 1, 2, 10, 20, 100, 200 };
+    m_faceTags.clear();
+    m_faceOffset.assign(6, -1);
+    index_t offset = 0;
+    for(int i = 0; i < 6; ++i) {
+        if(m_faceCount[i] > 0) {
+            m_faceOffset[i] = offset;
+            offset += m_faceCount[i];
+            m_faceTags.insert(m_faceTags.end(), m_faceCount[i], faceTag[i]);
+        }
+    }
+    const dim_t NFE = getNumFaceElements();
+    m_faceId.resize(NFE);
+    for(dim_t k = 0; k < NFE; ++k) m_faceId[k] = k;
+    oxleytimer.toc("updateFaceElementCount... done");
 }
 
 // This is a wrapper that converts the p8est node information into an IndexVector
@@ -7828,25 +4964,87 @@ void Brick::updateNodeDistribution()
 void Brick::updateElementIds()
 {
     oxleytimer.toc("updateElementIds");
+    // element sample ids are the running local leaf indices [0, numElements)
+    const dim_t ne = getNumElements();
     m_elementId.clear();
-    m_elementId.assign(MAXP4ESTNODES,0);
-    int count=0;
-    for(std::pair<DoubleTuple,long> e : NodeIDs)
-        m_elementId[count++]=e.second;
+    m_elementId.resize(ne);
+    for(dim_t i = 0; i < ne; ++i)
+        m_elementId[i] = i;
     m_elementId.shrink_to_fit();
     oxleytimer.toc("done");
 }
 
 std::vector<IndexVector> Brick::getConnections(bool includeShared) const
 {
-    // returns a vector v of size numDOF where v[i] is a vector with indices
-    // of DOFs connected to i (up to 9 in 2D).
-    // In other words this method returns the occupied (local) matrix columns
-    // for all (local) matrix rows.
-    // If includeShared==true then connections to non-owned DOFs are also
-    // returned (i.e. indices of the column couplings)
+    // returns a vector v of size numNodes where v[i] lists the node indices
+    // coupled to node i (the occupied local matrix columns of row i).
+    //
+    // Built directly from the lnodes element->node connectivity (no coordinate
+    // hashing): every corner of a leaf is coupled to every other corner. This
+    // replaces the update_RC / coordinate-hash machinery in updateRowsColumns.
 
-    return *indices;
+    long numNodes = getNumNodes();
+    std::vector<IndexVector> indices_out(numNodes);
+
+    const int V = nodes->vnodes;   // 8 corners (degree-1 lnodes)
+    long e = 0;                    // running local leaf index (lnodes order)
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid)
+    {
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; ++q, ++e)
+        {
+            long lni[8];
+            for(int i = 0; i < V; i++)
+                lni[i] = (long) nodes->element_nodes[(size_t) e * V + i];
+
+            for(int i = 0; i < V; i++)
+            {
+                for(int j = 0; j < V; j++)
+                {
+                    bool dup = false;
+                    for(int k = 0; k < indices_out[lni[i]].size(); k++)
+                        if(indices_out[lni[i]][k] == lni[j])
+                        {
+                            dup = true;
+                            break;
+                        }
+                    if(dup == false)
+                        indices_out[lni[i]].push_back(lni[j]);
+                }
+            }
+        }
+    }
+
+    // MPI: add couplings from the ghost octant halo for OWNED rows only, so the
+    // Trilinos colMap/graph cover the 2nd-layer columns of owned boundary nodes.
+    const long nDOF = getNumDOF();
+    const long nGhost = (long) m_ghostElemNodes.size() / (V ? V : 1);
+    for(long g = 0; g < nGhost; ++g)
+    {
+        const index_t* lni = &m_ghostElemNodes[(size_t) g * V];
+        for(int i = 0; i < V; i++)
+        {
+            const long row = (long) lni[i];
+            if(row >= nDOF)
+                continue;
+            for(int j = 0; j < V; j++)
+            {
+                const index_t col = lni[j];
+                bool dup = false;
+                for(int k = 0; k < indices_out[row].size(); k++)
+                    if(indices_out[row][k] == col) { dup = true; break; }
+                if(!dup)
+                    indices_out[row].push_back(col);
+            }
+        }
+    }
+
+    for(long i = 0; i < numNodes; i++)
+        std::sort(indices_out[i].begin(), indices_out[i].end());
+
+    return indices_out;
 }
 
 bool Brick::operator==(const AbstractDomain& other) const
@@ -7876,525 +5074,62 @@ void Brick::assembleGradientImpl(escript::Data& out,
                                  const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
-
-    // Find the maximum level of refinement on the mesh
-    int max_level = 0;
-    for(p8est_topidx_t tree = p8est->first_local_tree; tree < p8est->last_local_tree; tree++) {
-        p8est_tree_t * tree_t = p8est_tree_array_index(p8est->trees, tree);
-        max_level = SC_MAX(max_level, tree_t->maxlevel);
-    }
-
-    double cx[7][P4EST_MAXLEVEL] = {{0}};
-    double cy[7][P4EST_MAXLEVEL] = {{0}};
-
-    const double C0 = .044658198738520451079;
-    const double C1 = .16666666666666666667;
-    const double C2 = .21132486540518711775;
-    const double C3 = .25;
-    const double C4 = .5;
-    const double C5 = .62200846792814621559;
-    const double C6 = .78867513459481288225;
-
-    //TODO check
-// #pragma omp parallel for
-//     for(int i=0; i<= max_level; i++)
-//     {
-//         double m_dx[3]={forestData->m_dx[0][P4EST_MAXLEVEL-i], 
-//                         forestData->m_dx[1][P4EST_MAXLEVEL-i],
-//                         forestData->m_dx[2][P4EST_MAXLEVEL-i]};
-
-//         cx[0][i] = .044658198738520451079/m_dx[];
-//         cx[1][i] = .16666666666666666667/m_dx[];
-//         cx[2][i] = .21132486540518711775/m_dx[];
-//         cx[3][i] = .25/m_dx[];
-//         cx[4][i] = .5/m_dx[];
-//         cx[5][i] = .62200846792814621559/m_dx[];
-//         cx[6][i] = .78867513459481288225/m_dx[];
-//     }
-
-   
+    const int V = nodes->vnodes;   // 8
     const Scalar zero = static_cast<Scalar>(0);
 
-    if (out.getFunctionSpace().getTypeCode() == Elements) 
-    {
-        out.requireWrite();
-
-        std::vector<Scalar> f_000(numComp, zero);
-        std::vector<Scalar> f_001(numComp, zero);
-        std::vector<Scalar> f_010(numComp, zero);
-        std::vector<Scalar> f_011(numComp, zero);
-        std::vector<Scalar> f_100(numComp, zero);
-        std::vector<Scalar> f_101(numComp, zero);
-        std::vector<Scalar> f_110(numComp, zero);
-        std::vector<Scalar> f_111(numComp, zero);
-
-        for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++) // Loop over every tree
-        {
-            p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p8est_qcoord_t Q = (p8est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for(p8est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
-            {
-                // Work out what level this element is on 
-                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                // octantData * quaddata = (octantData *) quad->p.user_data;
-                int l = quad->level;
-
-                memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-
-                Scalar* o = out.getSampleDataRW(e, zero);
-
-                for (index_t i=0; i < numComp; ++i) {
-                    const Scalar V0 =((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData->m_dx[0][l];
-                    const Scalar V1 =((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData->m_dx[0][l];
-                    const Scalar V2 =((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData->m_dx[0][l];
-                    const Scalar V3 =((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData->m_dx[0][l];
-                    const Scalar V4 =((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData->m_dx[1][l];
-                    const Scalar V5 =((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData->m_dx[1][l];
-                    const Scalar V6 =((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData->m_dx[1][l];
-                    const Scalar V7 =((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData->m_dx[1][l];
-                    const Scalar V8 =((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData->m_dx[2][l];
-                    const Scalar V9 =((f_101[i]-f_100[i])*C5 + (f_011[i]-f_010[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData->m_dx[2][l];
-                    const Scalar V10=((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData->m_dx[2][l];
-                    const Scalar V11=((f_111[i]-f_110[i])*C5 + (f_001[i]-f_000[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData->m_dx[2][l];
-
-                    o[INDEX3(i,0,0,numComp,3)] = V0;
-                    o[INDEX3(i,1,0,numComp,3)] = V4;
-                    o[INDEX3(i,2,0,numComp,3)] = V8;
-                    o[INDEX3(i,0,1,numComp,3)] = V0;
-                    o[INDEX3(i,1,1,numComp,3)] = V5;
-                    o[INDEX3(i,2,1,numComp,3)] = V9;
-                    o[INDEX3(i,0,2,numComp,3)] = V1;
-                    o[INDEX3(i,1,2,numComp,3)] = V4;
-                    o[INDEX3(i,2,2,numComp,3)] = V10;
-                    o[INDEX3(i,0,3,numComp,3)] = V1;
-                    o[INDEX3(i,1,3,numComp,3)] = V5;
-                    o[INDEX3(i,2,3,numComp,3)] = V11;
-                    o[INDEX3(i,0,4,numComp,3)] = V2;
-                    o[INDEX3(i,1,4,numComp,3)] = V6;
-                    o[INDEX3(i,2,4,numComp,3)] = V8;
-                    o[INDEX3(i,0,5,numComp,3)] = V2;
-                    o[INDEX3(i,1,5,numComp,3)] = V7;
-                    o[INDEX3(i,2,5,numComp,3)] = V9;
-                    o[INDEX3(i,0,6,numComp,3)] = V3;
-                    o[INDEX3(i,1,6,numComp,3)] = V6;
-                    o[INDEX3(i,2,6,numComp,3)] = V10;
-                    o[INDEX3(i,0,7,numComp,3)] = V3;
-                    o[INDEX3(i,1,7,numComp,3)] = V7;
-                    o[INDEX3(i,2,7,numComp,3)] = V11;
-                }
-            }
+    // reference shape gradients at the 8 Gauss points (2x2x2) and at the centre.
+    const double SQ = 1.0/std::sqrt(3.0);
+    const double chi = (1.0 + SQ)/2.0, clo = (1.0 - SQ)/2.0;
+    double gradRef[8][8][3];   // node a, gauss g, direction
+    double gradCtr[8][3];      // node a, direction (centre)
+    for(int a=0;a<8;++a){
+        const int pa=a&1, qa=(a>>1)&1, ra=(a>>2)&1;
+        const double sx=pa?1.0:-1.0, sy=qa?1.0:-1.0, sz=ra?1.0:-1.0;
+        for(int g=0;g<8;++g){
+            const int gi=(g>>2)&1, gj=(g>>1)&1, gk=g&1;  // interp gauss order (x slowest)
+            const double Xa=(pa==gi)?chi:clo, Ya=(qa==gj)?chi:clo, Za=(ra==gk)?chi:clo;
+            gradRef[a][g][0]=sx*Ya*Za; gradRef[a][g][1]=Xa*sy*Za; gradRef[a][g][2]=Xa*Ya*sz;
         }
-    } 
-    else if (out.getFunctionSpace().getTypeCode() == ReducedElements) 
+        gradCtr[a][0]=sx*0.25; gradCtr[a][1]=sy*0.25; gradCtr[a][2]=sz*0.25;
+    }
+
+    const bool reduced = (out.getFunctionSpace().getTypeCode() == ReducedElements
+                       || out.getFunctionSpace().getTypeCode() == ReducedFaceElements);
+    out.requireWrite();
+
+    long e = 0;
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid)
     {
-        out.requireWrite();
-
-        std::vector<Scalar> f_000(numComp, zero);
-        std::vector<Scalar> f_001(numComp, zero);
-        std::vector<Scalar> f_010(numComp, zero);
-        std::vector<Scalar> f_011(numComp, zero);
-        std::vector<Scalar> f_100(numComp, zero);
-        std::vector<Scalar> f_101(numComp, zero);
-        std::vector<Scalar> f_110(numComp, zero);
-        std::vector<Scalar> f_111(numComp, zero);
-
-        for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++) // Loop over every tree
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; ++q, ++e)
         {
-            p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p8est_qcoord_t Q = (p8est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for(p8est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
-            {
-                // Work out what level this element is on 
-                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                // octantData * quaddata = (octantData *) quad->p.user_data;
+            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+            const double hh = (double)(1 << quad->level);
+            const double h[3] = { m_NX[0]/hh, m_NX[1]/hh, m_NX[2]/hh };
 
-                int l = quad->level;
+            // node values of the input field (indexed by lnode id == dof id serially)
+            const Scalar* f[8];
+            for(int a=0;a<8;++a)
+                f[a] = in.getSampleDataRO((index_t) nodes->element_nodes[(size_t) e*V + a], zero);
 
-                memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                Scalar* o = out.getSampleDataRW(e, zero);
-                for (index_t i=0; i < numComp; ++i) {
-                    o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / forestData->m_dx[0][l];
-                    o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / forestData->m_dx[1][l];
-                    o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C3 / forestData->m_dx[2][l];
-                } // end of component loop i
-            }
-        }
-    } 
-    else if (out.getFunctionSpace().getTypeCode() == FaceElements) 
-    {
-        out.requireWrite();
-
-        std::vector<Scalar> f_000(numComp, zero);
-        std::vector<Scalar> f_001(numComp, zero);
-        std::vector<Scalar> f_010(numComp, zero);
-        std::vector<Scalar> f_011(numComp, zero);
-        std::vector<Scalar> f_100(numComp, zero);
-        std::vector<Scalar> f_101(numComp, zero);
-        std::vector<Scalar> f_110(numComp, zero);
-        std::vector<Scalar> f_111(numComp, zero);
-
-
-        for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++) 
-        {
-            p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p8est_qcoord_t Q = (p8est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for(p8est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-            {
-                // Work out what level this element is on 
-                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                octantData * quaddata = (octantData *) quad->p.user_data;
-
-                int l = quad->level;
-
-                if(quaddata->m_faceOffset[0]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-
-                    Scalar* o = out.getSampleDataRW(e, zero);
-
-                    for (index_t i=0; i < numComp; ++i) {
-                        const Scalar V0=((f_010[i]-f_000[i])*C6 + (f_011[i]-f_001[i])*C2) / forestData->m_dx[1][l];
-                        const Scalar V1=((f_010[i]-f_000[i])*C2 + (f_011[i]-f_001[i])*C6) / forestData->m_dx[1][l];
-                        const Scalar V2=((f_001[i]-f_000[i])*C6 + (f_010[i]-f_011[i])*C2) / forestData->m_dx[2][l];
-                        const Scalar V3=((f_001[i]-f_000[i])*C2 + (f_011[i]-f_010[i])*C6) / forestData->m_dx[2][l];
-                        o[INDEX3(i,0,0,numComp,3)] = ((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,0,numComp,3)] = V0;
-                        o[INDEX3(i,2,0,numComp,3)] = V2;
-                        o[INDEX3(i,0,1,numComp,3)] = ((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,1,numComp,3)] = V0;
-                        o[INDEX3(i,2,1,numComp,3)] = V3;
-                        o[INDEX3(i,0,2,numComp,3)] = ((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,2,numComp,3)] = V1;
-                        o[INDEX3(i,2,2,numComp,3)] = V2;
-                        o[INDEX3(i,0,3,numComp,3)] = ((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,3,numComp,3)] = V1;
-                        o[INDEX3(i,2,3,numComp,3)] = V3;
-                    } 
-                }
-            
-                if(quaddata->m_faceOffset[1]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-
-                    for (index_t i=0; i < numComp; ++i) {
-                        const Scalar V0=((f_110[i]-f_100[i])*C6 + (f_111[i]-f_101[i])*C2) / forestData->m_dx[1][l];
-                        const Scalar V1=((f_110[i]-f_100[i])*C2 + (f_111[i]-f_101[i])*C6) / forestData->m_dx[1][l];
-                        const Scalar V2=((f_101[i]-f_100[i])*C6 + (f_111[i]-f_110[i])*C2) / forestData->m_dx[2][l];
-                        const Scalar V3=((f_101[i]-f_100[i])*C2 + (f_111[i]-f_110[i])*C6) / forestData->m_dx[2][l];
-                        o[INDEX3(i,0,0,numComp,3)] = ((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,0,numComp,3)] = V0;
-                        o[INDEX3(i,2,0,numComp,3)] = V2;
-                        o[INDEX3(i,0,1,numComp,3)] = ((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,1,numComp,3)] = V0;
-                        o[INDEX3(i,2,1,numComp,3)] = V3;
-                        o[INDEX3(i,0,2,numComp,3)] = ((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,2,numComp,3)] = V1;
-                        o[INDEX3(i,2,2,numComp,3)] = V2;
-                        o[INDEX3(i,0,3,numComp,3)] = ((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,3,numComp,3)] = V1;
-                        o[INDEX3(i,2,3,numComp,3)] = V3;
-                    } // end of component loop i
-                }
-
-                if(quaddata->m_faceOffset[2]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-
-                    for (index_t i=0; i < numComp; ++i) {
-                        const Scalar V0=((f_100[i]-f_000[i])*C6 + (f_101[i]-f_001[i])*C2) / forestData->m_dx[0][l];
-                        const Scalar V1=((f_001[i]-f_000[i])*C6 + (f_101[i]-f_100[i])*C2) / forestData->m_dx[2][l];
-                        const Scalar V2=((f_001[i]-f_000[i])*C2 + (f_101[i]-f_100[i])*C6) / forestData->m_dx[2][l];
-                        o[INDEX3(i,0,0,numComp,3)] = V0;
-                        o[INDEX3(i,1,0,numComp,3)] = ((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,0,numComp,3)] = V1;
-                        o[INDEX3(i,0,1,numComp,3)] = V0;
-                        o[INDEX3(i,1,1,numComp,3)] = ((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,1,numComp,3)] = V2;
-                        o[INDEX3(i,0,2,numComp,3)] = V0;
-                        o[INDEX3(i,1,2,numComp,3)] = ((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,2,numComp,3)] = V1;
-                        o[INDEX3(i,0,3,numComp,3)] = V0;
-                        o[INDEX3(i,1,3,numComp,3)] = ((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,3,numComp,3)] = V2;
-                    } // end of component loop i
-                } // end of face 2
-
-                if(quaddata->m_faceOffset[3]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-
-                    for (index_t i=0; i < numComp; ++i) {
-                        const Scalar V0=((f_110[i]-f_010[i])*C6 + (f_111[i]-f_011[i])*C2) / forestData->m_dx[0][l];
-                        const Scalar V1=((f_110[i]-f_010[i])*C2 + (f_111[i]-f_011[i])*C6) / forestData->m_dx[0][l];
-                        const Scalar V2=((f_011[i]-f_010[i])*C6 + (f_111[i]-f_110[i])*C2) / forestData->m_dx[2][l];
-                        const Scalar V3=((f_011[i]-f_010[i])*C2 + (f_111[i]-f_110[i])*C6) / forestData->m_dx[2][l];
-                        o[INDEX3(i,0,0,numComp,3)] = V0;
-                        o[INDEX3(i,1,0,numComp,3)] = ((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,0,numComp,3)] = V2;
-                        o[INDEX3(i,0,1,numComp,3)] = V0;
-                        o[INDEX3(i,1,1,numComp,3)] = ((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,1,numComp,3)] = V3;
-                        o[INDEX3(i,0,2,numComp,3)] = V1;
-                        o[INDEX3(i,1,2,numComp,3)] = ((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,2,numComp,3)] = V2;
-                        o[INDEX3(i,0,3,numComp,3)] = V1;
-                        o[INDEX3(i,1,3,numComp,3)] = ((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,3,numComp,3)] = V3;
-                    } // end of component loop i
-                } // end of face 3
-
-                if(quaddata->m_faceOffset[4]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i=0; i < numComp; ++i) {
-                        const Scalar V0=((f_100[i]-f_000[i])*C6 + (f_110[i]-f_010[i])*C2) / forestData->m_dx[0][l];
-                        const Scalar V1=((f_100[i]-f_000[i])*C2 + (f_110[i]-f_010[i])*C6) / forestData->m_dx[0][l];
-                        const Scalar V2=((f_010[i]-f_000[i])*C6 + (f_110[i]-f_100[i])*C2) / forestData->m_dx[1][l];
-                        const Scalar V3=((f_010[i]-f_000[i])*C2 + (f_110[i]-f_100[i])*C6) / forestData->m_dx[1][l];
-                        o[INDEX3(i,0,0,numComp,3)] = V0;
-                        o[INDEX3(i,1,0,numComp,3)] = V2;
-                        o[INDEX3(i,2,0,numComp,3)] = ((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData->m_dx[2][l];
-                        o[INDEX3(i,0,1,numComp,3)] = V0;
-                        o[INDEX3(i,1,1,numComp,3)] = V3;
-                        o[INDEX3(i,2,1,numComp,3)] = ((f_101[i]-f_100[i])*C5 + (f_011[i]-f_010[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData->m_dx[2][l];
-                        o[INDEX3(i,0,2,numComp,3)] = V1;
-                        o[INDEX3(i,1,2,numComp,3)] = V2;
-                        o[INDEX3(i,2,2,numComp,3)] = ((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData->m_dx[2][l];
-                        o[INDEX3(i,0,3,numComp,3)] = V1;
-                        o[INDEX3(i,1,3,numComp,3)] = V3;
-                        o[INDEX3(i,2,3,numComp,3)] = ((f_111[i]-f_110[i])*C5 + (f_001[i]-f_000[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData->m_dx[2][l];
-                    } // end of component loop i
-                } // end of face 4
-
-                if(quaddata->m_faceOffset[5]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i=0; i < numComp; ++i) {
-                        const Scalar V0=((f_101[i]-f_001[i])*C6 + (f_111[i]-f_011[i])*C2) / forestData->m_dx[0][l];
-                        const Scalar V1=((f_101[i]-f_001[i])*C2 + (f_111[i]-f_011[i])*C6) / forestData->m_dx[0][l];
-                        const Scalar V2=((f_011[i]-f_001[i])*C6 + (f_111[i]-f_101[i])*C2) / forestData->m_dx[1][l];
-                        const Scalar V3=((f_011[i]-f_001[i])*C2 + (f_111[i]-f_101[i])*C6) / forestData->m_dx[1][l];
-                        o[INDEX3(i,0,0,numComp,3)] = V0;
-                        o[INDEX3(i,1,0,numComp,3)] = V2;
-                        o[INDEX3(i,2,0,numComp,3)] = ((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData->m_dx[2][l];
-                        o[INDEX3(i,0,1,numComp,3)] = V0;
-                        o[INDEX3(i,1,1,numComp,3)] = V3;
-                        o[INDEX3(i,2,1,numComp,3)] = ((f_011[i]-f_010[i])*C0 + (f_101[i]-f_100[i])*C5 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData->m_dx[2][l];
-                        o[INDEX3(i,0,2,numComp,3)] = V1;
-                        o[INDEX3(i,1,2,numComp,3)] = V2;
-                        o[INDEX3(i,2,2,numComp,3)] = ((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / forestData->m_dx[2][l];
-                        o[INDEX3(i,0,3,numComp,3)] = V1;
-                        o[INDEX3(i,1,3,numComp,3)] = V3;
-                        o[INDEX3(i,2,3,numComp,3)] = ((f_001[i]-f_000[i])*C0 + (f_111[i]-f_110[i])*C5 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / forestData->m_dx[2][l];
-                    } // end of component loop i
-                } // end of face 5
-            }
-        }
-    } else if (out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
-
-        out.requireWrite();
-
-        for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++) 
-        {
-            p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p8est_qcoord_t Q = (p8est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for(p8est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-            {
-                // Work out what level this element is on 
-                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                octantData * quaddata = (octantData *) quad->p.user_data;
-
-                int l = quad->level;
-
-                std::vector<Scalar> f_000(numComp, zero);
-                std::vector<Scalar> f_001(numComp, zero);
-                std::vector<Scalar> f_010(numComp, zero);
-                std::vector<Scalar> f_011(numComp, zero);
-                std::vector<Scalar> f_100(numComp, zero);
-                std::vector<Scalar> f_101(numComp, zero);
-                std::vector<Scalar> f_110(numComp, zero);
-                std::vector<Scalar> f_111(numComp, zero);
-
-
-
-                if(quaddata->m_faceOffset[0]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]-f_000[i]-f_001[i])*C4 / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]-f_000[i]-f_010[i])*C4 / forestData->m_dx[2][l];
-                    } // end of component loop i
-                } // end of face 0
-
-
-                if(quaddata->m_faceOffset[1]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,0,numComp,3)] = (f_110[i]+f_111[i]-f_100[i]-f_101[i])*C4 / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,0,numComp,3)] = (f_101[i]+f_111[i]-f_100[i]-f_110[i])*C4 / forestData->m_dx[2][l];
-                    } // end of component loop i
-                } // end of face 1
-
-                if(quaddata->m_faceOffset[2]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]-f_000[i]-f_001[i])*C4 / forestData->m_dx[0][l];
-                        o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / forestData->m_dx[1][l];
-                        o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_101[i]-f_000[i]-f_100[i])*C4 / forestData->m_dx[2][l];
-                    } // end of component loop i
-                } // end of face 2
-
-
-                if(quaddata->m_faceOffset[3]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_110[i]+f_111[i]-f_010[i]-f_011[i])*C4 / forestData->m_dx[0][l];
-                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / forestData->m_dx[1][l];
-                            o[INDEX3(i,2,0,numComp,3)] = (f_011[i]+f_111[i]-f_010[i]-f_110[i])*C4 / forestData->m_dx[2][l];
-                    } // end of component loop i
-                } // end of face 3
-    
-                if(quaddata->m_faceOffset[4]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_110[i]-f_000[i]-f_010[i])*C4 / forestData->m_dx[0][l];
-                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_110[i]-f_000[i]-f_100[i])*C4 / forestData->m_dx[1][l];
-                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C4 / forestData->m_dx[2][l];
-                    } // end of component loop i
-                } // end of face 4
-
-                if(quaddata->m_faceOffset[5]) 
-                {
-                    memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_010[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_011[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_100[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_101[i]+f_111[i]-f_001[i]-f_011[i])*C4 / forestData->m_dx[0][l];
-                            o[INDEX3(i,1,0,numComp,3)] = (f_011[i]+f_111[i]-f_001[i]-f_101[i])*C4 / forestData->m_dx[1][l];
-                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C3 / forestData->m_dx[2][l];
-                    } // end of component loop i
-                } // end of face 5
+            Scalar* o = out.getSampleDataRW(e, zero);
+            if(reduced) {
+                for(index_t i=0;i<numComp;++i)
+                    for(int d=0;d<3;++d) {
+                        Scalar s = zero;
+                        for(int a=0;a<8;++a) s += f[a][i]*(gradCtr[a][d]/h[d]);
+                        o[INDEX2(i,d,numComp)] = s;
+                    }
+            } else {
+                for(int g=0;g<8;++g)
+                    for(index_t i=0;i<numComp;++i)
+                        for(int d=0;d<3;++d) {
+                            Scalar s = zero;
+                            for(int a=0;a<8;++a) s += f[a][i]*(gradRef[a][g][d]/h[d]);
+                            o[INDEX3(i,d,g,numComp,3)] = s;
+                        }
             }
         }
     }
@@ -8408,21 +5143,14 @@ void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F
          const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F, 
          bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const
 {    
-    IndexVector rowIndex(4);
+    const int V = nodes->vnodes;   // 8 corners (z-order matches the kernels)
+    IndexVector rowIndex(V);
     p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
-    sc_array_t * tquadrants = &currenttree->quadrants;
-    // p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-    p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-    p8est_qcoord_t length = P8EST_QUADRANT_LEN(quad->level);
-    for(int i = 0; i < 4; i++)
-    {
-        double lx = length * ((int) (i % 2) == 1);
-        double ly = length * ((int) (i / 2) == 1);
-        double lz = length * ((int) (i / 2) == 1);
-        double xyz[3];
-        p8est_qcoord_to_vertex(p8est->connectivity, t, quad->x+lx, quad->y+ly, quad->z+lz, xyz);
-        rowIndex[i] = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
-    }
+    // global local-leaf index in lnodes order; quadrants_offset is the cumulative
+    // number of local octants in the trees before t.
+    const long g = (long) currenttree->quadrants_offset + (long) e;
+    for(int i = 0; i < V; i++)
+        rowIndex[i] = (index_t) nodes->element_nodes[(size_t) g * V + i];
 
     if(addF)
     {
@@ -8445,8 +5173,20 @@ void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F
 //protected
 void Brick::nodesToDOF(escript::Data& out, const escript::Data& in) const
 {
-    //TODO
-    throw OxleyException("nodesToDOF");
+    // Nodes -> DegreesOfFreedom: the owned nodes are the DOFs (lnodes orders
+    // owned nodes first), so copy the first getNumDOF() node samples. Ghost
+    // node values belong to other ranks and are dropped. (MPI: A6.)
+    const dim_t numComp = in.getDataPointSize();
+    out.requireWrite();
+    const dim_t nDOF = getNumDOF();
+    const real_t zero = 0;
+#pragma omp parallel for
+    for (index_t i = 0; i < nDOF; i++) {
+        const real_t* src = in.getSampleDataRO(i, zero);
+        std::copy(src, src+numComp, out.getSampleDataRW(i, zero));
+    }
+    return;
+    // legacy structured-grid implementation below (dead):
 
 //     const dim_t numComp = in.getDataPointSize();
 //     out.requireWrite();
@@ -8485,25 +5225,85 @@ void Brick::updateMeshInformation()
 ////////////////////////////// inline methods ////////////////////////////////
 inline dim_t Brick::getDofOfNode(dim_t node) const
 {
-    //TODO
-    throw OxleyException("getDofOfNode");
-    return -1;
-    // return m_dofMap[node];
+    // Conforming lnodes numbering: every node is a real DOF and (serially)
+    // the DOF id equals the local node id. MPI ownership handled in A6.
+    return node;
 }
 
 dim_t Brick::findNode(const double *coords) const
 {
-    //TODO
-    throw OxleyException("findNode");
-    return -1;
-
-    
+    // Search the lnodes node coordinates for the closest node (used for Dirac
+    // points). Replaces the coordinate-hash lookup.
+    // reject points outside the domain bounding box (out-of-range Dirac points)
+    const double x0=forestData->m_origin[0], y0=forestData->m_origin[1], z0=forestData->m_origin[2];
+    const double x1=forestData->m_lxyz[0],   y1=forestData->m_lxyz[1],   z1=forestData->m_lxyz[2];
+    double ext = x1-x0; if(y1-y0>ext) ext=y1-y0; if(z1-z0>ext) ext=z1-z0;
+    const double tol = 1e-8*ext;
+    if(coords[0]<x0-tol || coords[0]>x1+tol || coords[1]<y0-tol || coords[1]>y1+tol
+       || coords[2]<z0-tol || coords[2]>z1+tol)
+        return -1;
+    const MeshAccess m = getMeshAccess();
+    long closest = 0;
+    double best = std::numeric_limits<double>::max();
+    for(long i = 0; i < m.numNodes; ++i)
+    {
+        const double dx = m.nodeCoords[(size_t) i*3 + 0] - coords[0];
+        const double dy = m.nodeCoords[(size_t) i*3 + 1] - coords[1];
+        const double dz = m.nodeCoords[(size_t) i*3 + 2] - coords[2];
+        const double d2 = dx*dx + dy*dy + dz*dz;
+        if(d2 < best) { best = d2; closest = i; }
+    }
+    return (dim_t) closest;
 }
 
 // adds the dirac points and tags 
 void Brick::addPoints(const std::vector<double>& coords, const std::vector<int>& tags)
 {
-    
+    // A Dirac point must be claimed by exactly ONE rank in MPI: find this rank's
+    // nearest OWNED node (first getNumDOF() local nodes) and distance, then keep
+    // the point only on the globally-nearest rank (ties broken by lowest rank).
+    // See Rectangle::addPoints. (A6.)
+    const dim_t nOwned = getNumDOF();
+    const MeshAccess m = getMeshAccess();
+    const double x0=forestData->m_origin[0], y0=forestData->m_origin[1], z0=forestData->m_origin[2];
+    const double x1=forestData->m_lxyz[0],   y1=forestData->m_lxyz[1],   z1=forestData->m_lxyz[2];
+    double ext = x1-x0; if(y1-y0>ext) ext=y1-y0; if(z1-z0>ext) ext=z1-z0;
+    const double tol = 1e-8*ext;
+
+    for (int i = 0; i < (int)tags.size(); i++) {
+        const double px = coords[i*m_numDim + 0];
+        const double py = coords[i*m_numDim + 1];
+        const double pz = coords[i*m_numDim + 2];
+
+        double best = std::numeric_limits<double>::max();
+        long bestNode = -1;
+        if (!(px<x0-tol || px>x1+tol || py<y0-tol || py>y1+tol || pz<z0-tol || pz>z1+tol)) {
+            for (long n = 0; n < nOwned; ++n) {
+                const double dx = m.nodeCoords[(size_t)n*3 + 0] - px;
+                const double dy = m.nodeCoords[(size_t)n*3 + 1] - py;
+                const double dz = m.nodeCoords[(size_t)n*3 + 2] - pz;
+                const double d2 = dx*dx + dy*dy + dz*dz;
+                if (d2 < best) { best = d2; bestNode = n; }
+            }
+        }
+
+        double globalBest = best;
+        int winner = (bestNode>=0) ? m_mpiInfo->rank : m_mpiInfo->size;
+#ifdef ESYS_MPI
+        if (m_mpiInfo->size > 1) {
+            MPI_Allreduce(&best, &globalBest, 1, MPI_DOUBLE, MPI_MIN, m_mpiInfo->comm);
+            int cand = (bestNode>=0 && best==globalBest) ? m_mpiInfo->rank : m_mpiInfo->size;
+            MPI_Allreduce(&cand, &winner, 1, MPI_INT, MPI_MIN, m_mpiInfo->comm);
+        }
+#endif
+        if (bestNode >= 0 && m_mpiInfo->rank == winner) {
+            m_diracPointNodeIDs.push_back(borrowSampleReferenceIDs(Nodes)[bestNode]);
+            DiracPoint dp;
+            dp.node = bestNode; //local (owned)
+            dp.tag = tags[i];
+            m_diracPoints.push_back(dp);
+        }
+    }
 }
 
 static inline void
@@ -8988,313 +5788,140 @@ void Brick::assembleIntegrate(std::vector<cplx_t>& integrals, const escript::Dat
 template<typename Scalar>
 void Brick::assembleIntegrateImpl(std::vector<Scalar>& integrals, const escript::Data& arg) const
 {
-//     const dim_t numComp = arg.getDataPointSize();
-//     const index_t left = (m_offset[0]==0 ? 0 : 1);
-//     const index_t bottom = (m_offset[1]==0 ? 0 : 1);
-//     const index_t front = (m_offset[2]==0 ? 0 : 1);
-//     const int fs = arg.getFunctionSpace().getTypeCode();
-//     const Scalar zero = static_cast<Scalar>(0);
+    const dim_t numComp = arg.getDataPointSize();
+    const int fs = arg.getFunctionSpace().getTypeCode();
+    const Scalar zero = static_cast<Scalar>(0);
 
-//     bool HavePointData = arg.getFunctionSpace().getTypeCode() == Points;
+    const bool HavePointData = (fs == Points);
 
-// #ifdef ESYS_MPI
-//     if(HavePointData && escript::getMPIRankWorld() == 0) {
-// #else
-//     if(HavePointData) {
-// #endif
-//         integrals[0] += arg.getNumberOfTaggedValues();
-//     } else if (fs == Elements && arg.actsExpanded()) {
-//         const real_t w_0 = m_dx[0]*m_dx[1]*m_dx[2]/8.;
-// #pragma omp parallel
-//         {
-//             vector<Scalar> int_local(numComp, zero);
-// #pragma omp for nowait
-//             for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
-//                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                         const Scalar* f = arg.getSampleDataRO(INDEX3(k0, k1, k2, m_NE[0], m_NE[1]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             const Scalar f_0 = f[INDEX2(i,0,numComp)];
-//                             const Scalar f_1 = f[INDEX2(i,1,numComp)];
-//                             const Scalar f_2 = f[INDEX2(i,2,numComp)];
-//                             const Scalar f_3 = f[INDEX2(i,3,numComp)];
-//                             const Scalar f_4 = f[INDEX2(i,4,numComp)];
-//                             const Scalar f_5 = f[INDEX2(i,5,numComp)];
-//                             const Scalar f_6 = f[INDEX2(i,6,numComp)];
-//                             const Scalar f_7 = f[INDEX2(i,7,numComp)];
-//                             int_local[i]+=(f_0+f_1+f_2+f_3+f_4+f_5+f_6+f_7)*w_0;
-//                         }  // end of component loop i
-//                     } // end of k0 loop
-//                 } // end of k1 loop
-//             } // end of k2 loop
+#ifdef ESYS_MPI
+    if(HavePointData && escript::getMPIRankWorld() == 0) {
+#else
+    if(HavePointData) {
+#endif
+        integrals[0] += arg.getNumberOfTaggedValues();
 
-// #pragma omp critical
-//             for (index_t i = 0; i < numComp; i++)
-//                 integrals[i] += int_local[i];
-//         } // end of parallel section
+    } else if (fs == Elements && arg.actsExpanded()) {
+        // 2x2x2 Gauss on the trilinear hex: each of the 8 points carries V/8.
+        // Element size is m_NX/2^level (per-block length / 2^level); forestData
+        // m_dx is total-length based for Brick and must not be used here.
+        std::vector<Scalar> int_local(numComp, zero);
+        long id = 0;
+        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid)
+        {
+            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+            sc_array_t * tquadrants = &tree->quadrants;
+            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+            for(int q = 0; q < Q; ++q, ++id)
+            {
+                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+                const double h = (double)(1 << quad->level);
+                const real_t w = (m_NX[0]/h) * (m_NX[1]/h) * (m_NX[2]/h) / 8.;
+                const Scalar* f = arg.getSampleDataRO(id, zero);
+                for (index_t i = 0; i < numComp; ++i) {
+                    Scalar s = zero;
+                    for (int c = 0; c < 8; ++c)
+                        s += f[INDEX2(i,c,numComp)];
+                    int_local[i] += s*w;
+                }
+            }
+        }
+        for (index_t i = 0; i < numComp; ++i)
+            integrals[i] += int_local[i];
 
-//     } else if (fs==ReducedElements || (fs==Elements && !arg.actsExpanded())) {
-//         const real_t w_0 = m_dx[0]*m_dx[1]*m_dx[2];
-// #pragma omp parallel
-//         {
-//             vector<Scalar> int_local(numComp, zero);
-// #pragma omp for nowait
-//             for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
-//                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                         const Scalar* f = arg.getSampleDataRO(INDEX3(k0, k1, k2, m_NE[0], m_NE[1]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             int_local[i] += f[i]*w_0;
-//                         }  // end of component loop i
-//                     } // end of k0 loop
-//                 } // end of k1 loop
-//             } // end of k2 loop
+    } else if (fs==ReducedElements || (fs==Elements && !arg.actsExpanded())) {
+        // single centre point carries the full element volume V.
+        std::vector<Scalar> int_local(numComp, zero);
+        long id = 0;
+        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid)
+        {
+            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+            sc_array_t * tquadrants = &tree->quadrants;
+            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+            for(int q = 0; q < Q; ++q, ++id)
+            {
+                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+                const double h = (double)(1 << quad->level);
+                const real_t w = (m_NX[0]/h) * (m_NX[1]/h) * (m_NX[2]/h);
+                const Scalar* f = arg.getSampleDataRO(id, zero);
+                for (index_t i = 0; i < numComp; ++i)
+                    int_local[i] += f[i]*w;
+            }
+        }
+        for (index_t i = 0; i < numComp; ++i)
+            integrals[i] += int_local[i];
 
-// #pragma omp critical
-//             for (index_t i = 0; i < numComp; i++)
-//                 integrals[i] += int_local[i];
-//         } // end of parallel section
+    } else if (fs == FaceElements && arg.actsExpanded()) {
+        // Each boundary face element carries area A over 4 Gauss points (A/4 each).
+        // Face area uses the in-plane element sizes dx=m_NX/2^level.
+        std::vector<Scalar> int_local(numComp, zero);
+        const std::vector<borderNodeInfo>* lists[6] = {
+            &NodeIDsLeft, &NodeIDsRight, &NodeIDsBottom, &NodeIDsTop,
+            &NodeIDsAbove, &NodeIDsBelow };
+        static const int planeAxes[6][2] = {{1,2},{1,2},{0,2},{0,2},{0,1},{0,1}};
+        for(int fc = 0; fc < 6; ++fc) {
+            if(m_faceOffset[fc] < 0) continue;
+            const std::vector<borderNodeInfo>& L = *lists[fc];
+            for(size_t k = 0; k < L.size(); ++k) {
+                const double h = (double)(1 << L[k].level);
+                const real_t A = (m_NX[planeAxes[fc][0]]/h) * (m_NX[planeAxes[fc][1]]/h);
+                const Scalar* f = arg.getSampleDataRO(m_faceOffset[fc]+k, zero);
+                for (index_t i = 0; i < numComp; ++i) {
+                    Scalar srow = zero;
+                    for (int c = 0; c < 4; ++c)
+                        srow += f[INDEX2(i,c,numComp)];
+                    int_local[i] += srow * (A/4.);
+                }
+            }
+        }
+        for (index_t i = 0; i < numComp; ++i)
+            integrals[i] += int_local[i];
 
-//     } else if (fs == FaceElements && arg.actsExpanded()) {
-//         const real_t w_0 = m_dx[1]*m_dx[2]/4.;
-//         const real_t w_1 = m_dx[0]*m_dx[2]/4.;
-//         const real_t w_2 = m_dx[0]*m_dx[1]/4.;
-// #pragma omp parallel
-//         {
-//             vector<Scalar> int_local(numComp, zero);
-//             if (m_faceOffset[0] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
-//                     for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             const Scalar f_0 = f[INDEX2(i,0,numComp)];
-//                             const Scalar f_1 = f[INDEX2(i,1,numComp)];
-//                             const Scalar f_2 = f[INDEX2(i,2,numComp)];
-//                             const Scalar f_3 = f[INDEX2(i,3,numComp)];
-//                             int_local[i] += (f_0+f_1+f_2+f_3)*w_0;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
+    } else if (fs==ReducedFaceElements || (fs==FaceElements && !arg.actsExpanded())) {
+        std::vector<Scalar> int_local(numComp, zero);
+        const std::vector<borderNodeInfo>* lists[6] = {
+            &NodeIDsLeft, &NodeIDsRight, &NodeIDsBottom, &NodeIDsTop,
+            &NodeIDsAbove, &NodeIDsBelow };
+        static const int planeAxes[6][2] = {{1,2},{1,2},{0,2},{0,2},{0,1},{0,1}};
+        for(int fc = 0; fc < 6; ++fc) {
+            if(m_faceOffset[fc] < 0) continue;
+            const std::vector<borderNodeInfo>& L = *lists[fc];
+            for(size_t k = 0; k < L.size(); ++k) {
+                const double h = (double)(1 << L[k].level);
+                const real_t A = (m_NX[planeAxes[fc][0]]/h) * (m_NX[planeAxes[fc][1]]/h);
+                const Scalar* f = arg.getSampleDataRO(m_faceOffset[fc]+k, zero);
+                for (index_t i = 0; i < numComp; ++i)
+                    int_local[i] += f[i] * A;
+            }
+        }
+        for (index_t i = 0; i < numComp; ++i)
+            integrals[i] += int_local[i];
 
-//             if (m_faceOffset[1] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
-//                     for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             const Scalar f_0 = f[INDEX2(i,0,numComp)];
-//                             const Scalar f_1 = f[INDEX2(i,1,numComp)];
-//                             const Scalar f_2 = f[INDEX2(i,2,numComp)];
-//                             const Scalar f_3 = f[INDEX2(i,3,numComp)];
-//                             int_local[i]+=(f_0+f_1+f_2+f_3)*w_0;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-//             if (m_faceOffset[2] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
-//                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             const Scalar f_0 = f[INDEX2(i,0,numComp)];
-//                             const Scalar f_1 = f[INDEX2(i,1,numComp)];
-//                             const Scalar f_2 = f[INDEX2(i,2,numComp)];
-//                             const Scalar f_3 = f[INDEX2(i,3,numComp)];
-//                             int_local[i]+=(f_0+f_1+f_2+f_3)*w_1;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-//             if (m_faceOffset[3] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
-//                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             const Scalar f_0 = f[INDEX2(i,0,numComp)];
-//                             const Scalar f_1 = f[INDEX2(i,1,numComp)];
-//                             const Scalar f_2 = f[INDEX2(i,2,numComp)];
-//                             const Scalar f_3 = f[INDEX2(i,3,numComp)];
-//                             int_local[i] += (f_0+f_1+f_2+f_3)*w_1;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-//             if (m_faceOffset[4] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             const Scalar f_0 = f[INDEX2(i,0,numComp)];
-//                             const Scalar f_1 = f[INDEX2(i,1,numComp)];
-//                             const Scalar f_2 = f[INDEX2(i,2,numComp)];
-//                             const Scalar f_3 = f[INDEX2(i,3,numComp)];
-//                             int_local[i] += (f_0+f_1+f_2+f_3)*w_2;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-//             if (m_faceOffset[5] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             const Scalar f_0 = f[INDEX2(i,0,numComp)];
-//                             const Scalar f_1 = f[INDEX2(i,1,numComp)];
-//                             const Scalar f_2 = f[INDEX2(i,2,numComp)];
-//                             const Scalar f_3 = f[INDEX2(i,3,numComp)];
-//                             int_local[i]+=(f_0+f_1+f_2+f_3)*w_2;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-// #pragma omp critical
-//             for (index_t i = 0; i < numComp; i++)
-//                 integrals[i] += int_local[i];
-//         } // end of parallel section
-
-//     } else if (fs==ReducedFaceElements || (fs==FaceElements && !arg.actsExpanded())) {
-//         const real_t w_0 = m_dx[1]*m_dx[2];
-//         const real_t w_1 = m_dx[0]*m_dx[2];
-//         const real_t w_2 = m_dx[0]*m_dx[1];
-// #pragma omp parallel
-//         {
-//             vector<Scalar> int_local(numComp, zero);
-//             if (m_faceOffset[0] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
-//                     for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             int_local[i] += f[i]*w_0;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-//             if (m_faceOffset[1] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
-//                     for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             int_local[i] += f[i]*w_0;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-//             if (m_faceOffset[2] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
-//                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             int_local[i] += f[i]*w_1;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-//             if (m_faceOffset[3] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k2 = front; k2 < front+m_ownNE[2]; ++k2) {
-//                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             int_local[i] += f[i]*w_1;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-//             if (m_faceOffset[4] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             int_local[i] += f[i]*w_2;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-//             if (m_faceOffset[5] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                     for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                         const Scalar* f = arg.getSampleDataRO(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]), zero);
-//                         for (index_t i = 0; i < numComp; ++i) {
-//                             int_local[i] += f[i]*w_2;
-//                         }  // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             }
-
-// #pragma omp critical
-//             for (index_t i = 0; i < numComp; i++)
-//                 integrals[i] += int_local[i];
-//         } // end of parallel section
-//     } // function space selector
+    } else {
+        throw OxleyException("assembleIntegrate: unsupported function space");
+    }
 }
-
 RankVector Brick::getOwnerVector(int fsType) const
 {
     RankVector owner;
+    const int rank = m_mpiInfo->rank;
 
-    throw OxleyException("getOwnerVector TODO");
-
-    // const int rank = m_mpiInfo->rank;
-
-    // if (fsType == Elements || fsType == ReducedElements) {
-    //     owner.assign(getNumElements(), rank);
-    //     if (m_faceCount[0] == 0) {
-    //         owner[0]=(m_faceCount[2]==0 ? rank-m_NX[0]-1 : rank-1);
-    //         for (dim_t i=1; i<m_NE[1]; i++)
-    //             owner[i*m_NE[0]] = rank-1;
-    //     }
-    //     if (m_faceCount[2]==0) {
-    //         const int first=(m_faceCount[0]==0 ? 1 : 0);
-    //         for (dim_t i=first; i<m_NE[0]; i++)
-    //             owner[i] = rank-m_NX[0];
-    //     }
-
-    // } else if (fsType == FaceElements || fsType == ReducedFaceElements) {
-    //     owner.assign(getNumFaceElements(), rank);
-    //     if (m_faceCount[0] == 0) {
-    //         if (m_faceCount[2] > 0)
-    //             owner[m_faceCount[1]] = rank-1;
-    //         if (m_faceCount[3] > 0)
-    //             owner[m_faceCount[1]+m_faceCount[2]] = rank-1;
-    //     }
-    //     if (m_faceCount[2] == 0) {
-    //         if (m_faceCount[0] > 0)
-    //             owner[0] = rank-m_NX[0];
-    //         if (m_faceCount[1] > 0)
-    //             owner[m_faceCount[0]] = rank-m_NX[0];
-    //     }
-
-    // } else {
-    //     throw ValueError("getOwnerVector: only valid for element types");
-    // }
-
+    // Serial-correct: every local element is owned by this rank (no ghosts).
+    // TODO(MPI, A6): mark ghost elements across the p4est partition boundary.
+    if (fsType == Elements || fsType == ReducedElements) {
+        owner.assign(getNumElements(), rank);
+    } else if (fsType == FaceElements || fsType == ReducedFaceElements) {
+        owner.assign(getNumFaceElements(), rank);
+    } else {
+        throw ValueError("getOwnerVector: only valid for element types");
+    }
     return owner;
 }
 
 const long Brick::getNodeId(double x, double y, double z)
 {
-    return NodeIDs.find(std::make_tuple(x,y,z))->second;
+    const double coords[3] = {x, y, z};
+    return (long) findNode(coords);
 }
 
 // void Brick::getNeighouringNodeIDs(int8_t level, p8est_qcoord_t x, p8est_qcoord_t y, p8est_qcoord_t z, 

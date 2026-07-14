@@ -31,8 +31,8 @@
 #define P4EST_BASE_H
 
 /* include config headers */
-#include <p4est/p4est_config.h>
-#include <p4est/sc_config.h>
+#include <p4est_config.h>
+#include <sc_config.h>
 #if \
   (defined (P4EST_ENABLE_MPI) && !defined (SC_ENABLE_MPI)) || \
   (!defined (P4EST_ENABLE_MPI) && defined (SC_ENABLE_MPI))
@@ -45,21 +45,22 @@
 #endif
 
 /* indirectly also include sc.h */
-#include <p4est/sc_containers.h>
+#include <sc_containers.h>
 #define _p4est_const _sc_const
 
 /*--------------------------------------------------------------------*/
 /*------------------------ QUERY API CHANGES -------------------------*/
 /*---- definitions to allow user code to query the p4est library -----*/
 
-/** We do no longer dereference unneeded pointers in p4est_transfer_.
- */
+/** We do no longer dereference unneeded pointers in p4est_transfer_. */
 #define P4EST_COMM_TRANSFER_NULL
 
 /** The \ref p4est_connectivity_new_disk function now accepts a bool arg.
- * The same holds for \ref p4est_wrap_new_disk.
- */
+ * The same holds for \ref p4est_wrap_new_disk. */
 #define P4EST_CONN_DISK_PERIODIC
+
+/** The \ref p4est_connectivity_reorder_newid function exists. */
+#define P4EST_CONN_REORDER_NEWID
 
 /** The \ref p4est_search_local function replaces \ref p4est_search.
  * The latter function is still available with updated internal semantics.
@@ -69,6 +70,9 @@
  */
 #define P4EST_SEARCH_LOCAL
 
+/** We expose the \ref p4est_vtk_write_cell_datav function. */
+#define P4EST_VTK_CELL_DATAV
+
 /*--------------------------------------------------------------------*/
 
 SC_EXTERN_C_BEGIN;
@@ -76,6 +80,7 @@ SC_EXTERN_C_BEGIN;
 /** Typedef for quadrant coordinates. */
 typedef int32_t     p4est_qcoord_t;
 #define p4est_qcoord_compare sc_int32_compare
+#define P4EST_QCOORD_BITS 32
 #define P4EST_MPI_QCOORD sc_MPI_INT
 #define P4EST_VTK_QCOORD "Int32"
 #define P4EST_F90_QCOORD INTEGER(KIND=C_INT32_T)
@@ -87,6 +92,7 @@ typedef int32_t     p4est_qcoord_t;
 /** Typedef for counting topological entities (trees, tree vertices). */
 typedef int32_t     p4est_topidx_t;
 #define p4est_topidx_compare sc_int32_compare
+#define P4EST_TOPIDX_BITS 32
 #define P4EST_MPI_TOPIDX sc_MPI_INT
 #define P4EST_VTK_TOPIDX "Int32"
 #define P4EST_F90_TOPIDX INTEGER(KIND=C_INT32_T)
@@ -99,6 +105,7 @@ typedef int32_t     p4est_topidx_t;
 /** Typedef for processor-local indexing of quadrants and nodes. */
 typedef int32_t     p4est_locidx_t;
 #define p4est_locidx_compare sc_int32_compare
+#define P4EST_LOCIDX_BITS 32
 #define P4EST_MPI_LOCIDX sc_MPI_INT
 #define P4EST_VTK_LOCIDX "Int32"
 #define P4EST_F90_LOCIDX INTEGER(KIND=C_INT32_T)
@@ -110,6 +117,7 @@ typedef int32_t     p4est_locidx_t;
 /** Typedef for globally unique indexing of quadrants. */
 typedef int64_t     p4est_gloidx_t;
 #define p4est_gloidx_compare sc_int64_compare
+#define P4EST_GLOIDX_BITS 64
 #define P4EST_MPI_GLOIDX sc_MPI_LONG_LONG_INT
 #define P4EST_VTK_GLOIDX "Int64"
 #define P4EST_F90_GLOIDX INTEGER(KIND=C_INT64_T)
@@ -309,18 +317,22 @@ void                P4EST_LERRORF (const char *fmt, ...)
 #define P4EST_NOTICE            P4EST_STATISTICS
 #define P4EST_NOTICEF           P4EST_STATISTICSF
 
-/* extern declarations */
-/** the libsc package id for p4est (set in p4est_init()) */
-extern int          p4est_package_id;
+/** The package id for p4est within libsc.
+ * This is a read-only package id obtained by registering p4est with sc.
+ * The variable starts out with a value of -1, which is fine by itself.
+ * It is set to a non-negative value by the (optional) \ref p4est_init.
+ * Do not access this variable directly; use \ref p4est_get_package_id.
+ */
+extern SC_DLL_PUBLIC int p4est_package_id;
 
 static inline void
-p4est_log_indent_push ()
+p4est_log_indent_push (void)
 {
   sc_log_indent_push_count (p4est_package_id, 1);
 }
 
 static inline void
-p4est_log_indent_pop ()
+p4est_log_indent_pop (void)
 {
   sc_log_indent_pop_count (p4est_package_id, 1);
 }
@@ -336,6 +348,30 @@ p4est_log_indent_pop ()
  */
 void                p4est_init (sc_log_handler_t log_handler,
                                 int log_threshold);
+
+/** Return whether p4est has been initialized or not.
+ * Keep in mind that \ref p4est_init is an optional function
+ * but it helps with proper parallel logging.
+ *
+ * Currently there is no inverse to \ref p4est_init, and no way to deinit it.
+ * This is ok since initialization generally does no harm.
+ * Just do not call libsc's finalize function while p4est is still in use.
+ *
+ * \return          True if p4est has been initialized with a call to
+ *                  \ref p4est_init and false otherwise.
+ */
+int                 p4est_is_initialized (void);
+
+/** Check for a sufficiently recent zlib installation.
+ * \return          True if zlib is detected in both sc and p4est.
+ */
+int                 p4est_have_zlib (void);
+
+/** Query the package identity as registered in libsc.
+ * \return          This is -1 before \ref p4est_init has been called
+ *                  and a proper package identifier (>= 0) afterwards.
+ */
+int                 p4est_get_package_id (void);
 
 /** Compute hash value for two p4est_topidx_t integers.
  * \param [in] tt     Array of (at least) two values.
@@ -513,6 +549,28 @@ p4est_partition_cut_gloidx (p4est_gloidx_t global_num, int p, int num_procs)
 
   return result;
 }
+
+/** Return the full version of p4est.
+ *
+ * \return          Return the version of p4est using the format
+ *                  `VERSION_MAJOR.VERSION_MINOR.VERSION_POINT`,
+ *                  where `VERSION_POINT` can contain dots and
+ *                  characters, e.g. to indicate the additional
+ *                  number of commits and a git commit hash.
+ */
+const char         *p4est_version (void);
+
+/** Return the major version of p4est.
+ *
+ * \return          Return the major version of p4est.
+ */
+int                 p4est_version_major (void);
+
+/** Return the minor version of p4est.
+ *
+ * \return          Return the minor version of p4est.
+ */
+int                 p4est_version_minor (void);
 
 SC_EXTERN_C_END;
 
