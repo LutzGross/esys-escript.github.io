@@ -629,7 +629,7 @@ void Brick::setToNormal(escript::Data& out) const
                 }
             }
 
-            if(m_faceOffset[4]) {
+            if(m_faceOffset[4] > -1) {
 #pragma omp for nowait
                 for (index_t k=0; k<NodeIDsAbove.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[4]+k);
@@ -710,7 +710,7 @@ void Brick::setToNormal(escript::Data& out) const
                 }
             }
 
-            if (m_faceOffset[4] > -1) {
+            if (m_faceOffset[5] > -1) {
 #pragma omp for nowait
                 for (index_t k=0; k<NodeIDsBelow.size(); k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[5]+k);
