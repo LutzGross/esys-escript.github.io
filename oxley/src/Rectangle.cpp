@@ -4138,12 +4138,49 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
 
 void Rectangle::addPoints(const std::vector<double>& coords, const std::vector<int>& tags)
 {
-    for (int i = 0; i < tags.size(); i++) {
-        dim_t node = findNode(&coords[i * m_numDim]);
-        if (node >= 0) {
-            m_diracPointNodeIDs.push_back(borrowSampleReferenceIDs(Nodes)[node]);
+    // A Dirac point must be claimed by exactly ONE rank in MPI. Each rank finds
+    // its nearest OWNED node (owned nodes are the first getNumDOF() local nodes in
+    // lnodes order) and its distance; the globally-nearest rank keeps the point
+    // (ties broken by lowest rank). Searching nearest-LOCAL-node on every rank (the
+    // old behaviour) placed and assembled every point on every rank -> the source
+    // was multiplied by the rank count. (A6.)
+    const dim_t nOwned = getNumDOF();
+    const MeshAccess m = getMeshAccess();
+    const double x0=forestData.m_origin[0], y0=forestData.m_origin[1];
+    const double x1=forestData.m_lxy[0],    y1=forestData.m_lxy[1];
+    double ext = x1-x0; if(y1-y0>ext) ext=y1-y0;
+    const double tol = 1e-8*ext;
+
+    for (int i = 0; i < (int)tags.size(); i++) {
+        const double px = coords[i*m_numDim + 0];
+        const double py = coords[i*m_numDim + 1];
+
+        double best = std::numeric_limits<double>::max();
+        long bestNode = -1;
+        // out-of-domain points are claimed by nobody
+        if (!(px<x0-tol || px>x1+tol || py<y0-tol || py>y1+tol)) {
+            for (long n = 0; n < nOwned; ++n) {
+                const double dx = m.nodeCoords[(size_t)n*2 + 0] - px;
+                const double dy = m.nodeCoords[(size_t)n*2 + 1] - py;
+                const double d2 = dx*dx + dy*dy;
+                if (d2 < best) { best = d2; bestNode = n; }
+            }
+        }
+
+        // globally-nearest distance, then lowest rank achieving it
+        double globalBest = best;
+        int winner = (bestNode>=0) ? m_mpiInfo->rank : m_mpiInfo->size;
+#ifdef ESYS_MPI
+        if (m_mpiInfo->size > 1) {
+            MPI_Allreduce(&best, &globalBest, 1, MPI_DOUBLE, MPI_MIN, m_mpiInfo->comm);
+            int cand = (bestNode>=0 && best==globalBest) ? m_mpiInfo->rank : m_mpiInfo->size;
+            MPI_Allreduce(&cand, &winner, 1, MPI_INT, MPI_MIN, m_mpiInfo->comm);
+        }
+#endif
+        if (bestNode >= 0 && m_mpiInfo->rank == winner) {
+            m_diracPointNodeIDs.push_back(borrowSampleReferenceIDs(Nodes)[bestNode]);
             DiracPoint dp;
-            dp.node = node; //local
+            dp.node = bestNode; //local (owned)
             dp.tag = tags[i];
             m_diracPoints.push_back(dp);
         }
