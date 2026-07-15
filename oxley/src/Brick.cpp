@@ -132,6 +132,17 @@ Brick::Brick(escript::JMPI jmpi, int order,
         std::cout << "OK" << std::endl;
 #endif
 
+    // Distribute the p8est across the processors. This MUST happen before the
+    // lnodes are built: p8est_partition moves octants between ranks, and an lnodes
+    // built beforehand still describes the old partition (its num_local_elements
+    // and element_nodes refer to octants this rank no longer owns), so every later
+    // leaf walk runs off the end of element_nodes. It went unnoticed while every
+    // mesh was uniform, because then the partition is already balanced and
+    // p8est_partition is a no-op. (Milestone B.)
+    oxleytimer.toc("\t partitioning...");
+    int allow_coarsening = 0;
+    p8est_partition(p8est, allow_coarsening, NULL);
+
     // Nodes numbering
     oxleytimer.toc("\t creating ghost...");
     ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
@@ -184,10 +195,7 @@ Brick::Brick(escript::JMPI jmpi, int order,
     // Number of dimensions
     m_numDim=3;
 
-    //  // Distribute the p8est across the processors
-    oxleytimer.toc("\t partitioning...");
-    int allow_coarsening = 0;
-    p8est_partition(p8est, allow_coarsening, NULL);
+    // (p8est_partition happens above, before the lnodes are built)
 
     // Indices
     indices = new std::vector<IndexVector>;

@@ -131,6 +131,16 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order,
         std::cout << "OK" << std::endl;
 #endif
 
+    // Distribute the p4est across the processors. This MUST happen before the
+    // lnodes are built: p4est_partition moves quadrants between ranks, and an
+    // lnodes built beforehand still describes the old partition (its
+    // num_local_elements and element_nodes refer to quadrants this rank no longer
+    // owns), so every later leaf walk runs off the end of element_nodes. It went
+    // unnoticed while every mesh was uniform, because then the partition is
+    // already balanced and p4est_partition is a no-op. (Milestone B.)
+    int allow_coarsening = 0;
+    p4est_partition(p4est, allow_coarsening, NULL);
+
     // Nodes numbering
     p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
     nodes = p4est_lnodes_new(p4est, ghost, 1);
@@ -174,9 +184,7 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order,
     // Number of dimensions
     m_numDim=2;
 
-    // Distribute the p4est across the processors
-    int allow_coarsening = 0;
-    p4est_partition(p4est, allow_coarsening, NULL);
+    // (p4est_partition happens above, before the lnodes are built)
 
     // Number the nodes
     updateNodeIncrements();
@@ -299,14 +307,16 @@ Rectangle::Rectangle(const oxley::Rectangle& R, int order):
     // Number of dimensions
     m_numDim=2;
 
+    // Distribute the p4est across the processors. MUST precede the lnodes: see
+    // the note in the main constructor -- an lnodes built before the partition
+    // describes the old one.
+    int allow_coarsening = 0;
+    p4est_partition(p4est, allow_coarsening, NULL);
+
     // lnodes
     p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
     nodes = p4est_lnodes_new(p4est, ghost, 1);
     p4est_ghost_destroy(ghost);
-
-    // Distribute the p4est across the processors
-    int allow_coarsening = 0;
-    p4est_partition(p4est, allow_coarsening, NULL);
 
     // Number the nodes
     updateNodeIncrements();
