@@ -4462,34 +4462,19 @@ RankVector Rectangle::getOwnerVector(int fsType) const
     RankVector owner;
     const int rank = m_mpiInfo->rank;
 
+    // Every local element is uniquely owned by this rank. The p4est SFC
+    // partition splits leaves (and hence their face elements) disjointly, so
+    // getNumElements()/getNumFaceElements() never include a halo -- the ghost
+    // overlap used for assembly lives in m_ghost, not in the sample list. This
+    // is the same fact that makes ownSample() return true for element types.
+    // (Do NOT copy ripley's m_faceCount/m_NX logic here: ripley's element list
+    // DOES carry a halo layer and its m_NX is the rank grid, whereas oxley's
+    // m_NX is a physical element width -- that mismatch silently dropped cells
+    // from weipa output under MPI.)
     if (fsType == Elements || fsType == ReducedElements) {
         owner.assign(getNumElements(), rank);
-        if (m_faceCount[0] == 0) {
-            owner[0]=(m_faceCount[2]==0 ? rank-m_NX[0]-1 : rank-1);
-            for (dim_t i=1; i<m_NE[1]; i++)
-                owner[i*m_NE[0]] = rank-1;
-        }
-        if (m_faceCount[2]==0) {
-            const int first=(m_faceCount[0]==0 ? 1 : 0);
-            for (dim_t i=first; i<m_NE[0]; i++)
-                owner[i] = rank-m_NX[0];
-        }
-
     } else if (fsType == FaceElements || fsType == ReducedFaceElements) {
         owner.assign(getNumFaceElements(), rank);
-        if (m_faceCount[0] == 0) {
-            if (m_faceCount[2] > 0)
-                owner[m_faceCount[1]] = rank-1;
-            if (m_faceCount[3] > 0)
-                owner[m_faceCount[1]+m_faceCount[2]] = rank-1;
-        }
-        if (m_faceCount[2] == 0) {
-            if (m_faceCount[0] > 0)
-                owner[0] = rank-m_NX[0];
-            if (m_faceCount[1] > 0)
-                owner[m_faceCount[0]] = rank-m_NX[0];
-        }
-
     } else {
         throw ValueError("getOwnerVector: only valid for element types");
     }
