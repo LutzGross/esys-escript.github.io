@@ -48,6 +48,20 @@ struct MeshAccess
     std::vector<long> elementNodes;
     /// per-element tag, size numElements
     std::vector<long> elementTags;
+
+    /// corners per boundary face (2 in 2D, 4 in 3D)
+    int nodesPerFace = 0;
+    /// local boundary faces on this rank
+    long numFaces = 0;
+    /// per-face local node indices, size numFaces*nodesPerFace. Unlike
+    /// elementNodes these are NOT in z-order: they are wound so that the
+    /// right-hand rule yields the OUTWARD normal (in 2D, the domain lies to the
+    /// left of the directed edge). Consumers that compute normals depend on it.
+    std::vector<long> faceNodes;
+    /// per-face tag, size numFaces (left/right/bottom/top[/front/back])
+    std::vector<long> faceTags;
+    /// per-face index of the element the face belongs to, size numFaces
+    std::vector<long> faceElements;
 };
 
 } // namespace oxley

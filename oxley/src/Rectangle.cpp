@@ -2595,6 +2595,21 @@ inline dim_t Rectangle::getNumElements() const
     return numElements;
 }
 
+bool Rectangle::isConforming() const
+{
+    int localHang = 0;
+    if (nodes) {
+        for (long e = 0; e < (long) nodes->num_local_elements; ++e) {
+            if (nodes->face_code[e] != 0) { localHang = 1; break; }
+        }
+    }
+    int anyHang = localHang;
+#ifdef ESYS_MPI
+    MPI_Allreduce(&localHang, &anyHang, 1, MPI_INT, MPI_MAX, m_mpiInfo->comm);
+#endif
+    return anyHang == 0;
+}
+
 MeshAccess Rectangle::getMeshAccess() const
 {
     MeshAccess m;
@@ -2643,6 +2658,55 @@ MeshAccess Rectangle::getMeshAccess() const
                 m.nodeCoords[(size_t) ni * m.numDim + 1] = xy[1];
             }
         }
+    }
+
+
+    // Boundary faces. A quadrant face lies on the domain boundary when the
+    // quadrant touches the tree boundary in that direction AND the connectivity
+    // sends that tree face back to itself, which is p4est's encoding for "no
+    // neighbour". This is topological, unlike updateFaceElementCount() which
+    // compares coordinates against the domain extent.
+    // NOTE conforming meshes only: a boundary face of a coarse element may carry
+    // hanging edge nodes, which are not represented here yet.
+    {
+        // face -> its two corners in z-order indexing, wound so that the domain
+        // lies to the LEFT of the directed edge, i.e. the outward normal is the
+        // clockwise rotation of the tangent. Matches finley's Mesh_rec4.
+        static const int faceCorner[4][2] = {{2,0}, {1,3}, {0,1}, {3,2}};
+        static const long faceTag[4] = {1, 2, 10, 20};  // left, right, bottom, top
+        const p4est_connectivity_t* conn = p4est->connectivity;
+        m.nodesPerFace = 2;
+        long le = 0;
+        for (p4est_topidx_t treeid = p4est->first_local_tree;
+             treeid <= p4est->last_local_tree; ++treeid) {
+            p4est_tree_t* tree = p4est_tree_array_index(p4est->trees, treeid);
+            sc_array_t* quads = &tree->quadrants;
+            const p4est_locidx_t Q = (p4est_locidx_t) quads->elem_count;
+            for (p4est_locidx_t q = 0; q < Q; ++q, ++le) {
+                p4est_quadrant_t* quad = p4est_quadrant_array_index(quads, q);
+                const p4est_qcoord_t len = P4EST_QUADRANT_LEN(quad->level);
+                for (int f = 0; f < 4; ++f) {
+                    if (conn->tree_to_tree[treeid * 4 + f] != treeid ||
+                        conn->tree_to_face[treeid * 4 + f] != f)
+                        continue;               // a neighbouring tree is there
+                    bool touches;
+                    switch (f) {
+                        case 0:  touches = (quad->x == 0); break;
+                        case 1:  touches = (quad->x + len == P4EST_ROOT_LEN); break;
+                        case 2:  touches = (quad->y == 0); break;
+                        default: touches = (quad->y + len == P4EST_ROOT_LEN); break;
+                    }
+                    if (!touches)
+                        continue;
+                    for (int c = 0; c < 2; ++c)
+                        m.faceNodes.push_back((long) nodes->element_nodes[
+                                (size_t) le * V + faceCorner[f][c]]);
+                    m.faceTags.push_back(faceTag[f]);
+                    m.faceElements.push_back(le);
+                }
+            }
+        }
+        m.numFaces = (long) m.faceTags.size();
     }
     return m;
 }

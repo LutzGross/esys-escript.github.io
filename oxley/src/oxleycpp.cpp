@@ -12,6 +12,7 @@
 *****************************************************************************/
 
 #include <oxley/Brick.h>
+#include <oxley/FinleyConverter.h>
 #include <oxley/Rectangle.h>
 #include <oxley/OtherAlgorithms.h>
 #include <oxley/OxleyDomain.h>
@@ -293,6 +294,27 @@ BOOST_PYTHON_MODULE(oxleycpp)
 
     class_<oxley::OxleyDomain, bases<escript::AbstractContinuousDomain>, boost::noncopyable >
         ("OxleyDomain", "", no_init)
+        .def("toFinley", &oxley::toFinley,
+            (arg("self"), arg("order")=-1, arg("reducedOrder")=-1,
+             arg("optimize")=false, arg("simplices")=true),
+            "returns a finley domain describing the same mesh\n\n"
+            "Each octant is split into simplices, Tri3 in 2D and Tet4 in 3D. "
+            "The forest supplies the geometry; finley owns the degrees of "
+            "freedom and the parallel overlap. Only conforming forests can be "
+            "converted so far.\n\n"
+            ":param order: integration order, -1 for the default\n"
+            ":type order: ``int``\n"
+            ":param reducedOrder: reduced integration order, -1 for the default\n"
+            ":type reducedOrder: ``int``\n"
+            ":param optimize: whether to let finley repartition with ParMETIS\n"
+            ":type optimize: ``bool``\n"
+            ":param simplices: when False emit one Rec4/Hex8 per octant "
+            "instead of splitting; for debugging only\n"
+            ":type simplices: ``bool``\n"
+            ":rtype: `Domain`")
+        .def("isConforming", &oxley::OxleyDomain::isConforming,
+            "returns True when no element in the forest has a hanging node\n\n"
+            ":rtype: ``bool``")
         .def("addToRHS",&oxley::OxleyDomain::addToRHSFromPython,
             args("rhs", "data"),
             "adds a PDE onto the stiffness matrix mat and a rhs, "

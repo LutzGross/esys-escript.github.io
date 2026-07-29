@@ -87,6 +87,50 @@ enum SystemMatrixType {
 
 /**
     \brief
+    A mesh handed over as flat arrays, for FinleyDomain::createFromArrays().
+
+    Node ids, and the node ids appearing in the element tables, are GLOBAL. Each
+    rank describes only the part of the mesh it holds: it need not supply every
+    node its own elements refer to, and two ranks may supply the same node.
+    createFromArrays() resolves the references, distributes the mesh and builds
+    the parallel overlap, so a caller needs no MPI communication of its own.
+*/
+struct MeshArrays
+{
+    /// spatial dimension, 2 or 3
+    int numDim = 0;
+    /// type of the volume elements, e.g. Tri3, Rec4, Tet4, Hex8
+    ElementTypeId elementType = NoRef;
+    /// type of the face elements, e.g. Line2 in 2D, Tri3 or Rec4 in 3D
+    ElementTypeId faceElementType = NoRef;
+
+    /// global id of each supplied node, length numNodes
+    std::vector<index_t> nodeId;
+    /// coordinate d of node i at [i*numDim+d], length numNodes*numDim
+    std::vector<double> nodeCoords;
+    /// tag of each node, length numNodes, or empty for untagged
+    std::vector<int> nodeTag;
+
+    /// global node ids of each element, length numElements*<nodes per element>
+    std::vector<index_t> elementNodes;
+    /// global id of each element, length numElements, or empty to number them
+    std::vector<index_t> elementId;
+    /// tag of each element, length numElements, or empty for untagged
+    std::vector<int> elementTag;
+
+    /// global node ids of each face element
+    std::vector<index_t> faceNodes;
+    /// global id of each face element, or empty to number them
+    std::vector<index_t> faceId;
+    /// tag of each face element, or empty for untagged
+    std::vector<int> faceTag;
+
+    /// tag name to tag value, copied onto the finished domain
+    TagMap tagMap;
+};
+
+/**
+    \brief
     FinleyDomain implements the AbstractContinuousDomain interface for the
     Finley library.
 */
@@ -248,6 +292,30 @@ public:
                                 bool useFullElementOrder,
                                 bool useMacroElements, bool optimize,
                                 escript::JMPI jmpi);
+
+    /**
+     \brief
+     Creates a domain from a mesh supplied as flat arrays.
+
+     Each rank passes the part of the mesh it holds, with nodes identified by
+     global id; nodes referred to by an element need not be present on the rank
+     that supplies the element. The node and element tables are resolved and
+     distributed here, so the caller performs no communication itself. This is
+     the entry point used by mesh generators that live outside finley.
+
+     \param arrays Input - the mesh, see MeshArrays
+     \param name Input - a descriptive name for the domain
+     \param order Input - integration order (1 or 2)
+     \param reducedOrder Input - reduced integration order (1 or 2)
+     \param optimize Input - whether to optimize node/DOF labelling. Note that
+                             this repartitions with ParMETIS, so a caller that
+                             wants to keep its own partition should pass false.
+     \param jmpi Input - shared pointer to MPI information to be used
+    */
+    static escript::Domain_ptr createFromArrays(const MeshArrays& arrays,
+                                const std::string& name,
+                                int order, int reducedOrder,
+                                bool optimize, escript::JMPI jmpi);
 
     /**
      \brief

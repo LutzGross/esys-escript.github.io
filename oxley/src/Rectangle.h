@@ -493,6 +493,8 @@ protected:
     */
     virtual MeshAccess getMeshAccess() const;
 
+    virtual bool isConforming() const;
+
     /**
        \brief
        Returns the number of face elements

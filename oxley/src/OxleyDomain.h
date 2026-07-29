@@ -863,6 +863,11 @@ public:
     /// output and (later) assembly; the node numbering stays inside the domain.
     virtual MeshAccess getMeshAccess() const = 0;
 
+    /// true when no element anywhere in the forest has a hanging node, so the
+    /// mesh is a conforming all-quad/all-hex mesh. Collective: every rank gets
+    /// the same answer.
+    virtual bool isConforming() const = 0;
+
     #ifdef ESYS_HAVE_BOOST_NUMPY
       /// Python view of getMeshAccess(): a dict of scalars and numpy arrays.
       boost::python::dict getMeshInfo() const;

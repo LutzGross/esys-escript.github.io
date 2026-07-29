@@ -16,6 +16,11 @@ if 'oxley' in env['domains']:
     if not env['trilinos']:
         print("Oxley requires Trilinos!")
         env.Exit(1)
+    if 'finley' not in env['domains']:
+        print("Oxley requires Finley: it hands its mesh over to finley for "
+              "anything involving degrees of freedom. Please add 'finley' to "
+              "the domains option.")
+        env.Exit(1)
 
     # configure C++ library
     env.SConscript('src/SConscript', duplicate=0)

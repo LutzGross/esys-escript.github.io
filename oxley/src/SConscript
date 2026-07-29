@@ -20,6 +20,7 @@ sources = """
     DefaultAssembler2D.cpp
     DefaultAssembler3D.cpp
     domainhelpers.cpp
+    FinleyConverter.cpp
     InitAlgorithms.cpp
     Rectangle.cpp
     OtherAlgorithms.cpp
@@ -37,6 +38,7 @@ headers = """
     DefaultAssembler2D.h
     DefaultAssembler3D.h
     domainhelpers.h
+    FinleyConverter.h
     InitAlgorithms.h
     MeshAccess.h
     Rectangle.h
@@ -58,6 +60,8 @@ local_env = env.Clone()
 oxleylibs = []
 oxleylibs += env['escript_libs']
 oxleylibs += env['p4est_libs']
+# oxley hands its mesh over to finley for degrees of freedom and assembly
+oxleylibs += env['finley_libs']
 if env['paso']:
     oxleylibs += env['paso_libs']
 if env['trilinos']:

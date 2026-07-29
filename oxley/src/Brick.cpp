@@ -4674,6 +4674,21 @@ inline dim_t Brick::getNumElements() const
     return nodes->num_local_elements;
 }
 
+bool Brick::isConforming() const
+{
+    int localHang = 0;
+    if (nodes) {
+        for (long e = 0; e < (long) nodes->num_local_elements; ++e) {
+            if (nodes->face_code[e] != 0) { localHang = 1; break; }
+        }
+    }
+    int anyHang = localHang;
+#ifdef ESYS_MPI
+    MPI_Allreduce(&localHang, &anyHang, 1, MPI_INT, MPI_MAX, m_mpiInfo->comm);
+#endif
+    return anyHang == 0;
+}
+
 MeshAccess Brick::getMeshAccess() const
 {
     MeshAccess m;
@@ -4725,6 +4740,56 @@ MeshAccess Brick::getMeshAccess() const
                 m.nodeCoords[(size_t) ni * m.numDim + 2] = xyz[2];
             }
         }
+    }
+
+    // Boundary faces. An octant face lies on the domain boundary when the octant
+    // touches the tree boundary in that direction AND the connectivity sends
+    // that tree face back to itself, which is p8est's encoding for "no
+    // neighbour". Topological, unlike updateFaceElementCount().
+    // NOTE conforming meshes only: a boundary face of a coarse octant may carry
+    // hanging edge nodes, which are not represented here yet.
+    {
+        // face -> its four corners in z-order indexing, wound counter-clockwise
+        // as seen from OUTSIDE, so the right-hand rule gives the outward normal.
+        // Matches finley's Mesh_hex8. Faces are -x,+x,-y,+y,-z,+z.
+        static const int faceCorner[6][4] = {
+            {0,4,6,2}, {1,3,7,5}, {0,1,5,4}, {2,6,7,3}, {0,2,3,1}, {4,5,7,6} };
+        static const long faceTag[6] = {1, 2, 10, 20, 100, 200};
+        const p8est_connectivity_t* conn = p8est->connectivity;
+        m.nodesPerFace = 4;
+        long le = 0;
+        for (p4est_topidx_t treeid = p8est->first_local_tree;
+             treeid <= p8est->last_local_tree; ++treeid) {
+            p8est_tree_t* tree = p8est_tree_array_index(p8est->trees, treeid);
+            sc_array_t* octs = &tree->quadrants;
+            const p4est_locidx_t Q = (p4est_locidx_t) octs->elem_count;
+            for (p4est_locidx_t q = 0; q < Q; ++q, ++le) {
+                p8est_quadrant_t* oct = p8est_quadrant_array_index(octs, q);
+                const p4est_qcoord_t len = P8EST_QUADRANT_LEN(oct->level);
+                for (int f = 0; f < 6; ++f) {
+                    if (conn->tree_to_tree[treeid * 6 + f] != treeid ||
+                        conn->tree_to_face[treeid * 6 + f] != f)
+                        continue;               // a neighbouring tree is there
+                    bool touches;
+                    switch (f) {
+                        case 0:  touches = (oct->x == 0); break;
+                        case 1:  touches = (oct->x + len == P8EST_ROOT_LEN); break;
+                        case 2:  touches = (oct->y == 0); break;
+                        case 3:  touches = (oct->y + len == P8EST_ROOT_LEN); break;
+                        case 4:  touches = (oct->z == 0); break;
+                        default: touches = (oct->z + len == P8EST_ROOT_LEN); break;
+                    }
+                    if (!touches)
+                        continue;
+                    for (int c = 0; c < 4; ++c)
+                        m.faceNodes.push_back((long) nodes->element_nodes[
+                                (size_t) le * V + faceCorner[f][c]]);
+                    m.faceTags.push_back(faceTag[f]);
+                    m.faceElements.push_back(le);
+                }
+            }
+        }
+        m.numFaces = (long) m.faceTags.size();
     }
     return m;
 }
