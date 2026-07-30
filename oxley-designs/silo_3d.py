@@ -4,12 +4,17 @@ Write Silo files for a 3D oxley forest and for the finley mesh it converts to,
 for side-by-side inspection in VisIt.
 
     ./bin/run-escript -n1 -t1 oxley-designs/silo_3d.py
-    ./bin/run-escript -n4 -t1 oxley-designs/silo_3d.py        # see the partition
+    ./bin/run-escript -n4 -t1 oxley-designs/silo_3d.py 1 _n4  # see the partition
     ./bin/run-escript -n1 -t1 oxley-designs/silo_3d.py 2      # refine level 2
+    ./bin/run-escript -n1 -t1 oxley-designs/silo_3d.py "[[[2,1],[1,1]],[[1,1],[1,2]]]"
 
-Produces, in the current directory:
-    oxley_3d.silo    the forest as hexahedra
-    finley_3d.silo   the same mesh split into Tet4, six per octant
+The last form gives each block its own level, which leaves a 2:1 seam - hanging
+nodes - along the block boundaries; the block layout is taken from the list.
+
+Produces, in the current directory (TAG is the second argument, and defaults to
+"_hanging" for a per-block refinement so it does not overwrite the uniform run):
+    oxley_3dTAG.silo    the forest as hexahedra
+    finley_3dTAG.silo   the same mesh split into Tet4, six per octant
 
 Fields on both, so they can be compared directly:
     coords   node positions as a vector
@@ -28,6 +33,7 @@ Set REFINE to a nested list to build a forest with hanging nodes, e.g.
 oxley_3d.silo, but the conversion is refused for now - the simplex split does
 not yet number the hanging positions.
 """
+import ast
 import math
 import sys
 
@@ -54,8 +60,17 @@ N0, N1, N2 = 2, 2, 2   # blocks (p8est trees)
 REFINE = 1             # uniform level, or a nested list per block for hanging
 L0, L1, L2 = 1.0, 1.0, 1.0
 
+# argv[1]: the refinement, either an int for a uniform level or a nested list
+#          giving one level per block, e.g. "[[[2,1],[1,1]],[[1,1],[1,2]]]" -
+#          blocks at different levels leave a 2:1 seam, i.e. hanging nodes, along
+#          their boundary.
+# argv[2]: a tag appended to the file names, so several runs can coexist
+#          (defaults to "_hanging" for a per-block refinement, "" otherwise).
 if len(sys.argv) > 1:
-    REFINE = int(sys.argv[1])
+    REFINE = ast.literal_eval(sys.argv[1])
+    if isinstance(REFINE, list):
+        N0, N1, N2 = len(REFINE), len(REFINE[0]), len(REFINE[0][0])
+TAG = sys.argv[2] if len(sys.argv) > 2 else ("_hanging" if isinstance(REFINE, list) else "")
 
 rank = esc.getMPIRankWorld()
 
@@ -92,17 +107,17 @@ def poisson(dom):
 say("building oxley Brick(%d, %d, %d, refine_level=%s)" % (N0, N1, N2, REFINE))
 ox = oxley.Brick(n0=N0, n1=N1, n2=N2, l0=L0, l1=L1, l2=L2, refine_level=REFINE)
 
-saveSilo("oxley_3d.silo", **common_fields(ox))
-say("wrote oxley_3d.silo")
+saveSilo("oxley_3d%s.silo" % TAG, **common_fields(ox))
+say("wrote oxley_3d%s.silo" % TAG)
 
 conforming = ox.isConforming()          # collective: every rank must call it
 if not conforming:
     say("forest has hanging nodes, so it cannot be converted yet - "
-        "only oxley_3d.silo was written")
+        "only oxley_3d%s.silo was written" % TAG)
     sys.exit(0)
 
 fin = ox.toFinley()
 fields = common_fields(fin)
 fields["sol"] = poisson(fin)
-saveSilo("finley_3d.silo", **fields)
-say("wrote finley_3d.silo  (Tet4, six tetrahedra per octant)")
+saveSilo("finley_3d%s.silo" % TAG, **fields)
+say("wrote finley_3d%s.silo  (Tet4, six tetrahedra per octant)" % TAG)
