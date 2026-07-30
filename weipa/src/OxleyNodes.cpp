@@ -65,12 +65,43 @@ OxleyNodes::OxleyNodes(OxleyNodes_ptr fullNodes, IntVec& requiredNodes,
         IndexMap::iterator res = indexMap.find(*it);
         if (res == indexMap.end()) {
             nodeID.push_back(fullNodes->nodeID[*it]);
+            nodeGNI.push_back(fullNodes->nodeGNI[*it]);
             nodeTag.push_back(fullNodes->nodeTag[*it]);
             indexMap[*it] = newIndex;
             *it = newIndex++;
         } else {
             *it = res->second;
         }
+    }
+
+    // carry over the constraints of the nodes that survived, remapped. A master
+    // may not be required by any element of this mesh - it is a corner of the
+    // coarse neighbour, whose element can be on another rank - and without it the
+    // value at the hanging node cannot be computed, so pull it in. It ends up an
+    // unreferenced point, which costs a point and no cell.
+    const NodeConstraints& fullConstraints = fullNodes->nodeConstraints;
+    for (size_t i = 0; i < fullConstraints.size(); i++) {
+        const NodeConstraint& src = fullConstraints[i];
+        IndexMap::const_iterator res = indexMap.find(src.node);
+        if (res == indexMap.end())
+            continue;                   // this hanging node is not in this mesh
+        NodeConstraint nc;
+        nc.node = (int) res->second;
+        nc.numMasters = src.numMasters;
+        for (int k = 0; k < src.numMasters; k++) {
+            IndexMap::const_iterator m = indexMap.find(src.master[k]);
+            if (m == indexMap.end()) {
+                nodeID.push_back(fullNodes->nodeID[src.master[k]]);
+                nodeGNI.push_back(fullNodes->nodeGNI[src.master[k]]);
+                nodeTag.push_back(fullNodes->nodeTag[src.master[k]]);
+                indexMap[src.master[k]] = newIndex;
+                nc.master[k] = (int) newIndex++;
+            } else {
+                nc.master[k] = (int) m->second;
+            }
+            nc.weight[k] = src.weight[k];
+        }
+        nodeConstraints.push_back(nc);
     }
 
     // second: now that we know how many nodes we need use the map to fill
@@ -96,8 +127,10 @@ OxleyNodes::OxleyNodes(const OxleyNodes& m)
     numNodes = m.numNodes;
     globalNumNodes = m.globalNumNodes;
     nodeID = m.nodeID;
+    nodeGNI = m.nodeGNI;
     nodeTag = m.nodeTag;
     nodeDist = m.nodeDist;
+    nodeConstraints = m.nodeConstraints;
     name = m.name;
     for (int i=0; i<numDims; i++) {
         float* c = new float[numNodes];
@@ -127,7 +160,9 @@ bool OxleyNodes::initFromOxley(const oxley::OxleyDomain* dom)
         delete[] *it;
     coords.clear();
     nodeID.clear();
+    nodeGNI.clear();
     nodeTag.clear();
+    nodeConstraints.clear();
 
     // Consume the domain's public lnodes-based mesh view; the node numbering
     // scheme stays inside the domain (no p4est / coordinate-hash access here).
@@ -137,14 +172,19 @@ bool OxleyNodes::initFromOxley(const oxley::OxleyDomain* dom)
     // against the data's sample reference ids, so this is consistent whenever
     // the domain's node numbering is the lnodes numbering (true in 2D today;
     // the 3D data path still uses the old numbering until A4/A5).
-    const oxley::MeshAccess m = dom->getMeshAccess();
+    // materializeHanging: a hanging position has no lnodes node, and the slot
+    // holding a master instead would draw the cell with a corner in the wrong
+    // place. The materialised nodes carry no sample, hence nodeConstraints below.
+    const oxley::MeshAccess m = dom->getMeshAccess(true);
     numDims = m.numDim;
     numNodes = (int) m.numNodes;
-    globalNumNodes = (int) m.numNodes;   // serial; TODO(MPI, A6)
 
-    const int mpiSize = dom->getMPISize();
-    nodeDist.assign(mpiSize + 1, globalNumNodes);
-    nodeDist[0] = 0;
+    // The output numbering the domain built: rank r owns exactly
+    // [nodeDist[r], nodeDist[r+1]), so a writer emitting one shared point list
+    // (VTK) has every node written by exactly one rank, and every rank's
+    // connectivity indexes the same list.
+    nodeDist.assign(m.outputDistribution.begin(), m.outputDistribution.end());
+    globalNumNodes = nodeDist.empty() ? numNodes : (int) nodeDist.back();
 
     if (numNodes > 0) {
         for (int d = 0; d < numDims; d++) {
@@ -157,10 +197,31 @@ bool OxleyNodes::initFromOxley(const oxley::OxleyDomain* dom)
         // uses the domain's node sample ids, a permutation of 0..N-1), so
         // weipa maps data to the correct nodes. Consistent because the data
         // sample order equals the mesh-access lnodes order.
+        // ... except for the materialised nodes, which are not samples at all:
+        // they take the ids the domain gave them, a block above every lnodes id.
         const dim_t* iPtr = dom->borrowSampleReferenceIDs(oxley::Nodes);
-        nodeID.assign(iPtr, iPtr + numNodes);
+        nodeID.assign(iPtr, iPtr + m.numRealNodes);
+        for (long i = m.numRealNodes; i < m.numNodes; i++)
+            nodeID.push_back((int) m.nodeGlobalId[i]);
         // node tags are not part of the mesh-access interface yet
         nodeTag.assign(numNodes, 0);
+        nodeGNI.assign(m.nodeOutputIndex.begin(), m.nodeOutputIndex.end());
+
+        const int mpc = m.mastersPerConstrainedNode;
+        for (size_t i = 0; i < m.constrainedNodes.size(); i++) {
+            NodeConstraint nc;
+            nc.node = (int) m.constrainedNodes[i];
+            nc.numMasters = 0;
+            for (int k = 0; k < mpc && k < 4; k++) {
+                const long master = m.constraintMasters[i * mpc + k];
+                if (master < 0)
+                    continue;
+                nc.master[nc.numMasters] = (int) master;
+                nc.weight[nc.numMasters] = (float) m.constraintWeights[i * mpc + k];
+                nc.numMasters++;
+            }
+            nodeConstraints.push_back(nc);
+        }
     }
     return true;
 #else // VISIT_PLUGIN
@@ -198,10 +259,12 @@ StringVec OxleyNodes::getVarNames() const
 void OxleyNodes::writeCoordinatesVTK(ostream& os, int ownIndex)
 {
     if (numNodes > 0) {
+        // by output index, not nodeID: this decides which rank writes which
+        // point, so it must use the numbering nodeDist describes
         int firstId = nodeDist[ownIndex];
         int lastId = nodeDist[ownIndex+1];
         for (size_t i=0; i<numNodes; i++) {
-            if (firstId <= nodeID[i] && nodeID[i] < lastId) {
+            if (firstId <= nodeGNI[i] && nodeGNI[i] < lastId) {
                 os << coords[0][i] << " " << coords[1][i] << " ";
                 if (numDims == 3)
                     os << coords[2][i];

@@ -400,11 +400,16 @@ bool DataVar::reorderSamples()
     const IntVec* requiredIDs = NULL;
     int requiredNumSamples = 0;
     int cellFactor = 1;
+    // nodes that are not samples of this variable but a weighted average of
+    // nodes that are - an adaptive mesh's hanging positions (see NodeConstraint)
+    const NodeConstraints* constraints = NULL;
 
     if (centering == NODE_CENTERED) {
         NodeData_ptr nodes = domain->getMeshForFunctionSpace(funcSpace);
         requiredIDs = &nodes->getNodeIDs();
         requiredNumSamples = nodes->getNumNodes();
+        if (!nodes->getNodeConstraints().empty())
+            constraints = &nodes->getNodeConstraints();
     } else {
         ElementData_ptr cells = domain->getElementsForFunctionSpace(funcSpace);
         if (cells == NULL)
@@ -426,9 +431,12 @@ bool DataVar::reorderSamples()
         }
     }
 
-    if (requiredNumSamples > numSamples) {
+    // the mesh may hold nodes that carry no sample; they are filled in below
+    const int numConstrained = (constraints ? (int)constraints->size() : 0);
+    if (requiredNumSamples - numConstrained > numSamples) {
         cerr << "ERROR: " << varName << " has " << numSamples
-            << " instead of " << requiredNumSamples << " samples!" << endl;
+            << " instead of " << requiredNumSamples-numConstrained
+            << " samples!" << endl;
         return false;
     }
 
@@ -442,8 +450,22 @@ bool DataVar::reorderSamples()
         IntVec::const_iterator idIt = requiredIDs->begin();
         size_t destIdx = 0;
         for (; idIt != requiredIDs->end(); idIt+=cellFactor, destIdx+=cellFactor) {
-            size_t srcIdx = sampleID2idx.find(*idIt)->second;
-            copy(&src[srcIdx], &src[srcIdx+cellFactor], &c[destIdx]);
+            IndexMap::const_iterator it = sampleID2idx.find(*idIt);
+            if (it == sampleID2idx.end()) {
+                // a constrained node, or a node this variable has no sample for
+                fill(&c[destIdx], &c[destIdx+cellFactor], 0.f);
+                continue;
+            }
+            copy(&src[it->second], &src[it->second+cellFactor], &c[destIdx]);
+        }
+        // the constrained nodes are the weighted average of their masters, which
+        // are ordinary nodes and so already in place
+        for (int k=0; k < numConstrained; k++) {
+            const NodeConstraint& nc = (*constraints)[k];
+            float value = 0.f;
+            for (int j=0; j < nc.numMasters; j++)
+                value += nc.weight[j] * c[nc.master[j]];
+            c[nc.node] = value;
         }
         delete[] dataArray[i];
         dataArray[i] = c;
