@@ -44,7 +44,7 @@ try:
     import esys.finley as finley  # REQUIRED: registers the finley domain type,
                                   # otherwise toFinley() hands back a bare Domain
     import esys.oxley as oxley
-    from esys.weipa import saveSilo
+    from esys.weipa import saveSilo, saveVTK
 except ImportError as e:
     raise SystemExit(
         "cannot import esys (%s).\n\n"
@@ -58,7 +58,11 @@ except ImportError as e:
 # ---------------------------------------------------------------- settings --
 N0, N1, N2 = 2, 2, 2   # blocks (p8est trees)
 REFINE = 1             # uniform level, or a nested list per block for hanging
-L0, L1, L2 = 1.0, 1.0, 1.0
+# The domain extent follows the block layout so that every BLOCK is a unit cube
+# and hence every element is a cube. With a fixed 1x1x1 domain a 2x1x1 block
+# layout would give 0.5x1x1 blocks and every element would inherit that aspect -
+# correct, but hard to read in a viewer.
+L0, L1, L2 = float(N0), float(N1), float(N2)
 
 # argv[1]: the refinement, either an int for a uniform level or a nested list
 #          giving one level per block, e.g. "[[[2,1],[1,1]],[[1,1],[1,2]]]" -
@@ -70,6 +74,7 @@ if len(sys.argv) > 1:
     REFINE = ast.literal_eval(sys.argv[1])
     if isinstance(REFINE, list):
         N0, N1, N2 = len(REFINE), len(REFINE[0]), len(REFINE[0][0])
+        L0, L1, L2 = float(N0), float(N1), float(N2)
 TAG = sys.argv[2] if len(sys.argv) > 2 else ("_hanging" if isinstance(REFINE, list) else "")
 
 rank = esc.getMPIRankWorld()
@@ -107,8 +112,10 @@ def poisson(dom):
 say("building oxley Brick(%d, %d, %d, refine_level=%s)" % (N0, N1, N2, REFINE))
 ox = oxley.Brick(n0=N0, n1=N1, n2=N2, l0=L0, l1=L1, l2=L2, refine_level=REFINE)
 
-saveSilo("oxley_3d%s.silo" % TAG, **common_fields(ox))
-say("wrote oxley_3d%s.silo" % TAG)
+fields = common_fields(ox)
+saveSilo("oxley_3d%s.silo" % TAG, **fields)
+saveVTK("oxley_3d%s.vtu" % TAG, **fields)
+say("wrote oxley_3d%s.silo and .vtu" % TAG)
 
 conforming = ox.isConforming()          # collective: every rank must call it
 if not conforming:
@@ -120,4 +127,5 @@ fin = ox.toFinley()
 fields = common_fields(fin)
 fields["sol"] = poisson(fin)
 saveSilo("finley_3d%s.silo" % TAG, **fields)
+saveVTK("finley_3d%s.vtu" % TAG, **fields)
 say("wrote finley_3d%s.silo  (Tet4, six tetrahedra per octant)" % TAG)

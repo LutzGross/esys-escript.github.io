@@ -25,6 +25,13 @@ and on the finley mesh only:
 In VisIt open both files, use Controls > Subset or the Mesh plot to see the
 element shapes, and Pseudocolor on `rank` to see the decomposition.
 
+FACE ELEMENTS. The .silo carries every mesh, so the boundary elements are always
+in it. A .vtu holds ONE mesh, so weipa writes one file per mesh and only for
+meshes that carry a variable: with volume/nodal fields alone the boundary is
+simply not in the VTK output. Passing a field on FunctionOnBoundary (say
+dom.getNormal()) writes it as <prefix>_FaceElements.vtu - but note that this also
+renames the volume file to <prefix>_Elements.vtu. finley behaves identically.
+
 Set REFINE to a nested list to build a forest with hanging nodes, e.g.
 [[3,1],[1,2]] for a 2x2 block layout. That still writes oxley_2d.silo, but the
 conversion is refused for now - the simplex split does not yet number the
@@ -41,7 +48,7 @@ try:
     import esys.finley as finley  # REQUIRED: registers the finley domain type,
                                   # otherwise toFinley() hands back a bare Domain
     import esys.oxley as oxley
-    from esys.weipa import saveSilo
+    from esys.weipa import saveSilo, saveVTK
 except ImportError as e:
     raise SystemExit(
         "cannot import esys (%s).\n\n"
@@ -55,7 +62,11 @@ except ImportError as e:
 # ---------------------------------------------------------------- settings --
 N0, N1 = 2, 2          # blocks (p4est trees)
 REFINE = 2             # uniform level, or a nested list per block for hanging
-L0, L1 = 1.0, 1.0
+# The domain extent follows the block layout so that every BLOCK is a unit
+# square and hence every element is square. With a fixed 1x1 domain a 2x1 block
+# layout would give 0.5x1.0 blocks and every element would inherit that 1:2
+# aspect - correct, but hard to read in a viewer.
+L0, L1 = float(N0), float(N1)
 
 # argv[1]: the refinement, either an int for a uniform level or a nested list
 #          giving one level per block, e.g. "[[3,1],[1,2]]" - blocks at different
@@ -66,6 +77,7 @@ if len(sys.argv) > 1:
     REFINE = ast.literal_eval(sys.argv[1])
     if isinstance(REFINE, list):
         N0, N1 = len(REFINE), len(REFINE[0])
+        L0, L1 = float(N0), float(N1)
 TAG = sys.argv[2] if len(sys.argv) > 2 else ("_hanging" if isinstance(REFINE, list) else "")
 
 rank = esc.getMPIRankWorld()
@@ -102,8 +114,10 @@ def poisson(dom):
 say("building oxley Rectangle(%d, %d, refine_level=%s)" % (N0, N1, REFINE))
 ox = oxley.Rectangle(n0=N0, n1=N1, l0=L0, l1=L1, refine_level=REFINE)
 
-saveSilo("oxley_2d%s.silo" % TAG, **common_fields(ox))
-say("wrote oxley_2d%s.silo" % TAG)
+fields = common_fields(ox)
+saveSilo("oxley_2d%s.silo" % TAG, **fields)
+saveVTK("oxley_2d%s.vtu" % TAG, **fields)
+say("wrote oxley_2d%s.silo and .vtu" % TAG)
 
 conforming = ox.isConforming()          # collective: every rank must call it
 if not conforming:
@@ -115,4 +129,5 @@ fin = ox.toFinley()
 fields = common_fields(fin)
 fields["sol"] = poisson(fin)
 saveSilo("finley_2d%s.silo" % TAG, **fields)
+saveVTK("finley_2d%s.vtu" % TAG, **fields)
 say("wrote finley_2d%s.silo  (Tri3, 2 triangles per quad)" % TAG)
