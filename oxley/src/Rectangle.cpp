@@ -1744,8 +1744,22 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
 
+            // A HANGING corner has no node of its own: the slot holds a MASTER,
+            // which is a node of the coarse neighbour and lies OUTSIDE this
+            // element. Writing this corner's position into it would move the
+            // master to the hanging position, so skip those slots. Usually the
+            // master gets its coordinate from an element where it is a real
+            // corner; under MPI it need not have one here, which the second pass
+            // below deals with.
+            int hangingCorner[P4EST_CHILDREN];
+            const bool anyHanging = getHangingNodes(nodes->face_code[e],
+                                                    hangingCorner);
+
             // Loop over the four corners of the quadrant (z-order matches lnodes)
             for(int n = 0; n < 4; ++n){
+                if(anyHanging && hangingCorner[n] >= 0)
+                    continue;
+
                 double lx = length * ((int) (n % 2) == 1);
                 double ly = length * ((int) (n / 2) == 1);
                 double xy[3];
@@ -1773,6 +1787,23 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
             }
         }
     }
+    // Fill in any node our elements only ever reference as a hanging slot; it
+    // has no coordinate yet and would silently stay at the origin. (MPI only.)
+    {
+        std::vector<long> fmIds;
+        std::vector<double> fmXY;
+        farMasterCoords(fmIds, fmXY);
+        for (size_t i = 0; i < fmIds.size(); ++i) {
+            const long lni = fmIds[i];
+            if (lni < 0 || lni >= (long) getNumNodes() || duplicates[lni])
+                continue;
+            duplicates[lni] = true;
+            double * point = arg.getSampleDataRW(lni);
+            point[0] = fmXY[2*i];
+            point[1] = fmXY[2*i+1];
+        }
+    }
+
 #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_COORDINATES_POINTS
     std::cout << "assembleCoordinates new points are..." << std::endl;
     for(int i = 0; i < getNumNodes() ; i++)
@@ -2643,7 +2674,56 @@ bool Rectangle::isConforming() const
     return anyHang == 0;
 }
 
-MeshAccess Rectangle::getMeshAccess() const
+//protected
+void Rectangle::farMasterCoords(std::vector<long>& ids,
+                                std::vector<double>& xy) const
+{
+    ids.clear();
+    xy.clear();
+
+    // A node referenced by our elements ONLY through hanging slots never gets a
+    // coordinate from the ordinary walk, which skips those slots so they cannot
+    // overwrite their master's position. That happens under MPI: the far master
+    // is a corner of the coarse neighbour and of the adjacent fine element, and
+    // the SFC cut can put both on another rank. The node is then left at the
+    // origin, and everything read through it - getX, any field built from it,
+    // and the average that defines the hanging node - is silently wrong.
+    //
+    // No halo and no communication are needed to repair it. A hanging corner H
+    // is the MIDPOINT of the coarse neighbour's edge; the other end A of that
+    // edge is a real corner of this same element (it is the slot getHangingNodes
+    // reports), so the far master sits at 2H - A. Both H and A are local.
+    const int V = nodes->vnodes;
+    long e = 0;
+    for (p4est_topidx_t treeid = p4est->first_local_tree;
+         treeid <= p4est->last_local_tree; ++treeid) {
+        p4est_tree_t* tree = p4est_tree_array_index(p4est->trees, treeid);
+        sc_array_t* quads = &tree->quadrants;
+        const p4est_locidx_t Q = (p4est_locidx_t) quads->elem_count;
+        for (p4est_locidx_t q = 0; q < Q; ++q, ++e) {
+            int hangingCorner[P4EST_CHILDREN];
+            if (!getHangingNodes(nodes->face_code[e], hangingCorner))
+                continue;
+            p4est_quadrant_t* quad = p4est_quadrant_array_index(quads, q);
+            const p4est_qcoord_t len = P4EST_QUADRANT_LEN(quad->level);
+            for (int c = 0; c < V; ++c) {
+                const int a = hangingCorner[c];
+                if (a < 0)
+                    continue;
+                double H[3] = {0.,0.,0.}, A[3] = {0.,0.,0.};
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid,
+                        quad->x + (c & 1)*len, quad->y + ((c >> 1) & 1)*len, H);
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid,
+                        quad->x + (a & 1)*len, quad->y + ((a >> 1) & 1)*len, A);
+                ids.push_back((long) nodes->element_nodes[(size_t) e * V + c]);
+                xy.push_back(2.*H[0] - A[0]);
+                xy.push_back(2.*H[1] - A[1]);
+            }
+        }
+    }
+}
+
+MeshAccess Rectangle::getMeshAccess(bool materializeHanging) const
 {
     MeshAccess m;
     m.numDim = 2;
@@ -2652,6 +2732,8 @@ MeshAccess Rectangle::getMeshAccess() const
     m.numOwnedNodes = nodes->owned_count;
     m.numElements = nodes->num_local_elements;
     m.globalNodeOffset = (long) nodes->global_offset;
+    m.numRealNodes = m.numNodes;
+    m.mastersPerConstrainedNode = 2;                   // an edge midpoint
 
     m.nodeCoords.assign((size_t) m.numNodes * m.numDim, 0.0);
     m.nodeGlobalId.resize(m.numNodes);
@@ -2667,7 +2749,14 @@ MeshAccess Rectangle::getMeshAccess() const
 
     // walk the leaves in lnodes element order, filling connectivity, tags and
     // (deduplicated by node index) coordinates.
+    //
+    // A HANGING corner has no node of its own: its element_nodes slot holds the
+    // far master, a node that lies OUTSIDE this element. So the slot's coordinate
+    // must not be written - it would move the master to the hanging position -
+    // and with materializeHanging the slot is redirected to a node created here.
     const int V = m.nodesPerElement;
+    HangingNodeMap hangingOf;           // position -> materialised node index
+    std::vector<bool> haveCoords(m.numNodes, false);
     long e = 0;
     for (p4est_topidx_t treeid = p4est->first_local_tree;
          treeid <= p4est->last_local_tree; ++treeid) {
@@ -2679,6 +2768,11 @@ MeshAccess Rectangle::getMeshAccess() const
             const quadrantData * qd = (const quadrantData *) quad->p.user_data;
             m.elementTags[e] = qd ? qd->quadTag : 0;
             const p4est_qcoord_t len = P4EST_QUADRANT_LEN(quad->level);
+
+            int hangingCorner[P4EST_CHILDREN];
+            const bool anyHanging = getHangingNodes(nodes->face_code[e],
+                                                    hangingCorner);
+
             for (int c = 0; c < V; ++c) {
                 const long ni = (long) nodes->element_nodes[(size_t) e * V + c];
                 m.elementNodes[(size_t) e * V + c] = ni;
@@ -2687,12 +2781,53 @@ MeshAccess Rectangle::getMeshAccess() const
                 double xy[3] = {0., 0., 0.};
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid,
                                        quad->x + cx * len, quad->y + cy * len, xy);
+                if (anyHanging && hangingCorner[c] >= 0)
+                    continue;                  // a master, not this corner
                 m.nodeCoords[(size_t) ni * m.numDim + 0] = xy[0];
                 m.nodeCoords[(size_t) ni * m.numDim + 1] = xy[1];
+                haveCoords[ni] = true;
+            }
+
+            if (!materializeHanging || !anyHanging)
+                continue;
+
+            // The hanging corner is the midpoint of the coarse neighbour's edge,
+            // so its two masters are this element's slot c (the far master) and
+            // slot hangingCorner[c] (the near one, a corner of this element).
+            for (int c = 0; c < V; ++c) {
+                if (hangingCorner[c] < 0)
+                    continue;
+                const int cx = c & 1, cy = (c >> 1) & 1;
+                double xy[3] = {0., 0., 0.};
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid,
+                                       quad->x + cx * len, quad->y + cy * len, xy);
+                const long masters[2] = {
+                    (long) nodes->element_nodes[(size_t) e * V + c],
+                    (long) nodes->element_nodes[(size_t) e * V + hangingCorner[c]]
+                };
+                const double weights[2] = {0.5, 0.5};
+                m.elementNodes[(size_t) e * V + c] =
+                        addHangingNode(m, hangingOf, xy, masters, weights, 2);
             }
         }
     }
 
+
+    // Any node our elements only ever reference as a hanging slot has no
+    // coordinate yet; see farMasterCoords(). (MPI only.)
+    {
+        std::vector<long> fmIds;
+        std::vector<double> fmXY;
+        farMasterCoords(fmIds, fmXY);
+        for (size_t i = 0; i < fmIds.size(); ++i) {
+            const long ni = fmIds[i];
+            if (ni < 0 || ni >= m.numRealNodes || haveCoords[ni])
+                continue;
+            haveCoords[ni] = true;
+            m.nodeCoords[(size_t) ni * m.numDim + 0] = fmXY[2*i];
+            m.nodeCoords[(size_t) ni * m.numDim + 1] = fmXY[2*i+1];
+        }
+    }
 
     // Boundary faces. A quadrant face lies on the domain boundary when the
     // quadrant touches the tree boundary in that direction AND the connectivity
@@ -2731,9 +2866,12 @@ MeshAccess Rectangle::getMeshAccess() const
                     }
                     if (!touches)
                         continue;
+                    // from m.elementNodes, not element_nodes: a boundary edge of
+                    // a fine element can end at a hanging corner, and the face
+                    // must name the node that is actually there
                     for (int c = 0; c < 2; ++c)
-                        m.faceNodes.push_back((long) nodes->element_nodes[
-                                (size_t) le * V + faceCorner[f][c]]);
+                        m.faceNodes.push_back(
+                                m.elementNodes[(size_t) le * V + faceCorner[f][c]]);
                     m.faceTags.push_back(faceTag[f]);
                     m.faceElements.push_back(le);
                 }
@@ -2741,6 +2879,12 @@ MeshAccess Rectangle::getMeshAccess() const
         }
         m.numFaces = (long) m.faceTags.size();
     }
+
+    std::vector<long> ownedPerRank(m_mpiInfo->size);
+    for (int i = 0; i < m_mpiInfo->size; ++i)
+        ownedPerRank[i] = (long) nodes->global_owned_count[i];
+    finaliseNodeNumbering(m, ownedPerRank);
+
     return m;
 }
 

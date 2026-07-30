@@ -1878,12 +1878,69 @@ boost::python::numpy::ndarray OxleyDomain::getNumpyX() const
     return continuousFunction(*this).getNumpyX();
 }
 
-boost::python::dict OxleyDomain::getMeshInfo() const
+//protected
+void OxleyDomain::finaliseNodeNumbering(MeshAccess& m,
+                                        const std::vector<long>& ownedPerRank) const
+{
+    const int size = m_mpiInfo->size;
+    const int rank = m_mpiInfo->rank;
+    const long numExtra = (long) m.constrainedNodes.size();
+
+    // how many nodes each rank materialised. p4est already told every rank how
+    // many lnodes nodes every other rank owns, so this is the only exchange.
+    std::vector<long> extraPerRank(size, 0);
+    extraPerRank[rank] = numExtra;
+#ifdef ESYS_MPI
+    if (size > 1) {
+        MPI_Allgather(&extraPerRank[rank], 1, MPI_LONG,
+                      &extraPerRank[0], 1, MPI_LONG, m_mpiInfo->comm);
+    }
+#endif
+
+    // where each rank's lnodes ids start, and where its output block starts
+    std::vector<long> realOffset(size + 1, 0);
+    m.outputDistribution.assign(size + 1, 0);
+    for (int r = 0; r < size; ++r) {
+        realOffset[r + 1] = realOffset[r] + ownedPerRank[r];
+        m.outputDistribution[r + 1] = m.outputDistribution[r]
+                                    + ownedPerRank[r] + extraPerRank[r];
+    }
+    const long globalRealNodes = realOffset[size];
+
+    // the materialised nodes take a per-rank block above every lnodes id, so
+    // their ids collide neither with an lnodes id nor with another rank's block
+    long idOffset = globalRealNodes;
+    for (int r = 0; r < rank; ++r)
+        idOffset += extraPerRank[r];
+    for (long i = 0; i < numExtra; ++i)
+        m.nodeGlobalId[m.constrainedNodes[i]] = idOffset + i;
+
+    // the contiguous output numbering. An owned lnodes node keeps its position
+    // within this rank's block; a ghost is placed in ITS OWNER's block, at the
+    // same position it has there - which follows from its lnodes global id,
+    // since lnodes numbers each rank's owned nodes consecutively from
+    // global_offset. So no communication is needed for the ghosts either.
+    m.nodeOutputIndex.assign(m.numNodes, -1);
+    for (long i = 0; i < m.numOwnedNodes; ++i)
+        m.nodeOutputIndex[i] = m.outputDistribution[rank] + i;
+    for (long i = m.numOwnedNodes; i < m.numRealNodes; ++i) {
+        const long g = m.nodeGlobalId[i];
+        int owner = 0;                          // realOffset is sorted
+        while (owner + 1 < size && realOffset[owner + 1] <= g)
+            ++owner;
+        m.nodeOutputIndex[i] = m.outputDistribution[owner] + (g - realOffset[owner]);
+    }
+    for (long i = 0; i < numExtra; ++i)
+        m.nodeOutputIndex[m.constrainedNodes[i]] =
+                m.outputDistribution[rank] + ownedPerRank[rank] + i;
+}
+
+boost::python::dict OxleyDomain::getMeshInfo(bool materializeHanging) const
 {
     namespace bp = boost::python;
     namespace np = boost::python::numpy;
 
-    const MeshAccess m = getMeshAccess();
+    const MeshAccess m = getMeshAccess(materializeHanging);
     const np::dtype f64 = np::dtype::get_builtin<double>();
     const np::dtype i64 = np::dtype::get_builtin<long>();
 
@@ -1919,6 +1976,45 @@ boost::python::dict OxleyDomain::getMeshInfo() const
     d["nodeGlobalId"] = nodeGlobalId;
     d["elementNodes"] = elementNodes;
     d["elementTags"] = elementTags;
+
+    // materialised hanging positions (empty unless materializeHanging)
+    const long numExtra = (long) m.constrainedNodes.size();
+    const int mpc = m.mastersPerConstrainedNode;
+    np::ndarray constrainedNodes = np::zeros(bp::make_tuple(numExtra), i64);
+    np::ndarray constraintMasters = np::zeros(bp::make_tuple(numExtra, mpc), i64);
+    np::ndarray constraintWeights = np::zeros(bp::make_tuple(numExtra, mpc), f64);
+    if (numExtra > 0) {
+        std::memcpy(constrainedNodes.get_data(), m.constrainedNodes.data(),
+                    m.constrainedNodes.size() * sizeof(long));
+        std::memcpy(constraintMasters.get_data(), m.constraintMasters.data(),
+                    m.constraintMasters.size() * sizeof(long));
+        std::memcpy(constraintWeights.get_data(), m.constraintWeights.data(),
+                    m.constraintWeights.size() * sizeof(double));
+    }
+    // boundary faces (the arrays weipa's FaceElements and the finley converter
+    // both consume)
+    np::ndarray faceNodes = np::zeros(bp::make_tuple(m.numFaces, m.nodesPerFace), i64);
+    np::ndarray faceTags = np::zeros(bp::make_tuple(m.numFaces), i64);
+    np::ndarray faceElements = np::zeros(bp::make_tuple(m.numFaces), i64);
+    if (m.numFaces > 0) {
+        std::memcpy(faceNodes.get_data(), m.faceNodes.data(),
+                    m.faceNodes.size() * sizeof(long));
+        std::memcpy(faceTags.get_data(), m.faceTags.data(),
+                    m.faceTags.size() * sizeof(long));
+        std::memcpy(faceElements.get_data(), m.faceElements.data(),
+                    m.faceElements.size() * sizeof(long));
+    }
+    d["nodesPerFace"] = m.nodesPerFace;
+    d["numFaces"] = m.numFaces;
+    d["faceNodes"] = faceNodes;
+    d["faceTags"] = faceTags;
+    d["faceElements"] = faceElements;
+
+    d["numRealNodes"] = m.numRealNodes;
+    d["mastersPerConstrainedNode"] = mpc;
+    d["constrainedNodes"] = constrainedNodes;
+    d["constraintMasters"] = constraintMasters;
+    d["constraintWeights"] = constraintWeights;
     return d;
 }
 #endif

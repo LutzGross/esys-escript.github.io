@@ -490,11 +490,14 @@ protected:
 
     /**
        \brief
-       Returns an lnodes-based, p4est-independent view of the mesh.
+       Returns an lnodes-based, p4est-independent view of the mesh. With
+       materializeHanging the hanging positions become nodes of their own; see
+       OxleyDomain::getMeshAccess().
     */
-    virtual MeshAccess getMeshAccess() const;
+    virtual MeshAccess getMeshAccess(bool materializeHanging = false) const;
 
     virtual bool isConforming() const;
+
 
     /**
        \brief
@@ -547,6 +550,16 @@ protected:
        Returns true if the node is hanging
     */
     bool getHangingNodes(p4est_lnodes_code_t face_code, int hanging[]) const;
+
+    /**
+       \brief
+       Positions of the nodes our elements reference ONLY through hanging slots,
+       which the ordinary coordinate walk therefore leaves unset. Reconstructed
+       locally: a hanging corner is the midpoint of the coarse neighbour's edge
+       and the other end is a corner of the same element, so the far master is at
+       2H - A. Returns parallel arrays of local node index and position.
+    */
+    void farMasterCoords(std::vector<long>& ids, std::vector<double>& xy) const;
 
     /**
        \brief

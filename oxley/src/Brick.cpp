@@ -4037,8 +4037,21 @@ void Brick::assembleCoordinates(escript::Data& arg) const
             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
             p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
             int dxyz[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},{0,0,l},{l,0,l},{0,l,l},{l,l,l}};
+
+            // A HANGING corner has no node of its own: the slot holds a MASTER,
+            // which is a node of the coarse neighbour and lies OUTSIDE this
+            // octant. Writing this corner's position into it would move the
+            // master to the hanging position, so skip those slots - the master
+            // gets its coordinate from an octant where it is a real corner.
+            int masterCount[P8EST_CHILDREN], masterSlot[P8EST_CHILDREN][4];
+            const bool anyHanging = getHangingNodes(nodes->face_code[e],
+                                                    masterCount, masterSlot);
+
             for(int n = 0; n < 8; ++n)
             {
+                if(anyHanging && masterCount[n] > 0)
+                    continue;
+
                 double xy[3];
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+dxyz[n][0], quad->y+dxyz[n][1], quad->z+dxyz[n][2], xy);
 #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_COORDINATES
@@ -4725,7 +4738,53 @@ bool Brick::isConforming() const
     return anyHang == 0;
 }
 
-MeshAccess Brick::getMeshAccess() const
+//protected
+bool Brick::getHangingNodes(p8est_lnodes_code_t face_code,
+                            int masterCount[P8EST_CHILDREN],
+                            int masters[P8EST_CHILDREN][4]) const
+{
+    // Decodes the lnodes face_code, following p8est_lnodes_decode: the low
+    // P8EST_DIM bits hold the corner c that touches no hanging face, the next
+    // three say which of c's faces hang, the three after that which of its edges
+    // do. A corner in the middle of a coarse FACE is the average of that face's
+    // four corners, one in the middle of a coarse EDGE the average of its two
+    // ends - and those masters are all present among this element's own slots,
+    // because a hanging slot already holds the far master. So the masters are
+    // slot indices into this element and the weights are all 1/masterCount.
+    for (int i = 0; i < P8EST_CHILDREN; ++i)
+        masterCount[i] = 0;
+
+    if (!face_code)
+        return false;
+
+    static const int ones = P8EST_CHILDREN - 1;        // 7
+    const int c = (int) (face_code & ones);
+    int work = (int) (face_code >> P8EST_DIM);
+
+    for (int i = 0; i < P8EST_DIM; ++i) {             // hanging faces -> centre
+        if (work & 1) {
+            const int f = p8est_corner_faces[c][i];
+            const int hn = c ^ ones ^ (1 << i);       // opposite c on face f
+            masterCount[hn] = 4;
+            for (int j = 0; j < 4; ++j)
+                masters[hn][j] = p8est_face_corners[f][j];
+        }
+        work >>= 1;
+    }
+    for (int i = 0; i < P8EST_DIM; ++i) {             // hanging edges -> midpoint
+        if (work & 1) {
+            const int ed = p8est_corner_edges[c][i];
+            const int hn = c ^ (1 << i);              // far end of edge ed from c
+            masterCount[hn] = 2;
+            for (int j = 0; j < 2; ++j)
+                masters[hn][j] = p8est_edge_corners[ed][j];
+        }
+        work >>= 1;
+    }
+    return true;
+}
+
+MeshAccess Brick::getMeshAccess(bool materializeHanging) const
 {
     MeshAccess m;
     m.numDim = 3;
@@ -4734,6 +4793,8 @@ MeshAccess Brick::getMeshAccess() const
     m.numOwnedNodes = nodes->owned_count;
     m.numElements = nodes->num_local_elements;
     m.globalNodeOffset = (long) nodes->global_offset;
+    m.numRealNodes = m.numNodes;
+    m.mastersPerConstrainedNode = 4;                   // a face centre
 
     m.nodeCoords.assign((size_t) m.numNodes * m.numDim, 0.0);
     m.nodeGlobalId.resize(m.numNodes);
@@ -4749,7 +4810,13 @@ MeshAccess Brick::getMeshAccess() const
 
     // walk the leaves in lnodes element order, filling connectivity, tags and
     // (deduplicated by node index) coordinates.
+    //
+    // A HANGING corner has no node of its own: its element_nodes slot holds a
+    // master, a node that lies OUTSIDE this element. So the slot's coordinate must
+    // not be written - it would move the master to the hanging position - and with
+    // materializeHanging the slot is redirected to a node created here.
     const int V = m.nodesPerElement;
+    HangingNodeMap hangingOf;           // position -> materialised node index
     long e = 0;
     for (p4est_topidx_t treeid = p8est->first_local_tree;
          treeid <= p8est->last_local_tree; ++treeid) {
@@ -4761,19 +4828,43 @@ MeshAccess Brick::getMeshAccess() const
             const octantData * od = (const octantData *) oct->p.user_data;
             m.elementTags[e] = od ? od->octantTag : 0;
             const p4est_qcoord_t len = P8EST_QUADRANT_LEN(oct->level);
+
+            int masterCount[P8EST_CHILDREN], masterSlot[P8EST_CHILDREN][4];
+            const bool anyHanging = getHangingNodes(nodes->face_code[e],
+                                                   masterCount, masterSlot);
+
+            double cornerPos[P8EST_CHILDREN][3];
             for (int c = 0; c < V; ++c) {
                 const long ni = (long) nodes->element_nodes[(size_t) e * V + c];
                 m.elementNodes[(size_t) e * V + c] = ni;
                 const int cx = c & 1;          // z-order corner: bit0=x,bit1=y,bit2=z
                 const int cy = (c >> 1) & 1;
                 const int cz = (c >> 2) & 1;
-                double xyz[3] = {0., 0., 0.};
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid,
                                        oct->x + cx * len, oct->y + cy * len,
-                                       oct->z + cz * len, xyz);
-                m.nodeCoords[(size_t) ni * m.numDim + 0] = xyz[0];
-                m.nodeCoords[(size_t) ni * m.numDim + 1] = xyz[1];
-                m.nodeCoords[(size_t) ni * m.numDim + 2] = xyz[2];
+                                       oct->z + cz * len, cornerPos[c]);
+                if (anyHanging && masterCount[c] > 0)
+                    continue;                  // a master, not this corner
+                for (int d = 0; d < m.numDim; ++d)
+                    m.nodeCoords[(size_t) ni * m.numDim + d] = cornerPos[c][d];
+            }
+
+            if (!materializeHanging || !anyHanging)
+                continue;
+
+            for (int c = 0; c < V; ++c) {
+                if (masterCount[c] == 0)
+                    continue;
+                long masters[4];
+                double weights[4];
+                for (int k = 0; k < masterCount[c]; ++k) {
+                    masters[k] = (long) nodes->element_nodes[
+                            (size_t) e * V + masterSlot[c][k]];
+                    weights[k] = 1. / masterCount[c];
+                }
+                m.elementNodes[(size_t) e * V + c] =
+                        addHangingNode(m, hangingOf, cornerPos[c], masters,
+                                       weights, masterCount[c]);
             }
         }
     }
@@ -4817,9 +4908,13 @@ MeshAccess Brick::getMeshAccess() const
                     }
                     if (!touches)
                         continue;
+                    // from m.elementNodes, not element_nodes: a boundary face of
+                    // a fine octant can have a hanging corner (its edge midpoint
+                    // hangs on the coarse neighbour), and the face must name the
+                    // node that is actually there
                     for (int c = 0; c < 4; ++c)
-                        m.faceNodes.push_back((long) nodes->element_nodes[
-                                (size_t) le * V + faceCorner[f][c]]);
+                        m.faceNodes.push_back(
+                                m.elementNodes[(size_t) le * V + faceCorner[f][c]]);
                     m.faceTags.push_back(faceTag[f]);
                     m.faceElements.push_back(le);
                 }
@@ -4827,6 +4922,12 @@ MeshAccess Brick::getMeshAccess() const
         }
         m.numFaces = (long) m.faceTags.size();
     }
+
+    std::vector<long> ownedPerRank(m_mpiInfo->size);
+    for (int i = 0; i < m_mpiInfo->size; ++i)
+        ownedPerRank[i] = (long) nodes->global_owned_count[i];
+    finaliseNodeNumbering(m, ownedPerRank);
+
     return m;
 }
 

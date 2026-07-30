@@ -512,11 +512,24 @@ protected:
 
     /**
        \brief
-       Returns an lnodes-based, p4est-independent view of the mesh.
+       Returns an lnodes-based, p4est-independent view of the mesh. With
+       materializeHanging the hanging positions become nodes of their own; see
+       OxleyDomain::getMeshAccess().
     */
-    virtual MeshAccess getMeshAccess() const;
+    virtual MeshAccess getMeshAccess(bool materializeHanging = false) const;
 
     virtual bool isConforming() const;
+
+    /**
+       \brief
+       Decodes an lnodes face_code. For each element corner, fills in how many
+       masters it is the average of (0 when it does not hang: 2 on a coarse edge,
+       4 on a coarse face) and which of this element's corners those are, and
+       returns whether anything hangs.
+    */
+    bool getHangingNodes(p8est_lnodes_code_t face_code,
+                         int masterCount[P8EST_CHILDREN],
+                         int masters[P8EST_CHILDREN][4]) const;
 
     /**
        \brief

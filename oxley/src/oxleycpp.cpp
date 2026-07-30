@@ -438,8 +438,15 @@ BOOST_PYTHON_MODULE(oxleycpp)
             ":rtype: `Data`")
         #ifdef ESYS_HAVE_BOOST_NUMPY
         .def("getMeshInfo",&oxley::OxleyDomain::getMeshInfo,
+            (arg("materializeHanging")=false),
             "Returns an lnodes-based view of the mesh (node coordinates, global ids,\n"
             "element-to-node connectivity and element tags) as a dict of numpy arrays.\n\n"
+            ":param materializeHanging: give every hanging position a node of its own,\n"
+            "    appended after the lnodes nodes and described by the returned\n"
+            "    numRealNodes/constrainedNodes/constraintMasters/constraintWeights.\n"
+            "    Without it an element whose corner hangs lists a master there, a node\n"
+            "    that lies outside the element.\n"
+            ":type materializeHanging: ``bool``\n"
             ":rtype: ``dict``")
         #endif
         #ifdef ESYS_HAVE_TRILINOS

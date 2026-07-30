@@ -861,7 +861,14 @@ public:
     /// returns an lnodes-based, p4est-independent view of the mesh (see MeshAccess).
     /// This is the single public description of the mesh topology consumed by
     /// output and (later) assembly; the node numbering stays inside the domain.
-    virtual MeshAccess getMeshAccess() const = 0;
+    ///
+    /// With materializeHanging every hanging position becomes a node of its own,
+    /// appended after the lnodes nodes and described by MeshAccess's constraint
+    /// arrays. Consumers that need one node per element corner - anything that
+    /// draws the cells - want this; consumers that resolve the constraint
+    /// themselves do not. Without it, an element whose corner hangs lists a
+    /// MASTER there, which lies outside the element.
+    virtual MeshAccess getMeshAccess(bool materializeHanging = false) const = 0;
 
     /// true when no element anywhere in the forest has a hanging node, so the
     /// mesh is a conforming all-quad/all-hex mesh. Collective: every rank gets
@@ -870,9 +877,22 @@ public:
 
     #ifdef ESYS_HAVE_BOOST_NUMPY
       /// Python view of getMeshAccess(): a dict of scalars and numpy arrays.
-      boost::python::dict getMeshInfo() const;
+      boost::python::dict getMeshInfo(bool materializeHanging = false) const;
     #endif
 protected:
+
+    /// Completes the node numbering of a freshly built MeshAccess:
+    ///   - gives the nodes materialised at hanging positions globally unique
+    ///     ids, in a per-rank block above every lnodes id;
+    ///   - builds the contiguous output numbering (nodeOutputIndex and
+    ///     outputDistribution, see MeshAccess).
+    /// ownedPerRank is the number of lnodes nodes owned by each rank, which
+    /// p4est already knows everywhere (lnodes->global_owned_count), so the only
+    /// communication is one Allgather of this rank's materialised count.
+    /// Collective under MPI.
+    void finaliseNodeNumbering(MeshAccess& m,
+                               const std::vector<long>& ownedPerRank) const;
+
 
     // Tagmap
     TagMap m_tagMap;
