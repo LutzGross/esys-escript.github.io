@@ -28,6 +28,30 @@
 
 namespace oxley {
 
+// converts the diagnostic's counts to a python list
+boost::python::list _lnodesDegree2Report(const oxley::OxleyDomain& dom)
+{
+    const std::vector<long> r = oxley::lnodesDegree2Report(dom);
+    boost::python::list out;
+    for (size_t i = 0; i < r.size(); ++i)
+        out.append(r[i]);
+    return out;
+}
+
+// one python tuple per degree-2 lnodes slot: (element, slot, gid, x, y, z,
+// faceCode, isCorner)
+boost::python::list _lnodesDegree2Slots(const oxley::OxleyDomain& dom)
+{
+    const std::vector<oxley::SlotRecord> recs = oxley::lnodesDegree2Slots(dom);
+    boost::python::list out;
+    for (size_t i = 0; i < recs.size(); ++i) {
+        const oxley::SlotRecord& r = recs[i];
+        out.append(boost::python::make_tuple(r.element, r.slot, r.gid,
+                                            r.x, r.y, r.z, r.faceCode, r.corner));
+    }
+    return out;
+}
+
 // Convert a Python refine_level (an int, or a flat sequence of ints of length
 // n0*n1[*n2] in row-major block order) into the per-block vector the domain
 // constructors expect. A scalar becomes a size-1 vector (uniform, broadcast in
@@ -345,6 +369,19 @@ BOOST_PYTHON_MODULE(oxleycpp)
             "instead of splitting; for debugging only\n"
             ":type simplices: ``bool``\n"
             ":rtype: `Domain`")
+        .def("lnodesDegree2Report", &oxley::_lnodesDegree2Report,
+            (arg("self")),
+            "diagnostic: does a degree-2 lnodes number the hanging positions?\n\n"
+            "returns [octants, cornerSlots, distinctIds, idsAtSeveralPositions, "
+            "hangingOctants, localNodes, distinctPositions, positionsWithSeveralIds]. "
+            "idsAtSeveralPositions and positionsWithSeveralIds must both be 0.\n\n"
+            ":rtype: ``list``")
+        .def("lnodesDegree2Slots", &oxley::_lnodesDegree2Slots,
+            (arg("self")),
+            "diagnostic: every degree-2 lnodes slot as a tuple\n"
+            "(element, slot, globalId, x, y, z, faceCode, isCorner), where x,y,z is "
+            "the position OF THE SLOT and globalId is what the slot holds\n\n"
+            ":rtype: ``list``")
         .def("isConforming", &oxley::OxleyDomain::isConforming,
             "returns True when no element in the forest has a hanging node\n\n"
             ":rtype: ``bool``")

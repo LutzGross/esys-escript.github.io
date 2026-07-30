@@ -12,14 +12,19 @@
 *****************************************************************************/
 
 #include <oxley/FinleyConverter.h>
+#include <oxley/Brick.h>
 #include <oxley/OxleyException.h>
+#include <oxley/Rectangle.h>
 
 #include <finley/FinleyDomain.h>
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <map>
+#include <set>
 #include <sstream>
+#include <vector>
 
 namespace oxley {
 
@@ -363,6 +368,189 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
     return finley::FinleyDomain::createFromArrays(out, name.str(), order,
                                                   reducedOrder, optimize,
                                                   mpiInfo);
+}
+
+namespace {
+
+/// accumulates the global id <-> position pairing seen at octant corner slots
+/// and counts disagreements in BOTH directions. Either one breaks a mesh built
+/// from these ids: one id at two positions tears the two apart, one position
+/// under two ids leaves a crack between the elements that disagree.
+struct CornerIdCheck
+{
+    typedef std::array<double,3> Pos;
+    typedef std::array<long,3> Key;          // position quantised to 1e-9
+
+    std::map<long, Pos> posOf;               // global id -> position
+    std::map<Key, long> idAt;                // position -> global id
+    long slots = 0;                          // corner slots examined
+    long clashes = 0;                        // one id, several positions
+    long splits = 0;                         // one position, several ids
+
+    static Key key(const Pos& p)
+    {
+        Key k;
+        for (int d = 0; d < 3; ++d)
+            k[d] = (long) std::llround(p[d] * 1e9);
+        return k;
+    }
+
+    void add(long gid, double x, double y, double z)
+    {
+        ++slots;
+        const Pos p = {{x, y, z}};
+
+        std::map<long, Pos>::iterator it = posOf.find(gid);
+        if (it == posOf.end()) {
+            posOf[gid] = p;
+        } else {
+            for (int d = 0; d < 3; ++d) {
+                if (std::abs(it->second[d] - p[d]) > 1e-9) { ++clashes; break; }
+            }
+        }
+
+        std::map<Key, long>::iterator jt = idAt.find(key(p));
+        if (jt == idAt.end())
+            idAt[key(p)] = gid;
+        else if (jt->second != gid)
+            ++splits;
+    }
+};
+
+} // anonymous namespace
+
+/// One traversal of a degree-2 lnodes: emits every element_nodes slot with the
+/// global id it holds and the geometric position of the slot itself. Both the
+/// report and the raw dump read this; the point of the exercise is exactly the
+/// comparison between the two, so they must come from the same walk.
+static void collectDegree2Slots(const OxleyDomain& dom,
+                                std::vector<SlotRecord>& out,
+                                long& numLocalNodes)
+{
+    const Rectangle* rect = dynamic_cast<const Rectangle*>(&dom);
+    const Brick* brick = dynamic_cast<const Brick*>(&dom);
+    out.clear();
+    numLocalNodes = 0;
+
+    if (rect) {
+        p4est_t* p4 = rect->p4est;
+        p4est_ghost_t* gh = p4est_ghost_new(p4, P4EST_CONNECT_FULL);
+        p4est_lnodes_t* ln = p4est_lnodes_new(p4, gh, 2);
+        numLocalNodes = ln->num_local_nodes;
+        const int vn = ln->vnodes;               // 9 for degree 2 in 2D
+        out.reserve((size_t) ln->num_local_elements * vn);
+        long e = 0;
+        for (p4est_topidx_t t = p4->first_local_tree; t <= p4->last_local_tree; ++t) {
+            p4est_tree_t* tree = p4est_tree_array_index(p4->trees, t);
+            sc_array_t* quads = &tree->quadrants;
+            const p4est_locidx_t Q = (p4est_locidx_t) quads->elem_count;
+            for (p4est_locidx_t q = 0; q < Q; ++q, ++e) {
+                p4est_quadrant_t* quad = p4est_quadrant_array_index(quads, q);
+                const p4est_qcoord_t half = P4EST_QUADRANT_LEN(quad->level) / 2;
+                for (int slot = 0; slot < vn; ++slot) {
+                    // lexicographic yx order: slot = i + 3*j, i,j in {0,1,2}
+                    const int i = slot % 3, j = (slot / 3) % 3;
+                    const p4est_locidx_t lid =
+                            ln->element_nodes[(size_t) e * vn + slot];
+                    SlotRecord r;
+                    r.element = e;
+                    r.slot = slot;
+                    r.gid = (long) p4est_lnodes_global_index(ln, lid);
+                    r.faceCode = (int) ln->face_code[e];
+                    r.corner = (i != 1 && j != 1);
+                    double xy[3] = {0., 0., 0.};
+                    p4est_qcoord_to_vertex(p4->connectivity, t,
+                            quad->x + i * half, quad->y + j * half, xy);
+                    r.x = xy[0]; r.y = xy[1]; r.z = 0.;
+                    out.push_back(r);
+                }
+            }
+        }
+        p4est_lnodes_destroy(ln);
+        p4est_ghost_destroy(gh);
+
+    } else if (brick) {
+        p8est_t* p8 = brick->p8est;
+        p8est_ghost_t* gh = p8est_ghost_new(p8, P8EST_CONNECT_FULL);
+        p8est_lnodes_t* ln = p8est_lnodes_new(p8, gh, 2);
+        numLocalNodes = ln->num_local_nodes;
+        const int vn = ln->vnodes;                // 27 for degree 2 in 3D
+        out.reserve((size_t) ln->num_local_elements * vn);
+        long e = 0;
+        for (p4est_topidx_t t = p8->first_local_tree; t <= p8->last_local_tree; ++t) {
+            p8est_tree_t* tree = p8est_tree_array_index(p8->trees, t);
+            sc_array_t* octs = &tree->quadrants;
+            const p4est_locidx_t Q = (p4est_locidx_t) octs->elem_count;
+            for (p4est_locidx_t q = 0; q < Q; ++q, ++e) {
+                p8est_quadrant_t* oct = p8est_quadrant_array_index(octs, q);
+                const p4est_qcoord_t half = P8EST_QUADRANT_LEN(oct->level) / 2;
+                for (int slot = 0; slot < vn; ++slot) {
+                    // lexicographic zyx order: slot = i + 3*j + 9*k
+                    const int i = slot % 3, j = (slot / 3) % 3, k = slot / 9;
+                    const p4est_locidx_t lid =
+                            ln->element_nodes[(size_t) e * vn + slot];
+                    SlotRecord r;
+                    r.element = e;
+                    r.slot = slot;
+                    r.gid = (long) p8est_lnodes_global_index(ln, lid);
+                    r.faceCode = (int) ln->face_code[e];
+                    r.corner = (i != 1 && j != 1 && k != 1);
+                    double xyz[3] = {0., 0., 0.};
+                    p8est_qcoord_to_vertex(p8->connectivity, t,
+                            oct->x + i * half, oct->y + j * half, oct->z + k * half,
+                            xyz);
+                    r.x = xyz[0]; r.y = xyz[1]; r.z = xyz[2];
+                    out.push_back(r);
+                }
+            }
+        }
+        p8est_lnodes_destroy(ln);
+        p8est_ghost_destroy(gh);
+
+    } else {
+        throw OxleyException("degree-2 lnodes probe: domain is neither a "
+                             "Rectangle nor a Brick");
+    }
+}
+
+std::vector<long> lnodesDegree2Report(const OxleyDomain& dom)
+{
+    std::vector<long> out(8, 0);
+    std::vector<SlotRecord> slots;
+    long numLocalNodes = 0;
+    collectDegree2Slots(dom, slots, numLocalNodes);
+
+    CornerIdCheck chk;
+    long numOctants = 0, hangingOctants = 0, lastElement = -1;
+    for (size_t s = 0; s < slots.size(); ++s) {
+        const SlotRecord& r = slots[s];
+        if (r.element != lastElement) {
+            lastElement = r.element;
+            ++numOctants;
+            if (r.faceCode != 0)
+                ++hangingOctants;
+        }
+        if (r.corner)
+            chk.add(r.gid, r.x, r.y, r.z);
+    }
+
+    out[0] = numOctants;
+    out[1] = chk.slots;
+    out[2] = (long) chk.posOf.size();
+    out[3] = chk.clashes;
+    out[4] = hangingOctants;
+    out[5] = numLocalNodes;
+    out[6] = (long) chk.idAt.size();
+    out[7] = chk.splits;
+    return out;
+}
+
+std::vector<SlotRecord> lnodesDegree2Slots(const OxleyDomain& dom)
+{
+    std::vector<SlotRecord> slots;
+    long numLocalNodes = 0;
+    collectDegree2Slots(dom, slots, numLocalNodes);
+    return slots;
 }
 
 } // namespace oxley

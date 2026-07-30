@@ -55,6 +55,60 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order = -1,
                              int reducedOrder = -1, bool optimize = false,
                              bool simplices = true);
 
+/**
+   \brief
+   Diagnostic: reports whether a degree-2 p4est_lnodes numbers the hanging
+   positions of this forest.
+
+   A hanging position is the centre of a coarse octant face or the midpoint of a
+   coarse octant edge. At degree 1 it is not a node at all, which is why the
+   corresponding element_nodes slot holds a far master instead. At degree 2 that
+   position IS an independent node of the coarse neighbour, so the slot may
+   carry its global id - if so, the degree-2 numbering can be used directly and
+   no separate numbering of hanging positions is needed.
+
+   Test: every corner slot of every octant is mapped to its geometric position,
+   and the id <-> position pairing is checked in both directions. A global id at
+   two different positions means the slot holds something other than the node at
+   that corner (a far master); one position under two different global ids means
+   the position is numbered twice, which would leave a crack between the elements
+   that disagree. Both counts must be zero for the numbering to be usable, and
+   then [2], [6] and the number of distinct corner positions all coincide.
+
+   \return a vector of counts:
+           [0] octants examined
+           [1] corner slots examined
+           [2] distinct global ids seen at corner slots
+           [3] global ids appearing at MORE THAN ONE position (must be 0)
+           [4] octants whose face_code reports hanging faces
+           [5] total local nodes in the degree-2 lnodes
+           [6] distinct corner positions seen
+           [7] positions carrying MORE THAN ONE global id (must be 0)
+*/
+std::vector<long> lnodesDegree2Report(const OxleyDomain& dom);
+
+/**
+   \brief
+   One entry per element_nodes slot of a degree-2 lnodes: the global id the slot
+   holds, and where the slot itself sits. Raw material for the diagnostic above -
+   what the report reduces to counts, this leaves open to inspection from Python.
+*/
+struct SlotRecord
+{
+    long element;      ///< local element (leaf) index
+    int slot;          ///< slot within the element, lexicographic (z)yx order
+    long gid;          ///< global node id the slot holds
+    double x, y, z;    ///< position OF THE SLOT (not of the node it holds)
+    int faceCode;      ///< the element's lnodes face_code (0 = nothing hangs)
+    bool corner;       ///< is this slot one of the element's corners?
+};
+
+/**
+   \brief
+   Dumps every degree-2 lnodes slot of the local forest. Diagnostic only.
+*/
+std::vector<SlotRecord> lnodesDegree2Slots(const OxleyDomain& dom);
+
 } // namespace oxley
 
 #endif // __OXLEY_FINLEYCONVERTER_H__
