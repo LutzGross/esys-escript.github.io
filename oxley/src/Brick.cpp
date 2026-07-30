@@ -77,7 +77,7 @@ Brick::Brick(escript::JMPI jmpi, int order,
     const std::vector<double>& points,
     const std::vector<int>& tags,
     const TagMap& tagnamestonums,
-    int refine_level):
+    const std::vector<int>& refine_level):
     OxleyDomain(3, order, jmpi)
 {
 
@@ -86,12 +86,23 @@ Brick::Brick(escript::JMPI jmpi, int order,
     // MPI communicator passed to base class constructor
     // Caller is responsible for ensuring MPI is initialized
 
-    // n0/n1/n2 are the number of BLOCKS (p8est trees) per axis; refine_level is the
-    // uniform subdivision applied to every block.
+    // n0/n1/n2 are the number of BLOCKS (p8est trees) per axis; refine_level is
+    // the subdivision applied to each block. It is either a single value
+    // (uniform) or one value per block (row-major over (n0,n1,n2), index
+    // (i*n1+j)*n2+k), which lets blocks carry different levels and so introduces
+    // hanging nodes at the block seams.
     if(n0 <= 0 || n1 <= 0 || n2 <= 0)
         throw OxleyException("Number of blocks in each spatial dimension must be positive");
-    if(refine_level < 0)
-        throw OxleyException("refine_level must be non-negative");
+    const dim_t num_trees = n0 * n1 * n2;
+    if(refine_level.empty())
+        throw OxleyException("refine_level must not be empty");
+    if(refine_level.size() != 1 && (dim_t) refine_level.size() != num_trees)
+        throw OxleyException("refine_level must be a single value or one value per block (n0*n1*n2)");
+    for(size_t i = 0; i < refine_level.size(); i++)
+        if(refine_level[i] < 0)
+            throw OxleyException("refine_level must be non-negative");
+    const int min_level = *std::min_element(refine_level.begin(), refine_level.end());
+    const int max_level = *std::max_element(refine_level.begin(), refine_level.end());
 
     // Domain decomposition across MPI ranks is handled by p4est/p8est (see
     // p4est_partition below), not by a Cartesian d0 x d1 x d2 block grid.
@@ -113,16 +124,41 @@ Brick::Brick(escript::JMPI jmpi, int order,
     forestData = new p8estData;
 
     // Create the p8est - use the custom communicator.
-    // fill_uniform + min_level=refine_level builds a uniform base mesh where every
-    // block is subdivided refine_level times. min_quadrants MUST be 0: it is
-    // p8est's PER-PROCESSOR minimum, so a positive value forces extra refinement
-    // under MPI and makes the mesh depend on the rank count. (A6.)
+    // fill_uniform + min_level builds a uniform base mesh where every block is
+    // subdivided min_level times. min_quadrants MUST be 0: it is p8est's
+    // PER-PROCESSOR minimum, so a positive value forces extra refinement under
+    // MPI and makes the mesh depend on the rank count. (A6.)
     p8est_locidx_t min_quadrants = 0;
-    int min_level = refine_level;
     int fill_uniform = 1;
     oxleytimer.toc("\t creating p8est...");
     p8est = p8est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
-            min_level, fill_uniform, sizeof(octantData), &init_brick_data, (void *) &forestData);
+            min_level, fill_uniform, sizeof(octantData), &init_brick_data, (void *) forestData);
+
+    // If the blocks do not all share the same level, refine each block up to its
+    // own target level and 2:1-balance the base mesh. block_levels is indexed by
+    // p8est tree id, so map each tree to its block (i,j,k) via its lower corner
+    // connectivity vertex (the trees are Morton-ordered, not row-major).
+    if(max_level > min_level) {
+        const double dxb = (x1-x0)/n0, dyb = (y1-y0)/n1, dzb = (z1-z0)/n2;
+        forestData->block_levels.assign(num_trees, min_level);
+        for(p4est_topidx_t t = 0; t < num_trees; t++) {
+            const p4est_topidx_t v = connectivity->tree_to_vertex[P8EST_CHILDREN*t + 0];
+            const double vx = connectivity->vertices[3*v + 0];
+            const double vy = connectivity->vertices[3*v + 1];
+            const double vz = connectivity->vertices[3*v + 2];
+            int bi = (int) std::lround((vx - x0)/dxb);
+            int bj = (int) std::lround((vy - y0)/dyb);
+            int bk = (int) std::lround((vz - z0)/dzb);
+            if(bi < 0) bi = 0; else if(bi >= n0) bi = n0-1;
+            if(bj < 0) bj = 0; else if(bj >= n1) bj = n1-1;
+            if(bk < 0) bk = 0; else if(bk >= n2) bk = n2-1;
+            forestData->block_levels[t] = refine_level[((size_t) bi*n1 + bj)*n2 + bk];
+        }
+        const int recursive = 1;
+        p8est_refine_ext(p8est, recursive, max_level, refine_to_block_level,
+                         init_brick_data, NULL);
+        p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, NULL);
+    }
 
 #ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
     std::cout << "Checking p8est ... ";
@@ -326,7 +362,7 @@ Brick::Brick(oxley::Brick& B, int order, bool update):
     int fill_uniform = 1;
     oxleytimer.toc("\t creating p8est...");
     p8est = p8est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
-        min_level, fill_uniform, sizeof(octantData), &init_brick_data, (void *) &forestData);
+        min_level, fill_uniform, sizeof(octantData), &init_brick_data, (void *) forestData);
 
 //These checks are turned off by default as they can be very timeconsuming
 #ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS

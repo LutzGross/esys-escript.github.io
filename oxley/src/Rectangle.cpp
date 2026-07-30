@@ -12,6 +12,7 @@
 *****************************************************************************/
 
 #include <algorithm>
+#include <cmath>
 #include <ctime>
 #include <exception>
 #include <random>
@@ -83,19 +84,29 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order,
     const std::vector<double>& points,
     const std::vector<int>& tags,
     const TagMap& tagnamestonums,
-    int refine_level):
+    const std::vector<int>& refine_level):
     OxleyDomain(2, order, jmpi){
 
     // MPI communicator passed to base class constructor
     // Caller is responsible for ensuring MPI is initialized
 
     // n0/n1 are the number of BLOCKS (p4est trees) per axis; refine_level is the
-    // uniform subdivision applied to every block, so the base mesh has
-    // n0*2^refine_level by n1*2^refine_level elements.
+    // subdivision applied to each block. It is either a single value (uniform, so
+    // the base mesh has n0*2^L by n1*2^L elements) or one value per block (row-
+    // major over (n0,n1), index i*n1+j), which lets blocks carry different levels
+    // and so introduces hanging nodes at the block seams.
     if(n0 <= 0 || n1 <= 0)
         throw OxleyException("Number of blocks in each spatial dimension must be positive");
-    if(refine_level < 0)
-        throw OxleyException("refine_level must be non-negative");
+    const dim_t num_trees = n0 * n1;
+    if(refine_level.empty())
+        throw OxleyException("refine_level must not be empty");
+    if(refine_level.size() != 1 && (dim_t) refine_level.size() != num_trees)
+        throw OxleyException("refine_level must be a single value or one value per block (n0*n1)");
+    for(size_t i = 0; i < refine_level.size(); i++)
+        if(refine_level[i] < 0)
+            throw OxleyException("refine_level must be non-negative");
+    const int min_level = *std::min_element(refine_level.begin(), refine_level.end());
+    const int max_level = *std::max_element(refine_level.begin(), refine_level.end());
 
     // Domain decomposition across MPI ranks is handled by p4est (see
     // p4est_partition below), not by a Cartesian d0 x d1 block grid.
@@ -112,16 +123,38 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order,
 #endif
 
     // Create a p4est - use the custom communicator.
-    // fill_uniform + min_level=refine_level builds a uniform base mesh where every
-    // block is subdivided refine_level times. min_quadrants MUST be 0: it is
-    // p4est's PER-PROCESSOR minimum, so a positive value forces extra refinement
-    // under MPI and makes the mesh depend on the rank count. (A6.)
+    // fill_uniform + min_level builds a uniform base mesh where every block is
+    // subdivided min_level times. min_quadrants MUST be 0: it is p4est's
+    // PER-PROCESSOR minimum, so a positive value forces extra refinement under
+    // MPI and makes the mesh depend on the rank count. (A6.)
     p4est_locidx_t min_quadrants = 0;
-    int min_level = refine_level;
     int fill_uniform = 1;
 
     p4est = p4est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
             min_level, fill_uniform, sizeof(quadrantData), init_rectangle_data, (void *) &forestData);
+
+    // If the blocks do not all share the same level, refine each block up to its
+    // own target level and 2:1-balance the base mesh. block_levels is indexed by
+    // p4est tree id, so map each tree to its block (i,j) via its lower-left
+    // connectivity vertex (the trees are Morton-ordered, not row-major).
+    if(max_level > min_level) {
+        const double dxb = (x1-x0)/n0, dyb = (y1-y0)/n1;
+        forestData.block_levels.assign(num_trees, min_level);
+        for(p4est_topidx_t t = 0; t < num_trees; t++) {
+            const p4est_topidx_t v = connectivity->tree_to_vertex[P4EST_CHILDREN*t + 0];
+            const double vx = connectivity->vertices[3*v + 0];
+            const double vy = connectivity->vertices[3*v + 1];
+            int bi = (int) std::lround((vx - x0)/dxb);
+            int bj = (int) std::lround((vy - y0)/dyb);
+            if(bi < 0) bi = 0; else if(bi >= n0) bi = n0-1;
+            if(bj < 0) bj = 0; else if(bj >= n1) bj = n1-1;
+            forestData.block_levels[t] = refine_level[(size_t) bi*n1 + bj];
+        }
+        const int recursive = 1;
+        p4est_refine_ext(p4est, recursive, max_level, refine_to_block_level,
+                         init_rectangle_data, NULL);
+        p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
+    }
 
 #ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
     std::cout << "Checking p4est ... ";

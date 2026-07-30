@@ -28,10 +28,35 @@
 
 namespace oxley {
 
+// Convert a Python refine_level (an int, or a flat sequence of ints of length
+// n0*n1[*n2] in row-major block order) into the per-block vector the domain
+// constructors expect. A scalar becomes a size-1 vector (uniform, broadcast in
+// the constructor).
+static std::vector<int> extractRefineLevel(const object& refine_level, dim_t numBlocks)
+{
+    std::vector<int> levels;
+    extract<int> as_int(refine_level);
+    if (as_int.check()) {
+        levels.push_back(as_int());
+        return levels;
+    }
+    extract<boost::python::list> as_list(refine_level);
+    if (!as_list.check())
+        throw OxleyException("refine_level must be an int or a list of ints");
+    boost::python::list pylist = as_list();
+    int n = extract<int>(pylist.attr("__len__")());
+    if (n != (int) numBlocks)
+        throw OxleyException("refine_level list length must equal the number of blocks (n0*n1[*n2])");
+    levels.reserve(n);
+    for (int i = 0; i < n; ++i)
+        levels.push_back(extract<int>(pylist[i]));
+    return levels;
+}
+
 escript::Domain_ptr _rectangle(double _n0, double _n1,
                         const object& l0, const object& l1,
                         const object& objpoints, const object& objtags,
-                        const object& py_comm, int refine_level)
+                        const object& py_comm, const object& refine_level)
 {
     // The assembler always uses a fixed 2-point Gauss rule, which is exact to
     // cubic, i.e. integration order 3. m_order records this actual order.
@@ -115,15 +140,17 @@ escript::Domain_ptr _rectangle(double _n0, double _n1,
     // Handle optional MPI communicator
     escript::JMPI jmpi = escript::makeInfoFromPyComm(py_comm);
 
+    std::vector<int> levels = extractRefineLevel(refine_level, n0*n1);
+
     return escript::Domain_ptr(new Rectangle(jmpi, order, n0,n1, x0,y0, x1,y1,
-                                points, tags, tagstonames, refine_level));
+                                points, tags, tagstonames, levels));
 }
 
 
 escript::Domain_ptr _brick(double _n0, double _n1, double _n2,
                         const object& l0, const object& l1, const object& l2,
                         const object& objpoints, const object& objtags,
-                        const object& py_comm, int refine_level)
+                        const object& py_comm, const object& refine_level)
 {
     // The assembler always uses a fixed 2-point Gauss rule, which is exact to
     // cubic, i.e. integration order 3. m_order records this actual order.
@@ -219,8 +246,10 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2,
     // Handle optional MPI communicator
     escript::JMPI jmpi = escript::makeInfoFromPyComm(py_comm);
 
+    std::vector<int> levels = extractRefineLevel(refine_level, n0*n1*n2);
+
     return escript::Domain_ptr(new Brick(jmpi, order, n0,n1,n2, x0,y0,z0, x1,y1,z1,
-                                points, tags, tagstonames, refine_level));
+                                points, tags, tagstonames, levels));
 }
 
 // //tmp
@@ -250,12 +279,14 @@ BOOST_PYTHON_MODULE(oxleycpp)
     arg("diracPoints")=list(), arg("diracTags")=list(),
     arg("comm")=object(), arg("refine_level")=0),
     "Creates a rectangular p4est mesh of n0 x n1 blocks over the rectangle [0,l0] x [0,l1],\n"
-    "each block uniformly subdivided refine_level times.\n\n"
+    "each block subdivided refine_level times.\n\n"
     ":param n0: number of blocks in direction 0\n:type n0: ``int``\n"
     ":param n1: number of blocks in direction 1\n:type n1: ``int``\n"
     ":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
     ":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
-    ":param refine_level: uniform refinement level applied to every block\n:type refine_level: ``int``\n"
+    ":param refine_level: refinement level applied to every block, or a flat list\n"
+    "    of one level per block in row-major block order (differing levels create\n"
+    "    hanging nodes at the block seams)\n:type refine_level: ``int`` or ``list`` of ``int``\n"
     ":param comm: MPI communicator (optional, from mpi4py)\n:type comm: ``mpi4py.MPI.Comm``");
 
     def("Brick", oxley::_brick, (
@@ -264,14 +295,16 @@ BOOST_PYTHON_MODULE(oxleycpp)
     arg("diracPoints")=list(), arg("diracTags")=list(),
     arg("comm")=object(), arg("refine_level")=0),
     "Creates a brick p8est mesh of n0 x n1 x n2 blocks over [0,l0] x [0,l1] x [0,l2],\n"
-    "each block uniformly subdivided refine_level times.\n\n"
+    "each block subdivided refine_level times.\n\n"
     ":param n0: number of blocks in direction 0\n:type n0: ``int``\n"
     ":param n1: number of blocks in direction 1\n:type n1: ``int``\n"
     ":param n2: number of blocks in direction 2\n:type n2: ``int``\n"
     ":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
     ":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
     ":param l2: length of side 2 or coordinate range of side 1\n:type l2: ``float`` or ``tuple``\n"
-    ":param refine_level: uniform refinement level applied to every block\n:type refine_level: ``int``\n"
+    ":param refine_level: refinement level applied to every block, or a flat list\n"
+    "    of one level per block in row-major block order (differing levels create\n"
+    "    hanging nodes at the block seams)\n:type refine_level: ``int`` or ``list`` of ``int``\n"
     ":param comm: MPI communicator (optional, from mpi4py)\n:type comm: ``mpi4py.MPI.Comm``");
 
     // def("RefinementZone", oxley::_refinementZone, 

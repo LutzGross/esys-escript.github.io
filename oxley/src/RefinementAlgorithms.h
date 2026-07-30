@@ -31,6 +31,12 @@ void print_quad_debug_info(p4est_quadrant_t * quadrant);
 int refine_uniform(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
 int refine_uniform(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * quadrant);
 
+// Per-block refinement: refine a quadrant while its level is below the target
+// level recorded for its tree in forestData.block_levels (see OxleyData.h).
+// Used at construction to build a base mesh with per-block refinement levels.
+int refine_to_block_level(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
+int refine_to_block_level(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * quadrant);
+
 // mare2dem
 int refine_mare2dem(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
 int refine_mare2dem(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant);

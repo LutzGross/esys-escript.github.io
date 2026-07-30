@@ -41,6 +41,22 @@ int refine_uniform(p8est_t * p4est, p4est_topidx_t tree, p8est_quadrant_t * quad
     return quadrant->level <= octantData->max_levels_refinement;
 }
 
+int refine_to_block_level(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
+{
+    p4estData * forestData = (p4estData *) p4est->user_pointer;
+    if(tree < 0 || (size_t) tree >= forestData->block_levels.size())
+        return 0;
+    return quadrant->level < forestData->block_levels[tree];
+}
+
+int refine_to_block_level(p8est_t * p4est, p4est_topidx_t tree, p8est_quadrant_t * quadrant)
+{
+    p8estData * octantData = (p8estData *) p4est->user_pointer;
+    if(tree < 0 || (size_t) tree >= octantData->block_levels.size())
+        return 0;
+    return quadrant->level < octantData->block_levels[tree];
+}
+
 int refine_mare2dem(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
     // Solution-driven (MARE2DEM) refinement is not reimplemented on the lnodes
@@ -62,9 +78,8 @@ int refine_north(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
 {
     // pointers
     p4estData * forestData = (p4estData *) p4est->user_pointer;
-    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double xy[3];
-    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, quadrant->x, quadrant->y, xy);
+    p4est_qcoord_to_vertex(p4est->connectivity, tree, quadrant->x, quadrant->y, xy);
 
     // refine everything to the right 
     double dx = forestData->refinement_depth;
@@ -74,8 +89,8 @@ int refine_north(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
     // ne spatial coordinate
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
     double xyE[3] = {-1};
-    ESYS_ASSERT(quadData->treeid!=-1, "refine_north: invalid treeid");
-    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, 
+    ESYS_ASSERT(tree!=-1, "refine_north: invalid treeid");
+    p4est_qcoord_to_vertex(p4est->connectivity, tree, 
                                     quadrant->x+l, quadrant->y+l, xyE);
 
     float tol = 1e-8;
@@ -90,9 +105,8 @@ int refine_south(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
 {
     // pointers
     p4estData * forestData = (p4estData *) p4est->user_pointer;
-    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double xy[3];
-    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, quadrant->x, quadrant->y, xy);
+    p4est_qcoord_to_vertex(p4est->connectivity, tree, quadrant->x, quadrant->y, xy);
 
     // refine everything to the right 
     double dx = forestData->refinement_depth;
@@ -102,8 +116,8 @@ int refine_south(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
     // ne spatial coordinate
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
     double xyE[3] = {-1};
-    ESYS_ASSERT(quadData->treeid!=-1, "refine_south: invalid treeid");
-    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, 
+    ESYS_ASSERT(tree!=-1, "refine_south: invalid treeid");
+    p4est_qcoord_to_vertex(p4est->connectivity, tree, 
                                     quadrant->x+l, quadrant->y+l, xyE);
 
     float tol = 1e-8;
@@ -118,9 +132,8 @@ int refine_east(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
 {
     // pointers
     p4estData * forestData = (p4estData *) p4est->user_pointer;
-    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double xy[3];
-    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, quadrant->x, quadrant->y, xy);
+    p4est_qcoord_to_vertex(p4est->connectivity, tree, quadrant->x, quadrant->y, xy);
 
     // refine everything to the right 
     double dx = forestData->refinement_depth;
@@ -130,8 +143,8 @@ int refine_east(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
     // ne spatial coordinate
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
     double xyE[3] = {-1};
-    ESYS_ASSERT(quadData->treeid!=-1, "refine_east: invalid treeid");
-    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, 
+    ESYS_ASSERT(tree!=-1, "refine_east: invalid treeid");
+    p4est_qcoord_to_vertex(p4est->connectivity, tree, 
                                     quadrant->x+l, quadrant->y+l, xyE);
 
     float tol = 1e-8;
@@ -146,9 +159,8 @@ int refine_west(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
 {
     // pointers
     p4estData * forestData = (p4estData *) p4est->user_pointer;
-    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double xy[3];
-    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, quadrant->x, quadrant->y, xy);
+    p4est_qcoord_to_vertex(p4est->connectivity, tree, quadrant->x, quadrant->y, xy);
 
     // refine everything to the right 
     double dx = forestData->refinement_depth;
@@ -158,8 +170,8 @@ int refine_west(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
     // ne spatial coordinate
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
     double xyE[3] = {-1};
-    ESYS_ASSERT(quadData->treeid!=-1, "refine_west: invalid treeid");
-    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, 
+    ESYS_ASSERT(tree!=-1, "refine_west: invalid treeid");
+    p4est_qcoord_to_vertex(p4est->connectivity, tree, 
                                     quadrant->x+l, quadrant->y+l, xyE);
 
     float tol = 1e-8; 
@@ -179,9 +191,8 @@ int refine_north(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadra
     int steps = dx / m_NX;
 
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
-    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double xy[3];
-    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x, quadrant->y, quadrant->z, xy);
+    p8est_qcoord_to_vertex(p8est->connectivity, tree, quadrant->x, quadrant->y, quadrant->z, xy);
 
     float tol = 1e-8;
 
@@ -197,9 +208,8 @@ int refine_south(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadra
     double m_NX = forestData->m_NX[1];
     int steps = dx / m_NX;
 
-    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double xy[3];
-    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x, quadrant->y, quadrant->z, xy);
+    p8est_qcoord_to_vertex(p8est->connectivity, tree, quadrant->x, quadrant->y, quadrant->z, xy);
 
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
     float tol = 1e-8;
@@ -217,9 +227,8 @@ int refine_east(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadran
     double domain_length = forestData->m_length[0];
     int steps = dx / m_NX;
 
-    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double xy[3];
-    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x, quadrant->y, quadrant->z, xy);
+    p8est_qcoord_to_vertex(p8est->connectivity, tree, quadrant->x, quadrant->y, quadrant->z, xy);
 
     float tol = 1e-8;
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
@@ -236,9 +245,8 @@ int refine_west(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadran
     double m_NX = forestData->m_NX[0];
     int steps = dx / m_NX;
 
-    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double xy[3];
-    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x, quadrant->y, quadrant->z, xy);
+    p8est_qcoord_to_vertex(p8est->connectivity, tree, quadrant->x, quadrant->y, quadrant->z, xy);
 
     float tol = 1e-8;
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
@@ -256,9 +264,8 @@ int refine_top(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant
     double domain_length = forestData->m_length[2];
     int steps = dx / m_NX;
 
-    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double xy[3];
-    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x, quadrant->y, quadrant->z, xy);
+    p8est_qcoord_to_vertex(p8est->connectivity, tree, quadrant->x, quadrant->y, quadrant->z, xy);
 
     float tol = 1e-8;
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
@@ -275,9 +282,8 @@ int refine_bottom(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadr
     double m_NX = forestData->m_NX[2];
     int steps = dx / m_NX;
 
-    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double xy[3];
-    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x, quadrant->y, quadrant->z, xy);
+    p8est_qcoord_to_vertex(p8est->connectivity, tree, quadrant->x, quadrant->y, quadrant->z, xy);
 
     float tol = 1e-8;
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
@@ -332,9 +338,8 @@ public:
 int refine_region(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
     p4estData * forestData = (p4estData *) p4est->user_pointer;
-    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double xy[3];
-    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, quadrant->x, quadrant->y, xy);
+    p4est_qcoord_to_vertex(p4est->connectivity, tree, quadrant->x, quadrant->y, xy);
     
     // The corners of the refinement region
     double x[2]={forestData->refinement_boundaries[0],forestData->refinement_boundaries[1]};
@@ -351,10 +356,9 @@ int refine_region(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadr
 int refine_point(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
     p4estData * forestData = (p4estData *) p4est->user_pointer;
-    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double p[2] = {forestData->refinement_boundaries[0], forestData->refinement_boundaries[1]};
     double xy1[3];
-    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, quadrant->x, quadrant->y, xy1);
+    p4est_qcoord_to_vertex(p4est->connectivity, tree, quadrant->x, quadrant->y, xy1);
 
     double xy2[3] = {0};
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
@@ -375,11 +379,10 @@ int refine_point(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
 int refine_circle(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
     p4estData * forestData = (p4estData *) p4est->user_pointer;
-    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double center[2] = {forestData->refinement_boundaries[0], forestData->refinement_boundaries[1]};
     double r = forestData->refinement_boundaries[2];
     double xy1[3];
-    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, quadrant->x, quadrant->y, xy1);
+    p4est_qcoord_to_vertex(p4est->connectivity, tree, quadrant->x, quadrant->y, xy1);
 
     // Upper right point
     double p[3] = {0};
@@ -421,9 +424,8 @@ int refine_mask(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
 int refine_region(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
 {
     p8estData * forestData = (p8estData *) p8est->user_pointer;
-    octantData * quadData = (octantData *) quadrant->p.user_data;
     double xy[3];
-    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x, quadrant->y, quadrant->z, xy);
+    p8est_qcoord_to_vertex(p8est->connectivity, tree, quadrant->x, quadrant->y, quadrant->z, xy);
     
     // The corners of the refinement region
     double x[2]={forestData->refinement_boundaries[0],forestData->refinement_boundaries[1]};
@@ -452,8 +454,7 @@ int refine_region(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadr
 int refine_point(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
 {
     p8estData * forestData = (p8estData *) p8est->user_pointer;
-    octantData * octData = (octantData *) quadrant->p.user_data;
-    double p[3] = {forestData->refinement_boundaries[0], 
+    double p[3] = {forestData->refinement_boundaries[0],
                    forestData->refinement_boundaries[1],
                    forestData->refinement_boundaries[2]};
 
@@ -479,13 +480,12 @@ int refine_point(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadra
 int refine_sphere(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
 {
     p8estData * forestData = (p8estData *) p8est->user_pointer;
-    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double center[3] = {forestData->refinement_boundaries[0], 
                         forestData->refinement_boundaries[1],
                         forestData->refinement_boundaries[2]};
     double r = forestData->refinement_boundaries[3];
     double xy1[3];
-    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x, quadrant->y, quadrant->z, xy1);
+    p8est_qcoord_to_vertex(p8est->connectivity, tree, quadrant->x, quadrant->y, quadrant->z, xy1);
 
     // Upper right point
     double p[3] = {0};
