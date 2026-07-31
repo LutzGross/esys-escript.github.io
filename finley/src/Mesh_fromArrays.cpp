@@ -77,19 +77,26 @@ void fillElementTable(ElementFile* ef, const std::vector<index_t>& nodes,
         throw escript::ValueError(ss.str());
     }
 
-    // when ids are not supplied, number the elements consecutively across
-    // ranks so that they stay unique once the mesh is distributed
+    // When ids are not supplied, number the elements consecutively across ranks
+    // so that they stay unique once the mesh is distributed.
+    //
+    // The scan runs UNCONDITIONALLY, and only its result is conditional. It is a
+    // collective, and `ids.empty()` is a per-rank test: a rank that simply has
+    // none of this kind of element - no boundary faces, say, because it owns
+    // only interior cells - supplies an empty id list too, and cannot be told
+    // apart from a caller that omitted them. Guarding the collective with that
+    // test let such a rank enter the scan alone while the others went on, and
+    // the run deadlocked here with the ranks in different collectives.
     index_t idOffset = 0;
-    if (ids.empty()) {
 #ifdef ESYS_MPI
-        if (mpiInfo->size > 1) {
-            index_t local = numElements;
-            MPI_Exscan(&local, &idOffset, 1, MPI_DIM_T, MPI_SUM, mpiInfo->comm);
-            if (mpiInfo->rank == 0)
-                idOffset = 0;
-        }
-#endif
+    if (mpiInfo->size > 1) {
+        index_t local = numElements;
+        index_t scan = 0;
+        MPI_Exscan(&local, &scan, 1, MPI_DIM_T, MPI_SUM, mpiInfo->comm);
+        if (ids.empty() && mpiInfo->rank != 0)
+            idOffset = scan;
     }
+#endif
 
     ef->allocTable(numElements);
     ef->minColor = 0;
