@@ -69,6 +69,86 @@ inline double signedArea(const std::vector<double>& X, long a, long b, long c)
          - (X[c*2] - X[a*2]) * (X[b*2+1] - X[a*2+1]);
 }
 
+// ---------------------------------------------------------------------------
+// The 2D split, as a lookup rather than a decision.
+//
+// Work in the quad's counter-clockwise frame: corners V0..V3 (z-order indices
+// rectPolygon), side s running Vs -> V(s+1), and Hs the hanging node on side s.
+// The configuration is a 4-bit mask over sides, and rotating it collapses the
+// 16 masks onto SIX patterns.
+//
+// Choosing the split by table rather than by a rule keeps neighbouring elements
+// in the same configuration looking the same. The earlier version picked an apex
+// by smallest global node id, which made the triangulation a function of the
+// NUMBERING: two quads in identical situations came out split differently, which
+// is what made the meshes look shredded. It is also the shape that generalises -
+// in 3D a decision rule has to cope with faces and edges hanging in combination,
+// where a table is just longer.
+//
+// Conformity does not depend on any of this in 2D: neighbours share an EDGE, an
+// edge has no diagonal to disagree about, and which boundary edges the polygon
+// has is fixed by the mask alone.
+// ---------------------------------------------------------------------------
+
+/// side of the CCW frame -> p4est face index
+const int sideToFace[4] = {2, 1, 3, 0};
+
+/// Symbolic vertices in a pattern: 0..3 are V0..V3, 4..7 are H0..H3.
+struct SplitPattern
+{
+    int mask;               ///< the canonical configuration
+    int numTriangles;
+    int tri[6][3];
+};
+
+const SplitPattern splitPatterns[6] = {
+    // no hanging node: one diagonal, always the same one in the octant's frame
+    { 0x0, 2, { {0,1,2}, {0,2,3} } },
+    // one: fan from the hanging node, which beats fanning past it
+    { 0x1, 3, { {4,1,2}, {4,2,3}, {4,3,0} } },
+    // two adjacent: cut the corner between them, fan the rest
+    { 0x3, 4, { {4,1,5}, {4,5,2}, {4,2,3}, {4,3,0} } },
+    // two opposite: halve the quad between the two hanging nodes, split each half
+    { 0x5, 4, { {0,4,6}, {0,6,3}, {4,1,2}, {4,2,6} } },
+    // three: cut both corners that lie between two hanging sides
+    { 0x7, 5, { {4,1,5}, {5,2,6}, {5,6,3}, {5,3,0}, {5,0,4} } },
+    // four: cut all four corners and halve what is left - symmetric, and no
+    // interior node, which would need a fifth reserved id per octant
+    { 0xf, 6, { {7,0,4}, {4,1,5}, {5,2,6}, {6,3,7}, {4,5,6}, {4,6,7} } }
+};
+
+/// Finds the rotation bringing `mask` onto one of the six canonical patterns.
+/// Rotating by r means side s of the pattern is side (s+r)%4 of the element.
+inline const SplitPattern* matchPattern(int mask, int& rotation)
+{
+    for (int r = 0; r < 4; ++r) {
+        int cm = 0;
+        for (int s = 0; s < 4; ++s)
+            cm |= ((mask >> ((s + r) & 3)) & 1) << s;
+        for (int p = 0; p < 6; ++p) {
+            if (splitPatterns[p].mask == cm) {
+                rotation = r;
+                return &splitPatterns[p];
+            }
+        }
+    }
+    return NULL;                        // unreachable: the six cover all 16
+}
+
+/// Appends one triangle, orienting it by MEASURING the signed area rather than
+/// reasoning about winding conventions.
+inline void emitTriangle(std::vector<index_t>& elems, std::vector<int>& tags,
+                         const std::vector<double>& X, long a, long b, long c,
+                         int tag)
+{
+    if (signedArea(X, a, b, c) < 0.)
+        std::swap(b, c);
+    elems.push_back((index_t) a);
+    elems.push_back((index_t) b);
+    elems.push_back((index_t) c);
+    tags.push_back(tag);
+}
+
 /// position within `n` of the entry with the smallest global node id
 template <typename GetId>
 inline int lowestIdPos(const int* corners, int n, GetId gid)
@@ -150,12 +230,20 @@ const int triFaces[3][2] = { {0,1}, {1,2}, {0,2} };
 escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
                              int reducedOrder, bool optimize, bool simplices)
 {
-    if (!dom.isConforming())
-        throw OxleyException("toFinley: the forest has hanging nodes. Only "
-                "conforming forests can be converted so far - the simplex split "
-                "does not yet number the hanging positions.");
+    const bool conforming = dom.isConforming();     // collective
+    if (!conforming && (!simplices || dom.getDim() != 2))
+        throw OxleyException("toFinley: the forest has hanging nodes. Only the "
+                "2D simplex split handles them so far; the 3D split and the "
+                "debug Rec4/Hex8 path still need a conforming forest.");
 
-    const MeshAccess m = dom.getMeshAccess();
+    // With hanging nodes present the mesh view must materialise them: a hanging
+    // position is then a real node with a global id, so it can be a vertex of
+    // the triangles on BOTH sides of a 2:1 seam. finley cannot represent a
+    // hanging node (one ReferenceElementSet per ElementFile, and escript's q/r
+    // is pointwise Dirichlet, not u = (u_a+u_b)/2), so the seam has to be
+    // resolved by the triangulation instead - the node becomes an ordinary free
+    // degree of freedom.
+    const MeshAccess m = dom.getMeshAccess(!conforming);
     if (m.numDim != 2 && m.numDim != 3) {
         std::stringstream ss;
         ss << "toFinley: unsupported dimension " << m.numDim;
@@ -164,8 +252,12 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
 
     const int V = m.nodesPerElement;
     const int FV = m.nodesPerFace;
-    // global id of a local node, the key the split rule is built on
-    const std::vector<long>& gidOf = m.nodeGlobalId;
+    // The ids handed to finley. The export numbering is the one both sides of a
+    // 2:1 seam derive independently, so a hanging node is one node across ranks;
+    // nodeGlobalId cannot do that, since it numbers materialised nodes in each
+    // rank's own creation order. Brick does not build it yet, hence the fallback.
+    const std::vector<long>& gidOf =
+            m.nodeExportId.empty() ? m.nodeGlobalId : m.nodeExportId;
 
     finley::MeshArrays out;
     out.numDim = m.numDim;
@@ -212,26 +304,42 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
         }
 
     } else if (m.numDim == 2) {
-        // ---- 2D: each quad fans into triangles from its lowest-id corner ---
+        // ---- 2D: each quad is split by the pattern its configuration names ---
         out.elementType = finley::Tri3;
         out.faceElementType = finley::Line2;
 
-        elems.reserve((size_t) m.numElements * 2 * 3);
-        out.elementTag.reserve(m.numElements * 2);
+        if (!conforming && m.elementFaceHangingNode.empty())
+            throw OxleyException("toFinley: the mesh view has no hanging node "
+                    "table; getMeshAccess was not asked to materialise them.");
+
+        elems.reserve((size_t) m.numElements * 3 * 3);
+        out.elementTag.reserve(m.numElements * 3);
         for (long e = 0; e < m.numElements; ++e) {
             const long* en = &m.elementNodes[(size_t) e * V];
-            const int mpos = lowestIdPos(rectPolygon, 4,
-                    [&](int c) { return gidOf[en[c]]; });
-            for (int t = 0; t < 2; ++t) {
-                long a = en[rectPolygon[mpos]];
-                long b = en[rectPolygon[(mpos + 1 + t) % 4]];
-                long c = en[rectPolygon[(mpos + 2 + t) % 4]];
-                if (signedArea(m.nodeCoords, a, b, c) < 0.)
-                    std::swap(b, c);
-                elems.push_back((index_t) a);
-                elems.push_back((index_t) b);
-                elems.push_back((index_t) c);
-                out.elementTag.push_back((int) m.elementTags[e]);
+
+            // the element's own vertices, counter-clockwise, and the hanging
+            // node on each side (-1 where the neighbour is not finer)
+            long V4[4], H4[4];
+            int mask = 0;
+            for (int s = 0; s < 4; ++s) {
+                V4[s] = en[rectPolygon[s]];
+                H4[s] = m.elementFaceHangingNode.empty() ? -1
+                      : m.elementFaceHangingNode[(size_t) e * 4 + sideToFace[s]];
+                if (H4[s] >= 0)
+                    mask |= 1 << s;
+            }
+
+            int rot = 0;
+            const SplitPattern* pat = matchPattern(mask, rot);
+            for (int t = 0; t < pat->numTriangles; ++t) {
+                long v[3];
+                for (int k = 0; k < 3; ++k) {
+                    const int sym = pat->tri[t][k];
+                    v[k] = (sym < 4) ? V4[(sym + rot) & 3]
+                                     : H4[(sym - 4 + rot) & 3];
+                }
+                emitTriangle(elems, out.elementTag, m.nodeCoords,
+                             v[0], v[1], v[2], (int) m.elementTags[e]);
             }
         }
         // boundary edges are unchanged by the split: each is an edge of exactly

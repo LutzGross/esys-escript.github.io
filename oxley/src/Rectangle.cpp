@@ -2723,6 +2723,151 @@ void Rectangle::farMasterCoords(std::vector<long>& ids,
     }
 }
 
+namespace {
+
+/// the two corners of face f, in z-order corner indexing
+const int rectFaceCorners[4][2] = { {0,2}, {1,3}, {0,1}, {2,3} };
+
+/// One 2:1 seam, described from the COARSE side. The hanging node sits at the
+/// midpoint of that octant's face, and (globalQuad, face) is its identity: a
+/// hanging position is the midpoint of exactly one coarse face, and every rank
+/// touching the seam derives the same pair, so no agreement protocol is needed.
+struct Seam
+{
+    long   globalQuad;      ///< Q: coarse octant's number in the global z-order
+    int    face;            ///< f: which of its faces, p4est numbering
+    int    owner;           ///< rank owning the coarse octant, hence the node
+    double mid[3];          ///< where the node goes
+    long   coarseElem;      ///< local element index of the coarse octant, or -1
+    long   fineElem[2];     ///< local element indices of the fine octants, or -1
+    int    fineCorner[2];   ///< z-order corner of each fine octant sitting at mid
+    int    fineOwner[2];    ///< rank owning each fine octant, or -1
+};
+
+struct SeamCtx
+{
+    const p4est_ghost_t* ghost;
+    std::vector<Seam>* out;
+};
+
+/// owner rank of ghost quadrant g, from the per-rank ghost offsets
+inline int ghostOwner(const p4est_ghost_t* ghost, p4est_locidx_t g, int size)
+{
+    for (int r = 0; r < size; ++r) {
+        if (g >= ghost->proc_offsets[r] && g < ghost->proc_offsets[r+1])
+            return r;
+    }
+    return -1;
+}
+
+/// cumulative local index of a local quadrant, matching the order the element
+/// walk numbers elements in
+inline long localElemIndex(p4est_t* p4est, p4est_topidx_t treeid,
+                           p4est_locidx_t quadid)
+{
+    p4est_tree_t* tree = p4est_tree_array_index(p4est->trees, treeid);
+    return (long) tree->quadrants_offset + quadid;
+}
+
+/**
+   p4est_iterate face callback: records every 2:1 seam.
+
+   p4est_iterate fires a face callback on any face shared by two quadrants,
+   hanging or not, and skips only faces whose quadrants are all ghosts. So a
+   seam is reported on EVERY rank holding either side of it - which is the
+   point, since the coarse side has no local mark of its own (face_code lives
+   on the fine side).
+*/
+void collectSeam(p4est_iter_face_info_t* info, void* user)
+{
+    SeamCtx* ctx = (SeamCtx*) user;
+    if (info->sides.elem_count != 2)
+        return;                                     // a domain boundary face
+
+    p4est_iter_face_side_t* s0 = p4est_iter_fside_array_index_int(&info->sides, 0);
+    p4est_iter_face_side_t* s1 = p4est_iter_fside_array_index_int(&info->sides, 1);
+    if (s0->is_hanging == s1->is_hanging)
+        return;                                     // equal levels: no seam
+    p4est_iter_face_side_t* coarse = s0->is_hanging ? s1 : s0;
+    p4est_iter_face_side_t* fine   = s0->is_hanging ? s0 : s1;
+
+    p4est_quadrant_t* cq = coarse->is.full.quad;
+    if (cq == NULL)
+        return;                                     // not in the ghost layer
+
+    p4est_t* p4est = info->p4est;
+    Seam s;
+    s.face = coarse->face;
+    s.coarseElem = -1;
+    if (!coarse->is.full.is_ghost) {
+        s.owner = p4est->mpirank;
+        s.coarseElem = localElemIndex(p4est, coarse->treeid,
+                                      coarse->is.full.quadid);
+        s.globalQuad = (long) p4est->global_first_quadrant[s.owner] + s.coarseElem;
+    } else {
+        s.owner = ghostOwner(ctx->ghost, coarse->is.full.quadid, p4est->mpisize);
+        if (s.owner < 0)
+            return;
+        s.globalQuad = (long) p4est->global_first_quadrant[s.owner]
+                     + (long) cq->p.piggy3.local_num;
+    }
+
+    // midpoint of the coarse face, in that octant's tree coordinates
+    const p4est_qcoord_t len = P4EST_QUADRANT_LEN(cq->level);
+    const p4est_qcoord_t h = len / 2;
+    p4est_qcoord_t mx = cq->x, my = cq->y;
+    switch (s.face) {
+        case 0:  my += h;              break;       // -x
+        case 1:  mx += len; my += h;   break;       // +x
+        case 2:  mx += h;              break;       // -y
+        default: mx += h;   my += len; break;       // +y
+    }
+    s.mid[0] = s.mid[1] = s.mid[2] = 0.;
+    p4est_qcoord_to_vertex(p4est->connectivity, coarse->treeid, mx, my, s.mid);
+
+    // The fine octants are listed in the face's own z-order, so the half that
+    // comes first touches the coarse face's LOW corner and its far corner is
+    // the midpoint - hence 1-k. Only valid while faces are aligned, which holds
+    // for the brick connectivity oxley builds (orientation 0).
+    for (int k = 0; k < 2; ++k) {
+        s.fineElem[k] = -1;
+        s.fineOwner[k] = -1;
+        s.fineCorner[k] = rectFaceCorners[fine->face][1-k];
+        if (fine->is.hanging.quad[k] == NULL)
+            continue;
+        if (!fine->is.hanging.is_ghost[k]) {
+            s.fineElem[k] = localElemIndex(p4est, fine->treeid,
+                                           fine->is.hanging.quadid[k]);
+            s.fineOwner[k] = p4est->mpirank;
+        } else {
+            s.fineOwner[k] = ghostOwner(ctx->ghost, fine->is.hanging.quadid[k],
+                                        p4est->mpisize);
+        }
+    }
+    ctx->out->push_back(s);
+}
+
+/// Collects every 2:1 seam this rank can see. Builds its own ghost layer if the
+/// domain is not already holding one, since the callback needs the far side of
+/// a seam whose other half lives on another rank.
+void collectSeams(p4est_t* p4est, p4est_ghost_t* keptGhost,
+                  std::vector<Seam>& seams)
+{
+    seams.clear();
+    p4est_ghost_t* ghost = keptGhost;
+    const bool ownGhost = (ghost == NULL);
+    if (ownGhost)
+        ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    SeamCtx ctx;
+    ctx.ghost = ghost;
+    ctx.out = &seams;
+    p4est_iterate(p4est, ghost, (void*) &ctx, NULL, collectSeam, NULL);
+    if (ownGhost)
+        p4est_ghost_destroy(ghost);
+}
+
+} // anonymous namespace
+
 MeshAccess Rectangle::getMeshAccess(bool materializeHanging) const
 {
     MeshAccess m;
@@ -2755,7 +2900,6 @@ MeshAccess Rectangle::getMeshAccess(bool materializeHanging) const
     // must not be written - it would move the master to the hanging position -
     // and with materializeHanging the slot is redirected to a node created here.
     const int V = m.nodesPerElement;
-    HangingNodeMap hangingOf;           // position -> materialised node index
     std::vector<bool> haveCoords(m.numNodes, false);
     long e = 0;
     for (p4est_topidx_t treeid = p4est->first_local_tree;
@@ -2788,26 +2932,77 @@ MeshAccess Rectangle::getMeshAccess(bool materializeHanging) const
                 haveCoords[ni] = true;
             }
 
-            if (!materializeHanging || !anyHanging)
-                continue;
+        }
+    }
 
-            // The hanging corner is the midpoint of the coarse neighbour's edge,
-            // so its two masters are this element's slot c (the far master) and
-            // slot hangingCorner[c] (the near one, a corner of this element).
-            for (int c = 0; c < V; ++c) {
-                if (hangingCorner[c] < 0)
-                    continue;
-                const int cx = c & 1, cy = (c >> 1) & 1;
-                double xy[3] = {0., 0., 0.};
-                p4est_qcoord_to_vertex(p4est->connectivity, treeid,
-                                       quad->x + cx * len, quad->y + cy * len, xy);
-                const long masters[2] = {
-                    (long) nodes->element_nodes[(size_t) e * V + c],
-                    (long) nodes->element_nodes[(size_t) e * V + hangingCorner[c]]
-                };
-                const double weights[2] = {0.5, 0.5};
-                m.elementNodes[(size_t) e * V + c] =
-                        addHangingNode(m, hangingOf, xy, masters, weights, 2);
+    // Materialise the hanging positions, one per 2:1 seam. Driven by the seam
+    // list rather than by face_code, because face_code marks the FINE side only
+    // and the coarse side needs the node just as much: the node is a corner of
+    // the finer neighbour, so the coarse element does not list it, yet it must
+    // become a vertex of that element's simplices.
+    std::vector<Seam> seams;
+    if (materializeHanging) {
+        collectSeams(p4est, m_ghost, seams);
+        m.elementFaceHangingNode.assign((size_t) m.numElements * 4, -1);
+        for (size_t si = 0; si < seams.size(); ++si) {
+            const Seam& s = seams[si];
+
+            // The two masters are the endpoints of the coarse face. Read them
+            // off the coarse element when it is local; otherwise off a fine one,
+            // where the hanging slot holds the far master and getHangingNodes
+            // names the near one. Same two nodes either way.
+            long masters[2] = {-1, -1};
+            if (s.coarseElem >= 0) {
+                for (int k = 0; k < 2; ++k)
+                    masters[k] = m.elementNodes[(size_t) s.coarseElem * V
+                                              + rectFaceCorners[s.face][k]];
+            } else {
+                for (int k = 0; k < 2 && masters[0] < 0; ++k) {
+                    const long fe = s.fineElem[k];
+                    if (fe < 0)
+                        continue;
+                    int hc[P4EST_CHILDREN];
+                    if (!getHangingNodes(nodes->face_code[fe], hc))
+                        continue;
+                    const int c = s.fineCorner[k];
+                    if (hc[c] < 0)
+                        continue;
+                    masters[0] = (long) nodes->element_nodes[(size_t) fe * V + c];
+                    masters[1] = (long) nodes->element_nodes[(size_t) fe * V + hc[c]];
+                }
+            }
+
+            const long ni = m.numNodes++;
+            m.nodeCoords.push_back(s.mid[0]);
+            m.nodeCoords.push_back(s.mid[1]);
+            m.nodeGlobalId.push_back(-1);   // set by finaliseNodeNumbering
+            m.constrainedNodes.push_back(ni);
+
+            // Who WRITES this node in the output. Not the coarse octant's rank,
+            // which owns it for the export numbering: weipa emits the octant
+            // mesh, and a hanging node is not a corner of the coarse quad - only
+            // of the two fine ones. A coarse-side owner would write a point that
+            // appears in none of its own cells and has no value to give it, and
+            // the point comes out zero. So the writer is the lowest-numbered
+            // rank holding a FINE octant of this seam, which every rank can work
+            // out from the ghost layer without communicating.
+            int writer = -1;
+            for (int k = 0; k < 2; ++k) {
+                if (s.fineOwner[k] >= 0 && (writer < 0 || s.fineOwner[k] < writer))
+                    writer = s.fineOwner[k];
+            }
+            m.constrainedOwner.push_back(writer >= 0 ? writer : s.owner);
+            for (int k = 0; k < m.mastersPerConstrainedNode; ++k) {
+                m.constraintMasters.push_back(k < 2 ? masters[k] : -1);
+                m.constraintWeights.push_back(k < 2 ? 0.5 : 0.);
+            }
+
+            // the coarse element reaches it by face, the fine ones by corner
+            if (s.coarseElem >= 0)
+                m.elementFaceHangingNode[(size_t) s.coarseElem * 4 + s.face] = ni;
+            for (int k = 0; k < 2; ++k) {
+                if (s.fineElem[k] >= 0)
+                    m.elementNodes[(size_t) s.fineElem[k] * V + s.fineCorner[k]] = ni;
             }
         }
     }
@@ -2834,8 +3029,13 @@ MeshAccess Rectangle::getMeshAccess(bool materializeHanging) const
     // sends that tree face back to itself, which is p4est's encoding for "no
     // neighbour". This is topological, unlike updateFaceElementCount() which
     // compares coordinates against the domain extent.
-    // NOTE conforming meshes only: a boundary face of a coarse element may carry
-    // hanging edge nodes, which are not represented here yet.
+    // Hanging nodes need no treatment here, and cannot in 2D: a hanging node is
+    // the midpoint of a face that HAS a finer neighbour, so it lies on an
+    // interior face, half an edge away from either end - never on the boundary,
+    // and never at an octant corner. A boundary edge is therefore always a plain
+    // Line2 on two corners. (3D is not like this: a boundary FACE is still never
+    // a seam, but its edges can be, so it can carry hanging edge nodes and become
+    // a polygon of up to 8 vertices.)
     {
         // face -> its two corners in z-order indexing, wound so that the domain
         // lies to the LEFT of the directed edge, i.e. the outward normal is the
@@ -2883,6 +3083,46 @@ MeshAccess Rectangle::getMeshAccess(bool materializeHanging) const
     std::vector<long> ownedPerRank(m_mpiInfo->size);
     for (int i = 0; i < m_mpiInfo->size; ++i)
         ownedPerRank[i] = (long) nodes->global_owned_count[i];
+
+    // The export numbering, derived from replicated data alone: every rank
+    // computes the same id for a shared node, with nothing exchanged. Built
+    // BEFORE finaliseNodeNumbering, which uses the export id of a materialised
+    // node as the key naming it across ranks.
+    {
+        const int size = m_mpiInfo->size;
+        std::vector<long> realOffset(size + 1, 0);
+        m.exportDistribution.assign(size + 1, 0);
+        for (int r = 0; r < size; ++r) {
+            const long quads = (long) p4est->global_first_quadrant[r+1]
+                             - (long) p4est->global_first_quadrant[r];
+            realOffset[r+1] = realOffset[r] + ownedPerRank[r];
+            m.exportDistribution[r+1] = m.exportDistribution[r]
+                                      + ownedPerRank[r] + 4 * quads;
+        }
+
+        // lnodes nodes keep their position within their owner's block. The
+        // owner follows from the lnodes id, since lnodes numbers each rank's
+        // owned nodes consecutively - so ghosts need no lookup either.
+        m.nodeExportId.assign(m.numNodes, -1);
+        for (long i = 0; i < m.numRealNodes; ++i) {
+            const long g = m.nodeGlobalId[i];
+            int r = 0;                              // realOffset is sorted
+            while (r + 1 < size && realOffset[r+1] <= g)
+                ++r;
+            m.nodeExportId[i] = m.exportDistribution[r] + (g - realOffset[r]);
+        }
+
+        // hanging nodes sit above their owner's lnodes nodes, at the slot their
+        // (octant, face) key names
+        for (size_t si = 0; si < seams.size(); ++si) {
+            const Seam& s = seams[si];
+            const long firstQuad = (long) p4est->global_first_quadrant[s.owner];
+            m.nodeExportId[m.constrainedNodes[si]] =
+                    m.exportDistribution[s.owner] + ownedPerRank[s.owner]
+                  + 4 * (s.globalQuad - firstQuad) + s.face;
+        }
+    }
+
     finaliseNodeNumbering(m, ownedPerRank);
 
     return m;

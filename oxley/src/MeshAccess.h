@@ -118,6 +118,47 @@ struct MeshAccess
     /// first output index of each rank, size mpiSize+1; the last entry is the
     /// global number of output nodes
     std::vector<long> outputDistribution;
+
+    // ------------------------------------------------------------------------
+    // Export numbering: the ids handed to finley.
+    //
+    // A third numbering, because neither of the other two can do this job. The
+    // lnodes numbering does not name the hanging positions at all, and the
+    // output numbering above is assigned in creation order, so the rank holding
+    // only the COARSE side of a 2:1 seam cannot work out what the rank holding
+    // the fine side called the node. finley resolves the mesh by global id, so
+    // the two must agree.
+    //
+    // This one is therefore DERIVED rather than assigned, from data p4est
+    // already replicates everywhere. Rank r owns
+    //     [ offset_r, offset_r + owned_r + 4*quads_r )
+    // with owned_r its lnodes node count and quads_r its octant count, and
+    //     lnodes node, lnodes global id g  ->  offset_r + (g - realOffset_r)
+    //     hanging node, octant Q, face f   ->  offset_r + owned_r
+    //                                           + 4*(Q - firstQuad_r) + f
+    // A hanging position is the midpoint of exactly one coarse octant's face,
+    // so (Q, f) names it uniquely and both sides of a seam form the same key.
+    //
+    // Contiguous per rank because finley's resolveNodeIds() allocates two dense
+    // arrays spanning the id range of the local elements; the four reserved
+    // slots per octant leave holes, which cost a constant factor on finley's
+    // temporary labelling buffer and are packed away by createDenseDOFLabeling.
+    // Being closed-form in both directions, it also decodes back to the oxley
+    // node without a stored permutation.
+    // ------------------------------------------------------------------------
+
+    /// export global id of each local node, size numNodes
+    std::vector<long> nodeExportId;
+    /// first export id of each rank, size mpiSize+1
+    std::vector<long> exportDistribution;
+    /// owner of each materialised node (the rank owning the coarse octant),
+    /// parallel to constrainedNodes
+    std::vector<int> constrainedOwner;
+    /// local index of the hanging node on each element face, else -1; size
+    /// numElements*2*numDim, face in p4est order. The coarse side of a seam has
+    /// no other way to reach it - the node is a corner of the finer neighbour,
+    /// so it is absent from this element's own corner list.
+    std::vector<long> elementFaceHangingNode;
 };
 
 /// Materialised hanging nodes already created, keyed by position quantised to

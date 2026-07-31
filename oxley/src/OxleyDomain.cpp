@@ -11,9 +11,12 @@
 *
 *****************************************************************************/
 
+#include <algorithm>
 #include <cstring>
+#include <map>
 #include <string>
 #include <typeinfo>
+#include <utility>
 
 #include <oxley/OxleyDomain.h>
 #include <oxley/OxleyData.h>
@@ -1886,16 +1889,81 @@ void OxleyDomain::finaliseNodeNumbering(MeshAccess& m,
     const int rank = m_mpiInfo->rank;
     const long numExtra = (long) m.constrainedNodes.size();
 
-    // how many nodes each rank materialised. p4est already told every rank how
-    // many lnodes nodes every other rank owns, so this is the only exchange.
+    // Which materialised nodes this rank OWNS.
+    //
+    // Both sides of a 2:1 seam materialise the node - the coarse side needs it
+    // as a vertex on its face, the fine side as one of its corners - so without
+    // an owner the same position takes a slot in TWO ranks' output blocks, and
+    // the copy whose rank does not fill it is written as a zero. constrainedOwner
+    // names the rank owning the coarse octant, of which there is exactly one.
+    // (Brick does not set it yet; there each creator still owns what it made,
+    // and the branches below collapse to the original behaviour.)
+    const bool haveOwners = ((long) m.constrainedOwner.size() == numExtra);
+    const bool haveKeys = ((long) m.nodeExportId.size() == m.numNodes);
+
+    // The materialised nodes this rank owns, kept in LOCAL INDEX ORDER.
+    //
+    // That order is load-bearing and the constraint is not local to this file:
+    // weipa's writers walk the local nodes and emit the ones falling in this
+    // rank's block (OxleyNodes::writeCoordinatesVTK, DataVar::writeToVTK),
+    // indexing them afterwards by nodeOutputIndex. So within a rank's block the
+    // output index MUST increase with the local index, or points and values are
+    // written in one order and referenced in another. Sorting these by key -
+    // which would have made the position derivable - silently scrambles the
+    // geometry, cells stop being boxes and volumes come out short.
+    std::vector<long> ownedExtras;                    // indices into the extras
+    for (long i = 0; i < numExtra; ++i) {
+        if (!haveOwners || m.constrainedOwner[i] == rank)
+            ownedExtras.push_back(i);
+    }
+    const long numOwnedExtra = (long) ownedExtras.size();
+
+    // how many nodes each rank OWNS. p4est already told every rank how many
+    // lnodes nodes every other rank owns, so this is the only count exchanged.
     std::vector<long> extraPerRank(size, 0);
-    extraPerRank[rank] = numExtra;
+    extraPerRank[rank] = numOwnedExtra;
 #ifdef ESYS_MPI
     if (size > 1) {
         MPI_Allgather(&extraPerRank[rank], 1, MPI_LONG,
                       &extraPerRank[0], 1, MPI_LONG, m_mpiInfo->comm);
     }
 #endif
+
+    // A rank holding a hanging node it does not own needs that node's position
+    // inside the OWNER's block, and that is the one thing here which cannot be
+    // derived - it depends on the order the owner happened to create its own,
+    // which is now fixed by the paragraph above. So each rank's keys are
+    // gathered once, in its own order, and the position is where the key sits
+    // in that list. This is the single exchange the numbering needs; the export
+    // ids themselves stay communication-free.
+    //
+    // The key is the export id, the only name for a hanging node that both
+    // sides of a seam compute alike - it comes from the coarse octant's
+    // (global quadrant, face).
+    std::map<long,long> slotOfKey;                    // key -> position in owner
+    std::vector<long> keyOffset(size + 1, 0);
+    for (int r = 0; r < size; ++r)
+        keyOffset[r+1] = keyOffset[r] + extraPerRank[r];
+    if (haveOwners && haveKeys && size > 1) {
+        std::vector<long> allKeys(keyOffset[size], 0);
+        std::vector<long> mine(numOwnedExtra);
+        for (long j = 0; j < numOwnedExtra; ++j)
+            mine[j] = m.nodeExportId[m.constrainedNodes[ownedExtras[j]]];
+#ifdef ESYS_MPI
+        std::vector<int> counts(size), displs(size);
+        for (int r = 0; r < size; ++r) {
+            counts[r] = (int) extraPerRank[r];
+            displs[r] = (int) keyOffset[r];
+        }
+        MPI_Allgatherv(mine.empty() ? NULL : &mine[0], (int) numOwnedExtra,
+                       MPI_LONG, allKeys.empty() ? NULL : &allKeys[0],
+                       &counts[0], &displs[0], MPI_LONG, m_mpiInfo->comm);
+#endif
+        for (int r = 0; r < size; ++r) {
+            for (long j = 0; j < extraPerRank[r]; ++j)
+                slotOfKey[allKeys[keyOffset[r] + j]] = j;
+        }
+    }
 
     // where each rank's lnodes ids start, and where its output block starts
     std::vector<long> realOffset(size + 1, 0);
@@ -1908,12 +1976,14 @@ void OxleyDomain::finaliseNodeNumbering(MeshAccess& m,
     const long globalRealNodes = realOffset[size];
 
     // the materialised nodes take a per-rank block above every lnodes id, so
-    // their ids collide neither with an lnodes id nor with another rank's block
+    // their ids collide neither with an lnodes id nor with another rank's block.
+    // Only the OWNER numbers a node here; a node this rank merely holds is given
+    // its owner's id, found from the gathered keys below.
     long idOffset = globalRealNodes;
     for (int r = 0; r < rank; ++r)
         idOffset += extraPerRank[r];
-    for (long i = 0; i < numExtra; ++i)
-        m.nodeGlobalId[m.constrainedNodes[i]] = idOffset + i;
+    for (long j = 0; j < numOwnedExtra; ++j)
+        m.nodeGlobalId[m.constrainedNodes[ownedExtras[j]]] = idOffset + j;
 
     // the contiguous output numbering. An owned lnodes node keeps its position
     // within this rank's block; a ghost is placed in ITS OWNER's block, at the
@@ -1930,9 +2000,33 @@ void OxleyDomain::finaliseNodeNumbering(MeshAccess& m,
             ++owner;
         m.nodeOutputIndex[i] = m.outputDistribution[owner] + (g - realOffset[owner]);
     }
-    for (long i = 0; i < numExtra; ++i)
-        m.nodeOutputIndex[m.constrainedNodes[i]] =
-                m.outputDistribution[rank] + ownedPerRank[rank] + i;
+    // owned materialised nodes sit above this rank's lnodes nodes, in the local
+    // index order the writers rely on
+    for (long j = 0; j < numOwnedExtra; ++j)
+        m.nodeOutputIndex[m.constrainedNodes[ownedExtras[j]]] =
+                m.outputDistribution[rank] + ownedPerRank[rank] + j;
+
+    // and one this rank only holds goes to the slot it occupies in its OWNER's
+    // block, so that exactly one rank writes it
+    if (haveOwners && haveKeys) {
+        for (long i = 0; i < numExtra; ++i) {
+            const int owner = m.constrainedOwner[i];
+            if (owner == rank)
+                continue;
+            const long ni = m.constrainedNodes[i];
+            std::map<long,long>::const_iterator it =
+                    slotOfKey.find(m.nodeExportId[ni]);
+            if (it == slotOfKey.end()) {
+                throw OxleyException("finaliseNodeNumbering: a hanging node is "
+                        "not in its owner's list - the two sides of a seam "
+                        "disagree about which octant is the coarse one.");
+            }
+            const long j = it->second;
+            m.nodeOutputIndex[ni] = m.outputDistribution[owner]
+                                  + ownedPerRank[owner] + j;
+            m.nodeGlobalId[ni] = globalRealNodes + keyOffset[owner] + j;
+        }
+    }
 }
 
 boost::python::dict OxleyDomain::getMeshInfo(bool materializeHanging) const
@@ -1965,6 +2059,23 @@ boost::python::dict OxleyDomain::getMeshInfo(bool materializeHanging) const
         std::memcpy(elementTags.get_data(), m.elementTags.data(),
                     m.elementTags.size() * sizeof(long));
 
+    np::ndarray nodeExportId = np::zeros(bp::make_tuple(m.numNodes), i64);
+    if (!m.nodeExportId.empty())
+        std::memcpy(nodeExportId.get_data(), m.nodeExportId.data(),
+                    m.nodeExportId.size() * sizeof(long));
+
+    const long nefh = (long) m.elementFaceHangingNode.size();
+    np::ndarray elementFaceHangingNode = np::zeros(bp::make_tuple(nefh), i64);
+    if (nefh)
+        std::memcpy(elementFaceHangingNode.get_data(),
+                    m.elementFaceHangingNode.data(), nefh * sizeof(long));
+
+    const long nDist = (long) m.exportDistribution.size();
+    np::ndarray exportDistribution = np::zeros(bp::make_tuple(nDist), i64);
+    if (nDist)
+        std::memcpy(exportDistribution.get_data(),
+                    m.exportDistribution.data(), nDist * sizeof(long));
+
     bp::dict d;
     d["numDim"] = m.numDim;
     d["nodesPerElement"] = m.nodesPerElement;
@@ -1976,6 +2087,9 @@ boost::python::dict OxleyDomain::getMeshInfo(bool materializeHanging) const
     d["nodeGlobalId"] = nodeGlobalId;
     d["elementNodes"] = elementNodes;
     d["elementTags"] = elementTags;
+    d["nodeExportId"] = nodeExportId;
+    d["elementFaceHangingNode"] = elementFaceHangingNode;
+    d["exportDistribution"] = exportDistribution;
 
     // materialised hanging positions (empty unless materializeHanging)
     const long numExtra = (long) m.constrainedNodes.size();
@@ -2015,6 +2129,23 @@ boost::python::dict OxleyDomain::getMeshInfo(bool materializeHanging) const
     d["constrainedNodes"] = constrainedNodes;
     d["constraintMasters"] = constraintMasters;
     d["constraintWeights"] = constraintWeights;
+
+    np::ndarray nodeOutputIndex = np::zeros(bp::make_tuple(m.numNodes), i64);
+    if (!m.nodeOutputIndex.empty())
+        std::memcpy(nodeOutputIndex.get_data(), m.nodeOutputIndex.data(),
+                    m.nodeOutputIndex.size() * sizeof(long));
+    const long nOD = (long) m.outputDistribution.size();
+    np::ndarray outputDistribution = np::zeros(bp::make_tuple(nOD), i64);
+    if (nOD)
+        std::memcpy(outputDistribution.get_data(),
+                    m.outputDistribution.data(), nOD * sizeof(long));
+    const long nCO = (long) m.constrainedOwner.size();
+    np::ndarray constrainedOwner = np::zeros(bp::make_tuple(nCO), i64);
+    for (long i = 0; i < nCO; ++i)
+        ((long*) constrainedOwner.get_data())[i] = (long) m.constrainedOwner[i];
+    d["nodeOutputIndex"] = nodeOutputIndex;
+    d["outputDistribution"] = outputDistribution;
+    d["constrainedOwner"] = constrainedOwner;
     return d;
 }
 #endif
