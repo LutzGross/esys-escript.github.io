@@ -26,6 +26,7 @@ import xml.etree.ElementTree as ET
 
 from esys.oxley import Block
 from esys.escript import ContinuousFunction
+import esys.escript as esc
 from esys.weipa import saveVTK, saveSilo
 
 WORK = os.environ.get("OXLEY_WORKDIR", ".")
@@ -72,10 +73,17 @@ def validate(numBlocks, length, origin, refine_level):
     x = ContinuousFunction(dom).getX()
 
     base = os.path.join(WORK, "oxley_a3_%dd_L%d" % (dim, refine_level))
-    for f in glob.glob(base + "*"):
-        os.remove(f)
+    # One rank clears the old output, then everyone waits. Removing on every
+    # rank is a race - the others find the file already gone and the run dies
+    # with FileNotFoundError - and writing before the removal has finished would
+    # delete the file just written.
+    if esc.getMPIRankWorld() == 0:
+        for f in glob.glob(base + "*"):
+            os.remove(f)
+    esc.MPIBarrierWorld()
     saveVTK(base + ".vtu", u=x)
     saveSilo(base + ".silo", u=x)
+    esc.MPIBarrierWorld()               # the checks below read what was written
 
     ok = []
     vtu = glob.glob(base + "*.vtu")

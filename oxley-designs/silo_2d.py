@@ -13,7 +13,9 @@ nodes - along the block boundaries; the block layout is taken from the list.
 Produces, in the current directory (TAG is the second argument, and defaults to
 "_hanging" for a per-block refinement so it does not overwrite the uniform run):
     oxley_2dTAG.silo    the forest as quadrilaterals
-    finley_2dTAG.silo   the same mesh split into Tri3
+    finley_2dTAG.silo   the same mesh split into Tri3 (serial also for an
+                        adaptive forest: a hanging node becomes an ordinary
+                        vertex and the coarse element splits into 3-6 triangles)
 
 Fields on both, so they can be compared directly:
     coords   node positions as a vector
@@ -33,9 +35,10 @@ dom.getNormal()) writes it as <prefix>_FaceElements.vtu - but note that this als
 renames the volume file to <prefix>_Elements.vtu. finley behaves identically.
 
 Set REFINE to a nested list to build a forest with hanging nodes, e.g.
-[[3,1],[1,2]] for a 2x2 block layout. That still writes oxley_2d.silo, but the
-conversion is refused for now - the simplex split does not yet number the
-hanging positions.
+[[3,1],[1,2]] for a 2x2 block layout. Comparing oxley_2dTAG.silo with
+finley_2dTAG.silo then shows the point of the converter: the quad carrying a
+hanging node on its edge becomes a fan of triangles through that node, so the
+T-junction is resolved by the triangulation rather than by a constraint.
 """
 import ast
 import math
@@ -119,15 +122,24 @@ saveSilo("oxley_2d%s.silo" % TAG, **fields)
 saveVTK("oxley_2d%s.vtu" % TAG, **fields)
 say("wrote oxley_2d%s.silo and .vtu" % TAG)
 
+# A non-conforming forest CAN be converted in 2D: the hanging position becomes an
+# ordinary node of the finley mesh and the coarse element is split so that it is a
+# vertex on both sides of the 2:1 seam. Under MPI that is not done yet - the node
+# is materialised by the rank owning the COARSE octant of each seam, and both
+# sides derive its global id from the same (octant, face) key, so the seam is
+# resolved across ranks as well.
 conforming = ox.isConforming()          # collective: every rank must call it
-if not conforming:
-    say("forest has hanging nodes, so it cannot be converted yet - "
-        "only oxley_2d%s.silo was written" % TAG)
-    sys.exit(0)
 
 fin = ox.toFinley()
 fields = common_fields(fin)
 fields["sol"] = poisson(fin)
 saveSilo("finley_2d%s.silo" % TAG, **fields)
 saveVTK("finley_2d%s.vtu" % TAG, **fields)
-say("wrote finley_2d%s.silo  (Tri3, 2 triangles per quad)" % TAG)
+
+# how the quads were split, so an odd-looking picture can be checked against the
+# pattern table rather than guessed at: a quad with h hanging sides gives
+# 2, 3, 4, 5 or 6 triangles depending on the configuration
+nquad = esc.Scalar(1, Function(ox)).getNumberOfDataPoints() // 4    # 2x2 Gauss
+ntri = esc.Scalar(1, Function(fin)).getNumberOfDataPoints() // 3    # Tri3
+say("wrote finley_2d%s.silo  (Tri3, %d triangles from %d quads, %.2f per quad)"
+    % (TAG, ntri, nquad, float(ntri) / max(nquad, 1)))
