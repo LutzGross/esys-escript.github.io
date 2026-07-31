@@ -80,13 +80,22 @@ bool OxleyElements::initFromOxley(const oxley::OxleyDomain* dom, int fsType)
 
     numElements = shape.second;
 
+    // Fetched ONCE, before anything branches on how many elements this rank has.
+    // getMeshAccess() is collective - it reduces the per-rank node counts to build
+    // the output numbering - so calling it inside `if (numElements > 0)` deadlocks
+    // as soon as one rank holds none of this kind of element. A rank owning only
+    // interior octants has no boundary faces at all, which happens from four ranks
+    // up on a mesh whose refinement sits away from the boundary. It also saves
+    // walking the forest twice.
+    const oxley::MeshAccess m = dom->getMeshAccess(true);
+
     // For FaceElements the mesh-access boundary walk is authoritative: it finds
     // the boundary from the p4est connectivity, whereas getDataShape() reports
     // the count from updateFaceElementCount(), which compares coordinates against
     // the domain extent. Take the count from the same place as the connectivity
     // so the two cannot disagree.
     if (fsType == oxley::FaceElements || fsType == oxley::ReducedFaceElements)
-        numElements = (int) dom->getMeshAccess(true).numFaces;
+        numElements = (int) m.numFaces;
 
     if (numElements > 0) {
         nodesPerElement = shape.first;
@@ -120,7 +129,6 @@ bool OxleyElements::initFromOxley(const oxley::OxleyDomain* dom, int fsType)
                 // volume elements: connectivity from the lnodes mesh-access
                 // interface, reordering p4est z-order corners into weipa's quad
                 // order (z-order 0,1,3,2 == BL,BR,TR,TL).
-                const oxley::MeshAccess m = dom->getMeshAccess(true);
                 static const int quadMap[4] = {0, 1, 3, 2};
                 nodes.reserve((size_t) m.numElements * 4);
                 for (long e = 0; e < m.numElements; ++e)
@@ -136,7 +144,6 @@ bool OxleyElements::initFromOxley(const oxley::OxleyDomain* dom, int fsType)
                 //
                 // The previous code collected boundary NODES into four buckets
                 // and concatenated them, so the Line2 pairs were arbitrary.
-                const oxley::MeshAccess m = dom->getMeshAccess(true);
                 nodes.reserve((size_t) m.numFaces * 2);
                 for (long f = 0; f < m.numFaces; ++f)
                     for (int k = 0; k < 2; ++k)
@@ -149,7 +156,6 @@ bool OxleyElements::initFromOxley(const oxley::OxleyDomain* dom, int fsType)
                 // volume elements: connectivity from the lnodes mesh-access
                 // interface, reordering p8est z-order corners into weipa's hex
                 // order (z-order 0,4,5,1,2,6,7,3).
-                const oxley::MeshAccess m = dom->getMeshAccess(true);
                 static const int hexMap[8] = {0, 4, 5, 1, 2, 6, 7, 3};
                 nodes.reserve((size_t) m.numElements * 8);
                 for (long e = 0; e < m.numElements; ++e)
@@ -159,7 +165,6 @@ bool OxleyElements::initFromOxley(const oxley::OxleyDomain* dom, int fsType)
                 // Boundary faces straight from the mesh-access interface; see the
                 // 2D branch above. Each is a Rec4 wound counter-clockwise as seen
                 // from OUTSIDE, so the right-hand rule gives the outward normal.
-                const oxley::MeshAccess m = dom->getMeshAccess(true);
                 nodes.reserve((size_t) m.numFaces * 4);
                 for (long f = 0; f < m.numFaces; ++f)
                     for (int k = 0; k < 4; ++k)
