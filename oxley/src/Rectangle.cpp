@@ -843,7 +843,7 @@ void Rectangle::dump(const std::string& fileName) const
     {
         pNodex[i]    = (float) m.nodeCoords[(size_t) i*m.numDim + 0];
         pNodey[i]    = (float) m.nodeCoords[(size_t) i*m.numDim + 1];
-        pNode_ids[i] = m.nodeGlobalId[i];
+        pNode_ids[i] = m.nodeLnodesId[i];
     }
 
     // Array of the coordinate arrays
@@ -2881,16 +2881,16 @@ MeshAccess Rectangle::getMeshAccess(bool materializeHanging) const
     m.mastersPerConstrainedNode = 2;                   // an edge midpoint
 
     m.nodeCoords.assign((size_t) m.numNodes * m.numDim, 0.0);
-    m.nodeGlobalId.resize(m.numNodes);
+    m.nodeLnodesId.resize(m.numNodes);
     m.elementNodes.resize((size_t) m.numElements * m.nodesPerElement);
     m.elementTags.resize(m.numElements);
 
     // global node ids: owned nodes are contiguous from global_offset, ghost
     // nodes carry their explicit global id in nonlocal_nodes.
     for (long i = 0; i < m.numOwnedNodes; ++i)
-        m.nodeGlobalId[i] = m.globalNodeOffset + i;
+        m.nodeLnodesId[i] = m.globalNodeOffset + i;
     for (long i = m.numOwnedNodes; i < m.numNodes; ++i)
-        m.nodeGlobalId[i] = (long) nodes->nonlocal_nodes[i - m.numOwnedNodes];
+        m.nodeLnodesId[i] = (long) nodes->nonlocal_nodes[i - m.numOwnedNodes];
 
     // walk the leaves in lnodes element order, filling connectivity, tags and
     // (deduplicated by node index) coordinates.
@@ -2975,7 +2975,7 @@ MeshAccess Rectangle::getMeshAccess(bool materializeHanging) const
             const long ni = m.numNodes++;
             m.nodeCoords.push_back(s.mid[0]);
             m.nodeCoords.push_back(s.mid[1]);
-            m.nodeGlobalId.push_back(-1);   // set by finaliseNodeNumbering
+            m.nodeLnodesId.push_back(-1);   // set by finaliseNodeNumbering
             m.constrainedNodes.push_back(ni);
 
             // Who WRITES this node in the output. Not the coarse octant's rank,
@@ -2991,7 +2991,7 @@ MeshAccess Rectangle::getMeshAccess(bool materializeHanging) const
                 if (s.fineOwner[k] >= 0 && (writer < 0 || s.fineOwner[k] < writer))
                     writer = s.fineOwner[k];
             }
-            m.constrainedOwner.push_back(writer >= 0 ? writer : s.owner);
+            m.hangingWriterRank.push_back(writer >= 0 ? writer : s.owner);
             for (int k = 0; k < m.mastersPerConstrainedNode; ++k) {
                 m.constraintMasters.push_back(k < 2 ? masters[k] : -1);
                 m.constraintWeights.push_back(k < 2 ? 0.5 : 0.);
@@ -3091,25 +3091,25 @@ MeshAccess Rectangle::getMeshAccess(bool materializeHanging) const
     {
         const int size = m_mpiInfo->size;
         std::vector<long> realOffset(size + 1, 0);
-        m.exportDistribution.assign(size + 1, 0);
+        m.finleyDistribution.assign(size + 1, 0);
         for (int r = 0; r < size; ++r) {
             const long quads = (long) p4est->global_first_quadrant[r+1]
                              - (long) p4est->global_first_quadrant[r];
             realOffset[r+1] = realOffset[r] + ownedPerRank[r];
-            m.exportDistribution[r+1] = m.exportDistribution[r]
+            m.finleyDistribution[r+1] = m.finleyDistribution[r]
                                       + ownedPerRank[r] + 4 * quads;
         }
 
         // lnodes nodes keep their position within their owner's block. The
         // owner follows from the lnodes id, since lnodes numbers each rank's
         // owned nodes consecutively - so ghosts need no lookup either.
-        m.nodeExportId.assign(m.numNodes, -1);
+        m.nodeFinleyId.assign(m.numNodes, -1);
         for (long i = 0; i < m.numRealNodes; ++i) {
-            const long g = m.nodeGlobalId[i];
+            const long g = m.nodeLnodesId[i];
             int r = 0;                              // realOffset is sorted
             while (r + 1 < size && realOffset[r+1] <= g)
                 ++r;
-            m.nodeExportId[i] = m.exportDistribution[r] + (g - realOffset[r]);
+            m.nodeFinleyId[i] = m.finleyDistribution[r] + (g - realOffset[r]);
         }
 
         // hanging nodes sit above their owner's lnodes nodes, at the slot their
@@ -3117,8 +3117,8 @@ MeshAccess Rectangle::getMeshAccess(bool materializeHanging) const
         for (size_t si = 0; si < seams.size(); ++si) {
             const Seam& s = seams[si];
             const long firstQuad = (long) p4est->global_first_quadrant[s.owner];
-            m.nodeExportId[m.constrainedNodes[si]] =
-                    m.exportDistribution[s.owner] + ownedPerRank[s.owner]
+            m.nodeFinleyId[m.constrainedNodes[si]] =
+                    m.finleyDistribution[s.owner] + ownedPerRank[s.owner]
                   + 4 * (s.globalQuad - firstQuad) + s.face;
         }
     }

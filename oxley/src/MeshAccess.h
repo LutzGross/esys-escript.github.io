@@ -27,10 +27,29 @@ namespace oxley {
    the assembler. It is the single public description of the mesh topology, so
    the node numbering scheme stays entirely inside the domain.
 
-   Node numbering is lnodes-based: the local nodes are laid out as
-   [ owned | ghost ]. An owned local node i has global id globalNodeOffset+i;
-   ghost local nodes carry their explicit global id in nodeGlobalId. In serial,
-   numOwnedNodes == numNodes, globalNodeOffset == 0 and global id == local id.
+   Local nodes are laid out as [ owned | ghost ], and everything here that names
+   a node - elementNodes, faceNodes, the constraint arrays - uses that LOCAL
+   index. On top of it sit three global numberings, which cannot be collapsed
+   into one because their requirements conflict:
+
+     nodeLnodesId   p4est's own numbering, with a block above it for the
+                    materialised hanging positions, which lnodes does not name.
+                    This is the id space escript's node samples live in.
+
+     nodeDenseIndex DENSE and contiguous per rank. A writer emitting one shared
+                    point list (VTK) needs every node written by exactly one
+                    rank and every rank's connectivity indexing the same list,
+                    so it cannot tolerate holes.
+
+     nodeFinleyId   DERIVED, so that both ranks either side of a 2:1 seam
+                    compute the same id for a shared hanging node without
+                    communicating. Deriving it costs reserved slots, hence
+                    holes - the exact thing nodeDenseIndex cannot have.
+
+   Dense and derivable are mutually exclusive here; that is the whole reason
+   there are three. They also differ in who OWNS a hanging node: the dense
+   numbering gives it to a rank that has it as a cell corner (a fine-side rank),
+   the finley numbering to the coarse octant's rank, whose simplices use it.
 
    Element corners are listed in p4est z-order (x fastest, then y, then z).
 */
@@ -46,7 +65,7 @@ struct MeshAccess
     /// node coordinates, size numNodes*numDim (node i at [i*numDim + d])
     std::vector<double> nodeCoords;
     /// global id of each local node, size numNodes
-    std::vector<long> nodeGlobalId;
+    std::vector<long> nodeLnodesId;
     /// per-element local node indices, size numElements*nodesPerElement (z-order)
     std::vector<long> elementNodes;
     /// per-element tag, size numElements
@@ -78,7 +97,7 @@ struct MeshAccess
     //
     // With materializeHanging the hanging positions become real nodes, appended
     // after the lnodes ones: indices [numRealNodes, numNodes) and the tail of
-    // nodeCoords/nodeGlobalId. They carry NO sample of the domain's nodal
+    // nodeCoords/nodeLnodesId. They carry NO sample of the domain's nodal
     // function space, so a consumer with per-node values must fill them from the
     // constraint below - a hanging node's value is the average of its masters.
     // ------------------------------------------------------------------------
@@ -98,36 +117,35 @@ struct MeshAccess
     std::vector<double> constraintWeights;
 
     // ------------------------------------------------------------------------
-    // Output numbering.
+    // The DENSE numbering - for a writer emitting one shared point list.
     //
-    // nodeGlobalId is the lnodes numbering: unique, but a rank's owned ids are
-    // NOT one contiguous block once the materialised nodes are added, and the
-    // materialised ones sit far above the rest. A writer that emits one shared
-    // list of points (VTK does; Silo writes a block per rank and does not care)
-    // needs a numbering where each rank owns exactly one contiguous range, so
-    // that every node is written by exactly one rank and the connectivity of
-    // every rank indexes the same list.
+    // nodeLnodesId cannot serve: a rank's owned ids are not one contiguous block
+    // once the materialised nodes are added, and those sit far above the rest.
+    // Here rank r owns exactly [denseDistribution[r], denseDistribution[r+1]),
+    // its lnodes-owned nodes first, then the hanging ones it writes.
     //
-    // nodeOutputIndex is that numbering: rank r owns
-    // [outputDistribution[r], outputDistribution[r+1]), its lnodes-owned nodes
-    // first, then its materialised ones.
+    // ORDER IS LOAD-BEARING: within a rank's range the index must INCREASE with
+    // the local node index, because the writers walk local nodes, emit those
+    // falling in their own range, and index them afterwards by this array
+    // (weipa's OxleyNodes::writeCoordinatesVTK and DataVar::writeToVTK). Order
+    // them any other way and points are written in one order and referenced in
+    // another - the cells stop being cells.
     // ------------------------------------------------------------------------
 
-    /// contiguous global output index of each local node, size numNodes
-    std::vector<long> nodeOutputIndex;
-    /// first output index of each rank, size mpiSize+1; the last entry is the
-    /// global number of output nodes
-    std::vector<long> outputDistribution;
+    /// dense contiguous index of each local node, size numNodes
+    std::vector<long> nodeDenseIndex;
+    /// first dense index of each rank, size mpiSize+1; the last entry is the
+    /// global number of nodes written
+    std::vector<long> denseDistribution;
 
     // ------------------------------------------------------------------------
-    // Export numbering: the ids handed to finley.
+    // The FINLEY numbering: the ids handed over on export.
     //
-    // A third numbering, because neither of the other two can do this job. The
-    // lnodes numbering does not name the hanging positions at all, and the
-    // output numbering above is assigned in creation order, so the rank holding
-    // only the COARSE side of a 2:1 seam cannot work out what the rank holding
-    // the fine side called the node. finley resolves the mesh by global id, so
-    // the two must agree.
+    // Neither of the other two can do this job. lnodes does not name the hanging
+    // positions at all, and the dense numbering is assigned in each rank's own
+    // order, so the rank holding only the COARSE side of a 2:1 seam cannot work
+    // out what the rank holding the fine side called the node. finley resolves
+    // the mesh by global id, so the two must agree or the seam is a crack.
     //
     // This one is therefore DERIVED rather than assigned, from data p4est
     // already replicates everywhere. Rank r owns
@@ -147,13 +165,17 @@ struct MeshAccess
     // node without a stored permutation.
     // ------------------------------------------------------------------------
 
-    /// export global id of each local node, size numNodes
-    std::vector<long> nodeExportId;
-    /// first export id of each rank, size mpiSize+1
-    std::vector<long> exportDistribution;
-    /// owner of each materialised node (the rank owning the coarse octant),
-    /// parallel to constrainedNodes
-    std::vector<int> constrainedOwner;
+    /// finley id of each local node, size numNodes
+    std::vector<long> nodeFinleyId;
+    /// first finley id of each rank, size mpiSize+1
+    std::vector<long> finleyDistribution;
+    /// Which rank writes each materialised node in the DENSE numbering, parallel
+    /// to constrainedNodes. NOT the coarse-side owner the finley id is derived
+    /// from - this is the lowest-numbered rank holding a FINE octant of the seam,
+    /// i.e. one that actually has the node as a corner of one of its cells. The
+    /// coarse side does not, since a hanging node is no corner of the coarse
+    /// quad, so a coarse-side writer emits a point it can give no value to.
+    std::vector<int> hangingWriterRank;
     /// local index of the hanging node on each element face, else -1; size
     /// numElements*2*numDim, face in p4est order. The coarse side of a seam has
     /// no other way to reach it - the node is a corner of the finer neighbour,
@@ -169,7 +191,7 @@ typedef std::map<std::array<long,3>, long> HangingNodeMap;
    \brief
    Appends a node at a hanging position, or returns the one already there.
 
-   \param m the mesh being built; numNodes, nodeCoords, nodeGlobalId and the
+   \param m the mesh being built; numNodes, nodeCoords, nodeLnodesId and the
             constraint arrays all grow by one when a node is created. Global ids
             are left at -1 for OxleyDomain::assignHangingNodeIds().
    \param seen positions already materialised
@@ -193,7 +215,7 @@ inline long addHangingNode(MeshAccess& m, HangingNodeMap& seen,
     const long idx = m.numNodes++;
     for (int d = 0; d < m.numDim; ++d)
         m.nodeCoords.push_back(xyz[d]);
-    m.nodeGlobalId.push_back(-1);
+    m.nodeLnodesId.push_back(-1);
     m.constrainedNodes.push_back(idx);
     for (int k = 0; k < m.mastersPerConstrainedNode; ++k) {
         m.constraintMasters.push_back(k < n ? masters[k] : -1);

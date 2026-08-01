@@ -183,7 +183,7 @@ bool OxleyNodes::initFromOxley(const oxley::OxleyDomain* dom)
     // [nodeDist[r], nodeDist[r+1]), so a writer emitting one shared point list
     // (VTK) has every node written by exactly one rank, and every rank's
     // connectivity indexes the same list.
-    nodeDist.assign(m.outputDistribution.begin(), m.outputDistribution.end());
+    nodeDist.assign(m.denseDistribution.begin(), m.denseDistribution.end());
     globalNumNodes = nodeDist.empty() ? numNodes : (int) nodeDist.back();
 
     if (numNodes > 0) {
@@ -202,10 +202,10 @@ bool OxleyNodes::initFromOxley(const oxley::OxleyDomain* dom)
         const dim_t* iPtr = dom->borrowSampleReferenceIDs(oxley::Nodes);
         nodeID.assign(iPtr, iPtr + m.numRealNodes);
         for (long i = m.numRealNodes; i < m.numNodes; i++)
-            nodeID.push_back((int) m.nodeGlobalId[i]);
+            nodeID.push_back((int) m.nodeLnodesId[i]);
         // node tags are not part of the mesh-access interface yet
         nodeTag.assign(numNodes, 0);
-        nodeGNI.assign(m.nodeOutputIndex.begin(), m.nodeOutputIndex.end());
+        nodeGNI.assign(m.nodeDenseIndex.begin(), m.nodeDenseIndex.end());
 
         const int mpc = m.mastersPerConstrainedNode;
         for (size_t i = 0; i < m.constrainedNodes.size(); i++) {

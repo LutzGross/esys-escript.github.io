@@ -2,7 +2,7 @@
 Which output slots does no rank fill?
 
 weipa writes one shared point list: rank r emits the local nodes whose
-nodeOutputIndex falls in [outputDistribution[r], outputDistribution[r+1]), and
+nodeDenseIndex falls in [denseDistribution[r], denseDistribution[r+1]), and
 every rank's connectivity indexes that list. A slot nobody claims is written as
 a zero, which is what validate_output_hanging reports as an "unfilled sample".
 
@@ -34,15 +34,15 @@ def dump():
     info = dom.getMeshInfo(True)
     np.savez(os.path.join(OUT, "rank%d.npz" % rank),
              coords=info["nodeCoords"].reshape(-1, 2),
-             gni=info["nodeOutputIndex"],
-             dist=info["outputDistribution"],
+             gni=info["nodeDenseIndex"],
+             dist=info["denseDistribution"],
              cn=info["constrainedNodes"],
-             owner=info["constrainedOwner"],
+             owner=info["hangingWriterRank"],
              masters=info["constraintMasters"],
              numReal=info["numRealNodes"],
              numOwned=info["numOwnedNodes"])
     print("rank %d: %d nodes, %d real, %d owned, %d constrained"
-          % (rank, len(info["nodeOutputIndex"]), info["numRealNodes"],
+          % (rank, len(info["nodeDenseIndex"]), info["numRealNodes"],
              info["numOwnedNodes"], len(info["constrainedNodes"])))
 
 

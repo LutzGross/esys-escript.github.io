@@ -884,8 +884,8 @@ protected:
     /// Completes the node numbering of a freshly built MeshAccess:
     ///   - gives the nodes materialised at hanging positions globally unique
     ///     ids, in a per-rank block above every lnodes id;
-    ///   - builds the contiguous output numbering (nodeOutputIndex and
-    ///     outputDistribution, see MeshAccess).
+    ///   - builds the contiguous output numbering (nodeDenseIndex and
+    ///     denseDistribution, see MeshAccess).
     /// ownedPerRank is the number of lnodes nodes owned by each rank, which
     /// p4est already knows everywhere (lnodes->global_owned_count), so the only
     /// communication is one Allgather of this rank's materialised count.

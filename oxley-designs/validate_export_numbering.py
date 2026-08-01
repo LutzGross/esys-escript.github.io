@@ -74,11 +74,11 @@ def dump(nranks):
         info = dom.getMeshInfo(True)
         np.savez(os.path.join(OUT, "p%d_c%d_r%d.npz" % (nranks, ci, rank)),
                  coords=info["nodeCoords"].reshape(-1, 2),
-                 exportId=info["nodeExportId"],
-                 gid=info["nodeGlobalId"],
+                 exportId=info["nodeFinleyId"],
+                 gid=info["nodeLnodesId"],
                  en=info["elementNodes"].reshape(-1, info["nodesPerElement"]),
                  efh=info["elementFaceHangingNode"],
-                 dist=info["exportDistribution"],
+                 dist=info["finleyDistribution"],
                  numOwned=info["numOwnedNodes"])
     if rank == 0:
         print("dumped %d cases at %d rank(s)" % (len(CASES), nranks))

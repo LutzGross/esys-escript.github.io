@@ -254,10 +254,10 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
     const int FV = m.nodesPerFace;
     // The ids handed to finley. The export numbering is the one both sides of a
     // 2:1 seam derive independently, so a hanging node is one node across ranks;
-    // nodeGlobalId cannot do that, since it numbers materialised nodes in each
+    // nodeLnodesId cannot do that, since it numbers materialised nodes in each
     // rank's own creation order. Brick does not build it yet, hence the fallback.
     const std::vector<long>& gidOf =
-            m.nodeExportId.empty() ? m.nodeGlobalId : m.nodeExportId;
+            m.nodeFinleyId.empty() ? m.nodeLnodesId : m.nodeFinleyId;
 
     finley::MeshArrays out;
     out.numDim = m.numDim;

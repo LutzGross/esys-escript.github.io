@@ -4797,16 +4797,16 @@ MeshAccess Brick::getMeshAccess(bool materializeHanging) const
     m.mastersPerConstrainedNode = 4;                   // a face centre
 
     m.nodeCoords.assign((size_t) m.numNodes * m.numDim, 0.0);
-    m.nodeGlobalId.resize(m.numNodes);
+    m.nodeLnodesId.resize(m.numNodes);
     m.elementNodes.resize((size_t) m.numElements * m.nodesPerElement);
     m.elementTags.resize(m.numElements);
 
     // global node ids: owned nodes are contiguous from global_offset, ghost
     // nodes carry their explicit global id in nonlocal_nodes.
     for (long i = 0; i < m.numOwnedNodes; ++i)
-        m.nodeGlobalId[i] = m.globalNodeOffset + i;
+        m.nodeLnodesId[i] = m.globalNodeOffset + i;
     for (long i = m.numOwnedNodes; i < m.numNodes; ++i)
-        m.nodeGlobalId[i] = (long) nodes->nonlocal_nodes[i - m.numOwnedNodes];
+        m.nodeLnodesId[i] = (long) nodes->nonlocal_nodes[i - m.numOwnedNodes];
 
     // walk the leaves in lnodes element order, filling connectivity, tags and
     // (deduplicated by node index) coordinates.

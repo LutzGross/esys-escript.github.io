@@ -47,7 +47,7 @@ def dump():
     info = dom.getMeshInfo(True)
     np.savez(os.path.join(OUT, "diag_rank%d.npz" % rank),
              coords=info["nodeCoords"].reshape(-1, 2),
-             gid=info["nodeGlobalId"],
+             gid=info["nodeLnodesId"],
              en=info["elementNodes"].reshape(-1, info["nodesPerElement"]),
              numOwned=info["numOwnedNodes"])
     print("rank %d: %d nodes (%d owned), %d elements"
