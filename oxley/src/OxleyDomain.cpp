@@ -1898,8 +1898,22 @@ void OxleyDomain::finaliseNodeNumbering(MeshAccess& m,
     // hangingWriterRank names the one rank that writes it.
     // (Brick does not set it yet; there each creator still owns what it made,
     // and the branches below collapse to the original behaviour.)
-    const bool haveOwners = ((long) m.hangingWriterRank.size() == numExtra);
-    const bool haveKeys = ((long) m.nodeFinleyId.size() == m.numNodes);
+    //
+    // Whether the mesh view names that rank, and a cross-rank key, is decided
+    // COLLECTIVELY, because the gather below is a collective while the tests
+    // themselves are per-rank: a rank that materialised nothing has
+    // hangingWriterRank.size() == numExtra == 0 and would answer "yes", while a
+    // rank with hanging nodes and no owners answers "no". One rank then enters
+    // the gather alone and the run deadlocks. Ask every rank, take the minimum.
+    int localReady = (((long) m.hangingWriterRank.size() == numExtra)
+                   && ((long) m.nodeFinleyId.size() == m.numNodes)) ? 1 : 0;
+    int ready = localReady;
+#ifdef ESYS_MPI
+    if (size > 1)
+        MPI_Allreduce(&localReady, &ready, 1, MPI_INT, MPI_MIN, m_mpiInfo->comm);
+#endif
+    const bool haveOwners = (ready != 0);
+    const bool haveKeys = haveOwners;
 
     // The materialised nodes this rank owns, kept in LOCAL INDEX ORDER.
     //
