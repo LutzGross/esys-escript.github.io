@@ -663,7 +663,19 @@ protected:
     template <typename S>
     void interpolateNodesOnFacesWorker(escript::Data& out,
                                          const escript::Data& in,
-                                         bool reduced, S sentinel) const;  
+                                         bool reduced, S sentinel) const;
+
+    /// Gathers the four corner values of the element owning a boundary face,
+    /// in z-order, with the hanging-node constraint applied. A face routine
+    /// needs only the two values on its own face, but a hanging corner is
+    /// constrained against a corner that may lie off the face, so all four
+    /// have to be read to correct either.
+    template <typename S>
+    void gatherCornersConstrained(const escript::Data& in,
+                                  const borderNodeInfo& b, dim_t numComp,
+                                  S sentinel, std::vector<S>& f_00,
+                                  std::vector<S>& f_10, std::vector<S>& f_01,
+                                  std::vector<S>& f_11) const;
 
     template<typename Scalar>
     void assembleGradientImpl(escript::Data& out,

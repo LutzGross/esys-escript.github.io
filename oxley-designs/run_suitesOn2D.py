@@ -161,12 +161,72 @@ class Test_DataOps2D(Test_Dump, Test_SetDataPointValue, Test_Lazy):
         del self.otherfs
 
 
+class Test_GradOnBoundary2D(unittest.TestCase):
+    """
+    Gradients on the boundary function spaces.
+
+    The shared suite is Test_Util_Gradient_noBoundary, so nothing above covers
+    these. They need covering separately because the boundary gradient combines
+    the two values on the face with the element's other two corners to get the
+    tangential derivative, and on the fine side of a seam one of those corners
+    can be hanging.
+
+    A globally linear field is the discriminator: it lies in the space exactly,
+    so any departure from its constant gradient is the discretisation getting a
+    corner value wrong, not approximation error.
+    """
+    def setUp(self):
+        self.domain = domain(CASE)
+
+    def tearDown(self):
+        del self.domain
+
+    # Not a property of the export: finley's plain face elements (Line2 here,
+    # Tri3 in 3D) carry only the nodes ON the face, and two nodes cannot
+    # determine a 2D gradient - the normal derivative is simply not there, and
+    # grad() returns a wrong answer rather than refusing. Measured on finley's
+    # OWN Rectangle: useElementsOnFace=True gives 1.3e-15, False gives exactly
+    # 3.0, the dropped y-component. toFinley() builds the plain kind by choice
+    # (2026-07-28), so this is the price of that choice, not a defect here.
+    if TARGET == "finley":
+        _skip_boundary = unittest.skip(
+                "finley's plain face elements hold only the on-face nodes, so "
+                "no boundary gradient exists; needs useElementsOnFace-style "
+                "parent-shaped faces in the export")
+    else:
+        _skip_boundary = lambda f: f
+
+    def _check(self, fs, name):
+        x = ContinuousFunction(self.domain).getX()
+        u = 2. * x[0] + 3. * x[1] - 1.
+        g = grad(u, fs)
+        err = Lsup(g - [2., 3.])
+        self.assertLess(err, 1e-8, "%s: gradient off by %g" % (name, err))
+
+    @_skip_boundary
+    def test_grad_onFunctionOnBoundary(self):
+        self._check(FunctionOnBoundary(self.domain), "FunctionOnBoundary")
+
+    @_skip_boundary
+    def test_grad_onReducedFunctionOnBoundary(self):
+        self._check(ReducedFunctionOnBoundary(self.domain),
+                    "ReducedFunctionOnBoundary")
+
+    def test_grad_onFunction(self):
+        self._check(Function(self.domain), "Function")
+
+    def test_grad_onReducedFunction(self):
+        self._check(ReducedFunction(self.domain), "ReducedFunction")
+
+
 GROUPS = {
     "spatial": [Test_SpatialFunctions2D],
     "algebra": [Test_Utils2D],
     "objects": [Test_DomainInterface2D, Test_DataOps2D],
+    "boundary": [Test_GradOnBoundary2D],
 }
-GROUPS["all"] = GROUPS["spatial"] + GROUPS["algebra"] + GROUPS["objects"]
+GROUPS["all"] = (GROUPS["spatial"] + GROUPS["algebra"] + GROUPS["objects"]
+                 + GROUPS["boundary"])
 
 if __name__ == '__main__':
     if GROUP not in GROUPS:

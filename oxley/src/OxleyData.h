@@ -89,6 +89,10 @@ struct borderNodeInfo
 	p4est_qcoord_t z; // Not used by Rectangle
 	// p4est_quadrant_t * quad;
 	p4est_topidx_t treeid=-1;
+	/// local leaf index of the element this face belongs to, in lnodes order.
+	/// The only way back to its face_code, which says which of the neighbours
+	/// above are hanging slots holding a master rather than a corner value.
+	long quadIndex=-1;
 };
 
 struct hangingNodeInfo // used by Rectangle

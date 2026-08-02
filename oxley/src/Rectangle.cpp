@@ -2240,6 +2240,47 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
 }
 
 
+namespace {
+
+/**
+   \brief
+   Replaces the values sitting in an element's hanging corner slots by the
+   values AT those corners.
+
+   lnodes does not number the position at a 2:1 seam, so the slot of a hanging
+   corner holds a MASTER instead: the FAR one, the node at the other end of the
+   coarse neighbour's edge, a distance 2h away. (That is the same fact
+   getGhostRealCornerCoords uses to place it at 2H-A.) The value at the hanging
+   position is the mean of the two masters, and BOTH of them are corners of this
+   very element - the far master in the hanging slot itself, the near one in the
+   slot getHangingNodes reports - so the constraint is local to the element and
+   needs no halo, no communication and no node that does not already exist.
+
+   Correcting in place is safe: the near master is p4est's anchor corner, which
+   is never itself hanging, so no corrected value is ever read back.
+
+   Without this an element on the fine side of a seam reads a value from 2h away
+   as though it sat on its own edge. Nothing crashes and nothing looks wrong -
+   grad() is simply wrong by O(1) along every seam, and integrals of anything
+   interpolated from nodes are slightly wrong everywhere near one.
+*/
+template<typename Scalar>
+inline void constrainHangingCorners(const int hangingCorner[P4EST_CHILDREN],
+                                    Scalar* corner[P4EST_CHILDREN],
+                                    dim_t numComp)
+{
+    for (int n = 0; n < P4EST_CHILDREN; ++n) {
+        const int a = hangingCorner[n];
+        if (a < 0)
+            continue;
+        for (dim_t i = 0; i < numComp; ++i)
+            corner[n][i] = static_cast<Scalar>(0.5)
+                         * (corner[n][i] + corner[a][i]);
+    }
+}
+
+} // anonymous namespace
+
 // private   
 template <typename S> 
 void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
@@ -2272,6 +2313,16 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                 memcpy(&f_01[0], in.getSampleDataRO(ids[2],sentinel), numComp*sizeof(S));
                 memcpy(&f_10[0], in.getSampleDataRO(ids[1],sentinel), numComp*sizeof(S));
                 memcpy(&f_11[0], in.getSampleDataRO(ids[3],sentinel), numComp*sizeof(S));
+
+                // on the fine side of a seam these slots hold masters, not the
+                // corner values; see constrainHangingCorners
+                int hangingCorner[P4EST_CHILDREN];
+                if (getHangingNodes(nodes->face_code[e], hangingCorner)) {
+                    S* corner[P4EST_CHILDREN] =
+                            { &f_00[0], &f_10[0], &f_01[0], &f_11[0] };
+                    constrainHangingCorners(hangingCorner, corner, numComp);
+                }
+
                 S* o = out.getSampleDataRW(quadID,sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c0*(f_00[i] + f_01[i] + f_10[i] + f_11[i]);
@@ -2312,7 +2363,16 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                 memcpy(&f_01[0], in.getSampleDataRO(ids[2], sentinel), numComp*sizeof(S));
                 memcpy(&f_10[0], in.getSampleDataRO(ids[1], sentinel), numComp*sizeof(S));
                 memcpy(&f_11[0], in.getSampleDataRO(ids[3], sentinel), numComp*sizeof(S));
-                
+
+                // on the fine side of a seam these slots hold masters, not the
+                // corner values; see constrainHangingCorners
+                int hangingCorner[P4EST_CHILDREN];
+                if (getHangingNodes(nodes->face_code[e], hangingCorner)) {
+                    S* corner[P4EST_CHILDREN] =
+                            { &f_00[0], &f_10[0], &f_01[0], &f_11[0] };
+                    constrainHangingCorners(hangingCorner, corner, numComp);
+                }
+
                 S* o = out.getSampleDataRW(quadId, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c0*(f_01[i] + f_10[i]) + c1*f_11[i] + c2*f_00[i];
@@ -2483,6 +2543,35 @@ int Rectangle::getHangingBorderNodeFacecode(p4est_quadrant_t * quad, int8_t leve
 
 //private
 template <typename S>
+void Rectangle::gatherCornersConstrained(const escript::Data& in,
+                                         const borderNodeInfo& b, dim_t numComp,
+                                         S sentinel, std::vector<S>& f_00,
+                                         std::vector<S>& f_10,
+                                         std::vector<S>& f_01,
+                                         std::vector<S>& f_11) const
+{
+    memcpy(&f_00[0], in.getSampleDataRO(b.neighbours[0], sentinel), numComp*sizeof(S));
+    memcpy(&f_10[0], in.getSampleDataRO(b.neighbours[1], sentinel), numComp*sizeof(S));
+    memcpy(&f_01[0], in.getSampleDataRO(b.neighbours[2], sentinel), numComp*sizeof(S));
+    memcpy(&f_11[0], in.getSampleDataRO(b.neighbours[3], sentinel), numComp*sizeof(S));
+
+    // A hanging corner never lies ON the domain boundary: it is the midpoint of
+    // a face shared by two elements, and the relative interior of a shared face
+    // is interior to the domain. So neither value on THIS face is ever hanging.
+    // The face gradient, however, combines them with the element's other two
+    // corners to get the tangential derivative, and one of those can be - which
+    // is why all four are read here and corrected together. A routine that uses
+    // only the on-face pair is unaffected either way.
+    int hangingCorner[P4EST_CHILDREN];
+    if (b.quadIndex >= 0
+            && getHangingNodes(nodes->face_code[b.quadIndex], hangingCorner)) {
+        S* corner[P4EST_CHILDREN] = { &f_00[0], &f_10[0], &f_01[0], &f_11[0] };
+        constrainHangingCorners(hangingCorner, corner, numComp);
+    }
+}
+
+//private
+template <typename S>
 void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
                                         const escript::Data& in,
                                         bool reduced, S sentinel) const
@@ -2501,8 +2590,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 #pragma omp for nowait
             for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                 borderNodeInfo tmp = NodeIDsLeft[k];
-                memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
+                gatherCornersConstrained(in, tmp, numComp, sentinel,
+                                         f_00, f_10, f_01, f_11);
                 
                 S* o = out.getSampleDataRW(m_faceOffset[0]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
@@ -2514,8 +2603,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 #pragma omp for nowait
             for (index_t k=0; k<NodeIDsRight.size(); k++) {
                 borderNodeInfo tmp = NodeIDsRight[k];
-                memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
-                memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                gatherCornersConstrained(in, tmp, numComp, sentinel,
+                                         f_00, f_10, f_01, f_11);
                 S* o = out.getSampleDataRW(m_faceOffset[1]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = (f_10[i] + f_11[i])/static_cast<S>(2);
@@ -2526,8 +2615,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 #pragma omp for nowait
             for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                 borderNodeInfo tmp = NodeIDsBottom[k];
-                memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                gatherCornersConstrained(in, tmp, numComp, sentinel,
+                                         f_00, f_10, f_01, f_11);
                 S* o = out.getSampleDataRW(m_faceOffset[2]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = (f_00[i] + f_10[i])/static_cast<S>(2);
@@ -2538,8 +2627,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 #pragma omp for nowait
             for (index_t k=0; k<NodeIDsTop.size(); k++) {
                 borderNodeInfo tmp = NodeIDsTop[k];
-                memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
-                memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                gatherCornersConstrained(in, tmp, numComp, sentinel,
+                                         f_00, f_10, f_01, f_11);
                 S* o = out.getSampleDataRW(m_faceOffset[3]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = (f_01[i] + f_11[i])/static_cast<S>(2);
@@ -2559,8 +2648,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
     #pragma omp for nowait
             for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                 borderNodeInfo tmp = NodeIDsLeft[k];
-                memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
+                gatherCornersConstrained(in, tmp, numComp, sentinel,
+                                         f_00, f_10, f_01, f_11);
                 S* o = out.getSampleDataRW(m_faceOffset[0]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c0*f_01[i] + c1*f_00[i];
@@ -2572,8 +2661,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
     #pragma omp for nowait
             for (index_t k=0; k<NodeIDsRight.size(); k++) {
                 borderNodeInfo tmp = NodeIDsRight[k];
-                memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
-                memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                gatherCornersConstrained(in, tmp, numComp, sentinel,
+                                         f_00, f_10, f_01, f_11);
                 S* o = out.getSampleDataRW(m_faceOffset[1]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c1*f_10[i] + c0*f_11[i];
@@ -2585,8 +2674,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
     #pragma omp for nowait
              for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                 borderNodeInfo tmp = NodeIDsBottom[k];
-                memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                gatherCornersConstrained(in, tmp, numComp, sentinel,
+                                         f_00, f_10, f_01, f_11);
                 S* o = out.getSampleDataRW(m_faceOffset[2]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c0*f_10[i] + c1*f_00[i];
@@ -2598,8 +2687,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
     #pragma omp for nowait
             for (index_t k=0; k<NodeIDsTop.size(); k++) {
                 borderNodeInfo tmp = NodeIDsTop[k];
-                memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
-                memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                gatherCornersConstrained(in, tmp, numComp, sentinel,
+                                         f_00, f_10, f_01, f_11);
                 S* o = out.getSampleDataRW(m_faceOffset[3]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c0*f_11[i] + c1*f_01[i];
@@ -3356,6 +3445,7 @@ void Rectangle::updateFaceElementCount()
                 tmp.y=quad->y;
                 tmp.level=quad->level;
                 tmp.treeid=treeid;
+                tmp.quadIndex=e;
 
                 // Push each boundary FACE exactly once, keyed on its canonical
                 // corner (SW=0 for left/bottom, SE=1 for right, NW=2 for top).
@@ -3773,6 +3863,15 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 memcpy(&f_10[0], in.getSampleDataRO(ids[1], zero), numComp*sizeof(Scalar));
                 memcpy(&f_11[0], in.getSampleDataRO(ids[3], zero), numComp*sizeof(Scalar));
 
+                // on the fine side of a seam these slots hold masters, not the
+                // corner values; see constrainHangingCorners
+                int hangingCorner[P4EST_CHILDREN];
+                if (getHangingNodes(nodes->face_code[e], hangingCorner)) {
+                    Scalar* corner[P4EST_CHILDREN] =
+                            { &f_00[0], &f_10[0], &f_01[0], &f_11[0] };
+                    constrainHangingCorners(hangingCorner, corner, numComp);
+                }
+
                 Scalar* o = out.getSampleDataRW(e, zero);
                 for(index_t i = 0; i < numComp; ++i) {
                     o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[1][l] + (f_11[i]-f_01[i])*cx[0][l];
@@ -3814,6 +3913,15 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 memcpy(&f_10[0], in.getSampleDataRO(ids[1], zero), numComp*sizeof(Scalar));
                 memcpy(&f_11[0], in.getSampleDataRO(ids[3], zero), numComp*sizeof(Scalar));
 
+                // on the fine side of a seam these slots hold masters, not the
+                // corner values; see constrainHangingCorners
+                int hangingCorner[P4EST_CHILDREN];
+                if (getHangingNodes(nodes->face_code[e], hangingCorner)) {
+                    Scalar* corner[P4EST_CHILDREN] =
+                            { &f_00[0], &f_10[0], &f_01[0], &f_11[0] };
+                    constrainHangingCorners(hangingCorner, corner, numComp);
+                }
+
                 Scalar* o = out.getSampleDataRW(e, zero);
 
                 for(index_t i = 0; i < numComp; ++i) {
@@ -3849,10 +3957,9 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                         borderNodeInfo tmp = NodeIDsLeft[k];
                         long l = tmp.level;
-                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        gatherCornersConstrained(in, tmp, numComp, zero,
+                                                 f_00, f_10, f_01, f_11);
+
                         Scalar* o = out.getSampleDataRW(m_faceOffset[0]+k, zero);
                         for(index_t i = 0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[1][l] + (f_11[i]-f_01[i])*cx[0][l];
@@ -3866,10 +3973,9 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     for (index_t k=0; k<NodeIDsRight.size(); k++) {
                         borderNodeInfo tmp = NodeIDsRight[k];
                         long l = tmp.level;
-                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        gatherCornersConstrained(in, tmp, numComp, zero,
+                                                 f_00, f_10, f_01, f_11);
+
                         Scalar* o = out.getSampleDataRW(m_faceOffset[1]+k, zero);
                         for(index_t i = 0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[1][l] + (f_11[i]-f_01[i])*cx[0][l];
@@ -3883,10 +3989,9 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                         borderNodeInfo tmp = NodeIDsBottom[k];
                         long l = tmp.level;
-                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        gatherCornersConstrained(in, tmp, numComp, zero,
+                                                 f_00, f_10, f_01, f_11);
+
                         Scalar* o = out.getSampleDataRW(m_faceOffset[2]+k, zero);
                         for(index_t i = 0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[2][l];
@@ -3900,10 +4005,9 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     for (index_t k=0; k<NodeIDsTop.size(); k++) {
                         borderNodeInfo tmp = NodeIDsTop[k];
                         long l = tmp.level;
-                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        gatherCornersConstrained(in, tmp, numComp, zero,
+                                                 f_00, f_10, f_01, f_11);
+
                         Scalar* o = out.getSampleDataRW(m_faceOffset[3]+k, zero);
                         for(index_t i = 0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,2)] = (f_11[i]-f_01[i])*cx[2][l];
@@ -3942,10 +4046,9 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                         borderNodeInfo tmp = NodeIDsLeft[k];
                         long l = tmp.level;
-                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        gatherCornersConstrained(in, tmp, numComp, zero,
+                                                 f_00, f_10, f_01, f_11);
+
                         Scalar* o = out.getSampleDataRW(m_faceOffset[0]+k, zero);
                         for(index_t i = 0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx[2][l] * 0.5;
@@ -3957,10 +4060,9 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     for (index_t k=0; k<NodeIDsRight.size(); k++) {
                         borderNodeInfo tmp = NodeIDsRight[k];
                         long l = tmp.level;
-                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        gatherCornersConstrained(in, tmp, numComp, zero,
+                                                 f_00, f_10, f_01, f_11);
+
                         Scalar* o = out.getSampleDataRW(m_faceOffset[1]+k, zero);
                         for(index_t i = 0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx[2][l] * 0.5;
@@ -3972,10 +4074,9 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                         borderNodeInfo tmp = NodeIDsBottom[k];
                         long l = tmp.level;
-                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        gatherCornersConstrained(in, tmp, numComp, zero,
+                                                 f_00, f_10, f_01, f_11);
+
                         Scalar* o = out.getSampleDataRW(m_faceOffset[2]+k, zero);
                         for(index_t i = 0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[2][l];
@@ -3987,10 +4088,9 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     for (index_t k=0; k<NodeIDsTop.size(); k++) {
                         borderNodeInfo tmp = NodeIDsTop[k];
                         long l = tmp.level;
-                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        gatherCornersConstrained(in, tmp, numComp, zero,
+                                                 f_00, f_10, f_01, f_11);
+
                         Scalar* o = out.getSampleDataRW(m_faceOffset[3]+k, zero);
                         for(index_t i = 0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,2)] = (f_11[i]-f_01[i])*cx[2][l];
