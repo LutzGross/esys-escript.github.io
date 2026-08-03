@@ -404,6 +404,16 @@ def adjust(NE, ftype):
 #             self.assertEqual(Lsup(zipped - unzipped), 0, "Data objects don't match for "+str(FS))
 
 
+# This suite currently runs nothing. It is kept, rather than deleted,
+# because the disabled tests describe what the feature should do - but
+# a suite that collects no tests reports success, so state the fact
+# explicitly here and let it show up as a skip.
+@unittest.skip("oxley implements no binary grid I/O: readBinaryGrid, readBinaryGridFromZipped and writeBinaryGrid do not exist in oxley/src at all. The tests below were copied from ripley with their ref_data and have been commented out since they were added in 2021 (a427c4b7a).")
+class Test_ReadWriteOnOxley_Disabled(unittest.TestCase):
+    def test_disabled(self):
+        pass
+
+
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
 

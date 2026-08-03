@@ -1600,6 +1600,16 @@ class VTKParser():
 #                                           data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
 
 
+# This suite currently runs nothing. It is kept, rather than deleted,
+# because the disabled tests describe what the feature should do - but
+# a suite that collects no tests reports success, so state the fact
+# explicitly here and let it show up as a skip.
+@unittest.skip("every Test_*_SaveVTK class in this file is commented out, so saveVTK has no coverage here for any domain.")
+class Test_SaveVTK_Disabled(unittest.TestCase):
+    def test_disabled(self):
+        pass
+
+
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
     

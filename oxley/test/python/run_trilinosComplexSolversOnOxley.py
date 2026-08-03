@@ -203,6 +203,16 @@ class ComplexSolveOnTrilinos(ComplexSolveTestCase):
 #         del self.domain
 
 
+# This suite currently runs nothing. It is kept, rather than deleted,
+# because the disabled tests describe what the feature should do - but
+# a suite that collects no tests reports success, so state the fact
+# explicitly here and let it show up as a skip.
+@unittest.skip("every Test_ComplexSolveOxley*_Trilinos_* subclass in this file is commented out, so complex Trilinos solves on oxley have no coverage.")
+class Test_ComplexSolveOxley_Trilinos_Disabled(unittest.TestCase):
+    def test_disabled(self):
+        pass
+
+
 if __name__ == '__main__':
    run_tests(__name__, exit_on_failure=True)
 

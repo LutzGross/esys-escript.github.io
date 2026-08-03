@@ -560,6 +560,16 @@ class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
 #                 self.assertEqual(Lsup(zipped - unzipped), 0, "Data objects don't match for "+str(FS))
 
 
+# This suite currently runs nothing. It is kept, rather than deleted,
+# because the disabled tests describe what the feature should do - but
+# a suite that collects no tests reports success, so state the fact
+# explicitly here and let it show up as a skip.
+@unittest.skip("oxley implements no binary grid I/O (see run_readWriteOnOxley). The live WriteBinaryGridTestBase classes below are not collected - the name does not start with Test - and each redefines the one before; their bodies assert that writeBinaryGrid RAISES.")
+class Test_ReadWriteOnMultiRes_Disabled(unittest.TestCase):
+    def test_disabled(self):
+        pass
+
+
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
 
