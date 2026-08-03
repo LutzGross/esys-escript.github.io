@@ -4801,6 +4801,13 @@ MeshAccess Brick::getMeshAccess(bool materializeHanging) const
     m.elementNodes.resize((size_t) m.numElements * m.nodesPerElement);
     m.elementTags.resize(m.numElements);
 
+    // node tags, indexed by local node exactly as m_nodeTags is. A domain that
+    // has not been through populateSampleIds() leaves it short, so copy only
+    // what is there; the nodes materialised later inherit via addHangingNode.
+    m.nodeTags.assign(m.numNodes, 0);
+    for (long i = 0; i < m.numNodes && i < (long) m_nodeTags.size(); ++i)
+        m.nodeTags[i] = (long) m_nodeTags[i];
+
     // global node ids: owned nodes are contiguous from global_offset, ghost
     // nodes carry their explicit global id in nonlocal_nodes.
     for (long i = 0; i < m.numOwnedNodes; ++i)

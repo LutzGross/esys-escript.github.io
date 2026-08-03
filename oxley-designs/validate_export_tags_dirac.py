@@ -155,6 +155,35 @@ def report(name, levels):
     same = (mo[1:] == mf[1:])
     check(same, "points sit exactly where oxley put them")
 
+    # --- node tags -------------------------------------------------------
+    # These ride on no mesh entity, so they were dropped too. A region tagged
+    # through its nodes on the oxley side must still be tagged on the export.
+    cf = ContinuousFunction(dom)
+    cf.setTags(5, whereNegative(cf.getX()[0] - 0.5))     # the left half
+    fin2 = dom.toFinley()
+    fcf = ContinuousFunction(fin2)
+    check(5 in fcf.getListOfTags(), "a node tag reaches the export")
+
+    ind = Data(0., fcf)
+    ind.setTaggedValue(5, 1.)
+    stray = sup(ind * whereNonNegative(fcf.getX()[0] - 0.5))   # collective
+    check(stray == 0., "no node outside the tagged region carries the tag")
+
+    if getMPISizeWorld() == 1:
+        # counting nodes is only unambiguous in serial - under MPI a ghost node
+        # is a sample on more than one rank
+        def tagged(fs):
+            d = Data(0., fs)
+            d.setTaggedValue(5, 1.)
+            return sum(1 for i in range(d.getNumberOfDataPoints())
+                       if d.getTupleForDataPoint(i)[0] == 1.)
+        nOx, nFin = tagged(ContinuousFunction(dom)), tagged(fcf)
+        extra = fcf.getX().getNumberOfDataPoints() \
+              - cf.getX().getNumberOfDataPoints()
+        check(nFin >= nOx and nFin - nOx <= extra,
+              "every tagged oxley node stays tagged (%d -> %d, %d added nodes)"
+              % (nOx, nFin, extra))
+
     # a Dirac point must never land on a materialised hanging position: those
     # are not nodes of the oxley domain, so oxley could not have chosen one
     for tag in tags:

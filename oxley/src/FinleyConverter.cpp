@@ -369,6 +369,15 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
         out.nodeId[i] = (index_t) gidOf[i];
     out.nodeCoords = m.nodeCoords;
 
+    // node tags. Unlike the element and face tags these do not ride along with
+    // an entity of the mesh, so leaving them out lost them silently: a region
+    // tagged through its nodes on the oxley side came out untagged here.
+    if ((long) m.nodeTags.size() == m.numNodes) {
+        out.nodeTag.resize(m.numNodes);
+        for (long i = 0; i < m.numNodes; ++i)
+            out.nodeTag[i] = (int) m.nodeTags[i];
+    }
+
     // element node tables are built in LOCAL indices first, so the conformity
     // check and the orientation fix can use the coordinates, then translated
     // to global ids at the end.

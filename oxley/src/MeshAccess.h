@@ -66,6 +66,10 @@ struct MeshAccess
     std::vector<double> nodeCoords;
     /// global id of each local node, size numNodes
     std::vector<long> nodeLnodesId;
+    /// tag of each local node, size numNodes. A node materialised at a hanging
+    /// position has no tag of its own - it is no node of the domain - so it
+    /// inherits from its masters, see inheritedTag().
+    std::vector<long> nodeTags;
     /// per-element local node indices, size numElements*nodesPerElement (z-order)
     std::vector<long> elementNodes;
     /// per-element tag, size numElements
@@ -189,6 +193,33 @@ typedef std::map<std::array<long,3>, long> HangingNodeMap;
 
 /**
    \brief
+   The tag a node materialised at a hanging position takes from its masters.
+
+   The position is not a node of the oxley domain, so nothing tagged it and
+   there is no prior answer to reuse - unlike a Dirac point, which addPoints()
+   has already resolved. The rule: inherit when every master agrees, otherwise
+   0 (untagged). Agreement means the whole edge the node sits on carries one
+   tag, so a region tagged through its nodes keeps a consistent boundary; where
+   the masters disagree the node is on the border between two tagged regions
+   and picking either would be arbitrary.
+*/
+inline long inheritedTag(const MeshAccess& m, const long* masters, int n)
+{
+    long tag = 0;
+    for (int k = 0; k < n; ++k) {
+        const long mi = masters[k];
+        if (mi < 0 || mi >= (long) m.nodeTags.size())
+            return 0;
+        if (k == 0)
+            tag = m.nodeTags[mi];
+        else if (m.nodeTags[mi] != tag)
+            return 0;
+    }
+    return tag;
+}
+
+/**
+   \brief
    Appends a node at a hanging position, or returns the one already there.
 
    \param m the mesh being built; numNodes, nodeCoords, nodeLnodesId and the
@@ -216,6 +247,8 @@ inline long addHangingNode(MeshAccess& m, HangingNodeMap& seen,
     for (int d = 0; d < m.numDim; ++d)
         m.nodeCoords.push_back(xyz[d]);
     m.nodeLnodesId.push_back(-1);
+    if (!m.nodeTags.empty())
+        m.nodeTags.push_back(inheritedTag(m, masters, n));
     m.constrainedNodes.push_back(idx);
     for (int k = 0; k < m.mastersPerConstrainedNode; ++k) {
         m.constraintMasters.push_back(k < n ? masters[k] : -1);

@@ -2974,6 +2974,13 @@ MeshAccess Rectangle::getMeshAccess(bool materializeHanging) const
     m.elementNodes.resize((size_t) m.numElements * m.nodesPerElement);
     m.elementTags.resize(m.numElements);
 
+    // node tags. m_nodeTags is indexed by local node, the same order used here,
+    // and populateSampleIds() has sized it - but a domain that has not been
+    // through that yet would leave it short, so copy only what is there.
+    m.nodeTags.assign(m.numNodes, 0);
+    for (long i = 0; i < m.numNodes && i < (long) m_nodeTags.size(); ++i)
+        m.nodeTags[i] = (long) m_nodeTags[i];
+
     // global node ids: owned nodes are contiguous from global_offset, ghost
     // nodes carry their explicit global id in nonlocal_nodes.
     for (long i = 0; i < m.numOwnedNodes; ++i)
@@ -3065,6 +3072,9 @@ MeshAccess Rectangle::getMeshAccess(bool materializeHanging) const
             m.nodeCoords.push_back(s.mid[0]);
             m.nodeCoords.push_back(s.mid[1]);
             m.nodeLnodesId.push_back(-1);   // set by finaliseNodeNumbering
+            // no node of the domain tagged this position, so it takes its
+            // masters' tag when they agree - see inheritedTag()
+            m.nodeTags.push_back(inheritedTag(m, masters, 2));
             m.constrainedNodes.push_back(ni);
 
             // Who WRITES this node in the output. Not the coarse octant's rank,
