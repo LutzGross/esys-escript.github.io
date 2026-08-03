@@ -227,6 +227,106 @@ const int triFaces[3][2] = { {0,1}, {1,2}, {0,2} };
 } // anonymous namespace
 
 
+namespace {
+
+/**
+   \brief
+   Carries the domain's Dirac points across to the exported mesh.
+
+   oxley has already done the hard part: addPoints() resolved every point to the
+   nearest OWNED lnodes node - never a hanging position, which is no node of the
+   oxley domain - and settled collectively which single rank keeps it. So there
+   is nothing to locate here. The point belongs at that node's position, which
+   is a node of the export too, the export's node set being a SUPERSET of the
+   lnodes one (it materialises the hanging positions as well).
+
+   Re-searching on the exported mesh would be worse than redundant: a point
+   could then snap to a materialised hanging position, which oxley would never
+   have chosen, and the two domains would disagree about where the source sits.
+
+   The placement goes through finley's own addDiracPoints because
+   createFromArrays() ends in prepare(), which redistributes nodes between
+   ranks: any local node index computed before that is meaningless afterwards,
+   and only the coordinates survive the move. finley then finds the node lying
+   at distance zero, which is the one oxley picked.
+
+   finley's addDiracPoints is COLLECTIVE and reduces over the whole point list,
+   so every rank has to pass the SAME list, while oxley's is partitioned one
+   point per owning rank. Hence the gather.
+*/
+void transferDiracPoints(const OxleyDomain& dom, const MeshAccess& m,
+                         const escript::JMPI& mpiInfo,
+                         escript::Domain_ptr& target)
+{
+    const std::vector<DiracPoint>& pts = dom.getDiracPoints();
+    const int dim = m.numDim;
+
+    std::vector<double> coords;
+    std::vector<int> tags;
+    coords.reserve(pts.size() * dim);
+    tags.reserve(pts.size());
+    for (size_t i = 0; i < pts.size(); ++i) {
+        const long n = (long) pts[i].node;
+        if (n < 0 || n >= m.numNodes)
+            throw OxleyException("toFinley: a Dirac point names a node which "
+                    "is not in the mesh view.");
+        for (int d = 0; d < dim; ++d)
+            coords.push_back(m.nodeCoords[(size_t) n * dim + d]);
+        tags.push_back(pts[i].tag);
+    }
+
+#ifdef ESYS_MPI
+    if (mpiInfo->size > 1) {
+        const int size = mpiInfo->size;
+        int localCount = (int) tags.size();
+        std::vector<int> perRank(size, 0);
+        MPI_Allgather(&localCount, 1, MPI_INT, &perRank[0], 1, MPI_INT,
+                      mpiInfo->comm);
+
+        std::vector<int> tagDispl(size, 0), coordCount(size, 0),
+                         coordDispl(size, 0);
+        int total = 0;
+        for (int r = 0; r < size; ++r) {
+            tagDispl[r] = total;
+            coordDispl[r] = total * dim;
+            coordCount[r] = perRank[r] * dim;
+            total += perRank[r];
+        }
+
+        std::vector<int> allTags(total, 0);
+        std::vector<double> allCoords((size_t) total * dim, 0.);
+        MPI_Allgatherv(tags.empty() ? NULL : &tags[0], localCount, MPI_INT,
+                       allTags.empty() ? NULL : &allTags[0], &perRank[0],
+                       &tagDispl[0], MPI_INT, mpiInfo->comm);
+        MPI_Allgatherv(coords.empty() ? NULL : &coords[0], localCount * dim,
+                       MPI_DOUBLE, allCoords.empty() ? NULL : &allCoords[0],
+                       &coordCount[0], &coordDispl[0], MPI_DOUBLE,
+                       mpiInfo->comm);
+        tags.swap(allTags);
+        coords.swap(allCoords);
+    }
+#endif
+
+    // the list is now identical on every rank, so this test is too - and
+    // addDiracPoints returns before its own reduction when there is nothing to
+    // place, which would deadlock if only some ranks reached it.
+    if (tags.empty())
+        return;
+
+    finley::FinleyDomain* fd = dynamic_cast<finley::FinleyDomain*>(target.get());
+    if (!fd)
+        throw OxleyException("toFinley: the exported mesh is not a finley "
+                "domain, so its Dirac points cannot be set.");
+    fd->addDiracPoints(coords, tags);
+    // addDiracPoints fills the Point table but leaves the tags-in-use list
+    // stale, so every caller inside finley follows it with this; without it
+    // DiracDeltaFunctions has the points but reports no tags, and setting a
+    // value by tag name finds nothing to set.
+    fd->getPoints()->updateTagList();
+}
+
+} // anonymous namespace
+
 escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
                              int reducedOrder, bool optimize, bool simplices)
 {
@@ -461,21 +561,32 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
     for (long f = 0; f < numFaces; ++f)
         out.faceId[f] = faceIdOffset + (index_t) f;
 
-    out.tagMap["left"] = 1;
-    out.tagMap["right"] = 2;
-    out.tagMap["bottom"] = 10;
-    out.tagMap["top"] = 20;
-    if (m.numDim == 3) {
-        out.tagMap["front"] = 100;
-        out.tagMap["back"] = 200;
+    // Tag NAMES. The values travel with the elements and faces, but a name is
+    // domain state, so it has to be copied or it is lost - and a user's own
+    // name (setTagMap) or a Dirac tag would be silently unknown on the export.
+    // Copy the source domain's map first: writing the boundary names literally
+    // here, as this used to, does not merely lose names, it can CONTRADICT the
+    // source if the user has remapped one of them. The defaults below are a
+    // fallback for the names the source domain happens not to define.
+    out.tagMap = dom.getTagMap();
+    const std::pair<const char*, int> defaultTags[] = {
+        { "left", 1 }, { "right", 2 }, { "bottom", 10 }, { "top", 20 },
+        { "front", 100 }, { "back", 200 }
+    };
+    const int numDefaults = (m.numDim == 3) ? 6 : 4;
+    for (int i = 0; i < numDefaults; ++i) {
+        if (out.tagMap.find(defaultTags[i].first) == out.tagMap.end())
+            out.tagMap[defaultTags[i].first] = defaultTags[i].second;
     }
 
     std::stringstream name;
     name << "finley mesh from oxley " << (m.numDim == 2 ? "Rectangle" : "Brick");
 
-    return finley::FinleyDomain::createFromArrays(out, name.str(), order,
-                                                  reducedOrder, optimize,
-                                                  mpiInfo);
+    escript::Domain_ptr result = finley::FinleyDomain::createFromArrays(
+            out, name.str(), order, reducedOrder, optimize, mpiInfo);
+
+    transferDiracPoints(dom, m, mpiInfo, result);
+    return result;
 }
 
 namespace {

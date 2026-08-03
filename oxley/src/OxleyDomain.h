@@ -879,6 +879,20 @@ public:
       /// Python view of getMeshAccess(): a dict of scalars and numpy arrays.
       boost::python::dict getMeshInfo(bool materializeHanging = false) const;
     #endif
+
+    /// the domain's tag name -> tag value map, so that a consumer building
+    /// another domain from this one can carry the NAMES across; the tag values
+    /// alone travel with the elements and faces.
+    const TagMap& getTagMap() const { return m_tagMap; }
+
+    /// the Dirac points this rank owns. addPoints() has already resolved each
+    /// one to the nearest OWNED lnodes node - never a hanging position, which
+    /// is not a node of this domain - and settled, collectively, which single
+    /// rank keeps it. A consumer must therefore place a point at that node's
+    /// position and nowhere else, or it will disagree with this domain about
+    /// where the source sits.
+    const std::vector<DiracPoint>& getDiracPoints() const { return m_diracPoints; }
+
 protected:
 
     /// Completes the node numbering of a freshly built MeshAccess:
