@@ -25,7 +25,7 @@ import sys
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript import *
-from esys.oxley import Rectangle, Brick, oxleycpp
+from esys.oxley import Rectangle, Brick, oxleycpp, RefinementFactory2D, RefinementFactory3D
 # from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, Test_TableInterpolation
 from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV
 from test_objects import Test_Domain, Test_Lazy
@@ -39,14 +39,18 @@ from run_escriptOnOxley import Test_SharedOnOxley, Test_DomainOnOxley, \
 
 def test_Rectangle(**kwargs):
     m = Rectangle(**kwargs)
-    m.setRefinementLevel(1)
-    m.refineMesh("uniform")
+    _f = RefinementFactory2D()
+    _f.setRefinementLevel(1)
+    _f.refineUniform()
+    m = _f.apply(m)
     return m
 
 def test_Brick(**kwargs):
     m = Brick(**kwargs)
-    m.setRefinementLevel(1)
-    m.refineMesh("uniform")
+    _f = RefinementFactory2D()
+    _f.setRefinementLevel(1)
+    _f.refineUniform()
+    m = _f.apply(m)
     return m
 
 try:

@@ -27,7 +27,7 @@
 #include <oxley/OxleyDomain.h>
 #include <oxley/OxleyData.h>
 #include <oxley/RefinementType.h>
-#include <oxley/RefinementZone.h>
+#include <oxley/RefinementFactory.h>
 
 #include <oxley/tictoc.h>
 
@@ -191,6 +191,9 @@ public:
        writes the mesh to file
     */
     virtual void loadMesh(std::string filename) ;
+    #endif //ESYS_HAVE_TRILINOS
+
+    // See Rectangle.h: this refinement needs only p4est.
 
     /**
        \brief
@@ -234,7 +237,6 @@ public:
        \param r radius of the circle
     */
     virtual void refineSphere(double x0, double y0, double z0, double r);
-    #endif //ESYS_HAVE_TRILINOS
 
     /**
        \brief
@@ -403,7 +405,7 @@ public:
       \brief
       Applies a refinementzone
    */
-    escript::Domain_ptr apply_refinementzone(RefinementZone R);
+    escript::Domain_ptr applyRefinement(RefinementFactory& R);
 
 ////////////////////////////////
 private:

@@ -28,8 +28,6 @@ import esys.escript       # This is just to ensure required libraries are loaded
 from .oxleycpp import *
 from .oxleycpp import Rectangle as _Rectangle, Brick as _Brick
 
-from esys.oxley.RefinementZone import *
-
 
 # Parameters that never had any effect in oxley:
 #   d0/d1/d2   - domain decomposition is handled internally by p4est, so these

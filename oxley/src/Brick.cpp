@@ -1147,6 +1147,11 @@ void Brick::loadMesh(std::string filename)
     iz_needs_update=true;
 }
 
+#endif //ESYS_HAVE_TRILINOS
+
+// See the note in Rectangle.cpp: this refinement needs only p4est and does
+// not belong inside the trilinos guard.
+
 void Brick::refineMesh(std::string algorithmname)
 {
     z_needs_update=true;
@@ -1364,8 +1369,6 @@ void Brick::refineSphere(double x0, double y0, double z0, double r)
     if(autoMeshUpdates)
         updateMesh();
 }
-#endif //ESYS_HAVE_TRILINOS
-
 void Brick::refineMask(escript::Data mask)
 {
     z_needs_update=true;
@@ -6160,7 +6163,7 @@ const long Brick::getNodeId(double x, double y, double z)
     \brief
     Applies a refinementzone
 */
-escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
+escript::Domain_ptr Brick::applyRefinement(RefinementFactory& R)
 {
     oxleytimer.toc("Applying the refinement zone...");
 
@@ -6171,7 +6174,7 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
     oxleytimer.toc("\t\t\t Brick created...");
 
 #ifdef OXLEY_ENABLE_DEBUG_CHECKS 
-    std::cout << "In apply_refinementzone debug checks..." << std::endl;
+    std::cout << "In applyRefinement debug checks..." << std::endl;
     std::cout << "Checking connectivity (1) ... ";
     if(!p8est_connectivity_is_valid(connectivity))
         std::cout << "broken" << std::endl;
@@ -6217,6 +6220,11 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
         newDomain->setRefinementLevels(Refinement.levels);
         switch(Refinement.flavour)
         {
+            case UNIFORM:
+            {
+                newDomain->refineMesh("uniform");
+                break;
+            }
             case POINT3D:
             {
                 double x=Refinement.x0;
@@ -6574,6 +6582,21 @@ int Brick::p8est_connectivity_is_valid_fast(p8est_connectivity_t * conn)
     // sc_array_reset (cta);
 
     return 1;
+}
+
+
+// Defined here rather than in RefinementFactory.cpp: it needs the concrete
+// domain class, and including this header there runs into the OxleyData.h <->
+// Brick.h include cycle.
+escript::Domain_ptr RefinementFactory3D::apply(escript::Domain_ptr domain)
+{
+    if(domain.get() == NULL)
+        throw OxleyException("RefinementFactory3D::apply: no domain given.");
+    Brick * d = dynamic_cast<Brick *>(domain.get());
+    if(d == NULL)
+        throw OxleyException("RefinementFactory3D::apply: the domain is not a Brick. "
+                "Use RefinementFactory2D for a Rectangle.");
+    return d->applyRefinement(*this);
 }
 
 } // end of namespace oxley

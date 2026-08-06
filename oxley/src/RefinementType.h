@@ -7,7 +7,7 @@
 
 namespace oxley {
 
-enum RefinementAlgorithm { POINT2D, POINT3D, REGION2D, REGION3D, MASK2D, MASK3D, CIRCLE, SPHERE, BOUNDARY };
+enum RefinementAlgorithm { POINT2D, POINT3D, REGION2D, REGION3D, MASK2D, MASK3D, CIRCLE, SPHERE, BOUNDARY, UNIFORM };
 enum Border { NORTH, SOUTH, EAST, WEST, TOP, BOTTOM };
 
 /**
@@ -51,6 +51,8 @@ public:
 	void Border2DRefinement();
 	void Border3DRefinement(Border border, double dx, int levels);
 	void Border3DRefinement();
+
+	void UniformRefinement(int levels);
 
 	void Mask2DRefinement(escript::Data * d, int levels);
 	void Mask3DRefinement(escript::Data * d, int levels);

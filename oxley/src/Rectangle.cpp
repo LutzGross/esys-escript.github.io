@@ -35,7 +35,7 @@
 #include <oxley/Rectangle.h>
 #include <oxley/RefinementAlgorithms.h>
 #include <oxley/RefinementType.h>
-#include <oxley/RefinementZone.h>
+#include <oxley/RefinementFactory.h>
 
 // p4est headers will include MPI via sc.h when SC_ENABLE_MPI is defined
 #include <p4est.h>
@@ -1054,6 +1054,12 @@ void Rectangle::loadMesh(std::string filename)
     iz_needs_update=true;
 }
 
+#endif //ESYS_HAVE_TRILINOS
+
+// The refinement below needs only p4est. It used to sit inside the trilinos
+// guard above, swept in with saveMesh/loadMesh which do need trilinos, so a
+// build without trilinos had no refinement at all beyond the constructor.
+
 void Rectangle::refineMesh(std::string algorithmname)
 {
     oxleytimer.toc("refineMesh...");
@@ -1304,8 +1310,6 @@ void Rectangle::refineCircle(double x0, double y0, double r)
 
     oxleytimer.toc("refineCircle...Done");
 }
-#endif //ESYS_HAVE_TRILINOS
-
 void Rectangle::refineMask(escript::Data mask)
 {
     oxleytimer.toc("refineCircle...");
@@ -5120,7 +5124,7 @@ void Rectangle::AutomaticMeshUpdateOnOff(bool new_setting)
     \brief
     Applies a refinementzone
 */
-escript::Domain_ptr Rectangle::apply_refinementzone(RefinementZone R)
+escript::Domain_ptr Rectangle::applyRefinement(RefinementFactory& R)
 {
     oxleytimer.toc("Applying the refinement zone...");
 
@@ -5136,6 +5140,11 @@ escript::Domain_ptr Rectangle::apply_refinementzone(RefinementZone R)
         newDomain->setRefinementLevels(Refinement.levels);
         switch(Refinement.flavour)
         {
+            case UNIFORM:
+            {
+                newDomain->refineMesh("uniform");
+                break;
+            }
             case POINT2D:
             {
                 double x=Refinement.x0;
@@ -5246,5 +5255,20 @@ template
 void Rectangle::assembleGradientImpl<cplx_t>(escript::Data& out,
                                              const escript::Data& in) const;
 
+
+
+// Defined here rather than in RefinementFactory.cpp: it needs the concrete
+// domain class, and including this header there runs into the OxleyData.h <->
+// Rectangle.h include cycle.
+escript::Domain_ptr RefinementFactory2D::apply(escript::Domain_ptr domain)
+{
+    if(domain.get() == NULL)
+        throw OxleyException("RefinementFactory2D::apply: no domain given.");
+    Rectangle * d = dynamic_cast<Rectangle *>(domain.get());
+    if(d == NULL)
+        throw OxleyException("RefinementFactory2D::apply: the domain is not a Rectangle. "
+                "Use RefinementFactory3D for a Brick.");
+    return d->applyRefinement(*this);
+}
 
 } // end of namespace oxley

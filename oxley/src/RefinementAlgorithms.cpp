@@ -31,14 +31,19 @@ namespace oxley {
 
 int refine_uniform(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
+    // '<', not '<=': a refinement level must mean the same thing however it is
+    // asked for. refine_to_block_level, which serves the refine_level given to
+    // the constructor, subdivides n times for level n; this used to subdivide
+    // n+1 times for the same n.
     p4estData * forestData = (p4estData *) p4est->user_pointer;
-    return quadrant->level <= forestData->max_levels_refinement;
+    return quadrant->level < forestData->max_levels_refinement;
 }
 
 int refine_uniform(p8est_t * p4est, p4est_topidx_t tree, p8est_quadrant_t * quadrant)
 {
+    // see the 2D version: '<' so that a level means the same as at construction
     p8estData * octantData = (p8estData *) p4est->user_pointer;
-    return quadrant->level <= octantData->max_levels_refinement;
+    return quadrant->level < octantData->max_levels_refinement;
 }
 
 int refine_to_block_level(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)

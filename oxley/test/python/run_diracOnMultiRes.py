@@ -27,6 +27,7 @@ from esys.escript import *
 from esys.escript.linearPDEs import LameEquation
 # from esys.oxley import MultiResolutionDomain
 from esys.oxley import Rectangle, Brick
+from esys.oxley import RefinementFactory2D, RefinementFactory3D
 from run_diracOnOxley import Test_OxleyDiracPoints
 
 mpiSize = getMPISizeWorld()
@@ -41,15 +42,19 @@ rectLevel = 2
 
 def test_Rectangle(**kwargs):
     m = Rectangle(**kwargs)
-    m.setRefinementLevel(1)
-    m.refineMesh("uniform")
+    _f = RefinementFactory2D()
+    _f.setRefinementLevel(1)
+    _f.refineUniform()
+    m = _f.apply(m)
     return m
 
 
 def test_Brick(**kwargs):
     m = Brick(**kwargs)
-    m.setRefinementLevel(1)
-    m.refineMesh("uniform")
+    _f = RefinementFactory2D()
+    _f.setRefinementLevel(1)
+    _f.refineUniform()
+    m = _f.apply(m)
     return m
 
 @unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")

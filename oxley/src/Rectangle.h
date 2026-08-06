@@ -26,7 +26,7 @@
 #include <oxley/Oxley.h>
 #include <oxley/OxleyData.h>
 #include <oxley/OxleyDomain.h>
-#include <oxley/RefinementZone.h>
+#include <oxley/RefinementFactory.h>
 
 #include <oxley/tictoc.h>
 
@@ -190,6 +190,11 @@ public:
        writes the mesh to file
     */
     virtual void loadMesh(std::string filename);
+    #endif //ESYS_HAVE_TRILINOS
+
+    // The refinement below needs only p4est. It used to sit inside the
+    // trilinos guard with saveMesh/loadMesh, which left a build without
+    // trilinos unable to refine at all.
 
     /**
        \brief
@@ -233,7 +238,6 @@ public:
        \param r radius of the circle
     */
     virtual void refineCircle(double x0, double y0, double r);
-    #endif //ESYS_HAVE_TRILINOS
 
     /**
        \brief
@@ -378,7 +382,7 @@ public:
       \brief
       Applies a refinementzone
    */
-    escript::Domain_ptr apply_refinementzone(RefinementZone R);
+    escript::Domain_ptr applyRefinement(RefinementFactory& R);
 
    /**
      * \brief
