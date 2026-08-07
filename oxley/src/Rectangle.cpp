@@ -32,6 +32,7 @@
 #include <oxley/InitAlgorithms.h>
 #include <oxley/Oxley.h>
 #include <oxley/OxleyData.h>
+#include <oxley/MeshIO.h>
 #include <oxley/Rectangle.h>
 #include <oxley/RefinementAlgorithms.h>
 #include <oxley/RefinementType.h>
@@ -188,6 +189,9 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order,
     m_NN[1] = n1;
 
     // Record the physical dimensions of the domain and the location of the origin
+    m_blocks[0] = n0;
+    m_blocks[1] = n1;
+
     forestData.m_origin[0] = x0;
     forestData.m_origin[1] = y0;
     forestData.m_lxy[0] = x1;
@@ -302,6 +306,9 @@ Rectangle::Rectangle(const oxley::Rectangle& R, int order):
     m_NX[1] = R.m_NX[1];
     m_NN[0] = R.m_NN[0];
     m_NN[1] = R.m_NN[1];
+
+    m_blocks[0] = R.m_blocks[0];
+    m_blocks[1] = R.m_blocks[1];
 
     forestData.m_origin[0] = R.forestData.m_origin[0];
     forestData.m_origin[1] = R.forestData.m_origin[1];
@@ -989,9 +996,26 @@ void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
     }
 }
 
-#ifdef ESYS_HAVE_TRILINOS
+// saveMesh/loadMesh use only p4est; they sat inside the trilinos guard
+// for no reason anyone recorded, which left a build without trilinos
+// unable to save or read a mesh at all.
 void Rectangle::saveMesh(std::string filename) 
 {
+    // p4est stores the connectivity and the quadrants but nothing about where
+    // the domain sits in space, so a reader would have to be told. Write that
+    // alongside, which is what lets loadMesh() build the domain itself.
+    MeshHeader header;
+    header.dim = 2;
+    header.order = m_order;
+    header.n[0] = m_blocks[0];
+    header.n[1] = m_blocks[1];
+    header.origin[0] = forestData.m_origin[0];
+    header.origin[1] = forestData.m_origin[1];
+    header.extent[0] = forestData.m_lxy[0];
+    header.extent[1] = forestData.m_lxy[1];
+    if(m_mpiInfo->rank == 0)
+        writeMeshHeader(filename, header);
+
     std::string fnames=filename+".p4est";
     std::string cnames=filename+".conn";
 
@@ -1000,19 +1024,16 @@ void Rectangle::saveMesh(std::string filename)
 
     p4est_deflate_quadrants(p4est, NULL);
 
-#ifdef ESYS_MPI
-    if(escript::getMPIRankWorld()==0)
-    {
-#endif
+    // The connectivity is replicated, so one rank writes it. p4est_save_ext is
+    // COLLECTIVE and every rank must reach it - it used to sit inside the same
+    // rank-0 guard, which deadlocked any save on more than one rank.
+    if(m_mpiInfo->rank == 0) {
         int retval = p4est_connectivity_save(cname, connectivity)==0;
         ESYS_ASSERT(retval!=0,"Failed to save connectivity");
-        int save_partition = 0;
-        int save_data = 1;
-        p4est_save_ext(fname, p4est, save_data, save_partition); // Should abort on file error
-        // p4est_save(fname,p4est,1);
-#ifdef ESYS_MPI
     }
-#endif
+    int save_partition = 0;
+    int save_data = 1;
+    p4est_save_ext(fname, p4est, save_data, save_partition); // Should abort on file error
 }
 
 void Rectangle::loadMesh(std::string filename) 
@@ -1053,8 +1074,6 @@ void Rectangle::loadMesh(std::string filename)
     z_needs_update=true;
     iz_needs_update=true;
 }
-
-#endif //ESYS_HAVE_TRILINOS
 
 // The refinement below needs only p4est. It used to sit inside the trilinos
 // guard above, swept in with saveMesh/loadMesh which do need trilinos, so a

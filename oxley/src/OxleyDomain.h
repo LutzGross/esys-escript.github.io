@@ -829,6 +829,11 @@ protected:
     // Status
     StatusType m_status;
 
+    /// blocks (p4est trees) per axis, as handed to the constructor. Kept
+    /// because nothing else records it: forestData holds block SIZES, and
+    /// saveMesh has to write the counts so loadMesh can rebuild the domain.
+    long m_blocks[3] = {0, 0, 0};
+
     //max levels of refinement
     int m_refinement_levels;
 

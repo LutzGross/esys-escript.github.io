@@ -16,6 +16,7 @@
 #include <oxley/Rectangle.h>
 #include <oxley/OtherAlgorithms.h>
 #include <oxley/OxleyDomain.h>
+#include <oxley/MeshIO.h>
 #include <oxley/RefinementQueue.h>
 
 #include <boost/python.hpp>
@@ -335,6 +336,16 @@ BOOST_PYTHON_MODULE(oxleycpp)
     //     "Creates a refinement zone parent class.\n\n"
     //     );
 
+    def("loadMesh", oxley::loadMesh, (arg("filename"), arg("comm")=object()),
+        "Reads a mesh written by saveMesh and returns it as a NEW domain.\n\n"
+        "A function rather than a method on the domain: loading into an\n"
+        "existing domain would replace its mesh, leaving every Data already\n"
+        "built over that domain the wrong size with nothing to say so.\n\n"
+        ":param filename: the name given to saveMesh, without extension\n"
+        ":type filename: ``string``\n"
+        ":param comm: optional MPI communicator, default the world\n"
+        ":return: the mesh that was saved\n:rtype: `Domain`");
+
     def("RefinementQueue2D", oxley::_refinementQueue2D, 
         "Creates a refinement zone of dimension 2.\n\n"
         );
@@ -453,9 +464,6 @@ BOOST_PYTHON_MODULE(oxleycpp)
         #endif
         .def("saveFsType",&oxley::OxleyDomain::saveFsType, arg("rhs"), "saves the fs type")
         .def("getOrigFsType",&oxley::OxleyDomain::getOrigFsType, "returns the fs type")
-        .def("loadMesh", &oxley::OxleyDomain::loadMesh, (arg("filename")),
-                "Loads a mesh (in p4est format)\n"
-                ":param filename: The name of the file to load\n")
         .def("newOperator",&oxley::OxleyDomain::newSystemMatrix,
             args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
             "creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros\n\n"

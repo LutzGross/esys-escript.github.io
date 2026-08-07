@@ -32,6 +32,7 @@
 #include <oxley/Oxley.h>
 #include <oxley/OxleyData.h>
 #include <oxley/Brick.h>
+#include <oxley/MeshIO.h>
 #include <oxley/RefinementAlgorithms.h>
 
 // p8est headers will include MPI via sc.h when SC_ENABLE_MPI is defined
@@ -194,6 +195,10 @@ Brick::Brick(escript::JMPI jmpi, int order,
     m_NX[2] = (z1-z0)/n2;
 
     // Record the physical dimensions of the domain and the location of the origin
+    m_blocks[0] = n0;
+    m_blocks[1] = n1;
+    m_blocks[2] = n2;
+
     forestData->m_origin[0] = x0;
     forestData->m_origin[1] = y0;
     forestData->m_origin[2] = z0;
@@ -309,6 +314,10 @@ Brick::Brick(oxley::Brick& B, int order, bool update):
 
     // create the forestdata
     forestData = new p8estData;
+    m_blocks[0] = B.m_blocks[0];
+    m_blocks[1] = B.m_blocks[1];
+    m_blocks[2] = B.m_blocks[2];
+
     forestData->m_origin[0] = B.forestData->m_origin[0];
     forestData->m_origin[1] = B.forestData->m_origin[1];
     forestData->m_origin[2] = B.forestData->m_origin[2];
@@ -1009,6 +1018,19 @@ void Brick::writeToVTK(std::string filename, bool writeMesh) const
 
 void Brick::saveMesh(std::string filename) 
 {
+    // see Rectangle::saveMesh: p4est does not record the geometry, so write it
+    // alongside and let loadMesh() build the domain itself
+    MeshHeader header;
+    header.dim = 3;
+    header.order = m_order;
+    for(int d = 0; d < 3; ++d) {
+        header.n[d] = m_blocks[d];
+        header.origin[d] = forestData->m_origin[d];
+        header.extent[d] = forestData->m_lxyz[d];
+    }
+    if(m_mpiInfo->rank == 0)
+        writeMeshHeader(filename, header);
+
     std::string fnames=filename+".p8est";
     std::string cnames=filename+".conn";
 
@@ -1113,6 +1135,11 @@ void Brick::AutomaticMeshUpdateOnOff(bool new_setting)
     autoMeshUpdates = new_setting;
 }
 
+#endif //ESYS_HAVE_TRILINOS
+
+// loadMesh uses only p4est; it sat inside the trilinos guard for no
+// recorded reason, which left a build without trilinos unable to read a
+// mesh at all.
 void Brick::loadMesh(std::string filename) 
 {
     std::string fnames=filename+".p8est";
@@ -1130,7 +1157,10 @@ void Brick::loadMesh(std::string filename)
     p8est_destroy(p8est);
 
     // Load the new information
-    p8est=p8est_load_ext(fname, m_mpiInfo->comm, sizeof(quadrantData), load_data, 
+    // sizeof(octantData), not quadrantData: the forest was created with the 3D
+    // payload (p8est_new_ext above), and p4est aborts inside p8est_load_ext if
+    // the size it is told does not match the one in the file.
+    p8est=p8est_load_ext(fname, m_mpiInfo->comm, sizeof(octantData), load_data, 
                     autopartition, broadcasthead, &forestData, &connectivity);
     ESYS_ASSERT(p8est_is_valid(p8est),"Invalid p8est file");
 
@@ -1146,8 +1176,6 @@ void Brick::loadMesh(std::string filename)
     z_needs_update=true;
     iz_needs_update=true;
 }
-
-#endif //ESYS_HAVE_TRILINOS
 
 // See the note in Rectangle.cpp: this refinement needs only p4est and does
 // not belong inside the trilinos guard.

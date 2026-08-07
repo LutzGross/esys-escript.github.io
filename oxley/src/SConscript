@@ -26,6 +26,7 @@ sources = """
     OtherAlgorithms.cpp
     OxleyData.cpp
     OxleyDomain.cpp
+    MeshIO.cpp
     RefinementAlgorithms.cpp
     RefinementType.cpp
     RefinementQueue.cpp
@@ -48,6 +49,7 @@ headers = """
     OxleyData.h
     OxleyDomain.h
     OxleyException.h
+    MeshIO.h
     RefinementAlgorithms.h
     RefinementType.h
     RefinementQueue.h
