@@ -28,7 +28,7 @@ sources = """
     OxleyDomain.cpp
     RefinementAlgorithms.cpp
     RefinementType.cpp
-    RefinementFactory.cpp
+    RefinementQueue.cpp
     tictoc.cpp
 """.split()
 
@@ -50,7 +50,7 @@ headers = """
     OxleyException.h
     RefinementAlgorithms.h
     RefinementType.h
-    RefinementFactory.h
+    RefinementQueue.h
     tictoc.h
 """.split()
 

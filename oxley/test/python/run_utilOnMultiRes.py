@@ -28,7 +28,7 @@ from test_symfuncs import Test_symfuncs
 from esys.escript import *
 # from esys.oxley import MultiResolutionDomain
 from esys.oxley import Rectangle, Brick
-from esys.oxley import RefinementFactory2D, RefinementFactory3D
+from esys.oxley import RefinementQueue2D, RefinementQueue3D
 
 if HAVE_SYMBOLS:
     from test_symfuncs import Test_symfuncs
@@ -51,7 +51,7 @@ def test_Rectangle_refine_Mesh(**kwargs):
     # kwargs['n0'] //= 2
     # kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
-    _f = RefinementFactory2D()
+    _f = RefinementQueue2D()
     _f.setRefinementLevel(1)
     _f.refineUniform()
     m = _f.apply(m)
@@ -62,7 +62,7 @@ def test_Rectangle_refine_Point(**kwargs):
     # kwargs['n0'] //= 2
     # kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
-    _f = RefinementFactory2D()
+    _f = RefinementQueue2D()
     _f.setRefinementLevel(1)
     _f.refinePoint(x0=0.55,y0=0.55)
     m = _f.apply(m)
@@ -73,7 +73,7 @@ def test_Rectangle_refine_top_Boundary(**kwargs):
     # kwargs['n0'] //= 2
     # kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
-    _f = RefinementFactory2D()
+    _f = RefinementQueue2D()
     _f.setRefinementLevel(1)
     _f.refineBorder(border="top",dx=DX)
     m = _f.apply(m)
@@ -84,7 +84,7 @@ def test_Rectangle_refine_east_Boundary(**kwargs):
     # kwargs['n0'] //= 2
     # kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
-    _f = RefinementFactory2D()
+    _f = RefinementQueue2D()
     _f.setRefinementLevel(1)
     _f.refineBorder(border="right",dx=DX)
     m = _f.apply(m)
@@ -95,7 +95,7 @@ def test_Rectangle_refine_west_Boundary(**kwargs):
     # kwargs['n0'] //= 2
     # kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
-    _f = RefinementFactory2D()
+    _f = RefinementQueue2D()
     _f.setRefinementLevel(1)
     _f.refineBorder(border="left",dx=DX)
     m = _f.apply(m)
@@ -106,7 +106,7 @@ def test_Rectangle_refine_bottom_Boundary(**kwargs):
     # kwargs['n0'] //= 2
     # kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
-    _f = RefinementFactory2D()
+    _f = RefinementQueue2D()
     _f.setRefinementLevel(1)
     _f.refineBorder(border="bottom",dx=DX)
     m = _f.apply(m)
@@ -117,7 +117,7 @@ def test_Rectangle_refine_Region(**kwargs):
     # kwargs['n0'] //= 2
     # kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
-    _f = RefinementFactory2D()
+    _f = RefinementQueue2D()
     _f.setRefinementLevel(1)
     _f.refineRegion(x0=0.2,x1=0.6,y0=0.6,y1=0.8)
     m = _f.apply(m)

@@ -35,7 +35,7 @@
 #include <oxley/Rectangle.h>
 #include <oxley/RefinementAlgorithms.h>
 #include <oxley/RefinementType.h>
-#include <oxley/RefinementFactory.h>
+#include <oxley/RefinementQueue.h>
 
 // p4est headers will include MPI via sc.h when SC_ENABLE_MPI is defined
 #include <p4est.h>
@@ -5124,7 +5124,7 @@ void Rectangle::AutomaticMeshUpdateOnOff(bool new_setting)
     \brief
     Applies a refinementzone
 */
-escript::Domain_ptr Rectangle::applyRefinement(RefinementFactory& R)
+escript::Domain_ptr Rectangle::applyRefinement(RefinementQueue& R)
 {
     oxleytimer.toc("Applying the refinement zone...");
 
@@ -5257,17 +5257,17 @@ void Rectangle::assembleGradientImpl<cplx_t>(escript::Data& out,
 
 
 
-// Defined here rather than in RefinementFactory.cpp: it needs the concrete
+// Defined here rather than in RefinementQueue.cpp: it needs the concrete
 // domain class, and including this header there runs into the OxleyData.h <->
 // Rectangle.h include cycle.
-escript::Domain_ptr RefinementFactory2D::apply(escript::Domain_ptr domain)
+escript::Domain_ptr RefinementQueue2D::apply(escript::Domain_ptr domain)
 {
     if(domain.get() == NULL)
-        throw OxleyException("RefinementFactory2D::apply: no domain given.");
+        throw OxleyException("RefinementQueue2D::apply: no domain given.");
     Rectangle * d = dynamic_cast<Rectangle *>(domain.get());
     if(d == NULL)
-        throw OxleyException("RefinementFactory2D::apply: the domain is not a Rectangle. "
-                "Use RefinementFactory3D for a Brick.");
+        throw OxleyException("RefinementQueue2D::apply: the domain is not a Rectangle. "
+                "Use RefinementQueue3D for a Brick.");
     return d->applyRefinement(*this);
 }
 

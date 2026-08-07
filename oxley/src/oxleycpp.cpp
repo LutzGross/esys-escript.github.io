@@ -16,7 +16,7 @@
 #include <oxley/Rectangle.h>
 #include <oxley/OtherAlgorithms.h>
 #include <oxley/OxleyDomain.h>
-#include <oxley/RefinementFactory.h>
+#include <oxley/RefinementQueue.h>
 
 #include <boost/python.hpp>
 #ifdef ESYS_HAVE_BOOST_NUMPY
@@ -277,21 +277,21 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2,
 }
 
 // //tmp
-// oxley::RefinementFactory_Ptr _refinementZone()
+// oxley::RefinementQueue_Ptr _refinementQueue()
 // {
-//     return oxley::RefinementFactory_Ptr(new RefinementFactory());
-//     // return oxley::RefinementFactory2D_Ptr(new RefinementFactory2D());
+//     return oxley::RefinementQueue_Ptr(new RefinementQueue());
+//     // return oxley::RefinementQueue2D_Ptr(new RefinementQueue2D());
 // }
 
 
-oxley::RefinementFactory2D_Ptr _refinementZone2D()
+oxley::RefinementQueue2D_Ptr _refinementQueue2D()
 {
-    return oxley::RefinementFactory2D_Ptr(new RefinementFactory2D());
+    return oxley::RefinementQueue2D_Ptr(new RefinementQueue2D());
 }
 
-oxley::RefinementFactory3D_Ptr _refinementZone3D()
+oxley::RefinementQueue3D_Ptr _refinementQueue3D()
 {
-    return oxley::RefinementFactory3D_Ptr(new RefinementFactory3D());
+    return oxley::RefinementQueue3D_Ptr(new RefinementQueue3D());
 }
 
 BOOST_PYTHON_MODULE(oxleycpp)
@@ -331,15 +331,15 @@ BOOST_PYTHON_MODULE(oxleycpp)
     "    hanging nodes at the block seams)\n:type refine_level: ``int`` or ``list`` of ``int``\n"
     ":param comm: MPI communicator (optional, from mpi4py)\n:type comm: ``mpi4py.MPI.Comm``");
 
-    // def("RefinementFactory", oxley::_refinementZone, 
+    // def("RefinementQueue", oxley::_refinementQueue, 
     //     "Creates a refinement zone parent class.\n\n"
     //     );
 
-    def("RefinementFactory2D", oxley::_refinementZone2D, 
+    def("RefinementQueue2D", oxley::_refinementQueue2D, 
         "Creates a refinement zone of dimension 2.\n\n"
         );
 
-    def("RefinementFactory3D", oxley::_refinementZone3D, 
+    def("RefinementQueue3D", oxley::_refinementQueue3D, 
         "Creates a refinement zone of dimension 3.\n\n"
         );
 
@@ -480,7 +480,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
     // added by oxley make it to python.
     //
     // The refinement methods that used to live here are gone: refinement now
-    // goes through RefinementFactory2D/3D, which applies to a domain and hands
+    // goes through RefinementQueue2D/3D, which applies to a domain and hands
     // back a NEW one. They mutated the domain in place, which left every Data
     // already defined over it silently stale.
     class_<oxley::Brick, bases<oxley::OxleyDomain> >("OxleyBrick", "", no_init)
@@ -493,37 +493,37 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param target:\n:type Data: The target Data object. \n")
         ;
 
-    class_<oxley::RefinementFactory>("RefinementFactory", "")
+    class_<oxley::RefinementQueue>("RefinementQueue", "")
 
     ;
 
-    class_<oxley::RefinementFactory2D, bases<oxley::RefinementFactory>>("RefinementFactory2D")
-        .def("refineUniform", &oxley::RefinementFactory2D::refineUniform, (arg("level")=-1),
+    class_<oxley::RefinementQueue2D, bases<oxley::RefinementQueue>>("RefinementQueue2D")
+        .def("refineUniform", &oxley::RefinementQueue2D::refineUniform, (arg("level")=-1),
                 "Queues a refinement of EVERY element, the old refineMesh(\"uniform\").\n"
-                ":param level: levels of refinement, default the factory's own\n"
+                ":param level: levels of refinement, default the queue's own\n"
                 ":type level: ``int``")
-        .def("apply", &oxley::RefinementFactory2D::apply, (arg("domain")),
+        .def("apply", &oxley::RefinementQueue2D::apply, (arg("domain")),
                 "Applies the queued refinements to a domain and returns the RESULT as\n"
                 "a new domain. The domain passed in is not modified, so the caller\n"
                 "keeps a usable handle on the coarser mesh and on any Data over it.\n\n"
                 ":param domain: the domain to refine\n"
                 ":type domain: `Domain`\n"
                 ":return: the refined domain\n:rtype: `Domain`")
-        .def("setRefinementLevel", &oxley::RefinementFactory2D::setRefinementLevel, (arg("level")),
+        .def("setRefinementLevel", &oxley::RefinementQueue2D::setRefinementLevel, (arg("level")),
                 "Sets the level of refinement\n"
                 ":param level:\n:type int: the level of the refinement.\n")
-        .def("print", &oxley::RefinementFactory2D::print,
+        .def("print", &oxley::RefinementQueue2D::print,
                 "Prints the current queue to console\n")
-        .def("remove", &oxley::RefinementFactory2D::deleteFromQueue, (arg("n")),
+        .def("remove", &oxley::RefinementQueue2D::deleteFromQueue, (arg("n")),
                 "Removes the n^th item from the queue\n"
                 ":param n:\n:type int: the refinement to remove.\n")
-        .def("refinePoint", &oxley::RefinementFactory2D::refinePoint, (arg("x0"),arg("y0"),arg("level")=-1),
+        .def("refinePoint", &oxley::RefinementQueue2D::refinePoint, (arg("x0"),arg("y0"),arg("level")=-1),
                 "Refines the mesh around the point (x0,y0) to the level of refinement"
                 "set by setRefinementLevel \n"
                 ":param x0:\n:type float: x coordinate of the point to be refined.\n"
                 ":param y0:\n:type float: y coordinate of the point to be refined.\n"
                 ":param level:\n:type float: the level of refinement.\n")
-        .def("refineRegion", &oxley::RefinementFactory2D::refineRegion, (arg("x0"),arg("y0"),arg("x1"),arg("y1"),arg("level")=-1),
+        .def("refineRegion", &oxley::RefinementQueue2D::refineRegion, (arg("x0"),arg("y0"),arg("x1"),arg("y1"),arg("level")=-1),
                 "Refines the mesh around a rectangular region bound by the points (x0,y0)"
                 "and (x1,y1) to the level of refinement set by setRefinementLevel\n"
                 ":param x0:\n:type float: x coordinate of the upper left coordinate.\n"
@@ -531,52 +531,52 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param x1:\n:type float: x coordinate of the lower right coordinate.\n"
                 ":param y1:\n:type float: y coordinate of the lower right coordinate.\n"
                 ":param level:\n:type float: the level of refinement.\n")
-        .def("refineCircle", &oxley::RefinementFactory2D::refineCircle, (arg("x0"),arg("y0"),arg("r"),arg("level")=-1),
+        .def("refineCircle", &oxley::RefinementQueue2D::refineCircle, (arg("x0"),arg("y0"),arg("r"),arg("level")=-1),
                 "Refines the mesh around a circular region with radius r and center"
                 "and (x0,y0) to the level of refinement set by setRefinementLevel\n"
                 ":param x0:\n:type float: x coordinate of the center of the circle.\n"
                 ":param y0:\n:type float: y coordinate of the center of the circle.\n"
                 ":param r :\n:type float: the radius of the circle.\n"
                 ":param level:\n:type float: the level of refinement.\n")
-        .def("refineBorder", static_cast<void (oxley::RefinementFactory2D::*)(std::string, float, int)>(&oxley::RefinementFactory2D::refineBorder), (arg("border"),arg("dx"),arg("level")=-1),
+        .def("refineBorder", static_cast<void (oxley::RefinementQueue2D::*)(std::string, float, int)>(&oxley::RefinementQueue2D::refineBorder), (arg("border"),arg("dx"),arg("level")=-1),
                 "Refines the border of the mesh to depth dx to the level of refinement"
                 "set by setRefinementLevel\n"
                 ":param Border:\n:type string: The border to refine (top,bottom,right,left).\n"
                 ":param dx:\n:type float: the depth of the refinement.\n"
                 ":param level:\n:type float: the level of refinement.\n")
-        .def("refineMask", &oxley::RefinementFactory2D::refineMask, (args("mask")),
+        .def("refineMask", &oxley::RefinementQueue2D::refineMask, (args("mask")),
                 "Refines the mesh in regions defined by a mask\n"
                 ":param mask:\n:type Data: a mask.\n")
         ;
 
-    class_<oxley::RefinementFactory3D, bases<oxley::RefinementFactory>>("RefinementFactory3D")
-        .def("refineUniform", &oxley::RefinementFactory3D::refineUniform, (arg("level")=-1),
+    class_<oxley::RefinementQueue3D, bases<oxley::RefinementQueue>>("RefinementQueue3D")
+        .def("refineUniform", &oxley::RefinementQueue3D::refineUniform, (arg("level")=-1),
                 "Queues a refinement of EVERY element, the old refineMesh(\"uniform\").\n"
-                ":param level: levels of refinement, default the factory's own\n"
+                ":param level: levels of refinement, default the queue's own\n"
                 ":type level: ``int``")
-        .def("apply", &oxley::RefinementFactory3D::apply, (arg("domain")),
+        .def("apply", &oxley::RefinementQueue3D::apply, (arg("domain")),
                 "Applies the queued refinements to a domain and returns the RESULT as\n"
                 "a new domain. The domain passed in is not modified, so the caller\n"
                 "keeps a usable handle on the coarser mesh and on any Data over it.\n\n"
                 ":param domain: the domain to refine\n"
                 ":type domain: `Domain`\n"
                 ":return: the refined domain\n:rtype: `Domain`")
-        .def("setRefinementLevel", &oxley::RefinementFactory3D::setRefinementLevel, (args("level")),
+        .def("setRefinementLevel", &oxley::RefinementQueue3D::setRefinementLevel, (args("level")),
                 "Sets the level of refinement\n"
                 ":param level:\n:type int: the level of the refinement.\n")
-        .def("print", &oxley::RefinementFactory3D::print, (arg("level")),
+        .def("print", &oxley::RefinementQueue3D::print, (arg("level")),
                 "Prints the current queue to console\n")
-        .def("remove", &oxley::RefinementFactory3D::deleteFromQueue, (arg("n")),
+        .def("remove", &oxley::RefinementQueue3D::deleteFromQueue, (arg("n")),
                 "Removes the n^th item from the queue\n"
                 ":param n:\n:type int: the refinement to remove.\n")
-        .def("refinePoint", &oxley::RefinementFactory3D::refinePoint, (arg("x0"),arg("y0"),arg("z0"),arg("level")=-1),
+        .def("refinePoint", &oxley::RefinementQueue3D::refinePoint, (arg("x0"),arg("y0"),arg("z0"),arg("level")=-1),
                 "Refines the mesh around the point (x0,y0,z0) to the level of refinement"
                 "set by setRefinementLevel \n"
                 ":param x0:\n:type float: x coordinate of the point to be refined.\n"
                 ":param y0:\n:type float: y coordinate of the point to be refined.\n"
                 ":param z0:\n:type float: z coordinate of the point to be refined.\n"
                 ":param level:\n:type float: the level of refinement.\n")
-        .def("refineRegion", &oxley::RefinementFactory3D::refineRegion, (arg("x0"),arg("y0"),arg("z0"),arg("x1"),arg("y1"),arg("z1"),arg("level")=-1),
+        .def("refineRegion", &oxley::RefinementQueue3D::refineRegion, (arg("x0"),arg("y0"),arg("z0"),arg("x1"),arg("y1"),arg("z1"),arg("level")=-1),
                 "Refines the mesh around a rectangular region bound by the points (x0,y0,z0)"
                 "and (x1,y1,z1) to the level of refinement set by setRefinementLevel\n"
                 ":param x0:\n:type float: x coordinate of the upper left coordinate.\n"
@@ -586,7 +586,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param y1:\n:type float: y coordinate of the lower right coordinate.\n"
                 ":param z1:\n:type float: z coordinate of the lower right coordinate.\n"
                 ":param level:\n:type float: the level of refinement.\n")
-        .def("refineSphere", &oxley::RefinementFactory3D::refineSphere, (arg("x0"),arg("y0"),arg("z0"),arg("r"),arg("level")=-1),
+        .def("refineSphere", &oxley::RefinementQueue3D::refineSphere, (arg("x0"),arg("y0"),arg("z0"),arg("r"),arg("level")=-1),
                 "Refines the mesh around a spherical region with radius r and center"
                 "and (x0,y0,z0) to the level of refinement set by setRefinementLevel\n"
                 ":param x0:\n:type float: x coordinate of the center of the circle.\n"
@@ -594,22 +594,22 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param z0:\n:type float: z coordinate of the center of the circle.\n"
                 ":param r :\n:type float: the radius of the circle.\n"
                 ":param level:\n:type float: the level of refinement.\n")
-        .def("refineBorder", static_cast<void (oxley::RefinementFactory3D::*)(std::string, float, int)>(&oxley::RefinementFactory3D::refineBorder), (arg("border"),arg("dx"),arg("level")=-1),
+        .def("refineBorder", static_cast<void (oxley::RefinementQueue3D::*)(std::string, float, int)>(&oxley::RefinementQueue3D::refineBorder), (arg("border"),arg("dx"),arg("level")=-1),
                 "Refines the border of the mesh to depth dx to the level of refinement"
                 "set by setRefinementLevel\n"
                 ":param Border:\n:type string: The border to refine (top,bottom,right,left).\n"
                 ":param dx:\n:type float: the depth of the refinement.\n"
                 ":param level:\n:type float: the level of refinement.\n")
-        .def("refineMask", &oxley::RefinementFactory3D::refineMask, (arg("mask"),arg("level")=-1),
+        .def("refineMask", &oxley::RefinementQueue3D::refineMask, (arg("mask"),arg("level")=-1),
                 "Refines the mesh in regions defined by a mask\n"
                 ":param mask:\n:type Data: a mask.\n")
         ;
 
     class_<oxley::AbstractAssembler, oxley::Assembler_ptr, boost::noncopyable >  ("AbstractAssembler", "", no_init);
 
-    // register_ptr_to_python<boost::shared_ptr<RefinementFactory>>();
-    // register_ptr_to_python<boost::shared_ptr<RefinementFactory2D>>();
-    // register_ptr_to_python<boost::shared_ptr<RefinementFactory3D>>();
+    // register_ptr_to_python<boost::shared_ptr<RefinementQueue>>();
+    // register_ptr_to_python<boost::shared_ptr<RefinementQueue2D>>();
+    // register_ptr_to_python<boost::shared_ptr<RefinementQueue3D>>();
 
 }
 

@@ -6163,7 +6163,7 @@ const long Brick::getNodeId(double x, double y, double z)
     \brief
     Applies a refinementzone
 */
-escript::Domain_ptr Brick::applyRefinement(RefinementFactory& R)
+escript::Domain_ptr Brick::applyRefinement(RefinementQueue& R)
 {
     oxleytimer.toc("Applying the refinement zone...");
 
@@ -6213,7 +6213,7 @@ escript::Domain_ptr Brick::applyRefinement(RefinementFactory& R)
     {
         #ifdef OXLEY_ENABLE_PROFILE_TIMERS_INFORMATIONAL
         if(n % 200 == 0)
-            oxleytimer.toc("apply_refinementZone: Updating Mesh (" + std::to_string(n) + " of " + std::to_string(numberOfRefinements) + ")");
+            oxleytimer.toc("apply_refinementQueue: Updating Mesh (" + std::to_string(n) + " of " + std::to_string(numberOfRefinements) + ")");
         #endif
 
         RefinementType Refinement = R.getRefinement(n);
@@ -6585,17 +6585,17 @@ int Brick::p8est_connectivity_is_valid_fast(p8est_connectivity_t * conn)
 }
 
 
-// Defined here rather than in RefinementFactory.cpp: it needs the concrete
+// Defined here rather than in RefinementQueue.cpp: it needs the concrete
 // domain class, and including this header there runs into the OxleyData.h <->
 // Brick.h include cycle.
-escript::Domain_ptr RefinementFactory3D::apply(escript::Domain_ptr domain)
+escript::Domain_ptr RefinementQueue3D::apply(escript::Domain_ptr domain)
 {
     if(domain.get() == NULL)
-        throw OxleyException("RefinementFactory3D::apply: no domain given.");
+        throw OxleyException("RefinementQueue3D::apply: no domain given.");
     Brick * d = dynamic_cast<Brick *>(domain.get());
     if(d == NULL)
-        throw OxleyException("RefinementFactory3D::apply: the domain is not a Brick. "
-                "Use RefinementFactory2D for a Rectangle.");
+        throw OxleyException("RefinementQueue3D::apply: the domain is not a Brick. "
+                "Use RefinementQueue2D for a Rectangle.");
     return d->applyRefinement(*this);
 }
 

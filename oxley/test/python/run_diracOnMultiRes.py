@@ -27,7 +27,7 @@ from esys.escript import *
 from esys.escript.linearPDEs import LameEquation
 # from esys.oxley import MultiResolutionDomain
 from esys.oxley import Rectangle, Brick
-from esys.oxley import RefinementFactory2D, RefinementFactory3D
+from esys.oxley import RefinementQueue2D, RefinementQueue3D
 from run_diracOnOxley import Test_OxleyDiracPoints
 
 mpiSize = getMPISizeWorld()
@@ -42,7 +42,7 @@ rectLevel = 2
 
 def test_Rectangle(**kwargs):
     m = Rectangle(**kwargs)
-    _f = RefinementFactory2D()
+    _f = RefinementQueue2D()
     _f.setRefinementLevel(1)
     _f.refineUniform()
     m = _f.apply(m)
@@ -51,7 +51,7 @@ def test_Rectangle(**kwargs):
 
 def test_Brick(**kwargs):
     m = Brick(**kwargs)
-    _f = RefinementFactory2D()
+    _f = RefinementQueue2D()
     _f.setRefinementLevel(1)
     _f.refineUniform()
     m = _f.apply(m)

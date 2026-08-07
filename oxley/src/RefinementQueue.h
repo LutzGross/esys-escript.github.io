@@ -1,6 +1,6 @@
 
-#ifndef _OXLEY_REFINEMENTFACTORY
-#define _OXLEY_REFINEMENTFACTORY
+#ifndef _OXLEY_REFINEMENTQUEUE
+#define _OXLEY_REFINEMENTQUEUE
 
 #include <iostream>
 #include <string>
@@ -15,22 +15,22 @@
 
 namespace oxley {
 
-class RefinementFactory;
-class RefinementFactory2D;
-class RefinementFactory3D;
+class RefinementQueue;
+class RefinementQueue2D;
+class RefinementQueue3D;
 
-typedef POINTER_WRAPPER_CLASS(RefinementFactory)   RefinementFactory_Ptr;
-typedef POINTER_WRAPPER_CLASS(RefinementFactory2D) RefinementFactory2D_Ptr;
-typedef POINTER_WRAPPER_CLASS(RefinementFactory3D) RefinementFactory3D_Ptr;
-typedef POINTER_WRAPPER_CLASS(const RefinementFactory)   const_RefinementFactory_Ptr;
-typedef POINTER_WRAPPER_CLASS(const RefinementFactory2D) const_RefinementFactory2D_Ptr;
-typedef POINTER_WRAPPER_CLASS(const RefinementFactory3D) const_RefinementFactory3D_Ptr;
+typedef POINTER_WRAPPER_CLASS(RefinementQueue)   RefinementQueue_Ptr;
+typedef POINTER_WRAPPER_CLASS(RefinementQueue2D) RefinementQueue2D_Ptr;
+typedef POINTER_WRAPPER_CLASS(RefinementQueue3D) RefinementQueue3D_Ptr;
+typedef POINTER_WRAPPER_CLASS(const RefinementQueue)   const_RefinementQueue_Ptr;
+typedef POINTER_WRAPPER_CLASS(const RefinementQueue2D) const_RefinementQueue2D_Ptr;
+typedef POINTER_WRAPPER_CLASS(const RefinementQueue3D) const_RefinementQueue3D_Ptr;
 
 /**
     \brief
-    Abstract class RefinementFactory.
+    Abstract class RefinementQueue.
 
-    A factory collects refinement operations and applies them to an oxley
+    A queue collects refinement operations and applies them to an oxley
     domain, returning a NEW domain: the source is left untouched. That is why
     the operations live here rather than on the domain, where they used to
     mutate it in place - a domain and the Data defined on it went out of step
@@ -39,7 +39,7 @@ typedef POINTER_WRAPPER_CLASS(const RefinementFactory3D) const_RefinementFactory
     The refinement a domain is BORN with is separate, and stays a constructor
     argument (Rectangle/Brick take refine_level, an int or a per-block list).
 */
-class RefinementFactory
+class RefinementQueue
 {
 public:
 
@@ -47,13 +47,13 @@ public:
        \brief
        Constructor
     */
-	RefinementFactory();
+	RefinementQueue();
 
 	/**
        \brief
        Destructor
     */
-	~RefinementFactory();
+	~RefinementQueue();
 
 	/**
        \brief
@@ -108,11 +108,11 @@ protected:
 };
 
 
-class RefinementFactory2D : public RefinementFactory
+class RefinementQueue2D : public RefinementQueue
 {
 public:
-   RefinementFactory2D();
-   ~RefinementFactory2D();
+   RefinementQueue2D();
+   ~RefinementQueue2D();
 	/**
        \brief
        RefinementAlgorithms
@@ -156,11 +156,11 @@ public:
 
 };
 
-class RefinementFactory3D : public RefinementFactory
+class RefinementQueue3D : public RefinementQueue
 {
 public:
-   RefinementFactory3D();
-   ~RefinementFactory3D();
+   RefinementQueue3D();
+   ~RefinementQueue3D();
 	/**
        \brief
        RefinementAlgorithms
@@ -206,4 +206,4 @@ public:
 } //namespace oxley
 
 
-#endif //_OXLEY_REFINEMENTFACTORY
+#endif //_OXLEY_REFINEMENTQUEUE

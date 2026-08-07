@@ -27,7 +27,7 @@
 #include <oxley/OxleyDomain.h>
 #include <oxley/OxleyData.h>
 #include <oxley/RefinementType.h>
-#include <oxley/RefinementFactory.h>
+#include <oxley/RefinementQueue.h>
 
 #include <oxley/tictoc.h>
 
@@ -405,7 +405,7 @@ public:
       \brief
       Applies a refinementzone
    */
-    escript::Domain_ptr applyRefinement(RefinementFactory& R);
+    escript::Domain_ptr applyRefinement(RefinementQueue& R);
 
 ////////////////////////////////
 private:
