@@ -410,7 +410,6 @@ private:
 
     // Node numbering
     p4est_lnodes_t * nodes;
-    long nodeIncrements[MAXTREES] = {0};
 
     // Pointer that records the location of a temporary data structure
     void * temp_data;
@@ -575,7 +574,6 @@ protected:
        \brief
        Updates NodeIncrements
     */
-    void updateNodeIncrements();
 
     /**
        \brief

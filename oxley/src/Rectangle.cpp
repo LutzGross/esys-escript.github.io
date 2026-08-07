@@ -224,7 +224,6 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order,
     // (p4est_partition happens above, before the lnodes are built)
 
     // Number the nodes
-    updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
     updateNodeDistribution();
@@ -359,7 +358,6 @@ Rectangle::Rectangle(const oxley::Rectangle& R, int order):
     p4est_ghost_destroy(ghost);
 
     // Number the nodes
-    updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
     updateNodeDistribution();
@@ -1560,17 +1558,6 @@ bool Rectangle::getHangingNodes(p4est_lnodes_code_t face_code, int hanging_corne
 }
 
 //protected
-void Rectangle::updateNodeIncrements()
-{
-    nodeIncrements[0] = 1;
-    for(p4est_topidx_t treeid = p4est->first_local_tree+1, k=1; treeid <= p4est->last_local_tree; treeid++, k++) 
-    {
-        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        nodeIncrements[k] = nodeIncrements[k-1] + Q;
-    }
-}
 
 // void Rectangle::renumberHangingNodes()
 // {
@@ -5119,7 +5106,6 @@ void Rectangle::updateMesh()
     nodes = p4est_lnodes_new(p4est, ghost, 1);
     p4est_ghost_destroy(ghost);
     
-    updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
     updateNodeDistribution();

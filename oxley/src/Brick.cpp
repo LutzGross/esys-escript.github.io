@@ -241,7 +241,6 @@ Brick::Brick(escript::JMPI jmpi, int order,
     // Indices
     indices = new std::vector<IndexVector>;
 
-    nodeIncrements = new long[MAXTREES];
 
     // Number the nodes
     updateMesh();
@@ -454,7 +453,6 @@ Brick::Brick(oxley::Brick& B, int order, bool update):
     boost::python::numpy::initialize();
 #endif
 
-    nodeIncrements = new long[MAXTREES];
 
     updateMesh();
 
@@ -488,7 +486,6 @@ Brick::~Brick(){
 #endif
 
     delete forestData;
-    delete[] nodeIncrements;
 }
 
 /**
@@ -1053,7 +1050,11 @@ void Brick::saveMesh(std::string filename)
 // #endif
 }
 
-#ifdef ESYS_HAVE_TRILINOS
+// updateMesh rebuilds everything derived from the forest - balance, partition,
+// ghost, lnodes, then the node/element ids and face counts. It uses only p4est
+// and oxley's own bookkeeping: the trilinos guard it sat under was left over
+// from when updateRowsColumns built a Tpetra graph, and it made the domain
+// unbuildable without trilinos, since the constructors call this.
 void Brick::updateMesh()
 {
     // Mesh creation
@@ -1097,8 +1098,6 @@ void Brick::updateMesh()
 
 
     // addition information
-    oxleytimer.toc("\t updating node increments");
-    updateNodeIncrements();
     oxleytimer.toc("\t renumbering nodes");
     renumberNodes();
     updateRowsColumns();
@@ -1134,8 +1133,6 @@ void Brick::AutomaticMeshUpdateOnOff(bool new_setting)
     #endif
     autoMeshUpdates = new_setting;
 }
-
-#endif //ESYS_HAVE_TRILINOS
 
 // loadMesh uses only p4est; it sat inside the trilinos guard for no
 // recorded reason, which left a build without trilinos unable to read a
@@ -1679,17 +1676,6 @@ void Brick::reset_ghost()
 #endif
 }
 
-void Brick::updateNodeIncrements()
-{
-    nodeIncrements[0] = 1;
-    for(p8est_topidx_t treeid = p8est->first_local_tree+1, k=1; treeid <= p8est->last_local_tree; ++treeid, ++k) 
-    {
-        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p8est_qcoord_t Q = (p8est_qcoord_t) tquadrants->elem_count;
-        nodeIncrements[k] = nodeIncrements[k-1] + Q;
-    }
-}
 
 void Brick::renumberNodes()
 {

@@ -421,7 +421,6 @@ private:
 
     // This structure records the node numbering information
     p8est_lnodes * nodes;
-    long * nodeIncrements;
 
     // Indices
     std::vector<IndexVector> * indices;
@@ -591,7 +590,6 @@ protected:
        \brief
        Updates NodeIncrements
     */
-    void updateNodeIncrements();
 
     /**
        \brief
