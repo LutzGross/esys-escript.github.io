@@ -178,7 +178,8 @@ public:
     */
     virtual void writeToVTK(std::string filename, bool writeMesh) const;
 
-   #ifdef ESYS_HAVE_TRILINOS
+    // saveMesh/loadMesh use only p4est; they do not belong in the trilinos
+    // guard, which used to make them unavailable in a build without it.
     /**
        \brief
        writes the mesh to file
@@ -190,7 +191,6 @@ public:
        writes the mesh to file
     */
     virtual void loadMesh(std::string filename);
-    #endif //ESYS_HAVE_TRILINOS
 
     // The refinement below needs only p4est. It used to sit inside the
     // trilinos guard with saveMesh/loadMesh, which left a build without

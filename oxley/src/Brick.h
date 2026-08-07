@@ -185,13 +185,13 @@ public:
     */
     virtual void saveMesh(std::string filename) ;
 
-    #ifdef ESYS_HAVE_TRILINOS
+    // saveMesh/loadMesh use only p4est; they do not belong in the trilinos
+    // guard, which used to make them unavailable in a build without it.
     /**
        \brief
        writes the mesh to file
     */
     virtual void loadMesh(std::string filename) ;
-    #endif //ESYS_HAVE_TRILINOS
 
     // See Rectangle.h: this refinement needs only p4est.
 

@@ -598,10 +598,12 @@ public:
       \brief
       finalises the matrix system
    */
-   #ifdef ESYS_HAVE_TRILINOS
-
+   // Set by anything that changes the mesh, to say the cached ordering is
+   // stale. The flags themselves are not trilinos-specific - the refinement
+   // and mesh IO that set them are not either - so only resetRhs is guarded.
    bool z_needs_update=false;
    bool iz_needs_update=false;
+   #ifdef ESYS_HAVE_TRILINOS
    void resetRhs(escript::Data& rhs) const;
    #endif //ESYS_HAVE_TRILINOS
    
