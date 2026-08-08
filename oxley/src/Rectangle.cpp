@@ -1416,6 +1416,15 @@ void Rectangle::print_debug_report(std::string locat)
 
 Assembler_ptr Rectangle::createAssembler(std::string type, const DataMap& constants) const
 {
+#ifndef ESYS_HAVE_TRILINOS
+    // The 2D assembler is trilinos-only, and PDEs on an adaptive oxley mesh
+    // are solved by exporting to finley anyway - so a build without trilinos
+    // simply has no assembler, rather than half of one.
+    throw escript::NotImplementedError("oxley was built without trilinos and "
+            "has no assembler. Export the mesh with toFinley() and solve on "
+            "the finley domain, which is how an adaptive oxley mesh is meant "
+            "to be solved on in any case.");
+#else
     bool isComplex = false;
     DataMap::const_iterator it;
     for(it = constants.begin(); it != constants.end(); it++) {
@@ -1433,6 +1442,7 @@ Assembler_ptr Rectangle::createAssembler(std::string type, const DataMap& consta
         }
     } 
     throw escript::NotImplementedError("oxley::rectangle does not support the requested assembler");
+#endif
 }
 
 // return True for a boundary node and False for an internal node
