@@ -336,6 +336,25 @@ BOOST_PYTHON_MODULE(oxleycpp)
     //     "Creates a refinement zone parent class.\n\n"
     //     );
 
+    def("toFinleyData", oxley::toFinleyData, (arg("source"), arg("target")),
+        "Copies a ContinuousFunction from an oxley forest onto its finley export.\n\n"
+        "The two meshes name their shared nodes identically, so this carries the\n"
+        "values across unchanged rather than interpolating. The nodes the export\n"
+        "has and the forest does not - the positions materialised at a 2:1 seam -\n"
+        "take the average of their masters.\n\n"
+        ":param source: a Data on ContinuousFunction of an oxley domain\n"
+        ":param target: the domain toFinley() built from that forest\n"
+        ":return: the same field on ContinuousFunction of the finley domain");
+
+    def("fromFinleyData", oxley::fromFinleyData, (arg("source"), arg("target")),
+        "Copies a ContinuousFunction from a finley export back onto its forest.\n\n"
+        "The inverse of toFinleyData for the nodes the two meshes share. Values at\n"
+        "the materialised seam positions are dropped - they are not nodes of the\n"
+        "forest.\n\n"
+        ":param source: a Data on ContinuousFunction of the finley export\n"
+        ":param target: the oxley domain the export was built from\n"
+        ":return: the same field on ContinuousFunction of the oxley domain");
+
     def("loadMesh", oxley::loadMesh, (arg("filename"), arg("comm")=object()),
         "Reads a mesh written by saveMesh and returns it as a NEW domain.\n\n"
         "A function rather than a method on the domain: loading into an\n"

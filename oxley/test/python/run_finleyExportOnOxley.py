@@ -59,7 +59,7 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
-from esys.oxley import Rectangle
+from esys.oxley import Rectangle, toFinleyData, fromFinleyData
 
 # REQUIRED: registers the concrete finley domain type with boost::python, or
 # toFinley() hands back a base Domain with no getDescription
@@ -318,6 +318,113 @@ class Test_FinleyExportTagsAndDirac2D(unittest.TestCase):
                                "a node outside the tagged region carries the "
                                "tag: the materialised nodes must inherit only "
                                "when their masters agree")
+
+
+
+class Test_ContinuousFunctionTransfer2D(unittest.TestCase):
+    """
+    Carrying a ContinuousFunction between the forest and its export.
+
+    Not an interpolation: the two meshes name their shared nodes identically,
+    so the values are copied and the tests below expect EXACT equality, not
+    closeness. The only nodes needing a rule are the ones the export has and
+    the forest does not - the positions materialised at a 2:1 seam - which take
+    the average of their masters.
+
+    Serial only for now. finley redistributes the nodes when it prepares the
+    domain, so under MPI rank r's finley nodes are not rank r's oxley nodes and
+    the transfer needs a communication pattern; test_refused_under_mpi pins the
+    current behaviour so this cannot rot into a wrong answer.
+    """
+    LEVELS = [[3, 1, 2], [1, 2, 1], [2, 1, 3]]
+
+    def domains(self, levels=None):
+        levels = self.LEVELS if levels is None else levels
+        if isinstance(levels, int):
+            n0 = n1 = 2
+        else:
+            n0, n1 = len(levels), len(levels[0])
+        dom = Rectangle(n0=n0, n1=n1, l0=float(n0), l1=float(n1),
+                        refine_level=levels)
+        return dom, dom.toFinley()
+
+    @unittest.skipIf(getMPISizeWorld() > 1, "serial only so far")
+    def test_linear_field_is_exact_on_the_export(self):
+        """
+        A linear field lies in both spaces exactly, including at the seam
+        positions - the average of two masters IS the value at their midpoint.
+        So every node of the export must come out exact, not just the shared
+        ones, and that is what checks the averaging rule.
+        """
+        for levels in (2, [[1], [2]], self.LEVELS):
+            dom, fin = self.domains(levels)
+            x = ContinuousFunction(dom).getX()
+            u = 1. + 2. * x[0] + 3. * x[1]
+            xf = ContinuousFunction(fin).getX()
+            self.assertEqual(Lsup(toFinleyData(u, fin)
+                                  - (1. + 2. * xf[0] + 3. * xf[1])), 0.,
+                             "levels %s: the export is not exact" % (levels,))
+
+    @unittest.skipIf(getMPISizeWorld() > 1, "serial only so far")
+    def test_round_trip_is_exact(self):
+        for levels in (2, [[1], [2]], self.LEVELS):
+            dom, fin = self.domains(levels)
+            x = ContinuousFunction(dom).getX()
+            for name, u in (("linear", 1. + 2. * x[0] + 3. * x[1]),
+                            ("non-linear", sin(3. * x[0]) * cos(2. * x[1]))):
+                back = fromFinleyData(toFinleyData(u, fin), dom)
+                self.assertEqual(Lsup(back - u), 0.,
+                                 "levels %s, %s field: the round trip lost "
+                                 "something" % (levels, name))
+
+    @unittest.skipIf(getMPISizeWorld() > 1, "serial only so far")
+    def test_only_the_seam_nodes_are_averaged(self):
+        """
+        For a field that is NOT linear the seam values are averages rather than
+        evaluations, so they must differ from the exact field - while every
+        shared node still matches exactly. That the count of differing nodes is
+        the count of materialised nodes is what says the averaging is confined
+        to them.
+        """
+        dom, fin = self.domains()
+        x = ContinuousFunction(dom).getX()
+        u = sin(3. * x[0]) * cos(2. * x[1])
+        xf = ContinuousFunction(fin).getX()
+        diff = toFinleyData(u, fin) - (sin(3. * xf[0]) * cos(2. * xf[1]))
+
+        nOx = u.getNumberOfDataPoints()
+        nFin = diff.getNumberOfDataPoints()
+        wrong = sum(1 for i in range(nFin)
+                    if abs(diff.getTupleForDataPoint(i)[0]) > 1e-14)
+        self.assertEqual(wrong, nFin - nOx,
+                         "%d nodes differ from the exact field but only %d "
+                         "exist solely on the export" % (wrong, nFin - nOx))
+
+    @unittest.skipIf(getMPISizeWorld() > 1, "serial only so far")
+    def test_vector_data(self):
+        dom, fin = self.domains()
+        v = ContinuousFunction(dom).getX()
+        self.assertEqual(Lsup(fromFinleyData(toFinleyData(v, fin), dom) - v), 0.)
+
+    @unittest.skipIf(getMPISizeWorld() > 1, "serial only so far")
+    def test_wrong_function_space_is_refused(self):
+        dom, fin = self.domains()
+        self.assertRaises(RuntimeError, toFinleyData,
+                          Data(1., Function(dom)), fin)
+
+    @unittest.skipIf(getMPISizeWorld() > 1, "serial only so far")
+    def test_unrelated_domain_is_refused(self):
+        """a finley mesh of the right size but not built from this forest"""
+        dom, _ = self.domains()
+        other = Rectangle(n0=2, n1=2, l0=2., l1=2., refine_level=1).toFinley()
+        x = ContinuousFunction(dom).getX()
+        self.assertRaises(RuntimeError, toFinleyData, x[0], other)
+
+    @unittest.skipIf(getMPISizeWorld() == 1, "this is the MPI behaviour")
+    def test_refused_under_mpi(self):
+        dom, fin = self.domains()
+        x = ContinuousFunction(dom).getX()
+        self.assertRaises(RuntimeError, toFinleyData, x[0], fin)
 
 
 if __name__ == '__main__':

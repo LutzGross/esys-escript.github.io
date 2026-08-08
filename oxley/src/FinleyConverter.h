@@ -51,6 +51,46 @@ namespace oxley {
                     path, since a forest would then change element family the
                     moment refinement introduces a hanging node.
 */
+/**
+   \brief
+   Copies a ContinuousFunction from an oxley forest onto its finley export.
+
+   The two meshes name their shared nodes identically - the export hands finley
+   the ids in MeshAccess::nodeFinleyId - so this is a lookup by global id, not
+   an interpolation: a value is carried across unchanged.
+
+   The export has nodes the forest does not: the positions materialised at a
+   2:1 seam, which are no nodes of the oxley domain and so carry no value of
+   their own. They take the average of their masters, which is what makes the
+   result continuous - the same constraint the forest leaves implicit.
+
+   Not a method on the domain and not routed through escript's interpolate():
+   Data::interpolate dispatches on the SOURCE domain, so finley -> oxley would
+   have to be implemented inside finley, and finley must not know about oxley
+   (the build enforces that direction).
+
+   \param source a Data on ContinuousFunction (or Solution) of an oxley domain
+   \param target the finley domain built from that forest by toFinley()
+   \return the same field on ContinuousFunction of the finley domain
+*/
+escript::Data toFinleyData(const escript::Data& source,
+                           escript::Domain_ptr target);
+
+/**
+   \brief
+   Copies a ContinuousFunction from a finley export back onto its oxley forest.
+
+   The exact inverse of toFinleyData for the nodes the two meshes share. The
+   values at the materialised seam positions are dropped: they are not nodes of
+   the forest, so there is nowhere to put them.
+
+   \param source a Data on ContinuousFunction (or Solution) of the export
+   \param target the oxley domain the export was built from
+   \return the same field on ContinuousFunction of the oxley domain
+*/
+escript::Data fromFinleyData(const escript::Data& source,
+                             escript::Domain_ptr target);
+
 escript::Domain_ptr toFinley(const OxleyDomain& dom, int order = -1,
                              int reducedOrder = -1, bool optimize = false,
                              bool simplices = true);

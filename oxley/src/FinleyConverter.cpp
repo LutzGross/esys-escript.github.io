@@ -16,6 +16,7 @@
 #include <oxley/OxleyException.h>
 #include <oxley/Rectangle.h>
 
+#include <escript/FunctionSpaceFactory.h>
 #include <finley/FinleyDomain.h>
 
 #include <algorithm>
@@ -597,6 +598,154 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
     transferDiracPoints(dom, m, mpiInfo, result);
     return result;
 }
+
+namespace {
+
+/// the mesh view toFinley() would build for this domain, so the node ids and
+/// the constraint arrays match the export exactly
+MeshAccess viewMatchingExport(const OxleyDomain& dom)
+{
+    return dom.getMeshAccess(!dom.isConforming());      // collective
+}
+
+/// global id -> local index over a domain's nodes
+std::map<long,long> nodeIndexById(const escript::AbstractDomain& dom,
+                                  int fsType, long n)
+{
+    const dim_t* ids = dom.borrowSampleReferenceIDs(fsType);
+    std::map<long,long> byId;
+    for (long i = 0; i < n; ++i)
+        byId[(long) ids[i]] = i;
+    return byId;
+}
+
+/// the ids the export gave the nodes: derived where Rectangle builds them,
+/// the plain lnodes ids where it does not (Brick, conforming only)
+const std::vector<long>& exportIds(const MeshAccess& m)
+{
+    return m.nodeFinleyId.empty() ? m.nodeLnodesId : m.nodeFinleyId;
+}
+
+void checkNodalSpace(const escript::Data& d, const char* what)
+{
+    const int fs = d.getFunctionSpace().getTypeCode();
+    if (fs != Nodes && fs != DegreesOfFreedom && fs != ReducedNodes
+            && fs != ReducedDegreesOfFreedom)
+        throw OxleyException(std::string(what) + ": the data must live on "
+                "ContinuousFunction or Solution.");
+}
+
+/// A rank holds only part of each mesh, and finley redistributes the nodes
+/// when it prepares the domain, so rank r's finley nodes are not rank r's
+/// oxley nodes. Carrying values across then needs an exchange, which is a
+/// communication pattern to be built once and kept - not written here yet.
+void refuseUnderMPI(const escript::JMPI& mpi, const char* what)
+{
+    if (mpi->size > 1)
+        throw OxleyException(std::string(what) + ": not implemented for more "
+                "than one rank. finley redistributes the nodes when it prepares "
+                "the domain, so the two meshes do not share a partition and the "
+                "transfer needs a communication pattern.");
+}
+
+} // anonymous namespace
+
+escript::Data toFinleyData(const escript::Data& source, escript::Domain_ptr target)
+{
+    checkNodalSpace(source, "toFinleyData");
+    const OxleyDomain* dom = dynamic_cast<const OxleyDomain*>(
+            source.getFunctionSpace().getDomain().get());
+    if (dom == NULL)
+        throw OxleyException("toFinleyData: the source must live on an oxley "
+                "domain.");
+    if (target.get() == NULL)
+        throw OxleyException("toFinleyData: no target domain given.");
+    refuseUnderMPI(dom->getMPI(), "toFinleyData");
+
+    const MeshAccess m = viewMatchingExport(*dom);
+    const std::vector<long>& gid = exportIds(m);
+
+    escript::Data result(0., source.getDataPointShape(),
+                         escript::continuousFunction(*target), true);
+    result.requireWrite();
+    const escript::FunctionSpace targetFS = escript::continuousFunction(*target);
+    const std::map<long,long> byId = nodeIndexById(*target,
+            targetFS.getTypeCode(), (long) result.getNumSamples());
+    const int numComp = source.getDataPointSize();
+
+    // the nodes the two meshes share: a copy
+    for (long i = 0; i < m.numRealNodes; ++i) {
+        std::map<long,long>::const_iterator it = byId.find(gid[i]);
+        if (it == byId.end())
+            throw OxleyException("toFinleyData: the target domain does not "
+                    "carry the ids this forest exported. Is it the domain "
+                    "toFinley() built from this forest?");
+        const double* in = source.getSampleDataRO(i, (double) 0);
+        double* out = result.getSampleDataRW(it->second, (double) 0);
+        for (int c = 0; c < numComp; ++c)
+            out[c] = in[c];
+    }
+
+    // and the ones only the export has: the average of their masters
+    const int mpc = m.mastersPerConstrainedNode;
+    for (size_t k = 0; k < m.constrainedNodes.size(); ++k) {
+        const long node = m.constrainedNodes[k];
+        std::map<long,long>::const_iterator it = byId.find(gid[node]);
+        if (it == byId.end())
+            continue;                   // not a node of this rank's export
+        double* out = result.getSampleDataRW(it->second, (double) 0);
+        for (int c = 0; c < numComp; ++c)
+            out[c] = 0.;
+        for (int j = 0; j < mpc; ++j) {
+            const long master = m.constraintMasters[k*mpc + j];
+            const double w = m.constraintWeights[k*mpc + j];
+            if (master < 0 || w == 0.)
+                continue;
+            const double* in = source.getSampleDataRO(master, (double) 0);
+            for (int c = 0; c < numComp; ++c)
+                out[c] += w * in[c];
+        }
+    }
+    return result;
+}
+
+escript::Data fromFinleyData(const escript::Data& source, escript::Domain_ptr target)
+{
+    checkNodalSpace(source, "fromFinleyData");
+    const OxleyDomain* dom = dynamic_cast<const OxleyDomain*>(target.get());
+    if (dom == NULL)
+        throw OxleyException("fromFinleyData: the target must be an oxley "
+                "domain.");
+    refuseUnderMPI(dom->getMPI(), "fromFinleyData");
+
+    const MeshAccess m = viewMatchingExport(*dom);
+    const std::vector<long>& gid = exportIds(m);
+
+    escript::Data result(0., source.getDataPointShape(),
+                         escript::continuousFunction(*target), true);
+    result.requireWrite();
+    const std::map<long,long> byId = nodeIndexById(
+            *(source.getFunctionSpace().getDomain()),
+            source.getFunctionSpace().getTypeCode(),
+            (long) source.getNumSamples());
+    const int numComp = source.getDataPointSize();
+
+    // only the shared nodes come back; a materialised seam position is no node
+    // of the forest, so its value has nowhere to go
+    for (long i = 0; i < m.numRealNodes; ++i) {
+        std::map<long,long>::const_iterator it = byId.find(gid[i]);
+        if (it == byId.end())
+            throw OxleyException("fromFinleyData: the source domain does not "
+                    "carry the ids this forest exported. Is it the domain "
+                    "toFinley() built from this forest?");
+        const double* in = source.getSampleDataRO(it->second, (double) 0);
+        double* out = result.getSampleDataRW(i, (double) 0);
+        for (int c = 0; c < numComp; ++c)
+            out[c] = in[c];
+    }
+    return result;
+}
+
 
 namespace {
 
