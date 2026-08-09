@@ -452,6 +452,16 @@ public:
 
     /**
      \brief
+     returns the name this mesh was created with.
+
+     getDescription() answers "FinleyMesh" for every mesh, so it cannot tell
+     two meshes apart; the name can, which matters to whoever built the mesh
+     and later has to recognise it.
+    */
+    const std::string& getName() const { return m_name; }
+
+    /**
+     \brief
      Return a description for the given function space type code
     */
     virtual std::string functionSpaceTypeAsString(int functionSpaceType) const;

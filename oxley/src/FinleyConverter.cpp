@@ -20,6 +20,7 @@
 #include <finley/FinleyDomain.h>
 
 #include <algorithm>
+#include <limits>
 #include <array>
 #include <cmath>
 #include <map>
@@ -326,6 +327,14 @@ void transferDiracPoints(const OxleyDomain& dom, const MeshAccess& m,
     fd->getPoints()->updateTagList();
 }
 
+/// how an exported mesh says which forest it came from
+std::string exportTag(const OxleyDomain& dom)
+{
+    std::stringstream ss;
+    ss << "[forest " << dom.forestChecksum() << "]";     // collective
+    return ss.str();
+}
+
 } // anonymous namespace
 
 escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
@@ -589,8 +598,12 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
             out.tagMap[defaultTags[i].first] = defaultTags[i].second;
     }
 
+    // The name carries a fingerprint of the forest so that a later transfer can
+    // tell this mesh came from THIS forest. Without it two unrelated meshes
+    // with overlapping id ranges would exchange values without complaint.
     std::stringstream name;
-    name << "finley mesh from oxley " << (m.numDim == 2 ? "Rectangle" : "Brick");
+    name << "finley mesh from oxley " << (m.numDim == 2 ? "Rectangle" : "Brick")
+         << " " << exportTag(dom);
 
     escript::Domain_ptr result = finley::FinleyDomain::createFromArrays(
             out, name.str(), order, reducedOrder, optimize, mpiInfo);
@@ -606,6 +619,22 @@ namespace {
 MeshAccess viewMatchingExport(const OxleyDomain& dom)
 {
     return dom.getMeshAccess(!dom.isConforming());      // collective
+}
+
+
+/// refuses a target that is not the export of this forest
+void checkSameForest(const OxleyDomain& dom, const escript::AbstractDomain& other,
+                     const char* what)
+{
+    // getDescription() answers "FinleyMesh" for every finley mesh, so the name
+    // is what distinguishes them - toFinley() stamps the forest into it.
+    const finley::FinleyDomain* fd =
+            dynamic_cast<const finley::FinleyDomain*>(&other);
+    const std::string tag = exportTag(dom);              // collective
+    if (fd == NULL || fd->getName().find(tag) == std::string::npos)
+        throw OxleyException(std::string(what) + ": that domain was not "
+                "exported from this forest. Pass the domain toFinley() "
+                "returned for it.");
 }
 
 /// global id -> local index over a domain's nodes
@@ -635,17 +664,135 @@ void checkNodalSpace(const escript::Data& d, const char* what)
                 "ContinuousFunction or Solution.");
 }
 
-/// A rank holds only part of each mesh, and finley redistributes the nodes
-/// when it prepares the domain, so rank r's finley nodes are not rank r's
-/// oxley nodes. Carrying values across then needs an exchange, which is a
-/// communication pattern to be built once and kept - not written here yet.
-void refuseUnderMPI(const escript::JMPI& mpi, const char* what)
+
+/**
+   Moves values keyed by GLOBAL ID between two meshes that do not share a
+   partition.
+
+   This is finley's own idiom, from NodeFile::gather_global: cut the global id
+   range evenly (JMPI::setDistribution), then pass ONE buffer around a ring,
+   each rank writing the ids it can supply as the buffer passes over its block,
+   and on a second lap reading out the ids it wants. The point is that neither
+   side ever learns the other's partition - the ring visits every block, so all
+   that has to agree is the id space itself, which is what the export numbering
+   guarantees. That is exactly the difficulty here: finley redistributes its
+   nodes in prepare(), so rank r's finley nodes are not rank r's oxley nodes.
+
+   The buffer is the global id RANGE divided by the rank count, and the export
+   numbering is sparse - it reserves four slots per octant for the positions
+   that may hang - so the buffer is a few times larger than the node count. The
+   cost stops there; nothing downstream sees the holes.
+
+   \param mpi the communicator both meshes were built on
+   \param numComp components per value
+   \param haveId ids this rank can supply, haveVal their values
+   \param wantId ids this rank needs, wantVal filled with their values
+*/
+void exchangeByGlobalId(const escript::JMPI& mpi, int numComp,
+                        const std::vector<long>& haveId,
+                        const std::vector<double>& haveVal,
+                        const std::vector<long>& wantId,
+                        std::vector<double>& wantVal)
 {
-    if (mpi->size > 1)
-        throw OxleyException(std::string(what) + ": not implemented for more "
-                "than one rank. finley redistributes the nodes when it prepares "
-                "the domain, so the two meshes do not share a partition and the "
-                "transfer needs a communication pattern.");
+    wantVal.assign(wantId.size() * numComp, 0.);
+    std::vector<char> got(wantId.size(), 0);
+
+    // the id range, over every rank: a rank may want an id it cannot supply
+    long lo = std::numeric_limits<long>::max(), hi = std::numeric_limits<long>::min();
+    for (size_t k = 0; k < haveId.size(); ++k) {
+        lo = std::min(lo, haveId[k]); hi = std::max(hi, haveId[k]);
+    }
+    for (size_t k = 0; k < wantId.size(); ++k) {
+        lo = std::min(lo, wantId[k]); hi = std::max(hi, wantId[k]);
+    }
+    if (haveId.empty() && wantId.empty()) { lo = 0; hi = 0; }
+#ifdef ESYS_MPI
+    if (mpi->size > 1) {
+        long gl = lo, gh = hi;
+        MPI_Allreduce(&gl, &lo, 1, MPI_LONG, MPI_MIN, mpi->comm);
+        MPI_Allreduce(&gh, &hi, 1, MPI_LONG, MPI_MAX, mpi->comm);
+    }
+#endif
+
+    std::vector<index_t> dist(mpi->size + 1, 0);
+    const dim_t bufLen = mpi->setDistribution((index_t) lo, (index_t) hi, &dist[0]);
+    const long UNSET = lo - 1;
+
+    std::vector<long> idBuf((size_t) bufLen, UNSET);
+    std::vector<double> valBuf((size_t) bufLen * numComp, 0.);
+
+    int bufferRank = mpi->rank;
+#ifdef ESYS_MPI
+    const int dest = mpi->mod_rank(mpi->rank + 1);
+    const int source = mpi->mod_rank(mpi->rank - 1);
+    MPI_Status status;
+#endif
+
+    // lap one: fill. Every rank writes what it can supply for whichever block
+    // the buffer is currently carrying; after size steps the buffer is back
+    // with its owner, holding every value anyone had for that block.
+    for (int p = 0; p < mpi->size; ++p) {
+#ifdef ESYS_MPI
+        if (p > 0) {
+            MPI_Sendrecv_replace(&idBuf[0], (int) bufLen, MPI_LONG, dest,
+                    mpi->counter(), source, mpi->counter(), mpi->comm, &status);
+            MPI_Sendrecv_replace(&valBuf[0], (int) (bufLen * numComp),
+                    MPI_DOUBLE, dest, mpi->counter()+1, source,
+                    mpi->counter()+1, mpi->comm, &status);
+            mpi->incCounter(2);
+        }
+#endif
+        bufferRank = mpi->mod_rank(bufferRank - 1);
+        const long first = (long) dist[bufferRank], last = (long) dist[bufferRank+1];
+        for (size_t k = 0; k < haveId.size(); ++k) {
+            const long id = haveId[k];
+            if (id < first || id >= last)
+                continue;
+            const size_t pos = (size_t)(id - first);
+            idBuf[pos] = id;
+            for (int c = 0; c < numComp; ++c)
+                valBuf[pos*numComp + c] = haveVal[k*numComp + c];
+        }
+    }
+
+    // lap two: read. The buffer starts on its owner and visits every rank, so
+    // each rank sees every block exactly once.
+    bufferRank = mpi->rank;
+    for (int p = 0; p < mpi->size; ++p) {
+        const long first = (long) dist[bufferRank], last = (long) dist[bufferRank+1];
+        for (size_t k = 0; k < wantId.size(); ++k) {
+            const long id = wantId[k];
+            if (id < first || id >= last)
+                continue;
+            const size_t pos = (size_t)(id - first);
+            if (idBuf[pos] == UNSET)
+                continue;               // nobody supplied it; reported below
+            for (int c = 0; c < numComp; ++c)
+                wantVal[k*numComp + c] = valBuf[pos*numComp + c];
+            got[k] = 1;
+        }
+#ifdef ESYS_MPI
+        if (p < mpi->size - 1) {
+            MPI_Sendrecv_replace(&idBuf[0], (int) bufLen, MPI_LONG, dest,
+                    mpi->counter(), source, mpi->counter(), mpi->comm, &status);
+            MPI_Sendrecv_replace(&valBuf[0], (int) (bufLen * numComp),
+                    MPI_DOUBLE, dest, mpi->counter()+1, source,
+                    mpi->counter()+1, mpi->comm, &status);
+            mpi->incCounter(2);
+        }
+#endif
+        bufferRank = mpi->mod_rank(bufferRank - 1);
+    }
+
+    for (size_t k = 0; k < wantId.size(); ++k) {
+        if (!got[k]) {
+            std::stringstream ss;
+            ss << "transfer between the forest and its export: no value was "
+                  "supplied for node id " << wantId[k] << ". Is the target the "
+                  "domain toFinley() built from this forest?";
+            throw OxleyException(ss.str());
+        }
+    }
 }
 
 } // anonymous namespace
@@ -660,42 +807,31 @@ escript::Data toFinleyData(const escript::Data& source, escript::Domain_ptr targ
                 "domain.");
     if (target.get() == NULL)
         throw OxleyException("toFinleyData: no target domain given.");
-    refuseUnderMPI(dom->getMPI(), "toFinleyData");
+    if (source.isComplex())
+        throw OxleyException("toFinleyData: complex data is not supported yet.");
+    checkSameForest(*dom, *target, "toFinleyData");
 
-    const MeshAccess m = viewMatchingExport(*dom);
+    const MeshAccess m = viewMatchingExport(*dom);          // collective
     const std::vector<long>& gid = exportIds(m);
-
-    escript::Data result(0., source.getDataPointShape(),
-                         escript::continuousFunction(*target), true);
-    result.requireWrite();
-    const escript::FunctionSpace targetFS = escript::continuousFunction(*target);
-    const std::map<long,long> byId = nodeIndexById(*target,
-            targetFS.getTypeCode(), (long) result.getNumSamples());
     const int numComp = source.getDataPointSize();
 
-    // the nodes the two meshes share: a copy
+    // what this rank can supply: its own nodes, plus the seam positions it
+    // materialised, which are no nodes of the forest and so take the average
+    // of their masters
+    std::vector<long> haveId;
+    std::vector<double> haveVal;
+    haveId.reserve(m.numNodes);
+    haveVal.reserve((size_t) m.numNodes * numComp);
     for (long i = 0; i < m.numRealNodes; ++i) {
-        std::map<long,long>::const_iterator it = byId.find(gid[i]);
-        if (it == byId.end())
-            throw OxleyException("toFinleyData: the target domain does not "
-                    "carry the ids this forest exported. Is it the domain "
-                    "toFinley() built from this forest?");
         const double* in = source.getSampleDataRO(i, (double) 0);
-        double* out = result.getSampleDataRW(it->second, (double) 0);
+        haveId.push_back(gid[i]);
         for (int c = 0; c < numComp; ++c)
-            out[c] = in[c];
+            haveVal.push_back(in[c]);
     }
-
-    // and the ones only the export has: the average of their masters
     const int mpc = m.mastersPerConstrainedNode;
     for (size_t k = 0; k < m.constrainedNodes.size(); ++k) {
         const long node = m.constrainedNodes[k];
-        std::map<long,long>::const_iterator it = byId.find(gid[node]);
-        if (it == byId.end())
-            continue;                   // not a node of this rank's export
-        double* out = result.getSampleDataRW(it->second, (double) 0);
-        for (int c = 0; c < numComp; ++c)
-            out[c] = 0.;
+        std::vector<double> v(numComp, 0.);
         for (int j = 0; j < mpc; ++j) {
             const long master = m.constraintMasters[k*mpc + j];
             const double w = m.constraintWeights[k*mpc + j];
@@ -703,8 +839,30 @@ escript::Data toFinleyData(const escript::Data& source, escript::Domain_ptr targ
                 continue;
             const double* in = source.getSampleDataRO(master, (double) 0);
             for (int c = 0; c < numComp; ++c)
-                out[c] += w * in[c];
+                v[c] += w * in[c];
         }
+        haveId.push_back(gid[node]);
+        for (int c = 0; c < numComp; ++c)
+            haveVal.push_back(v[c]);
+    }
+
+    escript::Data result(0., source.getDataPointShape(),
+                         escript::continuousFunction(*target), true);
+    result.requireWrite();
+    const escript::FunctionSpace targetFS = escript::continuousFunction(*target);
+    const long n = (long) result.getNumSamples();
+    const dim_t* ids = target->borrowSampleReferenceIDs(targetFS.getTypeCode());
+    std::vector<long> wantId(n);
+    for (long j = 0; j < n; ++j)
+        wantId[j] = (long) ids[j];
+
+    std::vector<double> wantVal;
+    exchangeByGlobalId(dom->getMPI(), numComp, haveId, haveVal, wantId, wantVal);
+
+    for (long j = 0; j < n; ++j) {
+        double* out = result.getSampleDataRW(j, (double) 0);
+        for (int c = 0; c < numComp; ++c)
+            out[c] = wantVal[(size_t) j*numComp + c];
     }
     return result;
 }
@@ -716,32 +874,45 @@ escript::Data fromFinleyData(const escript::Data& source, escript::Domain_ptr ta
     if (dom == NULL)
         throw OxleyException("fromFinleyData: the target must be an oxley "
                 "domain.");
-    refuseUnderMPI(dom->getMPI(), "fromFinleyData");
+    if (source.isComplex())
+        throw OxleyException("fromFinleyData: complex data is not supported "
+                "yet.");
+    checkSameForest(*dom, *(source.getFunctionSpace().getDomain()),
+                    "fromFinleyData");
 
-    const MeshAccess m = viewMatchingExport(*dom);
+    const MeshAccess m = viewMatchingExport(*dom);          // collective
     const std::vector<long>& gid = exportIds(m);
+    const int numComp = source.getDataPointSize();
+
+    const escript::FunctionSpace sourceFS = source.getFunctionSpace();
+    const long ns = (long) source.getNumSamples();
+    const dim_t* ids = sourceFS.getDomain()->borrowSampleReferenceIDs(
+            sourceFS.getTypeCode());
+    std::vector<long> haveId(ns);
+    std::vector<double> haveVal((size_t) ns * numComp);
+    for (long j = 0; j < ns; ++j) {
+        haveId[j] = (long) ids[j];
+        const double* in = source.getSampleDataRO(j, (double) 0);
+        for (int c = 0; c < numComp; ++c)
+            haveVal[(size_t) j*numComp + c] = in[c];
+    }
+
+    // only the shared nodes come back; a materialised seam position is no node
+    // of the forest, so its value has nowhere to go
+    std::vector<long> wantId(m.numRealNodes);
+    for (long i = 0; i < m.numRealNodes; ++i)
+        wantId[i] = gid[i];
+
+    std::vector<double> wantVal;
+    exchangeByGlobalId(dom->getMPI(), numComp, haveId, haveVal, wantId, wantVal);
 
     escript::Data result(0., source.getDataPointShape(),
                          escript::continuousFunction(*target), true);
     result.requireWrite();
-    const std::map<long,long> byId = nodeIndexById(
-            *(source.getFunctionSpace().getDomain()),
-            source.getFunctionSpace().getTypeCode(),
-            (long) source.getNumSamples());
-    const int numComp = source.getDataPointSize();
-
-    // only the shared nodes come back; a materialised seam position is no node
-    // of the forest, so its value has nowhere to go
     for (long i = 0; i < m.numRealNodes; ++i) {
-        std::map<long,long>::const_iterator it = byId.find(gid[i]);
-        if (it == byId.end())
-            throw OxleyException("fromFinleyData: the source domain does not "
-                    "carry the ids this forest exported. Is it the domain "
-                    "toFinley() built from this forest?");
-        const double* in = source.getSampleDataRO(it->second, (double) 0);
         double* out = result.getSampleDataRW(i, (double) 0);
         for (int c = 0; c < numComp; ++c)
-            out[c] = in[c];
+            out[c] = wantVal[(size_t) i*numComp + c];
     }
     return result;
 }

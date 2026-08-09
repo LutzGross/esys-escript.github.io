@@ -519,6 +519,8 @@ protected:
     */
     virtual MeshAccess getMeshAccess(bool materializeHanging = false) const;
 
+    virtual unsigned forestChecksum() const;
+
     virtual bool isConforming() const;
 
     /**

@@ -2768,6 +2768,12 @@ inline dim_t Rectangle::getNumElements() const
     return numElements;
 }
 
+unsigned Rectangle::forestChecksum() const
+{
+    // collective; the same value on every rank
+    return p4est_checksum(p4est);
+}
+
 bool Rectangle::isConforming() const
 {
     int localHang = 0;

@@ -877,6 +877,12 @@ public:
     /// MASTER there, which lies outside the element.
     virtual MeshAccess getMeshAccess(bool materializeHanging = false) const = 0;
 
+    /// A fingerprint of the forest, used to tell whether a finley domain was
+    /// exported from THIS forest. Two meshes with overlapping id ranges would
+    /// otherwise transfer values into each other without complaint.
+    /// Collective, like p4est's own checksum.
+    virtual unsigned forestChecksum() const = 0;
+
     /// true when no element anywhere in the forest has a hanging node, so the
     /// mesh is a conforming all-quad/all-hex mesh. Collective: every rank gets
     /// the same answer.

@@ -331,10 +331,11 @@ class Test_ContinuousFunctionTransfer2D(unittest.TestCase):
     the forest does not - the positions materialised at a 2:1 seam - which take
     the average of their masters.
 
-    Serial only for now. finley redistributes the nodes when it prepares the
-    domain, so under MPI rank r's finley nodes are not rank r's oxley nodes and
-    the transfer needs a communication pattern; test_refused_under_mpi pins the
-    current behaviour so this cannot rot into a wrong answer.
+    Works under MPI. finley redistributes the nodes when it prepares the
+    domain, so rank r's finley nodes are not rank r's oxley nodes; the transfer
+    passes a buffer around a ring over the global id range, which is finley's
+    own idiom in NodeFile::gather_global and needs neither side to know the
+    other's partition.
     """
     LEVELS = [[3, 1, 2], [1, 2, 1], [2, 1, 3]]
 
@@ -348,7 +349,6 @@ class Test_ContinuousFunctionTransfer2D(unittest.TestCase):
                         refine_level=levels)
         return dom, dom.toFinley()
 
-    @unittest.skipIf(getMPISizeWorld() > 1, "serial only so far")
     def test_linear_field_is_exact_on_the_export(self):
         """
         A linear field lies in both spaces exactly, including at the seam
@@ -365,7 +365,6 @@ class Test_ContinuousFunctionTransfer2D(unittest.TestCase):
                                   - (1. + 2. * xf[0] + 3. * xf[1])), 0.,
                              "levels %s: the export is not exact" % (levels,))
 
-    @unittest.skipIf(getMPISizeWorld() > 1, "serial only so far")
     def test_round_trip_is_exact(self):
         for levels in (2, [[1], [2]], self.LEVELS):
             dom, fin = self.domains(levels)
@@ -377,7 +376,8 @@ class Test_ContinuousFunctionTransfer2D(unittest.TestCase):
                                  "levels %s, %s field: the round trip lost "
                                  "something" % (levels, name))
 
-    @unittest.skipIf(getMPISizeWorld() > 1, "serial only so far")
+    @unittest.skipIf(getMPISizeWorld() > 1,
+                     "counts node samples, which double-count ghosts under MPI")
     def test_only_the_seam_nodes_are_averaged(self):
         """
         For a field that is NOT linear the seam values are averages rather than
@@ -400,31 +400,27 @@ class Test_ContinuousFunctionTransfer2D(unittest.TestCase):
                          "%d nodes differ from the exact field but only %d "
                          "exist solely on the export" % (wrong, nFin - nOx))
 
-    @unittest.skipIf(getMPISizeWorld() > 1, "serial only so far")
     def test_vector_data(self):
         dom, fin = self.domains()
         v = ContinuousFunction(dom).getX()
         self.assertEqual(Lsup(fromFinleyData(toFinleyData(v, fin), dom) - v), 0.)
 
-    @unittest.skipIf(getMPISizeWorld() > 1, "serial only so far")
     def test_wrong_function_space_is_refused(self):
         dom, fin = self.domains()
         self.assertRaises(RuntimeError, toFinleyData,
                           Data(1., Function(dom)), fin)
 
-    @unittest.skipIf(getMPISizeWorld() > 1, "serial only so far")
     def test_unrelated_domain_is_refused(self):
-        """a finley mesh of the right size but not built from this forest"""
+        """
+        A finley mesh not built from this forest. The id ranges of two
+        different forests overlap, so "every id I asked for was supplied" is
+        NOT evidence of a match - the export carries a fingerprint of the
+        forest it came from and that is what is checked.
+        """
         dom, _ = self.domains()
         other = Rectangle(n0=2, n1=2, l0=2., l1=2., refine_level=1).toFinley()
         x = ContinuousFunction(dom).getX()
         self.assertRaises(RuntimeError, toFinleyData, x[0], other)
-
-    @unittest.skipIf(getMPISizeWorld() == 1, "this is the MPI behaviour")
-    def test_refused_under_mpi(self):
-        dom, fin = self.domains()
-        x = ContinuousFunction(dom).getX()
-        self.assertRaises(RuntimeError, toFinleyData, x[0], fin)
 
 
 if __name__ == '__main__':

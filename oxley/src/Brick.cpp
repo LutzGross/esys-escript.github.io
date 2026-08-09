@@ -4750,6 +4750,12 @@ inline dim_t Brick::getNumElements() const
     return nodes->num_local_elements;
 }
 
+unsigned Brick::forestChecksum() const
+{
+    // collective; the same value on every rank
+    return p8est_checksum(p8est);
+}
+
 bool Brick::isConforming() const
 {
     int localHang = 0;
