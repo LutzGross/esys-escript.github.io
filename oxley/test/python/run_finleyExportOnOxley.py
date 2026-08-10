@@ -59,7 +59,8 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
-from esys.oxley import Rectangle, toFinleyData, fromFinleyData
+from esys.oxley import (Rectangle, toFinleyData, fromFinleyData,
+                       toFinleyReducedData, fromFinleyReducedData)
 
 # REQUIRED: registers the concrete finley domain type with boost::python, or
 # toFinley() hands back a base Domain with no getDescription
@@ -421,6 +422,88 @@ class Test_ContinuousFunctionTransfer2D(unittest.TestCase):
         other = Rectangle(n0=2, n1=2, l0=2., l1=2., refine_level=1).toFinley()
         x = ContinuousFunction(dom).getX()
         self.assertRaises(RuntimeError, toFinleyData, x[0], other)
+
+
+
+class Test_ReducedFunctionTransfer2D(unittest.TestCase):
+    """
+    Carrying a ReducedFunction - one value per element - across.
+
+    An octant becomes 2 to 6 triangles, so this one is not a copy: outbound the
+    value is REPLICATED onto each simplex, inbound it is the AREA-WEIGHTED mean
+    of them. The weights are recomputed on the oxley side from the split, which
+    is a deterministic function of the hanging configuration, so the finley
+    side never has to send areas.
+
+    No map is stored either: the exported simplices carry ids that say which
+    octant they came from, so the correspondence survives finley redistributing
+    the mesh in prepare().
+
+    Two invariants are worth more than the errors here. Replicate-then-average
+    is the identity, because the weights of an octant sum to one. And the
+    INTEGRAL is preserved in both directions, which is the property an error
+    indicator needs - it is a density, and moving it between meshes must not
+    create or destroy any of it.
+    """
+    CASES = [("conforming", 2), ("one_seam", [[1], [2]]),
+             ("mixed_3x3", [[3, 1, 2], [1, 2, 1], [2, 1, 3]])]
+
+    def domains(self, levels):
+        n0, n1 = blocks(levels)
+        dom = Rectangle(n0=n0, n1=n1, l0=float(n0), l1=float(n1),
+                        refine_level=levels)
+        return dom, dom.toFinley()
+
+    def test_replicate_then_average_is_the_identity(self):
+        for name, levels in self.CASES:
+            dom, fin = self.domains(levels)
+            x = ReducedFunction(dom).getX()
+            u = 1. + x[0] * x[1]
+            back = fromFinleyReducedData(toFinleyReducedData(u, fin), dom)
+            self.assertEqual(Lsup(back - u), 0.,
+                             "%s: the round trip changed the field" % name)
+
+    def test_integral_is_preserved_outbound(self):
+        for name, levels in self.CASES:
+            dom, fin = self.domains(levels)
+            x = ReducedFunction(dom).getX()
+            u = 1. + x[0] * x[1]
+            a, b = integrate(u), integrate(toFinleyReducedData(u, fin))
+            self.assertAlmostEqual(a, b, 10, "%s: integral changed on export "
+                                   "(%.12g -> %.12g)" % (name, a, b))
+
+    def test_integral_is_preserved_inbound(self):
+        """
+        The direction the adaptive loop needs: an indicator computed on the
+        finley mesh coming home per octant.
+        """
+        for name, levels in self.CASES:
+            dom, fin = self.domains(levels)
+            xf = ReducedFunction(fin).getX()
+            ind = xf[0] * xf[0] + xf[1]
+            home = fromFinleyReducedData(ind, dom)
+            a, b = integrate(ind), integrate(home)
+            self.assertAlmostEqual(a, b, 10, "%s: integral changed coming home "
+                                   "(%.12g -> %.12g)" % (name, a, b))
+
+    def test_constant_survives_any_split(self):
+        """
+        the weights of an octant sum to one, whatever pattern it was split by
+        """
+        dom, fin = self.domains(self.CASES[2][1])
+        home = fromFinleyReducedData(Data(2.5, ReducedFunction(fin)), dom)
+        self.assertEqual(Lsup(home - 2.5), 0.)
+
+    def test_wrong_function_space_is_refused(self):
+        dom, fin = self.domains(2)
+        self.assertRaises(RuntimeError, toFinleyReducedData,
+                          Data(1., ContinuousFunction(dom)), fin)
+
+    def test_unrelated_domain_is_refused(self):
+        dom, _ = self.domains(2)
+        other = Rectangle(n0=3, n1=3, l0=3., l1=3., refine_level=1).toFinley()
+        self.assertRaises(RuntimeError, toFinleyReducedData,
+                          Data(1., ReducedFunction(dom)), other)
 
 
 if __name__ == '__main__':

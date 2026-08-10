@@ -91,6 +91,39 @@ escript::Data toFinleyData(const escript::Data& source,
 escript::Data fromFinleyData(const escript::Data& source,
                              escript::Domain_ptr target);
 
+/**
+   \brief
+   Copies a ReducedFunction - one value per element - onto the finley export.
+
+   An octant becomes 2 to 6 triangles, so the value is REPLICATED onto each of
+   them. The simplices carry ids that say which octant they came from, so no
+   map has to be stored and none has to survive finley redistributing the mesh.
+
+   \param source a Data on ReducedFunction of an oxley domain
+   \param target the finley domain toFinley() built from that forest
+*/
+escript::Data toFinleyReducedData(const escript::Data& source,
+                                  escript::Domain_ptr target);
+
+/**
+   \brief
+   Brings a ReducedFunction back from the finley export onto the forest.
+
+   The reverse of the replication: an octant's value is the AREA-WEIGHTED mean
+   of its simplices, so a field constant over the octant returns unchanged no
+   matter how the octant was split. The weights are recomputed on the oxley
+   side from the split, which is a deterministic function of the hanging
+   configuration - the finley side never has to send areas.
+
+   This is the transfer the adaptive loop needs: the error indicator is
+   computed on the finley mesh and comes home per octant.
+
+   \param source a Data on ReducedFunction of the export
+   \param target the oxley domain the export was built from
+*/
+escript::Data fromFinleyReducedData(const escript::Data& source,
+                                    escript::Domain_ptr target);
+
 escript::Domain_ptr toFinley(const OxleyDomain& dom, int order = -1,
                              int reducedOrder = -1, bool optimize = false,
                              bool simplices = true);

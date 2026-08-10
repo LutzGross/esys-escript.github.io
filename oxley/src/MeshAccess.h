@@ -61,6 +61,10 @@ struct MeshAccess
     long numOwnedNodes = 0;     ///< nodes owned by this rank
     long numElements = 0;       ///< local leaf elements
     long globalNodeOffset = 0;  ///< global id of this rank's first owned node
+    /// global index of this rank's first element, in the forest's own element
+    /// order. With it a local element names itself the same way on every rank,
+    /// which is what lets the export give its simplices derivable ids.
+    long globalElementOffset = 0;
 
     /// node coordinates, size numNodes*numDim (node i at [i*numDim + d])
     std::vector<double> nodeCoords;

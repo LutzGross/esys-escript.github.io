@@ -92,6 +92,11 @@ inline double signedArea(const std::vector<double>& X, long a, long b, long c)
 // has is fixed by the mask alone.
 // ---------------------------------------------------------------------------
 
+/// Ids reserved per octant for the simplices it is split into. The 2D split
+/// emits at most 6 (the four-hanging pattern) and the conforming 3D cone 6, so
+/// this covers both; it must grow if the 3D split ever handles hanging faces.
+const int MAX_SIMPLICES = 6;
+
 /// side of the CCW frame -> p4est face index
 const int sideToFace[4] = {2, 1, 3, 0};
 
@@ -327,6 +332,63 @@ void transferDiracPoints(const OxleyDomain& dom, const MeshAccess& m,
     fd->getPoints()->updateTagList();
 }
 
+
+/**
+   For each local element, how many simplices the split emits and what fraction
+   of the element each one covers.
+
+   Recomputed rather than recorded: the split is a deterministic function of the
+   hanging configuration and the element geometry, both of which MeshAccess
+   already carries, so the weights can be worked out on the oxley side alone.
+   That is what lets the inbound transfer weight by area without the finley side
+   ever having to send areas along.
+
+   2D only. The fractions sum to one per element, so a field that is constant
+   over an element comes back unchanged whatever the split.
+*/
+void simplexWeights(const MeshAccess& m, std::vector<int>& count,
+                    std::vector<std::vector<double> >& weight)
+{
+    if (m.numDim != 2)
+        throw OxleyException("simplexWeights: 2D only so far.");
+    const int V = m.nodesPerElement;
+    count.assign(m.numElements, 0);
+    weight.assign(m.numElements, std::vector<double>());
+
+    for (long e = 0; e < m.numElements; ++e) {
+        const long* en = &m.elementNodes[(size_t) e * V];
+        long V4[4], H4[4];
+        int mask = 0;
+        for (int side = 0; side < 4; ++side) {
+            V4[side] = en[rectPolygon[side]];
+            H4[side] = m.elementFaceHangingNode.empty() ? -1
+                     : m.elementFaceHangingNode[(size_t) e * 4 + sideToFace[side]];
+            if (H4[side] >= 0)
+                mask |= 1 << side;
+        }
+        int rot = 0;
+        const SplitPattern* pat = matchPattern(mask, rot);
+        count[e] = pat->numTriangles;
+
+        double total = 0.;
+        weight[e].resize(pat->numTriangles);
+        for (int t = 0; t < pat->numTriangles; ++t) {
+            long v[3];
+            for (int k = 0; k < 3; ++k) {
+                const int sym = pat->tri[t][k];
+                v[k] = (sym < 4) ? V4[(sym + rot) & 3] : H4[(sym - 4 + rot) & 3];
+            }
+            const double a = std::fabs(signedArea(m.nodeCoords, v[0], v[1], v[2]));
+            weight[e][t] = a;
+            total += a;
+        }
+        if (total <= 0.)
+            throw OxleyException("simplexWeights: an element has no area.");
+        for (int t = 0; t < pat->numTriangles; ++t)
+            weight[e][t] /= total;
+    }
+}
+
 /// how an exported mesh says which forest it came from
 std::string exportTag(const OxleyDomain& dom)
 {
@@ -412,6 +474,8 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
                 elems[(size_t) e * V + zToFinley[c]] =
                         (index_t) m.elementNodes[(size_t) e * V + c];
             out.elementTag[e] = (int) m.elementTags[e];
+            out.elementId.push_back(
+                    (index_t)((m.globalElementOffset + e) * MAX_SIMPLICES));
         }
         faces.resize((size_t) m.numFaces * FV);
         out.faceTag.resize(m.numFaces);
@@ -459,6 +523,13 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
                 }
                 emitTriangle(elems, out.elementTag, m.nodeCoords,
                              v[0], v[1], v[2], (int) m.elementTags[e]);
+                // an id that says which octant this triangle came from, so a
+                // transfer can find its way back without a stored map. Sparse -
+                // an octant reserves MAX_SIMPLICES ids and uses 2 to 6 of them -
+                // which finley does not mind: element ids are only stored and
+                // handed back, never used to size anything.
+                out.elementId.push_back(
+                        (index_t)((m.globalElementOffset + e) * MAX_SIMPLICES + t));
             }
         }
         // boundary edges are unchanged by the split: each is an edge of exactly
@@ -490,6 +561,7 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
                 if (gidOf[en[c]] < gidOf[en[apex]])
                     apex = c;
 
+            int tet = 0;                // numbers this octant's tets, for its ids
             for (int f = 0; f < 6; ++f) {
                 if (cornerOnFace(apex, f))
                     continue;                    // near face, the cone covers it
@@ -508,6 +580,9 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
                     elems.push_back((index_t) c);
                     elems.push_back((index_t) d);
                     out.elementTag.push_back((int) m.elementTags[e]);
+                    out.elementId.push_back((index_t)(
+                            (m.globalElementOffset + e) * MAX_SIMPLICES
+                            + (long) tet++));
                 }
             }
         }
@@ -565,7 +640,8 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
                       mpiInfo->comm);
     }
 #endif
-    index_t faceIdOffset = globalNumElements;
+    // clear of the element ids, which now reserve MAX_SIMPLICES per octant
+    index_t faceIdOffset = (index_t) globalNumElements * MAX_SIMPLICES;
 #ifdef ESYS_MPI
     if (mpiInfo->size > 1) {
         index_t local = (index_t) numFaces;
@@ -1099,6 +1175,125 @@ std::vector<SlotRecord> lnodesDegree2Slots(const OxleyDomain& dom)
     long numLocalNodes = 0;
     collectDegree2Slots(dom, slots, numLocalNodes);
     return slots;
+}
+
+
+escript::Data toFinleyReducedData(const escript::Data& source,
+                                  escript::Domain_ptr target)
+{
+    if (source.getFunctionSpace().getTypeCode() != ReducedElements)
+        throw OxleyException("toFinleyReducedData: the data must live on "
+                "ReducedFunction.");
+    const OxleyDomain* dom = dynamic_cast<const OxleyDomain*>(
+            source.getFunctionSpace().getDomain().get());
+    if (dom == NULL)
+        throw OxleyException("toFinleyReducedData: the source must live on an "
+                "oxley domain.");
+    if (target.get() == NULL)
+        throw OxleyException("toFinleyReducedData: no target domain given.");
+    if (source.isComplex())
+        throw OxleyException("toFinleyReducedData: complex data is not "
+                "supported yet.");
+    checkSameForest(*dom, *target, "toFinleyReducedData");
+
+    const MeshAccess m = viewMatchingExport(*dom);          // collective
+    const int numComp = source.getDataPointSize();
+    std::vector<int> count;
+    std::vector<std::vector<double> > weight;
+    simplexWeights(m, count, weight);
+
+    // one octant value, repeated onto each simplex it was split into
+    std::vector<long> haveId;
+    std::vector<double> haveVal;
+    for (long e = 0; e < m.numElements; ++e) {
+        const double* in = source.getSampleDataRO(e, (double) 0);
+        for (int t = 0; t < count[e]; ++t) {
+            haveId.push_back((m.globalElementOffset + e) * MAX_SIMPLICES + t);
+            for (int c = 0; c < numComp; ++c)
+                haveVal.push_back(in[c]);
+        }
+    }
+
+    escript::Data result(0., source.getDataPointShape(),
+                         escript::reducedFunction(*target), true);
+    result.requireWrite();
+    const escript::FunctionSpace targetFS = escript::reducedFunction(*target);
+    const long n = (long) result.getNumSamples();
+    const dim_t* ids = target->borrowSampleReferenceIDs(targetFS.getTypeCode());
+    std::vector<long> wantId(n);
+    for (long j = 0; j < n; ++j)
+        wantId[j] = (long) ids[j];
+
+    std::vector<double> wantVal;
+    exchangeByGlobalId(dom->getMPI(), numComp, haveId, haveVal, wantId, wantVal);
+
+    for (long j = 0; j < n; ++j) {
+        double* out = result.getSampleDataRW(j, (double) 0);
+        for (int c = 0; c < numComp; ++c)
+            out[c] = wantVal[(size_t) j*numComp + c];
+    }
+    return result;
+}
+
+escript::Data fromFinleyReducedData(const escript::Data& source,
+                                    escript::Domain_ptr target)
+{
+    if (source.getFunctionSpace().getTypeCode() != ReducedElements)
+        throw OxleyException("fromFinleyReducedData: the data must live on "
+                "ReducedFunction.");
+    const OxleyDomain* dom = dynamic_cast<const OxleyDomain*>(target.get());
+    if (dom == NULL)
+        throw OxleyException("fromFinleyReducedData: the target must be an "
+                "oxley domain.");
+    if (source.isComplex())
+        throw OxleyException("fromFinleyReducedData: complex data is not "
+                "supported yet.");
+    checkSameForest(*dom, *(source.getFunctionSpace().getDomain()),
+                    "fromFinleyReducedData");
+
+    const MeshAccess m = viewMatchingExport(*dom);          // collective
+    const int numComp = source.getDataPointSize();
+    std::vector<int> count;
+    std::vector<std::vector<double> > weight;
+    simplexWeights(m, count, weight);
+
+    const escript::FunctionSpace sourceFS = source.getFunctionSpace();
+    const long ns = (long) source.getNumSamples();
+    const dim_t* ids = sourceFS.getDomain()->borrowSampleReferenceIDs(
+            sourceFS.getTypeCode());
+    std::vector<long> haveId(ns);
+    std::vector<double> haveVal((size_t) ns * numComp);
+    for (long j = 0; j < ns; ++j) {
+        haveId[j] = (long) ids[j];
+        const double* in = source.getSampleDataRO(j, (double) 0);
+        for (int c = 0; c < numComp; ++c)
+            haveVal[(size_t) j*numComp + c] = in[c];
+    }
+
+    // ask for every simplex of every octant this rank owns
+    std::vector<long> wantId;
+    for (long e = 0; e < m.numElements; ++e)
+        for (int t = 0; t < count[e]; ++t)
+            wantId.push_back((m.globalElementOffset + e) * MAX_SIMPLICES + t);
+
+    std::vector<double> wantVal;
+    exchangeByGlobalId(dom->getMPI(), numComp, haveId, haveVal, wantId, wantVal);
+
+    // and average them by the area each covers, so a field that is constant
+    // over the octant comes back unchanged whatever the split
+    escript::Data result(0., source.getDataPointShape(),
+                         escript::reducedFunction(*target), true);
+    result.requireWrite();
+    size_t pos = 0;
+    for (long e = 0; e < m.numElements; ++e) {
+        double* out = result.getSampleDataRW(e, (double) 0);
+        for (int c = 0; c < numComp; ++c)
+            out[c] = 0.;
+        for (int t = 0; t < count[e]; ++t, ++pos)
+            for (int c = 0; c < numComp; ++c)
+                out[c] += weight[e][t] * wantVal[pos*numComp + c];
+    }
+    return result;
 }
 
 } // namespace oxley

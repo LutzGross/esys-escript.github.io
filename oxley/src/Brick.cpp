@@ -4826,6 +4826,7 @@ MeshAccess Brick::getMeshAccess(bool materializeHanging) const
     m.numOwnedNodes = nodes->owned_count;
     m.numElements = nodes->num_local_elements;
     m.globalNodeOffset = (long) nodes->global_offset;
+    m.globalElementOffset = (long) p8est->global_first_quadrant[m_mpiInfo->rank];
     m.numRealNodes = m.numNodes;
     m.mastersPerConstrainedNode = 4;                   // a face centre
 

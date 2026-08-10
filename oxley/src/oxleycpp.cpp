@@ -355,6 +355,23 @@ BOOST_PYTHON_MODULE(oxleycpp)
         ":param target: the oxley domain the export was built from\n"
         ":return: the same field on ContinuousFunction of the oxley domain");
 
+    def("toFinleyReducedData", oxley::toFinleyReducedData, (arg("source"), arg("target")),
+        "Copies a ReducedFunction - one value per element - onto the finley export.\n\n"
+        "An octant becomes 2 to 6 triangles and the value is repeated onto each.\n\n"
+        ":param source: a Data on ReducedFunction of an oxley domain\n"
+        ":param target: the domain toFinley() built from that forest\n"
+        ":return: the same field on ReducedFunction of the finley domain");
+
+    def("fromFinleyReducedData", oxley::fromFinleyReducedData, (arg("source"), arg("target")),
+        "Brings a ReducedFunction back from the finley export onto the forest.\n\n"
+        "An octant's value is the area-weighted mean of its simplices, so a field\n"
+        "constant over the octant returns unchanged however it was split. This is\n"
+        "the transfer an adaptive loop needs: the indicator is computed on the\n"
+        "finley mesh and comes home per octant.\n\n"
+        ":param source: a Data on ReducedFunction of the finley export\n"
+        ":param target: the oxley domain the export was built from\n"
+        ":return: the same field on ReducedFunction of the oxley domain");
+
     def("loadMesh", oxley::loadMesh, (arg("filename"), arg("comm")=object()),
         "Reads a mesh written by saveMesh and returns it as a NEW domain.\n\n"
         "A function rather than a method on the domain: loading into an\n"

@@ -2992,6 +2992,7 @@ MeshAccess Rectangle::getMeshAccess(bool materializeHanging) const
     m.numOwnedNodes = nodes->owned_count;
     m.numElements = nodes->num_local_elements;
     m.globalNodeOffset = (long) nodes->global_offset;
+    m.globalElementOffset = (long) p4est->global_first_quadrant[m_mpiInfo->rank];
     m.numRealNodes = m.numNodes;
     m.mastersPerConstrainedNode = 2;                   // an edge midpoint
 
