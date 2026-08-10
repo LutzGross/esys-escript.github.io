@@ -92,6 +92,11 @@ struct MeshAccess
     std::vector<long> faceTags;
     /// per-face index of the element the face belongs to, size numFaces
     std::vector<long> faceElements;
+    /// which face of that element this is, in p4est's own face order
+    /// (-x,+x,-y,+y[,-z,+z]), size numFaces. Together with the element's global
+    /// index it names a boundary face the same way on every rank, which is what
+    /// lets the export give its face elements derivable ids.
+    std::vector<long> faceDirections;
 
     // ------------------------------------------------------------------------
     // Materialised hanging positions (getMeshAccess(materializeHanging=true)).

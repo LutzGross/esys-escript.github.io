@@ -4958,6 +4958,7 @@ MeshAccess Brick::getMeshAccess(bool materializeHanging) const
                                 m.elementNodes[(size_t) le * V + faceCorner[f][c]]);
                     m.faceTags.push_back(faceTag[f]);
                     m.faceElements.push_back(le);
+                    m.faceDirections.push_back(f);
                 }
             }
         }

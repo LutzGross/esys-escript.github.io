@@ -124,6 +124,37 @@ escript::Data toFinleyReducedData(const escript::Data& source,
 escript::Data fromFinleyReducedData(const escript::Data& source,
                                     escript::Domain_ptr target);
 
+/**
+   \brief
+   Copies a FunctionOnBoundary (or its reduced form) onto the finley export.
+
+   The 2D split never subdivides a boundary edge - a hanging node is the
+   midpoint of a face that HAS a finer neighbour, so it is interior - which
+   makes the boundary faces correspond one to one. Measured: the two meshes put
+   the same physical quadrature points on the boundary, in both spaces.
+
+   They do not agree on the ORDER, though, so this is a permutation rather than
+   a copy. Each side sorts a face's points by coordinate, which gives both the
+   same order without either having to send coordinates.
+
+   \param source a Data on FunctionOnBoundary of an oxley domain
+   \param target the finley domain toFinley() built from that forest
+*/
+escript::Data toFinleyBoundaryData(const escript::Data& source,
+                                   escript::Domain_ptr target);
+
+/**
+   \brief
+   Brings a FunctionOnBoundary (or its reduced form) back onto the forest.
+
+   The inverse of toFinleyBoundaryData; see there for why it is a permutation.
+
+   \param source a Data on FunctionOnBoundary of the export
+   \param target the oxley domain the export was built from
+*/
+escript::Data fromFinleyBoundaryData(const escript::Data& source,
+                                     escript::Domain_ptr target);
+
 escript::Domain_ptr toFinley(const OxleyDomain& dom, int order = -1,
                              int reducedOrder = -1, bool optimize = false,
                              bool simplices = true);

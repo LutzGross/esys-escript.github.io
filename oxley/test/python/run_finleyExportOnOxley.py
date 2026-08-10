@@ -60,7 +60,8 @@ from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
 from esys.oxley import (Rectangle, toFinleyData, fromFinleyData,
-                       toFinleyReducedData, fromFinleyReducedData)
+                       toFinleyReducedData, fromFinleyReducedData,
+                       toFinleyBoundaryData, fromFinleyBoundaryData)
 
 # REQUIRED: registers the concrete finley domain type with boost::python, or
 # toFinley() hands back a base Domain with no getDescription
@@ -504,6 +505,92 @@ class Test_ReducedFunctionTransfer2D(unittest.TestCase):
         other = Rectangle(n0=3, n1=3, l0=3., l1=3., refine_level=1).toFinley()
         self.assertRaises(RuntimeError, toFinleyReducedData,
                           Data(1., ReducedFunction(dom)), other)
+
+
+
+class Test_BoundaryTransfer2D(unittest.TestCase):
+    """
+    Carrying FunctionOnBoundary, and its reduced form, across.
+
+    The boundary faces correspond one to one: the 2D split never subdivides a
+    boundary edge, because a hanging node is the midpoint of a face that HAS a
+    finer neighbour and is therefore interior. Measured: both meshes put the
+    same physical quadrature points on the boundary.
+
+    They do not agree on the ORDER though - neither of the faces nor of the
+    points within a face - so this is a permutation. Faces are matched by an id
+    that says which face of which octant they are; points within a face are
+    matched by sorting each face's points by coordinate, so neither side has to
+    send coordinates.
+
+    A field that VARIES along the boundary is what makes a wrong permutation
+    visible: a constant would survive any mismatch, and so would the integral.
+    """
+    CASES = [("conforming", 2), ("one_seam", [[1], [2]]),
+             ("mixed_3x3", [[3, 1, 2], [1, 2, 1], [2, 1, 3]])]
+    SPACES = [("FunctionOnBoundary", FunctionOnBoundary),
+              ("ReducedFunctionOnBoundary", ReducedFunctionOnBoundary)]
+
+    def domains(self, levels):
+        n0, n1 = blocks(levels)
+        dom = Rectangle(n0=n0, n1=n1, l0=float(n0), l1=float(n1),
+                        refine_level=levels)
+        return dom, dom.toFinley()
+
+    def test_varying_field_lands_on_the_right_faces(self):
+        for name, levels in self.CASES:
+            dom, fin = self.domains(levels)
+            for label, fs in self.SPACES:
+                x = fs(dom).getX()
+                u = x[0] * x[0] + 3. * x[1]
+                xf = fs(fin).getX()
+                err = Lsup(toFinleyBoundaryData(u, fin)
+                           - (xf[0] * xf[0] + 3. * xf[1]))
+                self.assertLess(err, 1e-12,
+                                "%s/%s: values landed on the wrong faces "
+                                "(err %g)" % (name, label, err))
+
+    def test_round_trip_is_exact(self):
+        for name, levels in self.CASES:
+            dom, fin = self.domains(levels)
+            for label, fs in self.SPACES:
+                x = fs(dom).getX()
+                u = x[0] * x[0] + 3. * x[1]
+                back = fromFinleyBoundaryData(toFinleyBoundaryData(u, fin), dom)
+                self.assertEqual(Lsup(back - u), 0.,
+                                 "%s/%s: the round trip changed the field"
+                                 % (name, label))
+
+    def test_surface_integral_is_preserved(self):
+        for name, levels in self.CASES:
+            dom, fin = self.domains(levels)
+            for label, fs in self.SPACES:
+                x = fs(dom).getX()
+                u = x[0] * x[0] + 3. * x[1]
+                a, b = integrate(u), integrate(toFinleyBoundaryData(u, fin))
+                self.assertAlmostEqual(a, b, 10, "%s/%s: surface integral "
+                                       "changed (%.12g -> %.12g)"
+                                       % (name, label, a, b))
+
+    def test_the_normal_survives(self):
+        """
+        the sharpest check available: a wrong face or a flipped edge shows up
+        immediately, since the normal differs between neighbouring faces
+        """
+        dom, fin = self.domains(self.CASES[2][1])
+        moved = toFinleyBoundaryData(FunctionOnBoundary(dom).getNormal(), fin)
+        self.assertEqual(Lsup(moved - FunctionOnBoundary(fin).getNormal()), 0.)
+
+    def test_wrong_function_space_is_refused(self):
+        dom, fin = self.domains(2)
+        self.assertRaises(RuntimeError, toFinleyBoundaryData,
+                          Data(1., ContinuousFunction(dom)), fin)
+
+    def test_unrelated_domain_is_refused(self):
+        dom, _ = self.domains(2)
+        other = Rectangle(n0=3, n1=3, l0=3., l1=3., refine_level=1).toFinley()
+        self.assertRaises(RuntimeError, toFinleyBoundaryData,
+                          Data(1., FunctionOnBoundary(dom)), other)
 
 
 if __name__ == '__main__':

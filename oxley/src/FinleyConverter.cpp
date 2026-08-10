@@ -389,6 +389,21 @@ void simplexWeights(const MeshAccess& m, std::vector<int>& count,
     }
 }
 
+/// Where the face ids start: above every element id, which reserve
+/// MAX_SIMPLICES per octant. Derived from the octant count so that both the
+/// converter and a later transfer arrive at the same number. Collective.
+long faceIdBase(const MeshAccess& m, const escript::JMPI& mpi)
+{
+    long octants = m.numElements;
+#ifdef ESYS_MPI
+    if (mpi->size > 1) {
+        long local = octants;
+        MPI_Allreduce(&local, &octants, 1, MPI_LONG, MPI_SUM, mpi->comm);
+    }
+#endif
+    return octants * MAX_SIMPLICES;
+}
+
 /// how an exported mesh says which forest it came from
 std::string exportTag(const OxleyDomain& dom)
 {
@@ -640,21 +655,29 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
                       mpiInfo->comm);
     }
 #endif
-    // clear of the element ids, which now reserve MAX_SIMPLICES per octant
-    index_t faceIdOffset = (index_t) globalNumElements * MAX_SIMPLICES;
-#ifdef ESYS_MPI
-    if (mpiInfo->size > 1) {
-        index_t local = (index_t) numFaces;
-        index_t scan = 0;
-        MPI_Exscan(&local, &scan, 1, MPI_DIM_T, MPI_SUM, mpiInfo->comm);
-        if (mpiInfo->rank == 0)
-            scan = 0;
-        faceIdOffset += scan;
-    }
-#endif
+    // Clear of the element ids, which reserve MAX_SIMPLICES per OCTANT. Based
+    // on the octant count rather than the simplex count so that a transfer can
+    // work the same offset out from the mesh view alone - see faceIdBase().
+    // No per-rank scan any more: the ids below are derived from the global
+    // element index, so they are already unique across ranks. Adding a scan -
+    // which is what consecutive numbering needed - shifted every rank but the
+    // first, and since the scan is zero in serial the mismatch only showed
+    // under MPI.
+    const index_t faceIdOffset = (index_t) faceIdBase(m, mpiInfo);
+    // Ids that say which boundary face of which octant this came from, the
+    // same trick the elements use: (global element, face direction) names a
+    // boundary face identically on every rank, so a transfer needs no stored
+    // map and survives finley redistributing the mesh. In 3D a boundary quad
+    // becomes two triangles, hence the trailing slot.
+    const int perFace = (numFaces == 2 * m.numFaces) ? 2 : 1;
     out.faceId.resize(numFaces);
-    for (long f = 0; f < numFaces; ++f)
-        out.faceId[f] = faceIdOffset + (index_t) f;
+    for (long f = 0, k = 0; f < m.numFaces; ++f) {
+        const long elem = m.faceElements.empty() ? 0 : m.faceElements[f];
+        const long dir = m.faceDirections.empty() ? 0 : m.faceDirections[f];
+        const long key = ((m.globalElementOffset + elem) * (2 * m.numDim) + dir) * 2;
+        for (int t = 0; t < perFace; ++t, ++k)
+            out.faceId[k] = faceIdOffset + (index_t)(key + t);
+    }
 
     // Tag NAMES. The values travel with the elements and faces, but a name is
     // domain state, so it has to be copied or it is lost - and a user's own
@@ -1294,6 +1317,165 @@ escript::Data fromFinleyReducedData(const escript::Data& source,
                 out[c] += weight[e][t] * wantVal[pos*numComp + c];
     }
     return result;
+}
+
+
+namespace {
+
+/// the id the export gives the boundary faces of one oxley face
+inline long faceKeyOf(const MeshAccess& m, long f, long base)
+{
+    const long elem = m.faceElements.empty() ? 0 : m.faceElements[f];
+    const long dir = m.faceDirections.empty() ? 0 : m.faceDirections[f];
+    return base + ((m.globalElementOffset + elem) * (2 * m.numDim) + dir) * 2;
+}
+
+/**
+   The order in which a face's quadrature points should be read.
+
+   The two meshes put the SAME physical points on a boundary face - measured,
+   for both FunctionOnBoundary and its reduced form - but not necessarily in
+   the same order, because the two describe the edge with their own winding.
+   Sorting each face's points by coordinate gives both sides the same order
+   without either having to send coordinates: the values can then be matched
+   position by position.
+*/
+void pointOrder(const escript::Data& x, long sample, int numPoints, int dim,
+                std::vector<int>& order)
+{
+    const double* p = x.getSampleDataRO(sample, (double) 0);
+    order.resize(numPoints);
+    for (int i = 0; i < numPoints; ++i)
+        order[i] = i;
+    std::sort(order.begin(), order.end(), [&](int a, int b) {
+        for (int d = 0; d < dim; ++d) {
+            const double u = p[a*dim + d], v = p[b*dim + d];
+            if (std::fabs(u - v) > 1e-12)
+                return u < v;
+        }
+        return a < b;
+    });
+}
+
+/// shared by both directions: move boundary values keyed by (face, point)
+escript::Data transferBoundary(const escript::Data& source,
+                               escript::Domain_ptr target, bool toFinley,
+                               const char* what)
+{
+    const int fsCode = source.getFunctionSpace().getTypeCode();
+    if (fsCode != FaceElements && fsCode != ReducedFaceElements)
+        throw OxleyException(std::string(what) + ": the data must live on "
+                "FunctionOnBoundary or ReducedFunctionOnBoundary.");
+    if (source.isComplex())
+        throw OxleyException(std::string(what) + ": complex data is not "
+                "supported yet.");
+
+    const OxleyDomain* dom = toFinley
+            ? dynamic_cast<const OxleyDomain*>(
+                    source.getFunctionSpace().getDomain().get())
+            : dynamic_cast<const OxleyDomain*>(target.get());
+    if (dom == NULL)
+        throw OxleyException(std::string(what) + ": one side must be an oxley "
+                "domain.");
+    const escript::AbstractDomain& other = toFinley
+            ? *target : *(source.getFunctionSpace().getDomain());
+    checkSameForest(*dom, other, what);
+
+    const MeshAccess m = viewMatchingExport(*dom);          // collective
+    const long base = faceIdBase(m, dom->getMPI());         // collective
+    const int dim = m.numDim;
+    const int numComp = source.getDataPointSize();
+
+    // the same space on the other side
+    escript::FunctionSpace targetFS = (fsCode == FaceElements)
+            ? escript::functionOnBoundary(toFinley ? *target : *target)
+            : escript::reducedFunctionOnBoundary(toFinley ? *target : *target);
+    escript::Data result(0., source.getDataPointShape(), targetFS, true);
+    result.requireWrite();
+
+    const int numPoints = source.getNumDataPointsPerSample();
+    if (result.getNumDataPointsPerSample() != numPoints)
+        throw OxleyException(std::string(what) + ": the two meshes disagree "
+                "about the number of quadrature points on a boundary face.");
+
+    // keys: one per face element on each side, sorted point order within it
+    escript::Data sx = source.getFunctionSpace().getX();
+    escript::Data rx = targetFS.getX();
+
+    std::vector<long> haveId, wantId;
+    std::vector<double> haveVal;
+    std::vector<int> order;
+
+    const long ns = (long) source.getNumSamples();
+    haveId.reserve(ns);
+    haveVal.reserve((size_t) ns * numPoints * numComp);
+    if (toFinley) {
+        // supplying from the forest: one key per oxley boundary face
+        for (long f = 0; f < ns; ++f) {
+            haveId.push_back(faceKeyOf(m, f, base));
+            pointOrder(sx, f, numPoints, dim, order);
+            const double* in = source.getSampleDataRO(f, (double) 0);
+            for (int i = 0; i < numPoints; ++i)
+                for (int c = 0; c < numComp; ++c)
+                    haveVal.push_back(in[order[i]*numComp + c]);
+        }
+    } else {
+        // supplying from the export: the face element ids say which face
+        const dim_t* ids = source.getFunctionSpace().getDomain()
+                ->borrowSampleReferenceIDs(fsCode);
+        for (long f = 0; f < ns; ++f) {
+            haveId.push_back((long) ids[f]);
+            pointOrder(sx, f, numPoints, dim, order);
+            const double* in = source.getSampleDataRO(f, (double) 0);
+            for (int i = 0; i < numPoints; ++i)
+                for (int c = 0; c < numComp; ++c)
+                    haveVal.push_back(in[order[i]*numComp + c]);
+        }
+    }
+
+    const long nr = (long) result.getNumSamples();
+    wantId.reserve(nr);
+    if (toFinley) {
+        const dim_t* ids = target->borrowSampleReferenceIDs(
+                targetFS.getTypeCode());
+        for (long f = 0; f < nr; ++f)
+            wantId.push_back((long) ids[f]);
+    } else {
+        for (long f = 0; f < nr; ++f)
+            wantId.push_back(faceKeyOf(m, f, base));
+    }
+
+    std::vector<double> wantVal;
+    exchangeByGlobalId(dom->getMPI(), numPoints * numComp,
+                       haveId, haveVal, wantId, wantVal);
+
+    for (long f = 0; f < nr; ++f) {
+        pointOrder(rx, f, numPoints, dim, order);
+        double* out = result.getSampleDataRW(f, (double) 0);
+        for (int i = 0; i < numPoints; ++i)
+            for (int c = 0; c < numComp; ++c)
+                out[order[i]*numComp + c] =
+                        wantVal[((size_t) f*numPoints + i)*numComp + c];
+    }
+    return result;
+}
+
+} // anonymous namespace
+
+escript::Data toFinleyBoundaryData(const escript::Data& source,
+                                   escript::Domain_ptr target)
+{
+    if (target.get() == NULL)
+        throw OxleyException("toFinleyBoundaryData: no target domain given.");
+    return transferBoundary(source, target, true, "toFinleyBoundaryData");
+}
+
+escript::Data fromFinleyBoundaryData(const escript::Data& source,
+                                     escript::Domain_ptr target)
+{
+    if (target.get() == NULL)
+        throw OxleyException("fromFinleyBoundaryData: no target domain given.");
+    return transferBoundary(source, target, false, "fromFinleyBoundaryData");
 }
 
 } // namespace oxley

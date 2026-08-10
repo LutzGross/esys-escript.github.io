@@ -372,6 +372,19 @@ BOOST_PYTHON_MODULE(oxleycpp)
         ":param target: the oxley domain the export was built from\n"
         ":return: the same field on ReducedFunction of the oxley domain");
 
+    def("toFinleyBoundaryData", oxley::toFinleyBoundaryData, (arg("source"), arg("target")),
+        "Copies a FunctionOnBoundary (or its reduced form) onto the finley export.\n\n"
+        "The boundary faces correspond one to one - the 2D split never subdivides a\n"
+        "boundary edge - but the two meshes order a face's quadrature points\n"
+        "differently, so this is a permutation rather than a copy.\n\n"
+        ":param source: a Data on FunctionOnBoundary of an oxley domain\n"
+        ":param target: the domain toFinley() built from that forest");
+
+    def("fromFinleyBoundaryData", oxley::fromFinleyBoundaryData, (arg("source"), arg("target")),
+        "Brings a FunctionOnBoundary (or its reduced form) back onto the forest.\n\n"
+        ":param source: a Data on FunctionOnBoundary of the finley export\n"
+        ":param target: the oxley domain the export was built from");
+
     def("loadMesh", oxley::loadMesh, (arg("filename"), arg("comm")=object()),
         "Reads a mesh written by saveMesh and returns it as a NEW domain.\n\n"
         "A function rather than a method on the domain: loading into an\n"
