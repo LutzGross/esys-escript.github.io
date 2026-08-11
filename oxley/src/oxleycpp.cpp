@@ -385,6 +385,23 @@ BOOST_PYTHON_MODULE(oxleycpp)
         ":param source: a Data on FunctionOnBoundary of the finley export\n"
         ":param target: the oxley domain the export was built from");
 
+    def("toFinleyFunctionData", oxley::toFinleyFunctionData, (arg("source"), arg("target")),
+        "Copies a Function - values at the quadrature points - onto the export.\n\n"
+        "The two meshes use different rules (2x2 Gauss on an octant, the three edge\n"
+        "midpoints on a triangle), so this evaluates rather than moves: the four\n"
+        "values of an octant fix a bilinear function, which is evaluated at the\n"
+        "triangles' points. Exact for a bilinear field, an approximation otherwise.\n\n"
+        ":param source: a Data on Function of an oxley domain\n"
+        ":param target: the domain toFinley() built from that forest");
+
+    def("fromFinleyFunctionData", oxley::fromFinleyFunctionData, (arg("source"), arg("target")),
+        "Brings a Function back from the export onto the forest.\n\n"
+        "Each triangle's three values fix a linear function and the octant's Gauss\n"
+        "points are read off whichever triangle contains them. Exact for a field\n"
+        "linear on the split, an approximation otherwise.\n\n"
+        ":param source: a Data on Function of the finley export\n"
+        ":param target: the oxley domain the export was built from");
+
     def("loadMesh", oxley::loadMesh, (arg("filename"), arg("comm")=object()),
         "Reads a mesh written by saveMesh and returns it as a NEW domain.\n\n"
         "A function rather than a method on the domain: loading into an\n"

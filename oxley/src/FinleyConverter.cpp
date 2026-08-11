@@ -20,6 +20,7 @@
 #include <finley/FinleyDomain.h>
 
 #include <algorithm>
+#include <array>
 #include <limits>
 #include <array>
 #include <cmath>
@@ -402,6 +403,76 @@ long faceIdBase(const MeshAccess& m, const escript::JMPI& mpi)
     }
 #endif
     return octants * MAX_SIMPLICES;
+}
+
+
+/// The triangles of one element, as vertex coordinates. Same split the export
+/// emitted, recomputed from the mesh view rather than stored.
+void splitOfElement(const MeshAccess& m, long e,
+                    std::vector<std::array<double,6> >& tris)
+{
+    const int V = m.nodesPerElement;
+    const long* en = &m.elementNodes[(size_t) e * V];
+    long V4[4], H4[4];
+    int mask = 0;
+    for (int side = 0; side < 4; ++side) {
+        V4[side] = en[rectPolygon[side]];
+        H4[side] = m.elementFaceHangingNode.empty() ? -1
+                 : m.elementFaceHangingNode[(size_t) e * 4 + sideToFace[side]];
+        if (H4[side] >= 0)
+            mask |= 1 << side;
+    }
+    int rot = 0;
+    const SplitPattern* pat = matchPattern(mask, rot);
+    tris.clear();
+    for (int t = 0; t < pat->numTriangles; ++t) {
+        std::array<double,6> v;
+        for (int k = 0; k < 3; ++k) {
+            const int sym = pat->tri[t][k];
+            const long n = (sym < 4) ? V4[(sym + rot) & 3] : H4[(sym - 4 + rot) & 3];
+            v[k*2]   = m.nodeCoords[(size_t) n * 2];
+            v[k*2+1] = m.nodeCoords[(size_t) n * 2 + 1];
+        }
+        tris.push_back(v);
+    }
+}
+
+/// the three points finley puts on a Tri3: its edge midpoints. Measured, on
+/// conforming and graded meshes alike. Returned sorted by coordinate, which is
+/// the order both sides agree on without exchanging anything.
+void triangleQuadPoints(const std::array<double,6>& v,
+                        std::vector<std::array<double,2> >& p)
+{
+    p.resize(3);
+    for (int k = 0; k < 3; ++k) {
+        const int a = k, b = (k + 1) % 3;
+        p[k][0] = 0.5 * (v[a*2]   + v[b*2]);
+        p[k][1] = 0.5 * (v[a*2+1] + v[b*2+1]);
+    }
+    std::sort(p.begin(), p.end(), [](const std::array<double,2>& a,
+                                     const std::array<double,2>& b) {
+        if (std::fabs(a[0] - b[0]) > 1e-12) return a[0] < b[0];
+        return a[1] < b[1];
+    });
+}
+
+/// barycentric coordinates of a point in a triangle
+inline void barycentric(const std::array<double,6>& v, double x, double y,
+                        double b[3])
+{
+    const double d = (v[2]-v[0])*(v[5]-v[1]) - (v[4]-v[0])*(v[3]-v[1]);
+    b[1] = ((x-v[0])*(v[5]-v[1]) - (y-v[1])*(v[4]-v[0])) / d;
+    b[2] = ((y-v[1])*(v[2]-v[0]) - (x-v[0])*(v[3]-v[1])) / d;
+    b[0] = 1. - b[1] - b[2];
+}
+
+/// 1D Lagrange weights through the two Gauss abscissae of the element's rule,
+/// so that evaluating at t reproduces any linear function of t exactly
+inline void gaussLagrange(double t, double& l0, double& l1)
+{
+    const double g = 0.5 - 0.5 / std::sqrt(3.);       // 0.2113248654
+    l0 = (1. - g - t) / (1. - 2. * g);
+    l1 = (t - g) / (1. - 2. * g);
 }
 
 /// how an exported mesh says which forest it came from
@@ -1476,6 +1547,222 @@ escript::Data fromFinleyBoundaryData(const escript::Data& source,
     if (target.get() == NULL)
         throw OxleyException("fromFinleyBoundaryData: no target domain given.");
     return transferBoundary(source, target, false, "fromFinleyBoundaryData");
+}
+
+
+escript::Data toFinleyFunctionData(const escript::Data& source,
+                                   escript::Domain_ptr target)
+{
+    if (source.getFunctionSpace().getTypeCode() != Elements)
+        throw OxleyException("toFinleyFunctionData: the data must live on "
+                "Function.");
+    const OxleyDomain* dom = dynamic_cast<const OxleyDomain*>(
+            source.getFunctionSpace().getDomain().get());
+    if (dom == NULL)
+        throw OxleyException("toFinleyFunctionData: the source must live on an "
+                "oxley domain.");
+    if (target.get() == NULL)
+        throw OxleyException("toFinleyFunctionData: no target domain given.");
+    if (source.isComplex())
+        throw OxleyException("toFinleyFunctionData: complex data is not "
+                "supported yet.");
+    checkSameForest(*dom, *target, "toFinleyFunctionData");
+
+    const MeshAccess m = viewMatchingExport(*dom);          // collective
+    const int numComp = source.getDataPointSize();
+    const int srcPts = source.getNumDataPointsPerSample();
+    if (srcPts != 4)
+        throw OxleyException("toFinleyFunctionData: expected the 2x2 Gauss "
+                "rule on the octants.");
+
+    // The four values of an octant determine one bilinear function - the
+    // Gauss abscissae are unisolvent for it - so evaluating that at the
+    // triangles' points is exact for anything bilinear, linear included.
+    std::vector<long> haveId;
+    std::vector<double> haveVal;
+    std::vector<std::array<double,6> > tris;
+    std::vector<std::array<double,2> > pts;
+    for (long e = 0; e < m.numElements; ++e) {
+        const double* in = source.getSampleDataRO(e, (double) 0);
+        // the octant's own frame, from its corners
+        const long* en = &m.elementNodes[(size_t) e * m.nodesPerElement];
+        const double x0 = m.nodeCoords[(size_t) en[0] * 2];
+        const double y0 = m.nodeCoords[(size_t) en[0] * 2 + 1];
+        const double h = m.nodeCoords[(size_t) en[3] * 2] - x0;
+
+        splitOfElement(m, e, tris);
+        for (size_t t = 0; t < tris.size(); ++t) {
+            triangleQuadPoints(tris[t], pts);
+            haveId.push_back((m.globalElementOffset + e) * MAX_SIMPLICES
+                             + (long) t);
+            for (int q = 0; q < 3; ++q) {
+                double lx0, lx1, ly0, ly1;
+                gaussLagrange((pts[q][0] - x0) / h, lx0, lx1);
+                gaussLagrange((pts[q][1] - y0) / h, ly0, ly1);
+                const double w[4] = { lx0*ly0, lx1*ly0, lx0*ly1, lx1*ly1 };
+                for (int c = 0; c < numComp; ++c) {
+                    double v = 0.;
+                    for (int k = 0; k < 4; ++k)
+                        v += w[k] * in[k*numComp + c];
+                    haveVal.push_back(v);
+                }
+            }
+        }
+    }
+
+    escript::Data result(0., source.getDataPointShape(),
+                         escript::function(*target), true);
+    result.requireWrite();
+    const escript::FunctionSpace targetFS = escript::function(*target);
+    if (result.getNumDataPointsPerSample() != 3)
+        throw OxleyException("toFinleyFunctionData: expected three points on a "
+                "Tri3.");
+    const long n = (long) result.getNumSamples();
+    const dim_t* ids = target->borrowSampleReferenceIDs(targetFS.getTypeCode());
+    std::vector<long> wantId(n);
+    for (long j = 0; j < n; ++j)
+        wantId[j] = (long) ids[j];
+
+    std::vector<double> wantVal;
+    exchangeByGlobalId(dom->getMPI(), 3 * numComp, haveId, haveVal,
+                       wantId, wantVal);
+
+    escript::Data rx = targetFS.getX();
+    std::vector<int> order;
+    for (long j = 0; j < n; ++j) {
+        pointOrder(rx, j, 3, 2, order);
+        double* out = result.getSampleDataRW(j, (double) 0);
+        for (int q = 0; q < 3; ++q)
+            for (int c = 0; c < numComp; ++c)
+                out[order[q]*numComp + c] =
+                        wantVal[((size_t) j*3 + q)*numComp + c];
+    }
+    return result;
+}
+
+escript::Data fromFinleyFunctionData(const escript::Data& source,
+                                     escript::Domain_ptr target)
+{
+    if (source.getFunctionSpace().getTypeCode() != Elements)
+        throw OxleyException("fromFinleyFunctionData: the data must live on "
+                "Function.");
+    const OxleyDomain* dom = dynamic_cast<const OxleyDomain*>(target.get());
+    if (dom == NULL)
+        throw OxleyException("fromFinleyFunctionData: the target must be an "
+                "oxley domain.");
+    if (source.isComplex())
+        throw OxleyException("fromFinleyFunctionData: complex data is not "
+                "supported yet.");
+    checkSameForest(*dom, *(source.getFunctionSpace().getDomain()),
+                    "fromFinleyFunctionData");
+
+    const MeshAccess m = viewMatchingExport(*dom);          // collective
+    const int numComp = source.getDataPointSize();
+    if (source.getNumDataPointsPerSample() != 3)
+        throw OxleyException("fromFinleyFunctionData: expected three points on "
+                "a Tri3.");
+
+    // each triangle supplies its three values, in its own sorted point order
+    const escript::FunctionSpace sourceFS = source.getFunctionSpace();
+    const long ns = (long) source.getNumSamples();
+    const dim_t* ids = sourceFS.getDomain()->borrowSampleReferenceIDs(
+            sourceFS.getTypeCode());
+    escript::Data sx = sourceFS.getX();
+    std::vector<long> haveId(ns);
+    std::vector<double> haveVal((size_t) ns * 3 * numComp);
+    std::vector<int> order;
+    for (long j = 0; j < ns; ++j) {
+        haveId[j] = (long) ids[j];
+        pointOrder(sx, j, 3, 2, order);
+        const double* in = source.getSampleDataRO(j, (double) 0);
+        for (int q = 0; q < 3; ++q)
+            for (int c = 0; c < numComp; ++c)
+                haveVal[((size_t) j*3 + q)*numComp + c] =
+                        in[order[q]*numComp + c];
+    }
+
+    std::vector<std::array<double,6> > tris;
+    std::vector<std::array<double,2> > pts;
+    std::vector<long> wantId;
+    std::vector<int> perElement(m.numElements, 0);
+    for (long e = 0; e < m.numElements; ++e) {
+        splitOfElement(m, e, tris);
+        perElement[e] = (int) tris.size();
+        for (size_t t = 0; t < tris.size(); ++t)
+            wantId.push_back((m.globalElementOffset + e) * MAX_SIMPLICES
+                             + (long) t);
+    }
+
+    std::vector<double> wantVal;
+    exchangeByGlobalId(dom->getMPI(), 3 * numComp, haveId, haveVal,
+                       wantId, wantVal);
+
+    // Rebuild the linear function on each triangle - three edge midpoints are
+    // unisolvent for it - and read the octant's own Gauss points off whichever
+    // triangle contains them. Exact for a field that is linear on the split.
+    escript::Data result(0., source.getDataPointShape(),
+                         escript::function(*target), true);
+    result.requireWrite();
+    const double g = 0.5 - 0.5 / std::sqrt(3.);
+    size_t pos = 0;
+    for (long e = 0; e < m.numElements; ++e) {
+        splitOfElement(m, e, tris);
+        const long* en = &m.elementNodes[(size_t) e * m.nodesPerElement];
+        const double x0 = m.nodeCoords[(size_t) en[0] * 2];
+        const double y0 = m.nodeCoords[(size_t) en[0] * 2 + 1];
+        const double h = m.nodeCoords[(size_t) en[3] * 2] - x0;
+
+        // vertex values of each triangle, from its midpoint values
+        std::vector<std::vector<double> > vertexVal(tris.size());
+        for (size_t t = 0; t < tris.size(); ++t, ++pos) {
+            triangleQuadPoints(tris[t], pts);
+            vertexVal[t].assign(3 * numComp, 0.);
+            for (int k = 0; k < 3; ++k) {
+                // which sorted midpoint is which edge
+                const int a = k, b = (k + 1) % 3;
+                const double mx = 0.5*(tris[t][a*2] + tris[t][b*2]);
+                const double my = 0.5*(tris[t][a*2+1] + tris[t][b*2+1]);
+                int which = 0;
+                for (int q = 0; q < 3; ++q)
+                    if (std::fabs(pts[q][0]-mx) < 1e-12
+                            && std::fabs(pts[q][1]-my) < 1e-12)
+                        which = q;
+                for (int c = 0; c < numComp; ++c)
+                    vertexVal[t][k*numComp + c] =
+                            wantVal[(pos*3 + which)*numComp + c];
+            }
+            // midpoint values m_ab, m_bc, m_ca -> vertex values
+            for (int c = 0; c < numComp; ++c) {
+                const double mab = vertexVal[t][0*numComp + c];
+                const double mbc = vertexVal[t][1*numComp + c];
+                const double mca = vertexVal[t][2*numComp + c];
+                vertexVal[t][0*numComp + c] = mab + mca - mbc;   // a
+                vertexVal[t][1*numComp + c] = mab + mbc - mca;   // b
+                vertexVal[t][2*numComp + c] = mbc + mca - mab;   // c
+            }
+        }
+
+        double* out = result.getSampleDataRW(e, (double) 0);
+        const double gx[4] = { g, 1.-g, g, 1.-g };
+        const double gy[4] = { g, g, 1.-g, 1.-g };
+        for (int q = 0; q < 4; ++q) {
+            const double px = x0 + gx[q]*h, py = y0 + gy[q]*h;
+            int best = 0;
+            double bestScore = -1e30;
+            double bc[3];
+            for (size_t t = 0; t < tris.size(); ++t) {
+                barycentric(tris[t], px, py, bc);
+                const double score = std::min(bc[0], std::min(bc[1], bc[2]));
+                if (score > bestScore) { bestScore = score; best = (int) t; }
+            }
+            barycentric(tris[best], px, py, bc);
+            for (int c = 0; c < numComp; ++c)
+                out[q*numComp + c] = bc[0]*vertexVal[best][0*numComp + c]
+                                   + bc[1]*vertexVal[best][1*numComp + c]
+                                   + bc[2]*vertexVal[best][2*numComp + c];
+        }
+    }
+    return result;
 }
 
 } // namespace oxley

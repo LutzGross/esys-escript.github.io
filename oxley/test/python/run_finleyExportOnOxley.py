@@ -61,7 +61,8 @@ from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
 from esys.oxley import (Rectangle, toFinleyData, fromFinleyData,
                        toFinleyReducedData, fromFinleyReducedData,
-                       toFinleyBoundaryData, fromFinleyBoundaryData)
+                       toFinleyBoundaryData, fromFinleyBoundaryData,
+                       toFinleyFunctionData, fromFinleyFunctionData)
 
 # REQUIRED: registers the concrete finley domain type with boost::python, or
 # toFinley() hands back a base Domain with no getDescription
@@ -591,6 +592,94 @@ class Test_BoundaryTransfer2D(unittest.TestCase):
         other = Rectangle(n0=3, n1=3, l0=3., l1=3., refine_level=1).toFinley()
         self.assertRaises(RuntimeError, toFinleyBoundaryData,
                           Data(1., FunctionOnBoundary(dom)), other)
+
+
+
+class Test_FunctionTransfer2D(unittest.TestCase):
+    """
+    Carrying Function - values at the quadrature points - across.
+
+    The one transfer that is not a rearrangement: an octant carries the 2x2
+    Gauss points, a Tri3 its three edge midpoints, and neither set contains
+    the other. So values are EVALUATED, not moved, and what can be asked of it
+    is exactness on the fields each side can represent:
+
+      outbound  the four values of an octant are unisolvent for a bilinear
+                function, so anything bilinear - every linear field included -
+                crosses exactly.
+      inbound   three edge midpoints are unisolvent for a linear function on
+                the triangle, so a field linear on the split comes home
+                exactly. That is what the export's own P1 space produces.
+
+    The integral is preserved exactly OUTBOUND, and that is provable rather
+    than lucky: 2x2 Gauss is exact for the bilinear interpolant, xy has total
+    degree two, and the three-midpoint rule on a triangle is exact to degree
+    two. Inbound it is not, since the octant's rule then samples a function
+    that is only piecewise linear.
+    """
+    CASES = [("conforming", 2), ("one_seam", [[1], [2]]),
+             ("mixed_3x3", [[3, 1, 2], [1, 2, 1], [2, 1, 3]])]
+    TOL = 1e-12
+
+    def domains(self, levels):
+        n0, n1 = blocks(levels)
+        dom = Rectangle(n0=n0, n1=n1, l0=float(n0), l1=float(n1),
+                        refine_level=levels)
+        return dom, dom.toFinley()
+
+    def test_linear_is_exact_outbound(self):
+        for name, levels in self.CASES:
+            dom, fin = self.domains(levels)
+            x, xf = Function(dom).getX(), Function(fin).getX()
+            err = Lsup(toFinleyFunctionData(1. + 2.*x[0] + 3.*x[1], fin)
+                       - (1. + 2.*xf[0] + 3.*xf[1]))
+            self.assertLess(err, self.TOL, "%s: %g" % (name, err))
+
+    def test_bilinear_is_exact_outbound(self):
+        """the sharper claim: the octant's four values fix a bilinear field"""
+        for name, levels in self.CASES:
+            dom, fin = self.domains(levels)
+            x, xf = Function(dom).getX(), Function(fin).getX()
+            err = Lsup(toFinleyFunctionData(x[0]*x[1], fin) - xf[0]*xf[1])
+            self.assertLess(err, self.TOL, "%s: %g" % (name, err))
+
+    def test_linear_is_exact_inbound(self):
+        for name, levels in self.CASES:
+            dom, fin = self.domains(levels)
+            x, xf = Function(dom).getX(), Function(fin).getX()
+            err = Lsup(fromFinleyFunctionData(1. + 2.*xf[0] + 3.*xf[1], dom)
+                       - (1. + 2.*x[0] + 3.*x[1]))
+            self.assertLess(err, self.TOL, "%s: %g" % (name, err))
+
+    def test_round_trip_is_exact_for_a_linear_field(self):
+        for name, levels in self.CASES:
+            dom, fin = self.domains(levels)
+            x = Function(dom).getX()
+            u = 1. + 2.*x[0] + 3.*x[1]
+            err = Lsup(fromFinleyFunctionData(toFinleyFunctionData(u, fin), dom)
+                       - u)
+            self.assertLess(err, self.TOL, "%s: %g" % (name, err))
+
+    def test_integral_is_preserved_outbound(self):
+        """holds for ANY field, not just the ones that cross exactly"""
+        for name, levels in self.CASES:
+            dom, fin = self.domains(levels)
+            x = Function(dom).getX()
+            w = sin(2.*x[0]) * cos(x[1])
+            a, b = integrate(w), integrate(toFinleyFunctionData(w, fin))
+            self.assertAlmostEqual(a, b, 10, "%s: %.12g -> %.12g"
+                                   % (name, a, b))
+
+    def test_wrong_function_space_is_refused(self):
+        dom, fin = self.domains(2)
+        self.assertRaises(RuntimeError, toFinleyFunctionData,
+                          Data(1., ReducedFunction(dom)), fin)
+
+    def test_unrelated_domain_is_refused(self):
+        dom, _ = self.domains(2)
+        other = Rectangle(n0=3, n1=3, l0=3., l1=3., refine_level=1).toFinley()
+        self.assertRaises(RuntimeError, toFinleyFunctionData,
+                          Data(1., Function(dom)), other)
 
 
 if __name__ == '__main__':

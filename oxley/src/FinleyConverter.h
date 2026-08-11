@@ -155,6 +155,41 @@ escript::Data toFinleyBoundaryData(const escript::Data& source,
 escript::Data fromFinleyBoundaryData(const escript::Data& source,
                                      escript::Domain_ptr target);
 
+/**
+   \brief
+   Copies a Function - values at the quadrature points - onto the export.
+
+   The one transfer that is not a rearrangement: the two meshes use different
+   rules. An octant carries the 2x2 Gauss points; a Tri3 carries its three edge
+   midpoints, neither a subset of the other.
+
+   So this evaluates rather than moves. The four values on an octant are
+   unisolvent for a bilinear function, and that function is evaluated at the
+   triangles' points - exact for any field that is bilinear on the octant,
+   which includes every linear one, and an approximation otherwise.
+
+   \param source a Data on Function of an oxley domain
+   \param target the finley domain toFinley() built from that forest
+*/
+escript::Data toFinleyFunctionData(const escript::Data& source,
+                                   escript::Domain_ptr target);
+
+/**
+   \brief
+   Brings a Function back from the export onto the forest.
+
+   The three midpoints of a triangle are unisolvent for a linear function, so
+   each triangle's values rebuild one, and the octant's Gauss points are read
+   off whichever triangle contains them. Exact for a field that is linear on
+   the split - which is what the export's own P1 space produces - and an
+   approximation otherwise.
+
+   \param source a Data on Function of the export
+   \param target the oxley domain the export was built from
+*/
+escript::Data fromFinleyFunctionData(const escript::Data& source,
+                                     escript::Domain_ptr target);
+
 escript::Domain_ptr toFinley(const OxleyDomain& dom, int order = -1,
                              int reducedOrder = -1, bool optimize = false,
                              bool simplices = true);
