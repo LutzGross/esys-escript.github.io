@@ -682,5 +682,70 @@ class Test_FunctionTransfer2D(unittest.TestCase):
                           Data(1., Function(dom)), other)
 
 
+
+class Test_ComplexTransfer2D(unittest.TestCase):
+    """
+    The same four transfers on complex data.
+
+    There is no separate machinery: std::complex is two doubles in memory and
+    every operation these transfers perform - copying a value, averaging
+    masters, weighting by area, evaluating a shape function - is REAL-LINEAR,
+    so it applies to the two parts independently. A complex field is a real one
+    with twice as many components.
+
+    Which is exactly why it needs testing: the real and imaginary parts must
+    not be mixed or dropped, so the two parts here are different functions of
+    position, and a field that lost its imaginary part - or copied the real one
+    into it - would fail.
+    """
+    LEVELS = [[3, 1, 2], [1, 2, 1], [2, 1, 3]]
+
+    def setUp(self):
+        n0, n1 = blocks(self.LEVELS)
+        self.dom = Rectangle(n0=n0, n1=n1, l0=float(n0), l1=float(n1),
+                             refine_level=self.LEVELS)
+        self.fin = self.dom.toFinley()
+
+    def tearDown(self):
+        del self.dom
+        del self.fin
+
+    def field(self, fs, domain):
+        x = fs(domain).getX()
+        return (1. + 2.*x[0] + 3.*x[1]) + 1j * (0.5 - x[0] + 4.*x[1])
+
+    def test_continuous_function(self):
+        u = self.field(ContinuousFunction, self.dom)
+        uf = toFinleyData(u, self.fin)
+        self.assertTrue(uf.isComplex(), "the result lost its complexity")
+        self.assertEqual(Lsup(uf - self.field(ContinuousFunction, self.fin)), 0.)
+        self.assertEqual(Lsup(fromFinleyData(uf, self.dom) - u), 0.)
+
+    def test_reduced_function(self):
+        u = self.field(ReducedFunction, self.dom)
+        uf = toFinleyReducedData(u, self.fin)
+        self.assertTrue(uf.isComplex())
+        self.assertEqual(Lsup(fromFinleyReducedData(uf, self.dom) - u), 0.)
+
+    def test_function_on_boundary(self):
+        u = self.field(FunctionOnBoundary, self.dom)
+        uf = toFinleyBoundaryData(u, self.fin)
+        self.assertTrue(uf.isComplex())
+        self.assertLess(Lsup(uf - self.field(FunctionOnBoundary, self.fin)), 1e-12)
+        self.assertEqual(Lsup(fromFinleyBoundaryData(uf, self.dom) - u), 0.)
+
+    def test_function(self):
+        u = self.field(Function, self.dom)
+        uf = toFinleyFunctionData(u, self.fin)
+        self.assertTrue(uf.isComplex())
+        self.assertLess(Lsup(uf - self.field(Function, self.fin)), 1e-12)
+        self.assertLess(Lsup(fromFinleyFunctionData(uf, self.dom) - u), 1e-12)
+
+    def test_a_real_field_stays_real(self):
+        r = Data(1., ContinuousFunction(self.dom))
+        self.assertFalse(toFinleyData(r, self.fin).isComplex(),
+                         "a real field must not come back complex")
+
+
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)

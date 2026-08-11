@@ -475,6 +475,50 @@ inline void gaussLagrange(double t, double& l0, double& l1)
     l1 = (t - g) / (1. - 2. * g);
 }
 
+
+// ---------------------------------------------------------------------------
+// Complex data needs no separate transfer.
+//
+// std::complex<double> is two doubles in memory, and every operation these
+// transfers perform - copying a value, averaging masters, weighting by area,
+// evaluating a shape function - is REAL-LINEAR, so it applies to the real and
+// imaginary parts independently. A complex field is therefore just a real one
+// with twice as many components, and the code below says so once rather than
+// branching everywhere.
+// ---------------------------------------------------------------------------
+
+/// components counted as reals: twice the data point size when complex
+inline int realComponents(const escript::Data& d)
+{
+    return d.getDataPointSize() * (d.isComplex() ? 2 : 1);
+}
+
+inline const double* readSample(const escript::Data& d, long i)
+{
+    return d.isComplex()
+        ? reinterpret_cast<const double*>(
+              d.getSampleDataRO(i, escript::DataTypes::cplx_t(0)))
+        : d.getSampleDataRO(i, (double) 0);
+}
+
+inline double* writeSample(escript::Data& d, long i)
+{
+    return d.isComplex()
+        ? reinterpret_cast<double*>(
+              d.getSampleDataRW(i, escript::DataTypes::cplx_t(0)))
+        : d.getSampleDataRW(i, (double) 0);
+}
+
+/// an empty Data of the same shape and complexity as src, on the given space
+inline escript::Data makeLike(const escript::Data& src,
+                              const escript::FunctionSpace& fs)
+{
+    if (src.isComplex())
+        return escript::Data(escript::DataTypes::cplx_t(0),
+                             src.getDataPointShape(), fs, true);
+    return escript::Data(0., src.getDataPointShape(), fs, true);
+}
+
 /// how an exported mesh says which forest it came from
 std::string exportTag(const OxleyDomain& dom)
 {
@@ -977,13 +1021,11 @@ escript::Data toFinleyData(const escript::Data& source, escript::Domain_ptr targ
                 "domain.");
     if (target.get() == NULL)
         throw OxleyException("toFinleyData: no target domain given.");
-    if (source.isComplex())
-        throw OxleyException("toFinleyData: complex data is not supported yet.");
     checkSameForest(*dom, *target, "toFinleyData");
 
     const MeshAccess m = viewMatchingExport(*dom);          // collective
     const std::vector<long>& gid = exportIds(m);
-    const int numComp = source.getDataPointSize();
+    const int numComp = realComponents(source);
 
     // what this rank can supply: its own nodes, plus the seam positions it
     // materialised, which are no nodes of the forest and so take the average
@@ -993,7 +1035,7 @@ escript::Data toFinleyData(const escript::Data& source, escript::Domain_ptr targ
     haveId.reserve(m.numNodes);
     haveVal.reserve((size_t) m.numNodes * numComp);
     for (long i = 0; i < m.numRealNodes; ++i) {
-        const double* in = source.getSampleDataRO(i, (double) 0);
+        const double* in = readSample(source, i);
         haveId.push_back(gid[i]);
         for (int c = 0; c < numComp; ++c)
             haveVal.push_back(in[c]);
@@ -1007,7 +1049,7 @@ escript::Data toFinleyData(const escript::Data& source, escript::Domain_ptr targ
             const double w = m.constraintWeights[k*mpc + j];
             if (master < 0 || w == 0.)
                 continue;
-            const double* in = source.getSampleDataRO(master, (double) 0);
+            const double* in = readSample(source, master);
             for (int c = 0; c < numComp; ++c)
                 v[c] += w * in[c];
         }
@@ -1016,8 +1058,7 @@ escript::Data toFinleyData(const escript::Data& source, escript::Domain_ptr targ
             haveVal.push_back(v[c]);
     }
 
-    escript::Data result(0., source.getDataPointShape(),
-                         escript::continuousFunction(*target), true);
+    escript::Data result = makeLike(source, escript::continuousFunction(*target));
     result.requireWrite();
     const escript::FunctionSpace targetFS = escript::continuousFunction(*target);
     const long n = (long) result.getNumSamples();
@@ -1030,7 +1071,7 @@ escript::Data toFinleyData(const escript::Data& source, escript::Domain_ptr targ
     exchangeByGlobalId(dom->getMPI(), numComp, haveId, haveVal, wantId, wantVal);
 
     for (long j = 0; j < n; ++j) {
-        double* out = result.getSampleDataRW(j, (double) 0);
+        double* out = writeSample(result, j);
         for (int c = 0; c < numComp; ++c)
             out[c] = wantVal[(size_t) j*numComp + c];
     }
@@ -1044,15 +1085,12 @@ escript::Data fromFinleyData(const escript::Data& source, escript::Domain_ptr ta
     if (dom == NULL)
         throw OxleyException("fromFinleyData: the target must be an oxley "
                 "domain.");
-    if (source.isComplex())
-        throw OxleyException("fromFinleyData: complex data is not supported "
-                "yet.");
     checkSameForest(*dom, *(source.getFunctionSpace().getDomain()),
                     "fromFinleyData");
 
     const MeshAccess m = viewMatchingExport(*dom);          // collective
     const std::vector<long>& gid = exportIds(m);
-    const int numComp = source.getDataPointSize();
+    const int numComp = realComponents(source);
 
     const escript::FunctionSpace sourceFS = source.getFunctionSpace();
     const long ns = (long) source.getNumSamples();
@@ -1062,7 +1100,7 @@ escript::Data fromFinleyData(const escript::Data& source, escript::Domain_ptr ta
     std::vector<double> haveVal((size_t) ns * numComp);
     for (long j = 0; j < ns; ++j) {
         haveId[j] = (long) ids[j];
-        const double* in = source.getSampleDataRO(j, (double) 0);
+        const double* in = readSample(source, j);
         for (int c = 0; c < numComp; ++c)
             haveVal[(size_t) j*numComp + c] = in[c];
     }
@@ -1076,11 +1114,10 @@ escript::Data fromFinleyData(const escript::Data& source, escript::Domain_ptr ta
     std::vector<double> wantVal;
     exchangeByGlobalId(dom->getMPI(), numComp, haveId, haveVal, wantId, wantVal);
 
-    escript::Data result(0., source.getDataPointShape(),
-                         escript::continuousFunction(*target), true);
+    escript::Data result = makeLike(source, escript::continuousFunction(*target));
     result.requireWrite();
     for (long i = 0; i < m.numRealNodes; ++i) {
-        double* out = result.getSampleDataRW(i, (double) 0);
+        double* out = writeSample(result, i);
         for (int c = 0; c < numComp; ++c)
             out[c] = wantVal[(size_t) i*numComp + c];
     }
@@ -1285,13 +1322,10 @@ escript::Data toFinleyReducedData(const escript::Data& source,
                 "oxley domain.");
     if (target.get() == NULL)
         throw OxleyException("toFinleyReducedData: no target domain given.");
-    if (source.isComplex())
-        throw OxleyException("toFinleyReducedData: complex data is not "
-                "supported yet.");
     checkSameForest(*dom, *target, "toFinleyReducedData");
 
     const MeshAccess m = viewMatchingExport(*dom);          // collective
-    const int numComp = source.getDataPointSize();
+    const int numComp = realComponents(source);
     std::vector<int> count;
     std::vector<std::vector<double> > weight;
     simplexWeights(m, count, weight);
@@ -1300,7 +1334,7 @@ escript::Data toFinleyReducedData(const escript::Data& source,
     std::vector<long> haveId;
     std::vector<double> haveVal;
     for (long e = 0; e < m.numElements; ++e) {
-        const double* in = source.getSampleDataRO(e, (double) 0);
+        const double* in = readSample(source, e);
         for (int t = 0; t < count[e]; ++t) {
             haveId.push_back((m.globalElementOffset + e) * MAX_SIMPLICES + t);
             for (int c = 0; c < numComp; ++c)
@@ -1308,8 +1342,7 @@ escript::Data toFinleyReducedData(const escript::Data& source,
         }
     }
 
-    escript::Data result(0., source.getDataPointShape(),
-                         escript::reducedFunction(*target), true);
+    escript::Data result = makeLike(source, escript::reducedFunction(*target));
     result.requireWrite();
     const escript::FunctionSpace targetFS = escript::reducedFunction(*target);
     const long n = (long) result.getNumSamples();
@@ -1322,7 +1355,7 @@ escript::Data toFinleyReducedData(const escript::Data& source,
     exchangeByGlobalId(dom->getMPI(), numComp, haveId, haveVal, wantId, wantVal);
 
     for (long j = 0; j < n; ++j) {
-        double* out = result.getSampleDataRW(j, (double) 0);
+        double* out = writeSample(result, j);
         for (int c = 0; c < numComp; ++c)
             out[c] = wantVal[(size_t) j*numComp + c];
     }
@@ -1339,14 +1372,11 @@ escript::Data fromFinleyReducedData(const escript::Data& source,
     if (dom == NULL)
         throw OxleyException("fromFinleyReducedData: the target must be an "
                 "oxley domain.");
-    if (source.isComplex())
-        throw OxleyException("fromFinleyReducedData: complex data is not "
-                "supported yet.");
     checkSameForest(*dom, *(source.getFunctionSpace().getDomain()),
                     "fromFinleyReducedData");
 
     const MeshAccess m = viewMatchingExport(*dom);          // collective
-    const int numComp = source.getDataPointSize();
+    const int numComp = realComponents(source);
     std::vector<int> count;
     std::vector<std::vector<double> > weight;
     simplexWeights(m, count, weight);
@@ -1359,7 +1389,7 @@ escript::Data fromFinleyReducedData(const escript::Data& source,
     std::vector<double> haveVal((size_t) ns * numComp);
     for (long j = 0; j < ns; ++j) {
         haveId[j] = (long) ids[j];
-        const double* in = source.getSampleDataRO(j, (double) 0);
+        const double* in = readSample(source, j);
         for (int c = 0; c < numComp; ++c)
             haveVal[(size_t) j*numComp + c] = in[c];
     }
@@ -1375,12 +1405,11 @@ escript::Data fromFinleyReducedData(const escript::Data& source,
 
     // and average them by the area each covers, so a field that is constant
     // over the octant comes back unchanged whatever the split
-    escript::Data result(0., source.getDataPointShape(),
-                         escript::reducedFunction(*target), true);
+    escript::Data result = makeLike(source, escript::reducedFunction(*target));
     result.requireWrite();
     size_t pos = 0;
     for (long e = 0; e < m.numElements; ++e) {
-        double* out = result.getSampleDataRW(e, (double) 0);
+        double* out = writeSample(result, e);
         for (int c = 0; c < numComp; ++c)
             out[c] = 0.;
         for (int t = 0; t < count[e]; ++t, ++pos)
@@ -1437,9 +1466,6 @@ escript::Data transferBoundary(const escript::Data& source,
     if (fsCode != FaceElements && fsCode != ReducedFaceElements)
         throw OxleyException(std::string(what) + ": the data must live on "
                 "FunctionOnBoundary or ReducedFunctionOnBoundary.");
-    if (source.isComplex())
-        throw OxleyException(std::string(what) + ": complex data is not "
-                "supported yet.");
 
     const OxleyDomain* dom = toFinley
             ? dynamic_cast<const OxleyDomain*>(
@@ -1455,13 +1481,13 @@ escript::Data transferBoundary(const escript::Data& source,
     const MeshAccess m = viewMatchingExport(*dom);          // collective
     const long base = faceIdBase(m, dom->getMPI());         // collective
     const int dim = m.numDim;
-    const int numComp = source.getDataPointSize();
+    const int numComp = realComponents(source);
 
     // the same space on the other side
     escript::FunctionSpace targetFS = (fsCode == FaceElements)
             ? escript::functionOnBoundary(toFinley ? *target : *target)
             : escript::reducedFunctionOnBoundary(toFinley ? *target : *target);
-    escript::Data result(0., source.getDataPointShape(), targetFS, true);
+    escript::Data result = makeLike(source, targetFS);
     result.requireWrite();
 
     const int numPoints = source.getNumDataPointsPerSample();
@@ -1485,7 +1511,7 @@ escript::Data transferBoundary(const escript::Data& source,
         for (long f = 0; f < ns; ++f) {
             haveId.push_back(faceKeyOf(m, f, base));
             pointOrder(sx, f, numPoints, dim, order);
-            const double* in = source.getSampleDataRO(f, (double) 0);
+            const double* in = readSample(source, f);
             for (int i = 0; i < numPoints; ++i)
                 for (int c = 0; c < numComp; ++c)
                     haveVal.push_back(in[order[i]*numComp + c]);
@@ -1497,7 +1523,7 @@ escript::Data transferBoundary(const escript::Data& source,
         for (long f = 0; f < ns; ++f) {
             haveId.push_back((long) ids[f]);
             pointOrder(sx, f, numPoints, dim, order);
-            const double* in = source.getSampleDataRO(f, (double) 0);
+            const double* in = readSample(source, f);
             for (int i = 0; i < numPoints; ++i)
                 for (int c = 0; c < numComp; ++c)
                     haveVal.push_back(in[order[i]*numComp + c]);
@@ -1522,7 +1548,7 @@ escript::Data transferBoundary(const escript::Data& source,
 
     for (long f = 0; f < nr; ++f) {
         pointOrder(rx, f, numPoints, dim, order);
-        double* out = result.getSampleDataRW(f, (double) 0);
+        double* out = writeSample(result, f);
         for (int i = 0; i < numPoints; ++i)
             for (int c = 0; c < numComp; ++c)
                 out[order[i]*numComp + c] =
@@ -1563,13 +1589,10 @@ escript::Data toFinleyFunctionData(const escript::Data& source,
                 "oxley domain.");
     if (target.get() == NULL)
         throw OxleyException("toFinleyFunctionData: no target domain given.");
-    if (source.isComplex())
-        throw OxleyException("toFinleyFunctionData: complex data is not "
-                "supported yet.");
     checkSameForest(*dom, *target, "toFinleyFunctionData");
 
     const MeshAccess m = viewMatchingExport(*dom);          // collective
-    const int numComp = source.getDataPointSize();
+    const int numComp = realComponents(source);
     const int srcPts = source.getNumDataPointsPerSample();
     if (srcPts != 4)
         throw OxleyException("toFinleyFunctionData: expected the 2x2 Gauss "
@@ -1583,7 +1606,7 @@ escript::Data toFinleyFunctionData(const escript::Data& source,
     std::vector<std::array<double,6> > tris;
     std::vector<std::array<double,2> > pts;
     for (long e = 0; e < m.numElements; ++e) {
-        const double* in = source.getSampleDataRO(e, (double) 0);
+        const double* in = readSample(source, e);
         // the octant's own frame, from its corners
         const long* en = &m.elementNodes[(size_t) e * m.nodesPerElement];
         const double x0 = m.nodeCoords[(size_t) en[0] * 2];
@@ -1610,8 +1633,7 @@ escript::Data toFinleyFunctionData(const escript::Data& source,
         }
     }
 
-    escript::Data result(0., source.getDataPointShape(),
-                         escript::function(*target), true);
+    escript::Data result = makeLike(source, escript::function(*target));
     result.requireWrite();
     const escript::FunctionSpace targetFS = escript::function(*target);
     if (result.getNumDataPointsPerSample() != 3)
@@ -1631,7 +1653,7 @@ escript::Data toFinleyFunctionData(const escript::Data& source,
     std::vector<int> order;
     for (long j = 0; j < n; ++j) {
         pointOrder(rx, j, 3, 2, order);
-        double* out = result.getSampleDataRW(j, (double) 0);
+        double* out = writeSample(result, j);
         for (int q = 0; q < 3; ++q)
             for (int c = 0; c < numComp; ++c)
                 out[order[q]*numComp + c] =
@@ -1650,14 +1672,11 @@ escript::Data fromFinleyFunctionData(const escript::Data& source,
     if (dom == NULL)
         throw OxleyException("fromFinleyFunctionData: the target must be an "
                 "oxley domain.");
-    if (source.isComplex())
-        throw OxleyException("fromFinleyFunctionData: complex data is not "
-                "supported yet.");
     checkSameForest(*dom, *(source.getFunctionSpace().getDomain()),
                     "fromFinleyFunctionData");
 
     const MeshAccess m = viewMatchingExport(*dom);          // collective
-    const int numComp = source.getDataPointSize();
+    const int numComp = realComponents(source);
     if (source.getNumDataPointsPerSample() != 3)
         throw OxleyException("fromFinleyFunctionData: expected three points on "
                 "a Tri3.");
@@ -1674,7 +1693,7 @@ escript::Data fromFinleyFunctionData(const escript::Data& source,
     for (long j = 0; j < ns; ++j) {
         haveId[j] = (long) ids[j];
         pointOrder(sx, j, 3, 2, order);
-        const double* in = source.getSampleDataRO(j, (double) 0);
+        const double* in = readSample(source, j);
         for (int q = 0; q < 3; ++q)
             for (int c = 0; c < numComp; ++c)
                 haveVal[((size_t) j*3 + q)*numComp + c] =
@@ -1700,8 +1719,7 @@ escript::Data fromFinleyFunctionData(const escript::Data& source,
     // Rebuild the linear function on each triangle - three edge midpoints are
     // unisolvent for it - and read the octant's own Gauss points off whichever
     // triangle contains them. Exact for a field that is linear on the split.
-    escript::Data result(0., source.getDataPointShape(),
-                         escript::function(*target), true);
+    escript::Data result = makeLike(source, escript::function(*target));
     result.requireWrite();
     const double g = 0.5 - 0.5 / std::sqrt(3.);
     size_t pos = 0;
@@ -1742,7 +1760,7 @@ escript::Data fromFinleyFunctionData(const escript::Data& source,
             }
         }
 
-        double* out = result.getSampleDataRW(e, (double) 0);
+        double* out = writeSample(result, e);
         const double gx[4] = { g, 1.-g, g, 1.-g };
         const double gy[4] = { g, g, 1.-g, 1.-g };
         for (int q = 0; q < 4; ++q) {
