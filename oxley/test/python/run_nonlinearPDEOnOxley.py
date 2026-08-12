@@ -33,13 +33,13 @@ from esys.oxley import Rectangle,Brick
 
 class Test_OxleyNonLinearPDE2D(Test_nlpde):
    def setUp(self):
-        self.domain = Rectangle(l0=1.,l1=1., n0=10, n1=10*getMPISizeWorld()-1, d1=getMPISizeWorld()) 
+        self.domain = Rectangle(l0=1.,l1=1., n0=10, n1=10*getMPISizeWorld()-1) 
    def tearDown(self):
         del self.domain
 
 class Test_OxleyNonLinearPDE3D(Test_nlpde):
    def setUp(self):
-        self.domain = Brick(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
+        self.domain = Brick(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10) 
    def tearDown(self):
         del self.domain
 

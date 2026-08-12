@@ -91,7 +91,7 @@ def adjust(NE, ftype):
 
 #     def test_writeGrid2D(self):
 #         self.NE = [self.NX, self.NZ]
-#         self.domain = Rectangle(self.NE[0], self.NE[1], d1=0)
+#         self.domain = Rectangle(self.NE[0], self.NE[1])
 #         for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF'), (Solution, 'Sol')]:
 #             data, ref = self.generateUniqueData(ftype)
 #             result = self.writeThenRead(data, ftype, fcode)
@@ -100,7 +100,7 @@ def adjust(NE, ftype):
 
 #     def test_writeGrid3D(self):
 #         self.NE = [self.NX, self.NX, self.NZ]
-#         self.domain = Brick(self.NE[0], self.NE[1], self.NE[2], d2=0)
+#         self.domain = Brick(self.NE[0], self.NE[1], self.NE[2])
 #         for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF'), (Solution, 'Sol')]:
 #             data, ref = self.generateUniqueData(ftype)
 #             result = self.writeThenRead(data, ftype, fcode)
@@ -383,7 +383,7 @@ def adjust(NE, ftype):
 
 #     def test_readCompressed2D(self):
 #         NE = [9, 10]
-#         domain = Rectangle(NE[0], NE[1], d1=0)
+#         domain = Rectangle(NE[0], NE[1])
 #         for filename, ftype in [("RectRedF%s.grid.gz", ReducedFunction),
 #                 ("RectConF%s.grid.gz", ContinuousFunction)]:
 #             FS = ftype(domain)
@@ -394,7 +394,7 @@ def adjust(NE, ftype):
 
 #     def test_readCompressed3D(self):
 #         NE = [9, 9, 10]
-#         domain = Brick(NE[0], NE[1], NE[2], d1=0, d2=0)
+#         domain = Brick(NE[0], NE[1], NE[2])
 #         for filename, ftype in [("BrickRedF%s.grid.gz", ReducedFunction),
 #                 ("BrickConF%s.grid.gz", ContinuousFunction)]:
 #             FS = ftype(domain)
