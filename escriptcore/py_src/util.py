@@ -2816,6 +2816,22 @@ def grad(arg,where=None):
     :type where: ``None`` or `escript.FunctionSpace`
     :return: gradient of ``arg``
     :rtype: `escript.Data` or `Symbol`
+    :note: A gradient on ``FunctionOnBoundary`` (or its reduced form) needs
+           face elements that carry the nodes of the element BEHIND the face,
+           not only the nodes lying on it: the derivative normal to the face
+           cannot be recovered from values on the face alone. Where the mesh
+           has only the face's own nodes the result is the TANGENTIAL part of
+           the gradient, with the normal component zero, and **no exception is
+           raised** - so a wrong answer here looks like a plausible one.
+
+           Which meshes provide it: the structured `finley` factories take
+           ``useElementsOnFace=True``, which is their default. Meshes read from
+           gmsh do not - ``ReadGmsh`` has no such option, and the boundary
+           elements come from the file as written, carrying their own nodes
+           only. Building the parent-shaped faces afterwards means finding each
+           face's element and reordering its nodes, which is costly in 3D, so
+           for such a mesh this is a limitation to work around rather than a
+           setting to change.
     """
     if isinstance(arg,sym.Symbol):
        if where is None:
