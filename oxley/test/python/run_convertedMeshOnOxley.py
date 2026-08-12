@@ -50,6 +50,7 @@ from esys.escript import *
 
 from test_util_spatial_functions1 import \
         Test_Util_SpatialFunctions_noGradOnBoundary_noContact
+from esys.escript.linearPDEs import Poisson
 from test_linearPDEs import Test_Poisson, Test_LinearPDE_noLumping
 from test_assemblage import Test_assemblage_2Do1
 
@@ -91,15 +92,54 @@ class Test_PoissonOnConvertedMesh(Test_Poisson):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
 
-    @unittest.skip("test_solve asks for 1e-5 relative on an exact solution "
-                   "that is QUADRATIC, and finley passes it with second-order "
-                   "elements - Rectangle(NE, NE, 2, useFullElementOrder=True) "
-                   "in run_linearPDEsOnFinley3. The export is P1 on triangles, "
-                   "so the error is discretisation error: measured 6.1e-3, "
-                   "2.0e-3, 5.7e-4 as the forest is refined, clean O(h^2). "
-                   "Reaching 1e-5 would take about 100k triangles.")
     def test_solve(self):
-        pass
+        """
+        Replaces the shared test rather than skipping it.
+
+        The shared version asks for 1e-5 relative on an exact solution that is
+        QUADRATIC, and finley passes it with SECOND-ORDER elements -
+        Rectangle(NE, NE, 2, useFullElementOrder=True) in
+        run_linearPDEsOnFinley3. The export is P1 on triangles, so that
+        tolerance is unreachable: what is left is discretisation error.
+
+        What can be asked of a P1 mesh is that the error behave like one, so
+        this solves the same problem on two refinements and checks the error
+        falls at the expected rate. That is a statement about the exported
+        discretisation; an absolute tolerance would only have been a statement
+        about how fine the mesh happened to be.
+        """
+        def solveOn(levels):
+            dom = oxley_meshes.graded(levels).toFinley()
+            cf = ContinuousFunction(dom)
+            x = cf.getX()
+            u_ex = Scalar(1., cf)
+            for i in range(dom.getDim()):
+                u_ex *= x[i] * (2. - x[i])
+            msk = Scalar(0., cf)
+            for i in range(dom.getDim()):
+                msk += whereZero(x[i])
+            f = Scalar(0, cf)
+            for i in range(dom.getDim()):
+                f_i = Scalar(2., cf)
+                for j in range(dom.getDim()):
+                    if i != j:
+                        f_i *= x[j] * (2. - x[j])
+                f += f_i
+            pde = Poisson(dom, debug=self.DEBUG)
+            pde.setValue(f=f, q=msk)
+            pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
+            u = pde.getSolution()
+            return Lsup(u - u_ex) / Lsup(u_ex)
+
+        coarse = solveOn(oxley_meshes.MIXED_2D)
+        fine = solveOn([[l + 1 for l in row] for row in oxley_meshes.MIXED_2D])
+
+        self.assertLess(coarse, 5.e-2,
+                        "the coarse solution is not even close: %g" % coarse)
+        self.assertGreater(coarse / fine, 2.5,
+                           "the error does not fall like a P1 discretisation: "
+                           "%g -> %g is a factor of %g, expected about 4"
+                           % (coarse, fine, coarse / fine))
 
     def setUp(self):
         self.domain = converted()
