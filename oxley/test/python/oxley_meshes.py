@@ -50,12 +50,25 @@ ISOLATED_2D = [[1, 1, 1], [1, 0, 1], [1, 1, 1]]   # 4 hanging edges on one cell
 PEAK_2D = [[0, 0, 1, 0, 0], [0, 1, 2, 1, 0], [1, 2, 3, 2, 1],
            [0, 1, 2, 1, 0], [0, 0, 1, 0, 0]]
 MIXED_3D = [[[2, 1], [1, 2]], [[1, 2], [2, 1]]]
+SEAM_3D = [[[1]], [[2]]]                          # the simplest 2:1
+# One coarse cell ringed by finer ones. This is the 3D case that matters: a
+# corner of the fine cell hangs in the middle of a coarse FACE and takes the
+# mean of its four corners, two of which hang in turn on the coarse face's
+# edges. 3D is the only place those chains overlap.
+ISOLATED_3D = [[[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+               [[1, 1, 1], [1, 0, 1], [1, 1, 1]],
+               [[1, 1, 1], [1, 1, 1], [1, 1, 1]]]
+PEAK_3D = [[[0, 0, 0], [0, 1, 0], [0, 0, 0]],
+           [[0, 1, 0], [1, 2, 1], [0, 1, 0]],
+           [[0, 0, 0], [0, 1, 0], [0, 0, 0]]]
 
 UNIFORM = 2                                       # the control
 
 # what a suite that wants more than one mesh should iterate over
 CASES_2D = [("mixed", MIXED_2D), ("seam", SEAM_2D), ("isolated", ISOLATED_2D),
             ("uniform_control", UNIFORM)]
+CASES_3D = [("mixed", MIXED_3D), ("seam", SEAM_3D), ("isolated", ISOLATED_3D),
+            ("uniform_control", 1)]
 
 
 def _blocks(levels):

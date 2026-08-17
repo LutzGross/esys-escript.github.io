@@ -724,7 +724,27 @@ protected:
     template <typename S>
     void interpolateNodesOnFacesWorker(escript::Data& out,
                                          const escript::Data& in,
-                                         bool reduced, S sentinel) const; 
+                                         bool reduced, S sentinel) const;
+
+    /// The eight corner values of one octant, with the hanging slots replaced
+    /// by the values at the positions they stand for; corners[n*numComp+i].
+    /// scratch is caller-owned only to keep the allocation out of the loop.
+    template <typename S>
+    void gatherCornersConstrained(const escript::Data& in, long quadIndex,
+                                  dim_t numComp, S sentinel,
+                                  std::vector<S>& corners,
+                                  std::vector<S>& scratch) const;
+
+    /// The four values on a boundary face, in the order borderNodeInfo lists
+    /// them. They come from the whole element because a corner of a boundary
+    /// face can hang on a coarse edge lying in the boundary plane.
+    template <typename S>
+    void gatherFaceCornersConstrained(const escript::Data& in,
+                                      const borderNodeInfo& b, int face,
+                                      dim_t numComp, S sentinel,
+                                      std::vector<S>& onFace,
+                                      std::vector<S>& corners,
+                                      std::vector<S>& scratch) const;
 
     template<typename Scalar>
     void assembleGradientImpl(escript::Data& out,

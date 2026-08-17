@@ -84,8 +84,8 @@ class Test_Util_SpatialFunctionsOnUniformOxley2D(
 
 class Test_Util_SpatialFunctionsOnOxley3D(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     """
-    3D, on the uniform control rather than a graded mesh - see the graded
-    class below for why.
+    3D, the uniform control: it must pass whatever the seam code does, so that
+    a failure of the graded class below points at the hanging-node path.
     """
     def setUp(self):
         self.order=1
@@ -94,12 +94,9 @@ class Test_Util_SpatialFunctionsOnOxley3D(Test_Util_SpatialFunctions_noGradOnBou
         del self.order
         del self.domain
 
-@unittest.skip("Brick has no hanging-node constraint: the fix applied to "
-               "Rectangle (constrainHangingCorners) was never ported, so grad "
-               "on a graded 3D forest is wrong by O(1) - measured 3.94 against "
-               "a linear field. Remove this skip when Brick is fixed.")
 class Test_Util_SpatialFunctionsOnGradedOxley3D(
         Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+    """the 3D counterpart of the graded 2D class - the seams are the point"""
     def setUp(self):
         self.order=1
         self.domain = oxley_meshes.graded3D()
@@ -163,6 +160,59 @@ class Test_GradientOnBoundaryOnOxley2D(unittest.TestCase):
 
     def test_gradient_uniform(self):
         self._allSpaces(oxley_meshes.UNIFORM, "uniform (control)")
+
+
+class Test_GradientOnOxley3D(unittest.TestCase):
+    """
+    Gradients on a graded 3D forest, in every function space.
+
+    The 3D counterpart of the class above, and it needs its own because 3D has
+    a kind of hanging node 2D does not: one in the middle of a coarse FACE,
+    whose four masters include two that hang in turn on that face's edges. The
+    isolated case is the one where those chains meet.
+
+    Two fields. A LINEAR one has a constant gradient, so any departure means a
+    corner value was read from the wrong place. A TRILINEAR one also lies in
+    the space exactly but its gradient VARIES inside an element, so it pins the
+    quadrature points themselves - a plain permutation of them passes the
+    linear test and fails this one.
+    """
+    def _check(self, dom, fs, label):
+        X = ContinuousFunction(dom).getX()
+        err = Lsup(grad(2.*X[0] + 3.*X[1] - X[2] + 5., fs) - [2., 3., -1.])
+        self.assertLess(err, 1e-8, "%s: linear gradient off by %g" % (label, err))
+
+        x = fs.getX()
+        g = grad(X[0]*X[1]*X[2], fs)
+        exact = g * 0.
+        exact[0] = x[1]*x[2]
+        exact[1] = x[0]*x[2]
+        exact[2] = x[0]*x[1]
+        err = Lsup(g - exact)
+        self.assertLess(err, 1e-8,
+                        "%s: trilinear gradient off by %g" % (label, err))
+
+    def _allSpaces(self, levels, label):
+        dom = (oxley_meshes.uniform3D(levels) if isinstance(levels, int)
+               else oxley_meshes.graded3D(levels))
+        for fs, name in ((Function(dom), "Function"),
+                         (ReducedFunction(dom), "ReducedFunction"),
+                         (FunctionOnBoundary(dom), "FunctionOnBoundary"),
+                         (ReducedFunctionOnBoundary(dom),
+                          "ReducedFunctionOnBoundary")):
+            self._check(dom, fs, "%s on %s" % (name, label))
+
+    def test_gradient_mixed(self):
+        self._allSpaces(oxley_meshes.MIXED_3D, "2x2x2 mixed")
+
+    def test_gradient_seam(self):
+        self._allSpaces(oxley_meshes.SEAM_3D, "single seam")
+
+    def test_gradient_isolated(self):
+        self._allSpaces(oxley_meshes.ISOLATED_3D, "isolated coarse cell")
+
+    def test_gradient_uniform(self):
+        self._allSpaces(1, "uniform (control)")
 
 
 if __name__ == '__main__':

@@ -4394,8 +4394,129 @@ void Brick::interpolateNodesOnFaces(escript::Data& out,
     }
 }
 
-// private   
-template <typename S> 
+namespace {
+
+/// A face of the octant -> its four corners in z-order indexing, ordered
+/// (a0b0, a1b0, a0b1, a1b1) in the face's two in-plane axes (a,b). This is the
+/// order borderNodeInfo::neighbours is filled in and the face interpolation
+/// and gradient read back. It is NOT the counter-clockwise winding
+/// getMeshAccess needs for finley's outward normals - that is a second table.
+const int faceCornerSlots[6][4] = {
+    {0,2,4,6}, {1,3,5,7}, {0,1,4,5}, {2,3,6,7}, {0,1,2,3}, {4,5,6,7}
+};
+
+/**
+   \brief
+   Replaces the values sitting in an element's hanging corner slots by the
+   values AT those corners.
+
+   Same idea as Rectangle's version, but 3D has two kinds of hanging corner and
+   that changes the arithmetic in one important way.
+
+   lnodes does not number a hanging position, so its slot holds a MASTER: a node
+   of the coarse neighbour lying outside this octant. A corner in the middle of
+   a coarse FACE is the average of that face's four corners; one in the middle of
+   a coarse EDGE is the average of its two ends. getHangingNodes returns those
+   masters as slots of this same element, so the constraint stays element-local -
+   no halo, no communication, no node that does not already exist.
+
+   THE 3D DIFFERENCE: the chains overlap. The masters of a face centre are the
+   four corners of that coarse face, and two of them are themselves hanging (the
+   midpoints of the coarse face's edges). Correcting in place, as Rectangle does,
+   would feed a corrected value back in and give
+   (A + (A+B)/2 + (A+C)/2 + D)/4 instead of (A+B+C+D)/4. So every value is
+   computed from a snapshot of the ORIGINAL slots. In 2D the only master is the
+   anchor corner, which never hangs, which is why that version can work in place.
+
+   Without this an element on the fine side of a seam reads values from 2h away
+   as though they sat on its own corners. Nothing crashes and nothing looks
+   wrong - grad() is simply wrong by O(1) along every seam.
+*/
+template<typename Scalar>
+inline void constrainHangingCorners(const int masterCount[P8EST_CHILDREN],
+                                    const int masters[P8EST_CHILDREN][4],
+                                    Scalar* corner[P8EST_CHILDREN],
+                                    dim_t numComp,
+                                    std::vector<Scalar>& scratch)
+{
+    scratch.resize((size_t) P8EST_CHILDREN * numComp);
+    for (int n = 0; n < P8EST_CHILDREN; ++n)
+        for (dim_t i = 0; i < numComp; ++i)
+            scratch[(size_t) n * numComp + i] = corner[n][i];
+
+    for (int n = 0; n < P8EST_CHILDREN; ++n) {
+        const int k = masterCount[n];
+        if (k == 0)
+            continue;
+        for (dim_t i = 0; i < numComp; ++i) {
+            Scalar s = static_cast<Scalar>(0);
+            for (int j = 0; j < k; ++j)
+                s += scratch[(size_t) masters[n][j] * numComp + i];
+            corner[n][i] = s / static_cast<Scalar>(k);
+        }
+    }
+}
+
+} // anonymous namespace
+
+//private
+template <typename S>
+void Brick::gatherCornersConstrained(const escript::Data& in, long quadIndex,
+                                     dim_t numComp, S sentinel,
+                                     std::vector<S>& corners,
+                                     std::vector<S>& scratch) const
+{
+    const int V = nodes->vnodes;                       // 8
+    corners.resize((size_t) P8EST_CHILDREN * numComp);
+    for (int n = 0; n < P8EST_CHILDREN; ++n) {
+        const index_t id = (index_t) nodes->element_nodes[(size_t) quadIndex * V + n];
+        memcpy(&corners[(size_t) n * numComp], in.getSampleDataRO(id, sentinel),
+               numComp * sizeof(S));
+    }
+
+    int masterCount[P8EST_CHILDREN], masterSlot[P8EST_CHILDREN][4];
+    if (getHangingNodes(nodes->face_code[quadIndex], masterCount, masterSlot)) {
+        S* corner[P8EST_CHILDREN];
+        for (int n = 0; n < P8EST_CHILDREN; ++n)
+            corner[n] = &corners[(size_t) n * numComp];
+        constrainHangingCorners(masterCount, masterSlot, corner, numComp, scratch);
+    }
+}
+
+//private
+template <typename S>
+void Brick::gatherFaceCornersConstrained(const escript::Data& in,
+                                         const borderNodeInfo& b, int face,
+                                         dim_t numComp, S sentinel,
+                                         std::vector<S>& onFace,
+                                         std::vector<S>& corners,
+                                         std::vector<S>& scratch) const
+{
+    onFace.resize((size_t) 4 * numComp);
+
+    // A domain-boundary face is never itself a seam - it has no neighbour at
+    // all - but unlike 2D its CORNERS can still hang: a coarse octant beside it
+    // can have an edge lying in the boundary plane, and the midpoint of that
+    // edge is a corner of this face. So the values have to be constrained here
+    // too, which needs the element they belong to. A domain built before
+    // quadIndex was recorded falls back to reading the slots raw.
+    if (b.quadIndex < 0) {
+        for (int c = 0; c < 4; ++c)
+            memcpy(&onFace[(size_t) c * numComp],
+                   in.getSampleDataRO(b.neighbours[c], sentinel),
+                   numComp * sizeof(S));
+        return;
+    }
+
+    gatherCornersConstrained(in, b.quadIndex, numComp, sentinel, corners, scratch);
+    for (int c = 0; c < 4; ++c)
+        memcpy(&onFace[(size_t) c * numComp],
+               &corners[(size_t) faceCornerSlots[face][c] * numComp],
+               numComp * sizeof(S));
+}
+
+// private
+template <typename S>
 void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
                                            const escript::Data& in,
                                            bool reduced, S sentinel) const
@@ -4414,7 +4535,7 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
         std::vector<S> f_110(numComp);
         std::vector<S> f_111(numComp);
 
-        const int V = nodes->vnodes;
+        std::vector<S> corners, scratch;
         long e = 0;
         for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid)
         {
@@ -4423,17 +4544,18 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
             p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
             for(int q = 0; q < Q; q++, ++e)
             {
-                long ids[8];
-                for(int n = 0; n < V; ++n) ids[n] = (long) nodes->element_nodes[(size_t) e * V + n];
                 const long quadID = e;
-                memcpy(&f_000[0], in.getSampleDataRO(ids[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_001[0], in.getSampleDataRO(ids[1], sentinel), numComp*sizeof(S));
-                memcpy(&f_010[0], in.getSampleDataRO(ids[2], sentinel), numComp*sizeof(S));
-                memcpy(&f_011[0], in.getSampleDataRO(ids[3], sentinel), numComp*sizeof(S));
-                memcpy(&f_100[0], in.getSampleDataRO(ids[4], sentinel), numComp*sizeof(S));
-                memcpy(&f_101[0], in.getSampleDataRO(ids[5], sentinel), numComp*sizeof(S));
-                memcpy(&f_110[0], in.getSampleDataRO(ids[6], sentinel), numComp*sizeof(S));
-                memcpy(&f_111[0], in.getSampleDataRO(ids[7], sentinel), numComp*sizeof(S));
+                // on the fine side of a seam the slots hold masters, not the
+                // corner values; see constrainHangingCorners
+                gatherCornersConstrained(in, e, numComp, sentinel, corners, scratch);
+                memcpy(&f_000[0], &corners[0*numComp], numComp*sizeof(S));
+                memcpy(&f_001[0], &corners[1*numComp], numComp*sizeof(S));
+                memcpy(&f_010[0], &corners[2*numComp], numComp*sizeof(S));
+                memcpy(&f_011[0], &corners[3*numComp], numComp*sizeof(S));
+                memcpy(&f_100[0], &corners[4*numComp], numComp*sizeof(S));
+                memcpy(&f_101[0], &corners[5*numComp], numComp*sizeof(S));
+                memcpy(&f_110[0], &corners[6*numComp], numComp*sizeof(S));
+                memcpy(&f_111[0], &corners[7*numComp], numComp*sizeof(S));
                 S* o = out.getSampleDataRW(quadID, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = (f_000[i] + f_001[i] + f_010[i] + f_011[i] + f_100[i] + f_101[i] + f_110[i] + f_111[i])/static_cast<S>(8);
@@ -4458,7 +4580,7 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
         std::vector<S> f_110(numComp);
         std::vector<S> f_111(numComp);
 
-        const int V = nodes->vnodes;
+        std::vector<S> corners, scratch;
         long e = 0;
         for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
             p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
@@ -4466,26 +4588,23 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
             p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
             for(int q = 0; q < Q; q++, ++e)
             {
-                long ids[8];
-                for(int n = 0; n < V; ++n) ids[n] = (long) nodes->element_nodes[(size_t) e * V + n];
                 const long quadId = e;
 
                 #ifdef OXLEY_ENABLE_DEBUG_INTERPOLATE_QUADIDS
-                    std::cout << "interpolateNodesOnElementsWorker quadID: " << quadId << ", node IDs " << 
-                                        ids[0] << ", " << ids[2] << ", " << 
-                                        ids[1] << ", " << ids[3] <<
-                                        ids[4] << ", " << ids[5] << std::endl;
+                    std::cout << "interpolateNodesOnElementsWorker quadID: " << quadId << std::endl;
                 #endif
 
-                //TODO check order of indices ids[x]
-                memcpy(&f_000[0], in.getSampleDataRO(ids[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_001[0], in.getSampleDataRO(ids[1], sentinel), numComp*sizeof(S));
-                memcpy(&f_010[0], in.getSampleDataRO(ids[2], sentinel), numComp*sizeof(S));
-                memcpy(&f_011[0], in.getSampleDataRO(ids[3], sentinel), numComp*sizeof(S));
-                memcpy(&f_100[0], in.getSampleDataRO(ids[4], sentinel), numComp*sizeof(S));
-                memcpy(&f_101[0], in.getSampleDataRO(ids[5], sentinel), numComp*sizeof(S));
-                memcpy(&f_110[0], in.getSampleDataRO(ids[6], sentinel), numComp*sizeof(S));
-                memcpy(&f_111[0], in.getSampleDataRO(ids[7], sentinel), numComp*sizeof(S));
+                // on the fine side of a seam the slots hold masters, not the
+                // corner values; see constrainHangingCorners
+                gatherCornersConstrained(in, e, numComp, sentinel, corners, scratch);
+                memcpy(&f_000[0], &corners[0*numComp], numComp*sizeof(S));
+                memcpy(&f_001[0], &corners[1*numComp], numComp*sizeof(S));
+                memcpy(&f_010[0], &corners[2*numComp], numComp*sizeof(S));
+                memcpy(&f_011[0], &corners[3*numComp], numComp*sizeof(S));
+                memcpy(&f_100[0], &corners[4*numComp], numComp*sizeof(S));
+                memcpy(&f_101[0], &corners[5*numComp], numComp*sizeof(S));
+                memcpy(&f_110[0], &corners[6*numComp], numComp*sizeof(S));
+                memcpy(&f_111[0], &corners[7*numComp], numComp*sizeof(S));
                 S* o = out.getSampleDataRW(quadId, sentinel);
             #pragma omp parallel for
                 for (index_t i=0; i < numComp; ++i) {
@@ -4524,15 +4643,20 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         std::vector<S> f_101(numComp);
         std::vector<S> f_110(numComp);
         std::vector<S> f_111(numComp);
+        std::vector<S> onFace, corners, scratch;
 
         if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
             for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                 borderNodeInfo tmp = NodeIDsLeft[k];
-                memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
-                memcpy(&f_010[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
-                memcpy(&f_011[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                // a corner of a boundary face can hang on a coarse edge in the
+                // boundary plane; see gatherFaceCornersConstrained
+                gatherFaceCornersConstrained(in, tmp, 0, numComp, sentinel,
+                                             onFace, corners, scratch);
+                memcpy(&f_000[0], &onFace[0*numComp], numComp*sizeof(S));
+                memcpy(&f_001[0], &onFace[2*numComp], numComp*sizeof(S));
+                memcpy(&f_010[0], &onFace[1*numComp], numComp*sizeof(S));
+                memcpy(&f_011[0], &onFace[3*numComp], numComp*sizeof(S));
                 S* o = out.getSampleDataRW(m_faceOffset[0]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = (f_000[i] + f_001[i] + f_010[i] + f_011[i])/static_cast<S>(4);
@@ -4544,10 +4668,14 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
 #pragma omp for nowait
             for (index_t k=0; k<NodeIDsRight.size(); k++) {
                 borderNodeInfo tmp = NodeIDsRight[k];
-                memcpy(&f_100[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_101[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
-                memcpy(&f_110[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
-                memcpy(&f_111[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                // a corner of a boundary face can hang on a coarse edge in the
+                // boundary plane; see gatherFaceCornersConstrained
+                gatherFaceCornersConstrained(in, tmp, 1, numComp, sentinel,
+                                             onFace, corners, scratch);
+                memcpy(&f_100[0], &onFace[0*numComp], numComp*sizeof(S));
+                memcpy(&f_101[0], &onFace[2*numComp], numComp*sizeof(S));
+                memcpy(&f_110[0], &onFace[1*numComp], numComp*sizeof(S));
+                memcpy(&f_111[0], &onFace[3*numComp], numComp*sizeof(S));
                 S* o = out.getSampleDataRW(m_faceOffset[1]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = (f_100[i] + f_101[i] + f_110[i] + f_111[i])/static_cast<S>(4);
@@ -4558,10 +4686,14 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
 #pragma omp for nowait
             for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                 borderNodeInfo tmp = NodeIDsBottom[k];
-                memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
-                memcpy(&f_100[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
-                memcpy(&f_101[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                // a corner of a boundary face can hang on a coarse edge in the
+                // boundary plane; see gatherFaceCornersConstrained
+                gatherFaceCornersConstrained(in, tmp, 2, numComp, sentinel,
+                                             onFace, corners, scratch);
+                memcpy(&f_000[0], &onFace[0*numComp], numComp*sizeof(S));
+                memcpy(&f_001[0], &onFace[2*numComp], numComp*sizeof(S));
+                memcpy(&f_100[0], &onFace[1*numComp], numComp*sizeof(S));
+                memcpy(&f_101[0], &onFace[3*numComp], numComp*sizeof(S));
                 S* o = out.getSampleDataRW(m_faceOffset[2]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = (f_000[i] + f_001[i] + f_100[i] + f_101[i])/static_cast<S>(4);
@@ -4572,10 +4704,14 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
 #pragma omp for nowait
             for (index_t k=0; k<NodeIDsTop.size(); k++) {
                 borderNodeInfo tmp = NodeIDsTop[k];
-                memcpy(&f_010[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_011[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
-                memcpy(&f_110[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
-                memcpy(&f_111[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                // a corner of a boundary face can hang on a coarse edge in the
+                // boundary plane; see gatherFaceCornersConstrained
+                gatherFaceCornersConstrained(in, tmp, 3, numComp, sentinel,
+                                             onFace, corners, scratch);
+                memcpy(&f_010[0], &onFace[0*numComp], numComp*sizeof(S));
+                memcpy(&f_011[0], &onFace[2*numComp], numComp*sizeof(S));
+                memcpy(&f_110[0], &onFace[1*numComp], numComp*sizeof(S));
+                memcpy(&f_111[0], &onFace[3*numComp], numComp*sizeof(S));
                 S* o = out.getSampleDataRW(m_faceOffset[3]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = (f_010[i] + f_011[i] + f_110[i] + f_111[i])/static_cast<S>(4);
@@ -4586,10 +4722,14 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
 #pragma omp for nowait
             for (index_t k=0; k<NodeIDsAbove.size(); k++) {
                 borderNodeInfo tmp = NodeIDsAbove[k];
-                memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_010[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
-                memcpy(&f_100[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
-                memcpy(&f_110[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                // a corner of a boundary face can hang on a coarse edge in the
+                // boundary plane; see gatherFaceCornersConstrained
+                gatherFaceCornersConstrained(in, tmp, 4, numComp, sentinel,
+                                             onFace, corners, scratch);
+                memcpy(&f_000[0], &onFace[0*numComp], numComp*sizeof(S));
+                memcpy(&f_010[0], &onFace[2*numComp], numComp*sizeof(S));
+                memcpy(&f_100[0], &onFace[1*numComp], numComp*sizeof(S));
+                memcpy(&f_110[0], &onFace[3*numComp], numComp*sizeof(S));
                 S* o = out.getSampleDataRW(m_faceOffset[4]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = (f_000[i] + f_010[i] + f_100[i] + f_110[i])/static_cast<S>(4);
@@ -4600,10 +4740,14 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
 #pragma omp for nowait
             for (index_t k=0; k<NodeIDsBelow.size(); k++) {
                 borderNodeInfo tmp = NodeIDsBelow[k];
-                memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_011[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
-                memcpy(&f_101[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
-                memcpy(&f_111[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                // a corner of a boundary face can hang on a coarse edge in the
+                // boundary plane; see gatherFaceCornersConstrained
+                gatherFaceCornersConstrained(in, tmp, 5, numComp, sentinel,
+                                             onFace, corners, scratch);
+                memcpy(&f_001[0], &onFace[0*numComp], numComp*sizeof(S));
+                memcpy(&f_011[0], &onFace[2*numComp], numComp*sizeof(S));
+                memcpy(&f_101[0], &onFace[1*numComp], numComp*sizeof(S));
+                memcpy(&f_111[0], &onFace[3*numComp], numComp*sizeof(S));
                 S* o = out.getSampleDataRW(m_faceOffset[5]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = (f_001[i] + f_011[i] + f_101[i] + f_111[i])/static_cast<S>(4);
@@ -4624,16 +4768,21 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
         std::vector<S> f_101(numComp);
         std::vector<S> f_110(numComp);
         std::vector<S> f_111(numComp);
+        std::vector<S> onFace, corners, scratch;
 
         //TODO fix tmp.neighbours indices below
         if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
             for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                 borderNodeInfo tmp = NodeIDsLeft[k];
-                memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
-                memcpy(&f_010[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
-                memcpy(&f_011[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                // a corner of a boundary face can hang on a coarse edge in the
+                // boundary plane; see gatherFaceCornersConstrained
+                gatherFaceCornersConstrained(in, tmp, 0, numComp, sentinel,
+                                             onFace, corners, scratch);
+                memcpy(&f_000[0], &onFace[0*numComp], numComp*sizeof(S));
+                memcpy(&f_001[0], &onFace[2*numComp], numComp*sizeof(S));
+                memcpy(&f_010[0], &onFace[1*numComp], numComp*sizeof(S));
+                memcpy(&f_011[0], &onFace[3*numComp], numComp*sizeof(S));
                 S* o = out.getSampleDataRW(m_faceOffset[0]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = f_000[i]*c2 + f_011[i]*c0 + c1*(f_001[i] + f_010[i]);
@@ -4647,10 +4796,14 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
     #pragma omp for nowait
             for (index_t k=0; k<NodeIDsRight.size(); k++) {
                 borderNodeInfo tmp = NodeIDsRight[k];
-                memcpy(&f_100[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_101[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
-                memcpy(&f_110[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
-                memcpy(&f_111[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                // a corner of a boundary face can hang on a coarse edge in the
+                // boundary plane; see gatherFaceCornersConstrained
+                gatherFaceCornersConstrained(in, tmp, 1, numComp, sentinel,
+                                             onFace, corners, scratch);
+                memcpy(&f_100[0], &onFace[0*numComp], numComp*sizeof(S));
+                memcpy(&f_101[0], &onFace[2*numComp], numComp*sizeof(S));
+                memcpy(&f_110[0], &onFace[1*numComp], numComp*sizeof(S));
+                memcpy(&f_111[0], &onFace[3*numComp], numComp*sizeof(S));
                 S* o = out.getSampleDataRW(m_faceOffset[1]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = f_100[i]*c2 + f_111[i]*c0 + c1*(f_101[i] + f_110[i]);
@@ -4664,10 +4817,14 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
     #pragma omp for nowait
              for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                 borderNodeInfo tmp = NodeIDsBottom[k];
-                memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
-                memcpy(&f_100[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
-                memcpy(&f_101[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                // a corner of a boundary face can hang on a coarse edge in the
+                // boundary plane; see gatherFaceCornersConstrained
+                gatherFaceCornersConstrained(in, tmp, 2, numComp, sentinel,
+                                             onFace, corners, scratch);
+                memcpy(&f_000[0], &onFace[0*numComp], numComp*sizeof(S));
+                memcpy(&f_001[0], &onFace[2*numComp], numComp*sizeof(S));
+                memcpy(&f_100[0], &onFace[1*numComp], numComp*sizeof(S));
+                memcpy(&f_101[0], &onFace[3*numComp], numComp*sizeof(S));
                 S* o = out.getSampleDataRW(m_faceOffset[2]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = f_000[i]*c2 + f_101[i]*c0 + c1*(f_001[i] + f_100[i]);
@@ -4681,10 +4838,14 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
     #pragma omp for nowait
             for (index_t k=0; k<NodeIDsTop.size(); k++) {
             borderNodeInfo tmp = NodeIDsTop[k];
-                memcpy(&f_010[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_011[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
-                memcpy(&f_110[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
-                memcpy(&f_111[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                // a corner of a boundary face can hang on a coarse edge in the
+                // boundary plane; see gatherFaceCornersConstrained
+                gatherFaceCornersConstrained(in, tmp, 3, numComp, sentinel,
+                                             onFace, corners, scratch);
+                memcpy(&f_010[0], &onFace[0*numComp], numComp*sizeof(S));
+                memcpy(&f_011[0], &onFace[2*numComp], numComp*sizeof(S));
+                memcpy(&f_110[0], &onFace[1*numComp], numComp*sizeof(S));
+                memcpy(&f_111[0], &onFace[3*numComp], numComp*sizeof(S));
                 S* o = out.getSampleDataRW(m_faceOffset[3]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = f_010[i]*c2 + f_111[i]*c0 + c1*(f_011[i] + f_110[i]);
@@ -4698,10 +4859,14 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
     #pragma omp for nowait
             for (index_t k=0; k<NodeIDsAbove.size(); k++) {
             borderNodeInfo tmp = NodeIDsAbove[k];
-                memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_010[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
-                memcpy(&f_100[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
-                memcpy(&f_110[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                // a corner of a boundary face can hang on a coarse edge in the
+                // boundary plane; see gatherFaceCornersConstrained
+                gatherFaceCornersConstrained(in, tmp, 4, numComp, sentinel,
+                                             onFace, corners, scratch);
+                memcpy(&f_000[0], &onFace[0*numComp], numComp*sizeof(S));
+                memcpy(&f_010[0], &onFace[2*numComp], numComp*sizeof(S));
+                memcpy(&f_100[0], &onFace[1*numComp], numComp*sizeof(S));
+                memcpy(&f_110[0], &onFace[3*numComp], numComp*sizeof(S));
                 S* o = out.getSampleDataRW(m_faceOffset[4]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = f_000[i]*c2 + f_110[i]*c0 + c1*(f_010[i] + f_100[i]);
@@ -4715,10 +4880,14 @@ void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Dat
     #pragma omp for nowait
             for (index_t k=0; k<NodeIDsBelow.size(); k++) {
             borderNodeInfo tmp = NodeIDsBelow[k];
-                memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_011[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
-                memcpy(&f_101[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
-                memcpy(&f_111[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                // a corner of a boundary face can hang on a coarse edge in the
+                // boundary plane; see gatherFaceCornersConstrained
+                gatherFaceCornersConstrained(in, tmp, 5, numComp, sentinel,
+                                             onFace, corners, scratch);
+                memcpy(&f_001[0], &onFace[0*numComp], numComp*sizeof(S));
+                memcpy(&f_011[0], &onFace[2*numComp], numComp*sizeof(S));
+                memcpy(&f_101[0], &onFace[1*numComp], numComp*sizeof(S));
+                memcpy(&f_111[0], &onFace[3*numComp], numComp*sizeof(S));
                 S* o = out.getSampleDataRW(m_faceOffset[5]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = f_001[i]*c2 + f_111[i]*c0 + c1*(f_011[i] + f_101[i]);
@@ -5107,9 +5276,7 @@ void Brick::updateFaceElementCount()
     //   3 Top    y = ymax (+y)   : (x,z)      : 2,3,6,7
     //   4 (z-min, normal -z)     : (x,y)      : 0,1,2,3
     //   5 (z-max, normal +z)     : (x,y)      : 4,5,6,7
-    static const int faceCorners[6][4] = {
-        {0,2,4,6}, {1,3,5,7}, {0,1,4,5}, {2,3,6,7}, {0,1,2,3}, {4,5,6,7}
-    };
+    // faceCornerSlots, at the top of this file, is that table.
 
     for(int i = 0; i < 6; ++i)
         m_faceCount[i] = 0;
@@ -5146,10 +5313,13 @@ void Brick::updateFaceElementCount()
                 if(!onFace[fc]) continue;
                 borderNodeInfo tmp;
                 for(int c = 0; c < 4; ++c)
-                    tmp.neighbours[c] = (int) nodes->element_nodes[(size_t) e * V + faceCorners[fc][c]];
+                    tmp.neighbours[c] = (int) nodes->element_nodes[(size_t) e * V + faceCornerSlots[fc][c]];
                 tmp.nodeid  = tmp.neighbours[0];
                 tmp.x = quad->x; tmp.y = quad->y; tmp.z = quad->z;
                 tmp.level = quad->level; tmp.treeid = treeid;
+                // the way back to this element's face_code, which says which of
+                // the neighbours above are hanging slots holding a master
+                tmp.quadIndex = e;
                 lists[fc]->push_back(tmp);
                 m_faceCount[fc]++;
             }
@@ -5326,7 +5496,6 @@ void Brick::assembleGradientImpl(escript::Data& out,
                                  const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
-    const int V = nodes->vnodes;   // 8
     const Scalar zero = static_cast<Scalar>(0);
 
     // reference shape gradients at the 8 Gauss points (2x2x2) and at the centre.
@@ -5345,43 +5514,131 @@ void Brick::assembleGradientImpl(escript::Data& out,
         gradCtr[a][0]=sx*0.25; gradCtr[a][1]=sy*0.25; gradCtr[a][2]=sz*0.25;
     }
 
-    const bool reduced = (out.getFunctionSpace().getTypeCode() == ReducedElements
-                       || out.getFunctionSpace().getTypeCode() == ReducedFaceElements);
+    const int fsType = out.getFunctionSpace().getTypeCode();
+    const bool reduced = (fsType == ReducedElements || fsType == ReducedFaceElements);
+    const bool onBoundary = (fsType == FaceElements || fsType == ReducedFaceElements);
+    if (fsType != Elements && fsType != ReducedElements && !onBoundary)
+        throw ValueError("Gradient: unsupported function space.");
     out.requireWrite();
 
-    long e = 0;
-    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid)
-    {
-        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-        for(int q = 0; q < Q; ++q, ++e)
+    // On the fine side of a seam a corner slot holds a master rather than the
+    // value at that corner, so the values are read through
+    // gatherCornersConstrained rather than straight out of the samples.
+    std::vector<Scalar> corners, scratch;
+
+    if (!onBoundary) {
+        long e = 0;
+        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid)
         {
-            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-            const double hh = (double)(1 << quad->level);
-            const double h[3] = { m_NX[0]/hh, m_NX[1]/hh, m_NX[2]/hh };
+            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+            sc_array_t * tquadrants = &tree->quadrants;
+            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+            for(int q = 0; q < Q; ++q, ++e)
+            {
+                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+                const double hh = (double)(1 << quad->level);
+                const double h[3] = { m_NX[0]/hh, m_NX[1]/hh, m_NX[2]/hh };
 
-            // node values of the input field (indexed by lnode id == dof id serially)
-            const Scalar* f[8];
-            for(int a=0;a<8;++a)
-                f[a] = in.getSampleDataRO((index_t) nodes->element_nodes[(size_t) e*V + a], zero);
+                // node values of the input field (indexed by lnode id == dof id serially)
+                gatherCornersConstrained(in, e, numComp, zero, corners, scratch);
+                const Scalar* f[8];
+                for(int a=0;a<8;++a)
+                    f[a] = &corners[(size_t) a*numComp];
 
-            Scalar* o = out.getSampleDataRW(e, zero);
-            if(reduced) {
-                for(index_t i=0;i<numComp;++i)
-                    for(int d=0;d<3;++d) {
-                        Scalar s = zero;
-                        for(int a=0;a<8;++a) s += f[a][i]*(gradCtr[a][d]/h[d]);
-                        o[INDEX2(i,d,numComp)] = s;
-                    }
-            } else {
-                for(int g=0;g<8;++g)
+                Scalar* o = out.getSampleDataRW(e, zero);
+                if(reduced) {
                     for(index_t i=0;i<numComp;++i)
                         for(int d=0;d<3;++d) {
                             Scalar s = zero;
-                            for(int a=0;a<8;++a) s += f[a][i]*(gradRef[a][g][d]/h[d]);
-                            o[INDEX3(i,d,g,numComp,3)] = s;
+                            for(int a=0;a<8;++a) s += f[a][i]*(gradCtr[a][d]/h[d]);
+                            o[INDEX2(i,d,numComp)] = s;
                         }
+                } else {
+                    for(int g=0;g<8;++g)
+                        for(index_t i=0;i<numComp;++i)
+                            for(int d=0;d<3;++d) {
+                                Scalar s = zero;
+                                for(int a=0;a<8;++a) s += f[a][i]*(gradRef[a][g][d]/h[d]);
+                                o[INDEX3(i,d,g,numComp,3)] = s;
+                            }
+                }
+            }
+        }
+    } else {
+        // The boundary faces. There was no branch for them at all: the loop
+        // above wrote one element-shaped sample per octant into a Data holding
+        // one face-shaped sample per boundary face, which ran off the end of the
+        // buffer and corrupted the heap - reproducibly, on a uniform forest.
+        //
+        // A face's quadrature points lie ON the face, so the trilinear
+        // interpolant is evaluated with the normal coordinate fixed at the face
+        // (0 or 1). That is the same convention Rectangle uses in 2D, where it
+        // shows up as the tangential derivative being a plain difference of the
+        // two values on the face.
+        //
+        // The point order is the one interpolateNodesOnFaces writes, so that
+        // getX() and grad() on FunctionOnBoundary speak about the same points:
+        // g = ia + 2*ib over the face's two in-plane axes in increasing order,
+        // each running (clo, chi). A reduced face has the single centre point.
+        const std::vector<borderNodeInfo>* lists[6] = {
+            &NodeIDsLeft, &NodeIDsRight, &NodeIDsBottom, &NodeIDsTop,
+            &NodeIDsAbove, &NodeIDsBelow };
+        const int numPoints = reduced ? 1 : 4;
+
+        for(int fc = 0; fc < 6; ++fc)
+        {
+            if(m_faceOffset[fc] < 0)
+                continue;
+            const int nrm = fc / 2;                     // axis normal to the face
+            const double nu = (fc % 2) ? 1.0 : 0.0;     // which end of that axis
+            const int axisA = (nrm == 0) ? 1 : 0;       // the other two, in order
+            const int axisB = (nrm == 2) ? 1 : 2;
+            const std::vector<borderNodeInfo>& L = *lists[fc];
+
+            for(index_t k = 0; k < (index_t) L.size(); ++k)
+            {
+                const borderNodeInfo& b = L[k];
+                if(b.quadIndex < 0)
+                    throw OxleyException("Gradient: the boundary face list does "
+                            "not say which element a face belongs to.");
+                const double hh = (double)(1 << b.level);
+                const double h[3] = { m_NX[0]/hh, m_NX[1]/hh, m_NX[2]/hh };
+
+                gatherCornersConstrained(in, b.quadIndex, numComp, zero,
+                                         corners, scratch);
+
+                Scalar* o = out.getSampleDataRW(m_faceOffset[fc]+k, zero);
+                for(int g = 0; g < numPoints; ++g)
+                {
+                    double xi[3];
+                    xi[nrm] = nu;
+                    if(reduced) {
+                        xi[axisA] = xi[axisB] = 0.5;
+                    } else {
+                        xi[axisA] = (g & 1) ? chi : clo;
+                        xi[axisB] = (g & 2) ? chi : clo;
+                    }
+                    double dN[8][3];
+                    for(int a = 0; a < 8; ++a) {
+                        const int pa=a&1, qa=(a>>1)&1, ra=(a>>2)&1;
+                        const double X = pa ? xi[0] : 1.0-xi[0];
+                        const double Y = qa ? xi[1] : 1.0-xi[1];
+                        const double Z = ra ? xi[2] : 1.0-xi[2];
+                        dN[a][0] = (pa?1.0:-1.0)*Y*Z;
+                        dN[a][1] = X*(qa?1.0:-1.0)*Z;
+                        dN[a][2] = X*Y*(ra?1.0:-1.0);
+                    }
+                    for(index_t i = 0; i < numComp; ++i)
+                        for(int d = 0; d < 3; ++d) {
+                            Scalar s = zero;
+                            for(int a = 0; a < 8; ++a)
+                                s += corners[(size_t) a*numComp+i]*(dN[a][d]/h[d]);
+                            if(reduced)
+                                o[INDEX2(i,d,numComp)] = s;
+                            else
+                                o[INDEX3(i,d,g,numComp,3)] = s;
+                        }
+                }
             }
         }
     }
