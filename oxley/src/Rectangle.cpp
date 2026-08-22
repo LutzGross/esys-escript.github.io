@@ -3234,6 +3234,7 @@ MeshAccess Rectangle::getMeshAccess(bool materializeHanging) const
     // node as the key naming it across ranks.
     {
         const int size = m_mpiInfo->size;
+        const int slots = slotsPerElement(2);
         std::vector<long> realOffset(size + 1, 0);
         m.finleyDistribution.assign(size + 1, 0);
         for (int r = 0; r < size; ++r) {
@@ -3241,7 +3242,7 @@ MeshAccess Rectangle::getMeshAccess(bool materializeHanging) const
                              - (long) p4est->global_first_quadrant[r];
             realOffset[r+1] = realOffset[r] + ownedPerRank[r];
             m.finleyDistribution[r+1] = m.finleyDistribution[r]
-                                      + ownedPerRank[r] + 4 * quads;
+                                      + ownedPerRank[r] + slots * quads;
         }
 
         // lnodes nodes keep their position within their owner's block. The
@@ -3263,7 +3264,7 @@ MeshAccess Rectangle::getMeshAccess(bool materializeHanging) const
             const long firstQuad = (long) p4est->global_first_quadrant[s.owner];
             m.nodeFinleyId[m.constrainedNodes[si]] =
                     m.finleyDistribution[s.owner] + ownedPerRank[s.owner]
-                  + 4 * (s.globalQuad - firstQuad) + s.face;
+                  + slots * (s.globalQuad - firstQuad) + s.face;
         }
     }
 

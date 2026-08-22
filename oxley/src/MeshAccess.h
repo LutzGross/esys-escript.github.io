@@ -194,7 +194,46 @@ struct MeshAccess
     /// no other way to reach it - the node is a corner of the finer neighbour,
     /// so it is absent from this element's own corner list.
     std::vector<long> elementFaceHangingNode;
+    /// 3D only: the same for the twelve EDGES of an element, p8est edge order,
+    /// size numElements*12. 2D has no such thing - a quad's boundary is made of
+    /// faces alone - but in 3D an edge midpoint can hang with both its faces
+    /// conforming, where only a diagonal neighbour is finer. It is a vertex of
+    /// the element's simplices exactly like a face centre.
+    std::vector<long> elementEdgeHangingNode;
+
+    /// 3D only, and filled by the EXPORT rather than by the domain: the node at
+    /// the centre of each element, or -1 where the element needs none. A
+    /// hanging octant is coned from its centre - no corner of it will serve, see
+    /// OCTANT_CENTRE_SLOT_3D - and that node is a node of the exported mesh and
+    /// of nothing else, so the domain has no reason to know about it.
+    std::vector<long> elementCentreNode;
 };
+
+// ---------------------------------------------------------------------------
+// Slots reserved per octant in the export's node numbering.
+//
+// The numbering is DERIVED rather than agreed (see nodeFinleyId above), so each
+// octant reserves a fixed block wide enough for every hanging position it could
+// own, whether or not any of them exist. 2D needs one per face. 3D needs one per
+// face for the face centres, one per edge for the edge midpoints, and one more
+// for the octant centre, which is not a hanging position at all: it is the apex
+// the export cones a hanging octant from, and being strictly interior it belongs
+// to that octant alone and is seen by no other rank.
+//
+// The unused slots are holes in the id space. They cost a constant factor on
+// finley's temporary labelling buffer and are packed away by
+// createDenseDOFLabeling; the alternative, numbering only the positions that
+// exist, would need the two sides of every seam to agree on a count first.
+// ---------------------------------------------------------------------------
+const int SLOTS_PER_QUAD_2D = 4;
+const int SLOTS_PER_OCTANT_3D = 19;
+const int OCTANT_CENTRE_SLOT_3D = 18;
+
+/// slots an element of this dimension reserves
+inline int slotsPerElement(int numDim)
+{
+    return (numDim == 2) ? SLOTS_PER_QUAD_2D : SLOTS_PER_OCTANT_3D;
+}
 
 /// Materialised hanging nodes already created, keyed by position quantised to
 /// 1e-9, so the fine elements meeting at one hanging position share a node.

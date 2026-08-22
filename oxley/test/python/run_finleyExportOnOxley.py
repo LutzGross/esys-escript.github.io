@@ -66,6 +66,7 @@ from esys.oxley import (Rectangle, Brick, toFinleyData, fromFinleyData,
 
 # REQUIRED: registers the concrete finley domain type with boost::python, or
 # toFinley() hands back a base Domain with no getDescription
+import oxley_meshes
 import esys.finley
 
 # Cases chosen from a survey of what p4est_balance actually produces. Blocks
@@ -773,9 +774,24 @@ CASES_3D = [
     ("oblong", dict(n0=3, n1=2, n2=1, l0=1.5, l1=2., l2=3., refine_level=1)),
 ]
 
+# The GRADED forests, from the shared table, are what the tetrahedral split has
+# to cope with. A 2:1 seam in 3D puts a node at the centre of a coarse FACE and
+# at the midpoints of its four EDGES, and an edge can hang on its own where only
+# a diagonal neighbour is finer - so a coarse octant's faces are polygons of up
+# to eight vertices, and it is coned from its own CENTRE rather than a corner,
+# no corner of it serving once a face hangs.
+#
+# Everything asserted below holds on these too, with one exception that is its
+# own class: a field the export cannot represent is no longer copied exactly,
+# because the export has nodes the forest does not.
+GRADED_3D = [("seam", oxley_meshes.SEAM_3D),
+             ("mixed", oxley_meshes.MIXED_3D),
+             ("isolated", oxley_meshes.ISOLATED_3D)]
 
-def forest3D(**kwargs):
-    return Brick(**kwargs)
+CONFORMING_FORESTS_3D = [(n, (lambda kw=kw: Brick(**kw))) for n, kw in CASES_3D]
+GRADED_FORESTS_3D = [(n, (lambda l=l: oxley_meshes.graded3D(l)))
+                     for n, l in GRADED_3D]
+FORESTS_3D = CONFORMING_FORESTS_3D + GRADED_FORESTS_3D
 
 
 class Test_ContinuousFunctionTransfer3D(unittest.TestCase):
@@ -787,8 +803,8 @@ class Test_ContinuousFunctionTransfer3D(unittest.TestCase):
     the seam nodes are averages.
     """
     def test_any_field_is_exact_both_ways(self):
-        for name, kw in CASES_3D:
-            dom = forest3D(**kw)
+        for name, make in CONFORMING_FORESTS_3D:
+            dom = make()
             fin = dom.toFinley()
             x, xf = ContinuousFunction(dom).getX(), ContinuousFunction(fin).getX()
             u = sin(3.*x[0]) * cos(2.*x[1]) * exp(x[2])
@@ -799,7 +815,7 @@ class Test_ContinuousFunctionTransfer3D(unittest.TestCase):
                              "%s: the way home is not exact" % name)
 
     def test_vector_data(self):
-        dom = forest3D(**CASES_3D[0][1])
+        dom = CONFORMING_FORESTS_3D[0][1]()
         fin = dom.toFinley()
         v = ContinuousFunction(dom).getX()
         self.assertEqual(Lsup(fromFinleyData(toFinleyData(v, fin), dom) - v), 0.)
@@ -812,8 +828,8 @@ class Test_ReducedFunctionTransfer3D(unittest.TestCase):
     cone split the export emitted, so the finley side never sends volumes.
     """
     def test_replicate_then_average_is_the_identity(self):
-        for name, kw in CASES_3D:
-            dom = forest3D(**kw)
+        for name, make in FORESTS_3D:
+            dom = make()
             fin = dom.toFinley()
             x = ReducedFunction(dom).getX()
             u = 1. + x[0]*x[1]*x[2]
@@ -822,8 +838,8 @@ class Test_ReducedFunctionTransfer3D(unittest.TestCase):
                             "%s: the round trip changed the field" % name)
 
     def test_integral_is_preserved_both_ways(self):
-        for name, kw in CASES_3D:
-            dom = forest3D(**kw)
+        for name, make in FORESTS_3D:
+            dom = make()
             fin = dom.toFinley()
             x = ReducedFunction(dom).getX()
             u = 1. + x[0]*x[1]*x[2]
@@ -837,7 +853,7 @@ class Test_ReducedFunctionTransfer3D(unittest.TestCase):
                                    "(%.12g -> %.12g)" % (name, c, d))
 
     def test_constant_survives_the_split(self):
-        dom = forest3D(**CASES_3D[2][1])
+        dom = CONFORMING_FORESTS_3D[2][1]()
         home = fromFinleyReducedData(Data(2.5, ReducedFunction(dom.toFinley())),
                                      dom)
         self.assertLess(Lsup(home - 2.5), 1e-14)
@@ -864,8 +880,8 @@ class Test_BoundaryTransfer3D(unittest.TestCase):
     the sharpest form of that check.
     """
     def test_face_bilinear_is_exact_outbound(self):
-        for name, kw in CASES_3D:
-            dom = forest3D(**kw)
+        for name, make in FORESTS_3D:
+            dom = make()
             fin = dom.toFinley()
             x, xf = FunctionOnBoundary(dom).getX(), FunctionOnBoundary(fin).getX()
             u = x[0]*x[1] + x[1]*x[2] + x[2]*x[0]
@@ -874,8 +890,8 @@ class Test_BoundaryTransfer3D(unittest.TestCase):
             self.assertLess(err, 1e-12, "%s: %g" % (name, err))
 
     def test_linear_is_exact_inbound(self):
-        for name, kw in CASES_3D:
-            dom = forest3D(**kw)
+        for name, make in FORESTS_3D:
+            dom = make()
             fin = dom.toFinley()
             for label, fs in (("FunctionOnBoundary", FunctionOnBoundary),
                               ("ReducedFunctionOnBoundary",
@@ -887,8 +903,8 @@ class Test_BoundaryTransfer3D(unittest.TestCase):
                 self.assertLess(err, 1e-12, "%s/%s: %g" % (name, label, err))
 
     def test_round_trip_is_exact_for_a_linear_field(self):
-        for name, kw in CASES_3D:
-            dom = forest3D(**kw)
+        for name, make in FORESTS_3D:
+            dom = make()
             fin = dom.toFinley()
             for label, fs in (("FunctionOnBoundary", FunctionOnBoundary),
                               ("ReducedFunctionOnBoundary",
@@ -904,8 +920,8 @@ class Test_BoundaryTransfer3D(unittest.TestCase):
         replicate onto the two triangles, then average them by area: the
         weights sum to one, so ANY field survives - nonlinear included
         """
-        for name, kw in CASES_3D:
-            dom = forest3D(**kw)
+        for name, make in FORESTS_3D:
+            dom = make()
             fin = dom.toFinley()
             x = ReducedFunctionOnBoundary(dom).getX()
             u = sin(3.*x[0]) * cos(2.*x[1]) * x[2]
@@ -914,8 +930,8 @@ class Test_BoundaryTransfer3D(unittest.TestCase):
             self.assertLess(err, 1e-14, "%s: %g" % (name, err))
 
     def test_surface_integral_is_preserved(self):
-        for name, kw in CASES_3D:
-            dom = forest3D(**kw)
+        for name, make in FORESTS_3D:
+            dom = make()
             fin = dom.toFinley()
             for label, fs in (("FunctionOnBoundary", FunctionOnBoundary),
                               ("ReducedFunctionOnBoundary",
@@ -935,8 +951,8 @@ class Test_BoundaryTransfer3D(unittest.TestCase):
         must receive the same one. It also says the split kept the winding, so
         the outward normal stayed outward.
         """
-        for name, kw in CASES_3D:
-            dom = forest3D(**kw)
+        for name, make in FORESTS_3D:
+            dom = make()
             fin = dom.toFinley()
             moved = toFinleyBoundaryData(FunctionOnBoundary(dom).getNormal(),
                                          fin)
@@ -965,8 +981,8 @@ class Test_FunctionTransfer3D(unittest.TestCase):
     TOL = 1e-12
 
     def test_trilinear_is_exact_outbound(self):
-        for name, kw in CASES_3D:
-            dom = forest3D(**kw)
+        for name, make in FORESTS_3D:
+            dom = make()
             fin = dom.toFinley()
             x, xf = Function(dom).getX(), Function(fin).getX()
             err = Lsup(toFinleyFunctionData(x[0]*x[1]*x[2], fin)
@@ -974,8 +990,8 @@ class Test_FunctionTransfer3D(unittest.TestCase):
             self.assertLess(err, self.TOL, "%s: %g" % (name, err))
 
     def test_linear_is_exact_inbound(self):
-        for name, kw in CASES_3D:
-            dom = forest3D(**kw)
+        for name, make in FORESTS_3D:
+            dom = make()
             fin = dom.toFinley()
             x, xf = Function(dom).getX(), Function(fin).getX()
             err = Lsup(fromFinleyFunctionData(1.+2.*xf[0]+3.*xf[1]-xf[2], dom)
@@ -983,8 +999,8 @@ class Test_FunctionTransfer3D(unittest.TestCase):
             self.assertLess(err, self.TOL, "%s: %g" % (name, err))
 
     def test_round_trip_is_exact_for_a_linear_field(self):
-        for name, kw in CASES_3D:
-            dom = forest3D(**kw)
+        for name, make in FORESTS_3D:
+            dom = make()
             fin = dom.toFinley()
             x = Function(dom).getX()
             u = 1. + 2.*x[0] + 3.*x[1] - x[2]
@@ -993,13 +1009,37 @@ class Test_FunctionTransfer3D(unittest.TestCase):
             self.assertLess(err, self.TOL, "%s: %g" % (name, err))
 
     def test_integral_is_preserved_outbound(self):
-        for name, kw in CASES_3D:
-            dom = forest3D(**kw)
+        """
+        On a CONFORMING octant only. The four-point rule is not exact for the
+        xyz term of the trilinear interpolant on a single tetrahedron, and what
+        makes the integral come out right is that the error cancels over the six
+        of the cone. A hanging octant is coned from its centre into anything
+        from twelve to forty-eight tetrahedra of unequal volume, and nothing
+        makes those errors cancel - measured at a few times 1e-6 relative on the
+        simplest seam. What survives there is the linear case below.
+        """
+        for name, make in CONFORMING_FORESTS_3D:
+            dom = make()
             fin = dom.toFinley()
             x = Function(dom).getX()
             w = sin(2.*x[0]) * cos(x[1]) * exp(x[2])
             a, b = integrate(w), integrate(toFinleyFunctionData(w, fin))
             self.assertAlmostEqual(a, b, 10, "%s: %.12g -> %.12g" % (name, a, b))
+
+    def test_a_linear_integral_is_preserved_on_any_forest(self):
+        """
+        A linear field is reproduced exactly at every point of the octant, and
+        the four-point rule is exact to degree two, so the tetrahedra integrate
+        it exactly however the octant was cut. This is the part of the claim
+        above that does not depend on a cancellation.
+        """
+        for name, make in FORESTS_3D:
+            dom = make()
+            fin = dom.toFinley()
+            x = Function(dom).getX()
+            w = 1. + 2.*x[0] + 3.*x[1] - x[2]
+            a, b = integrate(w), integrate(toFinleyFunctionData(w, fin))
+            self.assertAlmostEqual(a, b, 12, "%s: %.12g -> %.12g" % (name, a, b))
 
 
 class Test_ComplexTransfer3D(unittest.TestCase):
@@ -1010,7 +1050,7 @@ class Test_ComplexTransfer3D(unittest.TestCase):
     nor dropped, which is why they are different functions of position here.
     """
     def setUp(self):
-        self.dom = forest3D(**CASES_3D[0][1])
+        self.dom = CONFORMING_FORESTS_3D[0][1]()
         self.fin = self.dom.toFinley()
 
     def tearDown(self):
@@ -1050,16 +1090,103 @@ class Test_ComplexTransfer3D(unittest.TestCase):
         self.assertLess(Lsup(fromFinleyFunctionData(uf, self.dom) - u), 1e-12)
 
 
-class Test_GradedForestIsStillRefused3D(unittest.TestCase):
+class Test_GradedForestExports3D(unittest.TestCase):
     """
-    The transfers are 3D now; the tetrahedral SPLIT still is not. A graded 3D
-    forest must be refused rather than exported wrongly.
+    The tetrahedral split on a forest with 2:1 seams.
+
+    What is NOT tested here is conformity, and deliberately: a globally linear
+    field lies in both triangulations of a planar quad, so a patch test passes
+    at machine precision on a mesh full of cracks, and so do the volume and the
+    surface area. Only the combinatorial face hash sees a mismatched diagonal,
+    which is why that check lives inside the converter and runs on every export.
+    These are the checks that catch the OTHER failures - a piece of the forest
+    left uncovered, a face element that missed its triangles, a tetrahedron
+    turned inside out.
     """
-    def test_graded_brick_is_refused(self):
-        dom = Brick(n0=2, n1=2, n2=2, l0=1., l1=1., l2=1.,
-                    refine_level=[[[2, 1], [1, 2]], [[1, 2], [2, 1]]])
+    def test_the_split_covers_the_forest(self):
+        for name, make in GRADED_FORESTS_3D:
+            fin = make().toFinley()
+            v = integrate(Scalar(1., Function(fin)))
+            self.assertAlmostEqual(v, 1., 10,
+                                   "%s: the tetrahedra fill %.15g of the unit "
+                                   "cube" % (name, v))
+
+    def test_the_boundary_is_closed(self):
+        """
+        Six unit faces. A boundary quad whose edges carry hanging midpoints is
+        a polygon of up to eight vertices and becomes up to six triangles; if
+        any of them were dropped, or emitted twice, the area would say so.
+        """
+        for name, make in GRADED_FORESTS_3D:
+            fin = make().toFinley()
+            a = integrate(Scalar(1., FunctionOnBoundary(fin)))
+            self.assertAlmostEqual(a, 6., 10, "%s: surface area %.15g"
+                                   % (name, a))
+
+    def test_a_linear_field_keeps_its_gradient(self):
+        for name, make in GRADED_FORESTS_3D:
+            fin = make().toFinley()
+            x = fin.getX()
+            g = grad(x[0] + 2.*x[1] - 3.*x[2], Function(fin))
+            err = Lsup(g - [1., 2., -3.])
+            self.assertLess(err, 1e-13, "%s: %g" % (name, err))
+
+    def test_the_debug_hex_path_is_still_refused(self):
+        """
+        One element per octant cannot resolve a 2:1 seam, in any dimension.
+        """
+        dom = oxley_meshes.graded3D(oxley_meshes.SEAM_3D)
         self.assertFalse(dom.isConforming())
-        self.assertRaises(RuntimeError, dom.toFinley)
+        self.assertRaises(RuntimeError, lambda: dom.toFinley(simplices=False))
+
+
+class Test_GradedContinuousFunctionTransfer3D(unittest.TestCase):
+    """
+    The one claim that changes on a graded forest.
+
+    The export has nodes the forest does not: a node at every seam position,
+    and one at the centre of every octant that has a hanging node on it - the
+    apex its tetrahedra are coned from, no corner of such an octant serving.
+    Each of them is defined as the AVERAGE of octant corners, so:
+
+      - a LINEAR field is reproduced at every one of them, and crosses exactly;
+      - a field that is not linear differs at those nodes, and there alone;
+      - coming home is exact for ANY field, because oxley's nodes are a subset
+        of the export's and were copied, not interpolated.
+
+    The last two together are what says the extra nodes are the only ones
+    involved: if the copy were wrong anywhere else, the round trip would show it.
+    """
+    def test_linear_is_exact_outbound(self):
+        for name, make in GRADED_FORESTS_3D:
+            dom = make()
+            fin = dom.toFinley()
+            x, xf = ContinuousFunction(dom).getX(), ContinuousFunction(fin).getX()
+            err = Lsup(toFinleyData(1. + 2.*x[0] + 3.*x[1] - x[2], fin)
+                       - (1. + 2.*xf[0] + 3.*xf[1] - xf[2]))
+            self.assertLess(err, 1e-14, "%s: %g" % (name, err))
+
+    def test_a_nonlinear_field_is_not_exact_outbound(self):
+        """
+        The counterpart, and the reason the test above is not vacuous: on a
+        CONFORMING forest every field crosses exactly, so a linear one proves
+        nothing about the averaging rule unless a nonlinear one is seen to fail.
+        """
+        dom = oxley_meshes.graded3D(oxley_meshes.MIXED_3D)
+        fin = dom.toFinley()
+        x, xf = ContinuousFunction(dom).getX(), ContinuousFunction(fin).getX()
+        u = x[0]*x[0] + x[1]*x[2]
+        uf = xf[0]*xf[0] + xf[1]*xf[2]
+        self.assertGreater(Lsup(toFinleyData(u, fin) - uf), 1e-6)
+
+    def test_coming_home_is_exact_for_any_field(self):
+        for name, make in GRADED_FORESTS_3D:
+            dom = make()
+            fin = dom.toFinley()
+            x = ContinuousFunction(dom).getX()
+            u = sin(3.*x[0]) * cos(2.*x[1]) * exp(x[2])
+            self.assertEqual(Lsup(fromFinleyData(toFinleyData(u, fin), dom) - u),
+                             0., "%s: the way home is not a copy" % name)
 
 
 if __name__ == '__main__':

@@ -52,7 +52,7 @@ from test_util_spatial_functions1 import \
         Test_Util_SpatialFunctions_noGradOnBoundary_noContact
 from esys.escript.linearPDEs import Poisson
 from test_linearPDEs import Test_Poisson, Test_LinearPDE_noLumping
-from test_assemblage import Test_assemblage_2Do1
+from test_assemblage import Test_assemblage_2Do1, Test_assemblage_3Do1
 
 import oxley_meshes
 
@@ -66,6 +66,17 @@ except ImportError:
 def converted(levels=None):
     """the finley mesh exported from a graded oxley forest"""
     return oxley_meshes.graded(levels).toFinley()
+
+
+def converted3D(levels=None):
+    """
+    The same in 3D, where the split has more to do: a 2:1 seam puts a node at
+    the centre of a coarse FACE and at the midpoints of its EDGES, and an edge
+    can hang on its own where only a diagonal neighbour is finer. A coarse
+    octant is then coned from its own centre - a node the exported mesh has and
+    the forest does not - into up to forty-eight tetrahedra.
+    """
+    return oxley_meshes.graded3D(levels).toFinley()
 
 
 @unittest.skipIf(not HAVE_FINLEY, "finley not available")
@@ -162,6 +173,42 @@ class Test_LinearPDEOnConvertedMesh(Test_LinearPDE_noLumping,
 
     def setUp(self):
         self.domain = converted()
+        self.order = 1
+
+    def tearDown(self):
+        del self.domain
+
+
+@unittest.skipIf(not HAVE_FINLEY, "finley not available")
+class Test_SpatialFunctionsOnConvertedMesh3D(
+        Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+    """
+    The 3D export, on the same shared suite. What it adds over the 2D case is
+    the tetrahedral split of a hanging octant: faces that are polygons rather
+    than quads, an interior apex, and a boundary quad that becomes up to six
+    triangles rather than two.
+    """
+    def setUp(self):
+        self.order = 1
+        self.domain = converted3D()
+
+    def tearDown(self):
+        del self.order
+        del self.domain
+
+
+@unittest.skipIf(not HAVE_FINLEY, "finley not available")
+class Test_LinearPDEOnConvertedMesh3D(Test_LinearPDE_noLumping,
+                                      Test_assemblage_3Do1):
+    """
+    PDE assembly and solves on the 3D export - P1 on tetrahedra, so the
+    order-1 assemblage tests are the matching ones.
+    """
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+
+    def setUp(self):
+        self.domain = converted3D()
         self.order = 1
 
     def tearDown(self):

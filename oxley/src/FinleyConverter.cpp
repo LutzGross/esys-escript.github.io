@@ -93,10 +93,41 @@ inline double signedArea(const std::vector<double>& X, long a, long b, long c)
 // has is fixed by the mask alone.
 // ---------------------------------------------------------------------------
 
-/// Ids reserved per octant for the simplices it is split into. The 2D split
-/// emits at most 6 (the four-hanging pattern) and the conforming 3D cone 6, so
-/// this covers both; it must grow if the 3D split ever handles hanging faces.
-const int MAX_SIMPLICES = 6;
+/**
+   Ids reserved per element for the simplices it is split into, and per boundary
+   face for the ones IT is split into.
+
+   2D emits at most six triangles, the four-hanging pattern. A conforming octant
+   is six tetrahedra, but a hanging one is coned from its centre over a boundary
+   whose six faces carry up to eight triangles each - a hanging face is four
+   sub-quads of two - so forty-eight. A 2D boundary edge is never split; a 3D
+   boundary quad is two triangles, or up to six when all four of its edges carry
+   a hanging midpoint and it has become an octagon.
+
+   The reservation is what makes the ids DERIVABLE: simplex t of global element
+   Q is Q*maxSimplices + t on every rank, with no map to store and nothing to
+   agree. The unused ids are holes, which finley does not mind - it only stores
+   element ids and hands them back.
+*/
+inline int maxSimplices(int numDim) { return (numDim == 2) ? 6 : 48; }
+inline int maxFaceSimplices(int numDim) { return (numDim == 2) ? 2 : 6; }
+
+/// z-order corner pairs of the twelve octant edges, p8est's own numbering
+const int brickEdgeCorners[12][2] = {
+    {0,1}, {2,3}, {4,5}, {6,7}, {0,2}, {1,3},
+    {4,6}, {5,7}, {0,4}, {1,5}, {2,6}, {3,7} };
+
+/// which edge of an octant joins two of its z-order corners, -1 if they are not
+/// the ends of one
+inline int edgeOfCorners(int a, int b)
+{
+    for (int ed = 0; ed < 12; ++ed) {
+        if ((brickEdgeCorners[ed][0] == a && brickEdgeCorners[ed][1] == b)
+         || (brickEdgeCorners[ed][0] == b && brickEdgeCorners[ed][1] == a))
+            return ed;
+    }
+    return -1;
+}
 
 /// side of the CCW frame -> p4est face index
 const int sideToFace[4] = {2, 1, 3, 0};
@@ -155,17 +186,6 @@ inline void emitTriangle(std::vector<index_t>& elems, std::vector<int>& tags,
     elems.push_back((index_t) b);
     elems.push_back((index_t) c);
     tags.push_back(tag);
-}
-
-/// position within `n` of the entry with the smallest global node id
-template <typename GetId>
-inline int lowestIdPos(const int* corners, int n, GetId gid)
-{
-    int best = 0;
-    for (int k = 1; k < n; ++k)
-        if (gid(corners[k]) < gid(corners[best]))
-            best = k;
-    return best;
 }
 
 /**
@@ -361,55 +381,288 @@ void transferDiracPoints(const OxleyDomain& dom, const MeshAccess& m,
 //       part of it.
 // ---------------------------------------------------------------------------
 
-/// The six tetrahedra one octant splits into, as local node indices, by the
-/// rule and in the order toFinley() emits them - so tet t here carries the id
-/// (global octant)*MAX_SIMPLICES + t there. Recomputed rather than stored, in
-/// the same spirit as splitOfElement.
-void tetSplitOfElement(const MeshAccess& m, const std::vector<long>& gid,
-                       long e, std::array<long,4> tets[6])
+/**
+   The split of one octant, and of one of its faces, recomputed rather than
+   stored - the same spirit as splitOfElement in 2D. Both routines produce
+   exactly what toFinley() emits, and in the same order, so simplex t here
+   carries the id (global octant)*maxSimplices + t there.
+
+   THE RULE, in one line: every face of an octant is fanned from its LOWEST-ID
+   vertex, and a hanging face is not one polygon but the four faces of the finer
+   octants across it, each fanned by that same rule.
+
+   Why the rule has to be a property of the FACE and not of the octant looking at
+   it: two octants share a face, and each has to cut it into the same triangles
+   or the mesh is cracked along it. The lowest-id vertex is the same vertex from
+   either side however the two octants number their own corners. For a plain quad
+   this is the diagonal through the lowest-id corner, which is the rule the
+   conforming split already used - a hanging face just has more vertices.
+
+   And why the hanging face is done as four sub-quads rather than as one octagon:
+   the fine side has already cut it, each of its four octants seeing a plain quad
+   and fanning it. Fanning the octagon instead would be a perfectly good
+   triangulation of the same eight vertices which simply does not MATCH, and a
+   mismatched diagonal is a crack that no physics test can see - a linear field
+   lies in both triangulations. Only the conformity check finds it.
+*/
+
+/// the node at the midpoint of the octant edge joining two of its corners, or -1
+inline long edgeNode(const MeshAccess& m, long e, int a, int b)
+{
+    if (m.elementEdgeHangingNode.empty())
+        return -1;
+    const int ed = edgeOfCorners(a, b);
+    return (ed < 0) ? -1 : m.elementEdgeHangingNode[(size_t) e * 12 + ed];
+}
+
+/**
+   Fans a polygon, keeping the winding it came in with. Returns n-2 triangles.
+
+   From the lowest-id vertex, except that a vertex sitting between two COLLINEAR
+   neighbours - an edge midpoint, where the polygon runs corner, midpoint, corner
+   along one straight edge - is preferred, and among those the lowest-id one.
+
+   The exception is not a nicety. Fanning from either END of such an edge makes
+   the triangle (corner, midpoint, corner), which is three points on a line: a
+   tetrahedron on it has no volume and finley refuses the mesh. Dropping the
+   sliver instead would drop the midpoint with it, and the fine side's node would
+   then be a vertex of nothing on this face - which is the crack the midpoint was
+   there to close. Fanning FROM the midpoint has neither problem: its two
+   collinear neighbours end up at opposite ends of the fan.
+
+   `isMid` marks those positions. Both octants sharing a face see the same
+   vertices with the same ids and the same geometry, so both make the same
+   choice - which is all conformity asks. (The test is structural here because
+   the polygon was built by inserting them, but it is exactly the geometric
+   one: a vertex whose two neighbours are collinear with it.)
+*/
+int fanPolygon(const std::vector<long>& gid, const long* poly, const bool* isMid,
+               int n, std::array<long,3>* tris)
+{
+    int p = -1;
+    for (int i = 0; i < n; ++i) {
+        if (isMid != NULL && !isMid[i])
+            continue;
+        if (p < 0 || gid[poly[i]] < gid[poly[p]])
+            p = i;
+    }
+    if (p < 0) {
+        p = 0;
+        for (int i = 1; i < n; ++i)
+            if (gid[poly[i]] < gid[poly[p]])
+                p = i;
+    }
+    for (int i = 0; i < n - 2; ++i) {
+        tris[i][0] = poly[p];
+        tris[i][1] = poly[(p + 1 + i) % n];
+        tris[i][2] = poly[(p + 2 + i) % n];
+    }
+    return n - 2;
+}
+
+/// The triangles one face of an octant is cut into, wound counter-clockwise as
+/// seen from OUTSIDE. At most eight.
+int faceTriangles(const MeshAccess& m, const std::vector<long>& gid, long e,
+                  int f, std::array<long,3>* tris)
 {
     const int V = m.nodesPerElement;
     const long* en = &m.elementNodes[(size_t) e * V];
-    int apex = 0;
-    for (int c = 1; c < 8; ++c)
-        if (gid[en[c]] < gid[en[apex]])
-            apex = c;
+    const long centre = m.elementFaceHangingNode.empty() ? -1
+                      : m.elementFaceHangingNode[(size_t) e * 6 + f];
 
-    int tet = 0;
-    for (int f = 0; f < 6; ++f) {
-        if (cornerOnFace(apex, f))
-            continue;                        // near face, the cone covers it
-        const int* q = brickFaceCorners[f];
-        const int mpos = lowestIdPos(q, 4,
-                [&](int c) { return gid[en[c]]; });
-        for (int t = 0; t < 2; ++t) {
-            long a = en[apex];
-            long b = en[q[mpos]];
-            long c = en[q[(mpos + 1 + t) % 4]];
-            long d = en[q[(mpos + 2 + t) % 4]];
-            if (signedVolume(m.nodeCoords, a, b, c, d) < 0.)
-                std::swap(c, d);
-            tets[tet][0] = a; tets[tet][1] = b;
-            tets[tet][2] = c; tets[tet][3] = d;
-            ++tet;
+    if (centre >= 0) {
+        int n = 0;
+        for (int k = 0; k < 4; ++k) {
+            const int c = brickFaceCorners[f][k];
+            const int prev = brickFaceCorners[f][(k + 3) & 3];
+            const int next = brickFaceCorners[f][(k + 1) & 3];
+            const long a = edgeNode(m, e, c, next);
+            const long b = edgeNode(m, e, prev, c);
+            if (a < 0 || b < 0)
+                throw OxleyException("faceTriangles: a hanging face has an edge "
+                        "with no midpoint. The finer octants across it subdivide "
+                        "all four, so the seam list has missed one.");
+            const long quad[4] = { en[c], a, centre, b };
+            n += fanPolygon(gid, quad, NULL, 4, tris + n);
+        }
+        return n;
+    }
+
+    long poly[8];
+    bool isMid[8];
+    int np = 0;
+    for (int k = 0; k < 4; ++k) {
+        const int c = brickFaceCorners[f][k];
+        const int next = brickFaceCorners[f][(k + 1) & 3];
+        isMid[np] = false;
+        poly[np++] = en[c];
+        const long mid = edgeNode(m, e, c, next);
+        if (mid >= 0) {
+            isMid[np] = true;
+            poly[np++] = mid;
         }
     }
+    return fanPolygon(gid, poly, isMid, np, tris);
 }
 
-/// The two triangles a boundary quad splits into, as local node indices, in the
-/// order the export gives them the ids ...*2 + t.
-void triSplitOfFace(const MeshAccess& m, const std::vector<long>& gid, long f,
-                    std::array<long,3> tris[2])
+/// One tetrahedron of a cone: an apex over an outward-wound boundary triangle.
+/// The orientation is fixed by MEASURING the signed volume, not by reasoning
+/// about finley's winding convention.
+inline void coneTet(const MeshAccess& m, long apex, const std::array<long,3>& tri,
+                    std::array<long,4>& out)
 {
-    const int FV = m.nodesPerFace;                        // 4
-    const long* fn = &m.faceNodes[(size_t) f * FV];
-    static const int ident[4] = {0, 1, 2, 3};
-    const int mpos = lowestIdPos(ident, 4,
-            [&](int c) { return gid[fn[c]]; });
-    for (int t = 0; t < 2; ++t) {
-        tris[t][0] = fn[mpos];
-        tris[t][1] = fn[(mpos + 1 + t) % 4];
-        tris[t][2] = fn[(mpos + 2 + t) % 4];
+    out[0] = apex; out[1] = tri[0]; out[2] = tri[1]; out[3] = tri[2];
+    if (signedVolume(m.nodeCoords, out[0], out[1], out[2], out[3]) < 0.)
+        std::swap(out[2], out[3]);
+}
+
+/**
+   The tetrahedra one octant splits into. Returns how many, at most 48.
+
+   A CONFORMING octant is coned from its lowest-id corner over the three faces
+   that do not contain it: six tetrahedra, and the three faces that DO contain
+   the apex are covered by the walls of the cone, which fan through the apex -
+   which is the same triangulation they would get anyway, the apex being their
+   lowest vertex too.
+
+   A HANGING octant cannot be coned from any corner. A hanging face's
+   triangulation is fixed by the finer octants across it and is NOT a fan
+   through one of its vertices, so a corner apex lying on such a face would
+   leave the part of the octant under the other sub-quads uncovered - and with
+   all six faces hanging, every corner lies on one. The octant is convex, so its
+   centre always serves; that is the whole reason elementCentreNode exists.
+*/
+int octantSplit(const MeshAccess& m, const std::vector<long>& gid, long e,
+                std::array<long,4>* tets)
+{
+    const int V = m.nodesPerElement;
+    const long* en = &m.elementNodes[(size_t) e * V];
+    const long centre = m.elementCentreNode.empty() ? -1
+                      : m.elementCentreNode[e];
+    std::array<long,3> tris[8];
+    int tet = 0;
+
+    if (centre < 0) {
+        int apex = 0;
+        for (int c = 1; c < 8; ++c)
+            if (gid[en[c]] < gid[en[apex]])
+                apex = c;
+        for (int f = 0; f < 6; ++f) {
+            if (cornerOnFace(apex, f))
+                continue;                    // near face, the cone covers it
+            const int nt = faceTriangles(m, gid, e, f, tris);
+            for (int t = 0; t < nt; ++t)
+                coneTet(m, en[apex], tris[t], tets[tet++]);
+        }
+        return tet;
+    }
+
+    for (int f = 0; f < 6; ++f) {
+        const int nt = faceTriangles(m, gid, e, f, tris);
+        for (int t = 0; t < nt; ++t)
+            coneTet(m, centre, tris[t], tets[tet++]);
+    }
+    return tet;
+}
+
+/// The triangles a boundary quad splits into, in the order the export gives
+/// them the ids base + key*maxFaceSimplices + t. The octant's own split cuts
+/// that face exactly the same way, so the boundary elements sit on the faces of
+/// the tetrahedra rather than across them.
+int boundaryTriangles(const MeshAccess& m, const std::vector<long>& gid, long f,
+                      std::array<long,3>* tris)
+{
+    const long e = m.faceElements.empty() ? 0 : m.faceElements[f];
+    const int dir = (int) (m.faceDirections.empty() ? 0 : m.faceDirections[f]);
+    if (!m.elementFaceHangingNode.empty()
+            && m.elementFaceHangingNode[(size_t) e * 6 + dir] >= 0)
+        throw OxleyException("boundaryTriangles: a face on the domain boundary "
+                "is hanging, so it has a finer neighbour - and then it is not "
+                "on the boundary.");
+    return faceTriangles(m, gid, e, dir, tris);
+}
+
+/**
+   Appends the octant centres the hanging split cones from, one per octant that
+   has any hanging node on it, and records them in elementCentreNode.
+
+   These belong to the export alone. A centre lies strictly inside one octant,
+   so no other octant and no other rank ever names it, and its id comes straight
+   from the slot the numbering reserves for exactly this - no agreement needed,
+   unlike a seam node.
+
+   They are recorded as constrained on the octant's eight corners. That gives the
+   tag inheritance and the nodal transfer the rule they already apply to a seam
+   node, and it is the right rule here: the centre of a trilinear field is the
+   mean of its corners, so a field the export can represent is exact there.
+*/
+void materialiseOctantCentres(MeshAccess& m, int rank)
+{
+    m.elementCentreNode.assign(m.numElements, -1);
+    if (m.numDim != 3 || m.elementFaceHangingNode.empty())
+        return;
+    if ((long) m.nodeFinleyId.size() != m.numNodes)
+        throw OxleyException("materialiseOctantCentres: the mesh view has no "
+                "export numbering, so a centre node cannot be given an id.");
+
+    // widen the constraint arrays: a seam node has at most four masters, an
+    // octant centre has eight
+    const int old = m.mastersPerConstrainedNode;
+    const int mpc = 8;
+    if (old < mpc) {
+        const long n = (long) m.constrainedNodes.size();
+        std::vector<long> masters((size_t) n * mpc, -1);
+        std::vector<double> weights((size_t) n * mpc, 0.);
+        for (long i = 0; i < n; ++i) {
+            for (int k = 0; k < old; ++k) {
+                masters[(size_t) i * mpc + k] =
+                        m.constraintMasters[(size_t) i * old + k];
+                weights[(size_t) i * mpc + k] =
+                        m.constraintWeights[(size_t) i * old + k];
+            }
+        }
+        m.constraintMasters.swap(masters);
+        m.constraintWeights.swap(weights);
+        m.mastersPerConstrainedNode = mpc;
+    }
+
+    const int V = m.nodesPerElement;
+    const long slots = slotsPerElement(3);
+    const long block = m.finleyDistribution[rank] + m.numOwnedNodes;
+    for (long e = 0; e < m.numElements; ++e) {
+        bool hanging = false;
+        for (int f = 0; f < 6 && !hanging; ++f)
+            hanging = m.elementFaceHangingNode[(size_t) e * 6 + f] >= 0;
+        for (int ed = 0; ed < 12 && !hanging; ++ed)
+            hanging = !m.elementEdgeHangingNode.empty()
+                   && m.elementEdgeHangingNode[(size_t) e * 12 + ed] >= 0;
+        if (!hanging)
+            continue;
+
+        const long* en = &m.elementNodes[(size_t) e * V];
+        long masters[8];
+        double mid[3] = {0., 0., 0.};
+        for (int c = 0; c < 8; ++c) {
+            masters[c] = en[c];
+            for (int d = 0; d < 3; ++d)
+                mid[d] += 0.125 * m.nodeCoords[(size_t) en[c] * 3 + d];
+        }
+
+        const long ni = m.numNodes++;
+        for (int d = 0; d < 3; ++d)
+            m.nodeCoords.push_back(mid[d]);
+        m.nodeLnodesId.push_back(-1);
+        if (!m.nodeTags.empty())
+            m.nodeTags.push_back(inheritedTag(m, masters, 8));
+        m.constrainedNodes.push_back(ni);
+        for (int c = 0; c < 8; ++c) {
+            m.constraintMasters.push_back(masters[c]);
+            m.constraintWeights.push_back(0.125);
+        }
+        if (!m.hangingWriterRank.empty())
+            m.hangingWriterRank.push_back(rank);
+        m.nodeFinleyId.push_back(block + slots * e + OCTANT_CENTRE_SLOT_3D);
+        m.elementCentreNode[e] = ni;
     }
 }
 
@@ -539,15 +792,16 @@ void simplexWeights(const MeshAccess& m, const std::vector<long>& gid,
     weight.assign(m.numElements, std::vector<double>());
 
     if (m.numDim == 3) {
-        // six tetrahedra, of equal volume on a conforming octant - but measured
-        // rather than assumed, so the identity survives a change of split
-        std::array<long,4> tets[6];
+        // Six tetrahedra of equal volume on a conforming octant, and anything
+        // from twelve to forty-eight unequal ones on a hanging one - measured
+        // rather than assumed, so the identity survives a change of split.
+        std::array<long,4> tets[48];
         for (long e = 0; e < m.numElements; ++e) {
-            tetSplitOfElement(m, gid, e, tets);
-            count[e] = 6;
-            weight[e].resize(6);
+            const int nt = octantSplit(m, gid, e, tets);
+            count[e] = nt;
+            weight[e].resize(nt);
             double total = 0.;
-            for (int t = 0; t < 6; ++t) {
+            for (int t = 0; t < nt; ++t) {
                 const double v = std::fabs(signedVolume(m.nodeCoords,
                         tets[t][0], tets[t][1], tets[t][2], tets[t][3]));
                 weight[e][t] = v;
@@ -555,7 +809,7 @@ void simplexWeights(const MeshAccess& m, const std::vector<long>& gid,
             }
             if (total <= 0.)
                 throw OxleyException("simplexWeights: an octant has no volume.");
-            for (int t = 0; t < 6; ++t)
+            for (int t = 0; t < nt; ++t)
                 weight[e][t] /= total;
         }
         return;
@@ -597,7 +851,7 @@ void simplexWeights(const MeshAccess& m, const std::vector<long>& gid,
 }
 
 /// Where the face ids start: above every element id, which reserve
-/// MAX_SIMPLICES per octant. Derived from the octant count so that both the
+/// maxSimplices per octant. Derived from the octant count so that both the
 /// converter and a later transfer arrive at the same number. Collective.
 long faceIdBase(const MeshAccess& m, const escript::JMPI& mpi)
 {
@@ -608,7 +862,7 @@ long faceIdBase(const MeshAccess& m, const escript::JMPI& mpi)
         MPI_Allreduce(&local, &octants, 1, MPI_LONG, MPI_SUM, mpi->comm);
     }
 #endif
-    return octants * MAX_SIMPLICES;
+    return octants * maxSimplices(m.numDim);
 }
 
 
@@ -738,10 +992,11 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
                              int reducedOrder, bool optimize, bool simplices)
 {
     const bool conforming = dom.isConforming();     // collective
-    if (!conforming && (!simplices || dom.getDim() != 2))
+    if (!conforming && !simplices)
         throw OxleyException("toFinley: the forest has hanging nodes. Only the "
-                "2D simplex split handles them so far; the 3D split and the "
-                "debug Rec4/Hex8 path still need a conforming forest.");
+                "simplex split handles them; the debug Rec4/Hex8 path needs a "
+                "conforming forest, and always will - one element per octant "
+                "cannot resolve a 2:1 seam.");
 
     // With hanging nodes present the mesh view must materialise them: a hanging
     // position is then a real node with a global id, so it can be a vertex of
@@ -750,7 +1005,10 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
     // is pointwise Dirichlet, not u = (u_a+u_b)/2), so the seam has to be
     // resolved by the triangulation instead - the node becomes an ordinary free
     // degree of freedom.
-    const MeshAccess m = dom.getMeshAccess(!conforming);
+    MeshAccess m = dom.getMeshAccess(!conforming);
+    // and in 3D the split needs one node more per hanging octant, the interior
+    // apex it is coned from; see materialiseOctantCentres()
+    materialiseOctantCentres(m, dom.getMPI()->rank);
     if (m.numDim != 2 && m.numDim != 3) {
         std::stringstream ss;
         ss << "toFinley: unsupported dimension " << m.numDim;
@@ -789,6 +1047,10 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
     // check and the orientation fix can use the coordinates, then translated
     // to global ids at the end.
     std::vector<index_t> elems, faces;
+    // how many face elements each boundary quad became. One, except in 3D,
+    // where a quad is two triangles and up to six once its edges carry hanging
+    // midpoints - and the face ids below have to know which.
+    std::vector<int> facesPerBoundaryQuad(m.numFaces, 1);
 
     if (!simplices) {
         // ---- debug path: one finley element per octant --------------------
@@ -810,7 +1072,7 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
                         (index_t) m.elementNodes[(size_t) e * V + c];
             out.elementTag[e] = (int) m.elementTags[e];
             out.elementId.push_back(
-                    (index_t)((m.globalElementOffset + e) * MAX_SIMPLICES));
+                    (index_t)((m.globalElementOffset + e) * maxSimplices(m.numDim)));
         }
         faces.resize((size_t) m.numFaces * FV);
         out.faceTag.resize(m.numFaces);
@@ -860,11 +1122,11 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
                              v[0], v[1], v[2], (int) m.elementTags[e]);
                 // an id that says which octant this triangle came from, so a
                 // transfer can find its way back without a stored map. Sparse -
-                // an octant reserves MAX_SIMPLICES ids and uses 2 to 6 of them -
+                // an octant reserves maxSimplices ids and uses a few of them -
                 // which finley does not mind: element ids are only stored and
                 // handed back, never used to size anything.
                 out.elementId.push_back(
-                        (index_t)((m.globalElementOffset + e) * MAX_SIMPLICES + t));
+                        (index_t)((m.globalElementOffset + e) * maxSimplices(m.numDim) + t));
             }
         }
         // boundary edges are unchanged by the split: each is an edge of exactly
@@ -879,69 +1141,49 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
         }
 
     } else {
-        // ---- 3D: cone each octant from its lowest-id corner ----------------
-        // over the three faces that do not contain it, each split by the
-        // diagonal through ITS own lowest-id corner. Six tetrahedra. The three
-        // faces that do contain the apex inherit a fan through it, which is the
-        // same rule, because the apex is their lowest corner too.
+        // ---- 3D: cone each octant, and cut every face from its lowest-id
+        // vertex. A conforming octant is coned from its lowest-id CORNER over
+        // the three faces that do not contain it - six tetrahedra - and a
+        // hanging one from its centre over all six. See octantSplit().
         out.elementType = finley::Tet4;
         out.faceElementType = finley::Tri3;
 
+        std::array<long,4> tets[48];
+        std::array<long,3> tris[8];
         elems.reserve((size_t) m.numElements * 6 * 4);
         out.elementTag.reserve(m.numElements * 6);
         for (long e = 0; e < m.numElements; ++e) {
-            const long* en = &m.elementNodes[(size_t) e * V];
-            int apex = 0;
-            for (int c = 1; c < 8; ++c)
-                if (gidOf[en[c]] < gidOf[en[apex]])
-                    apex = c;
-
-            int tet = 0;                // numbers this octant's tets, for its ids
-            for (int f = 0; f < 6; ++f) {
-                if (cornerOnFace(apex, f))
-                    continue;                    // near face, the cone covers it
-                const int* q = brickFaceCorners[f];
-                const int mpos = lowestIdPos(q, 4,
-                        [&](int c) { return gidOf[en[c]]; });
-                for (int t = 0; t < 2; ++t) {
-                    long a = en[apex];
-                    long b = en[q[mpos]];
-                    long c = en[q[(mpos + 1 + t) % 4]];
-                    long d = en[q[(mpos + 2 + t) % 4]];
-                    if (signedVolume(m.nodeCoords, a, b, c, d) < 0.)
-                        std::swap(c, d);
-                    elems.push_back((index_t) a);
-                    elems.push_back((index_t) b);
-                    elems.push_back((index_t) c);
-                    elems.push_back((index_t) d);
-                    out.elementTag.push_back((int) m.elementTags[e]);
-                    out.elementId.push_back((index_t)(
-                            (m.globalElementOffset + e) * MAX_SIMPLICES
-                            + (long) tet++));
-                }
+            const int nt = octantSplit(m, gidOf, e, tets);
+            for (int t = 0; t < nt; ++t) {
+                for (int k = 0; k < 4; ++k)
+                    elems.push_back((index_t) tets[t][k]);
+                out.elementTag.push_back((int) m.elementTags[e]);
+                // an id that says which octant this tetrahedron came from, so a
+                // transfer can find its way back without a stored map
+                out.elementId.push_back((index_t)(
+                        (m.globalElementOffset + e) * maxSimplices(m.numDim) + t));
             }
         }
 
-        // boundary quads split by the same rule, so they match the tet faces.
-        // getMeshAccess() already wound them counter-clockwise seen from
-        // outside, and fanning preserves that, so the normals stay outward.
+        // Boundary quads are cut by the routine the octant's own split uses for
+        // that face, so the triangles are the same triangles - the face elements
+        // sit ON the tetrahedra rather than across them. getMeshAccess() wound
+        // the corners counter-clockwise seen from outside and fanning preserves
+        // that, so the normals stay outward.
         faces.reserve((size_t) m.numFaces * 2 * 3);
         out.faceTag.reserve(m.numFaces * 2);
+        facesPerBoundaryQuad.resize(m.numFaces);
         for (long f = 0; f < m.numFaces; ++f) {
-            const long* fn = &m.faceNodes[(size_t) f * FV];
-            static const int ident[4] = {0, 1, 2, 3};
-            const int mpos = lowestIdPos(ident, 4,
-                    [&](int c) { return gidOf[fn[c]]; });
-            for (int t = 0; t < 2; ++t) {
-                faces.push_back((index_t) fn[mpos]);
-                faces.push_back((index_t) fn[(mpos + 1 + t) % 4]);
-                faces.push_back((index_t) fn[(mpos + 2 + t) % 4]);
+            const int nt = boundaryTriangles(m, gidOf, f, tris);
+            facesPerBoundaryQuad[f] = nt;
+            for (int t = 0; t < nt; ++t) {
+                for (int k = 0; k < 3; ++k)
+                    faces.push_back((index_t) tris[t][k]);
                 out.faceTag.push_back((int) m.faceTags[f]);
             }
         }
     }
 
-    // the split must leave no cracks; see checkConformity()
     const bool exact = (dom.getMPI()->size == 1);
     if (simplices) {
         if (m.numDim == 3)
@@ -975,7 +1217,7 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
                       mpiInfo->comm);
     }
 #endif
-    // Clear of the element ids, which reserve MAX_SIMPLICES per OCTANT. Based
+    // Clear of the element ids, which reserve maxSimplices per OCTANT. Based
     // on the octant count rather than the simplex count so that a transfer can
     // work the same offset out from the mesh view alone - see faceIdBase().
     // No per-rank scan any more: the ids below are derived from the global
@@ -987,15 +1229,17 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
     // Ids that say which boundary face of which octant this came from, the
     // same trick the elements use: (global element, face direction) names a
     // boundary face identically on every rank, so a transfer needs no stored
-    // map and survives finley redistributing the mesh. In 3D a boundary quad
-    // becomes two triangles, hence the trailing slot.
-    const int perFace = (numFaces == 2 * m.numFaces) ? 2 : 1;
+    // map and survives finley redistributing the mesh. The trailing slot says
+    // which triangle of that quad: two in 3D, and up to six once the quad's
+    // edges carry hanging midpoints and it is an octagon.
+    const int perQuad = maxFaceSimplices(m.numDim);
     out.faceId.resize(numFaces);
     for (long f = 0, k = 0; f < m.numFaces; ++f) {
         const long elem = m.faceElements.empty() ? 0 : m.faceElements[f];
         const long dir = m.faceDirections.empty() ? 0 : m.faceDirections[f];
-        const long key = ((m.globalElementOffset + elem) * (2 * m.numDim) + dir) * 2;
-        for (int t = 0; t < perFace; ++t, ++k)
+        const long key = ((m.globalElementOffset + elem) * (2 * m.numDim) + dir)
+                       * perQuad;
+        for (int t = 0; t < facesPerBoundaryQuad[f]; ++t, ++k)
             out.faceId[k] = faceIdOffset + (index_t)(key + t);
     }
 
@@ -1035,9 +1279,15 @@ namespace {
 
 /// the mesh view toFinley() would build for this domain, so the node ids and
 /// the constraint arrays match the export exactly
+/// The mesh view the export was built from, rebuilt: hanging positions
+/// materialised where the forest has them, and in 3D the octant centres the
+/// split cones from. It must be the SAME view toFinley() used, node for node,
+/// or the ids a transfer derives name something else.
 MeshAccess viewMatchingExport(const OxleyDomain& dom)
 {
-    return dom.getMeshAccess(!dom.isConforming());      // collective
+    MeshAccess m = dom.getMeshAccess(!dom.isConforming());   // collective
+    materialiseOctantCentres(m, dom.getMPI()->rank);
+    return m;
 }
 
 
@@ -1232,35 +1482,49 @@ escript::Data toFinleyData(const escript::Data& source, escript::Domain_ptr targ
     const std::vector<long>& gid = exportIds(m);
     const int numComp = realComponents(source);
 
-    // what this rank can supply: its own nodes, plus the seam positions it
-    // materialised, which are no nodes of the forest and so take the average
-    // of their masters
-    std::vector<long> haveId;
-    std::vector<double> haveVal;
-    haveId.reserve(m.numNodes);
-    haveVal.reserve((size_t) m.numNodes * numComp);
+    // What this rank can supply: its own nodes, plus the positions it
+    // materialised - the seam nodes and the octant centres, which are no nodes
+    // of the forest and so take the average of their masters.
+    //
+    // A master can itself be materialised. An octant that is the COARSE side of
+    // one seam and the FINE side of another has a corner which is a seam node,
+    // and its centre is the average of its eight corners including that one. So
+    // the values are built up over ALL local nodes in creation order, which is
+    // an order in which a master always comes before what depends on it: a seam
+    // node's masters are corners of a coarse octant and always real, and the
+    // centres are appended after every seam node.
+    std::vector<double> nodeVal((size_t) m.numNodes * numComp, 0.);
     for (long i = 0; i < m.numRealNodes; ++i) {
         const double* in = readSample(source, i);
-        haveId.push_back(gid[i]);
         for (int c = 0; c < numComp; ++c)
-            haveVal.push_back(in[c]);
+            nodeVal[(size_t) i * numComp + c] = in[c];
     }
     const int mpc = m.mastersPerConstrainedNode;
     for (size_t k = 0; k < m.constrainedNodes.size(); ++k) {
         const long node = m.constrainedNodes[k];
-        std::vector<double> v(numComp, 0.);
+        double* v = &nodeVal[(size_t) node * numComp];
         for (int j = 0; j < mpc; ++j) {
             const long master = m.constraintMasters[k*mpc + j];
             const double w = m.constraintWeights[k*mpc + j];
             if (master < 0 || w == 0.)
                 continue;
-            const double* in = readSample(source, master);
+            if (master >= node)
+                throw OxleyException("toFinleyData: a materialised node "
+                        "depends on one created after it, so its masters have "
+                        "no value yet.");
             for (int c = 0; c < numComp; ++c)
-                v[c] += w * in[c];
+                v[c] += w * nodeVal[(size_t) master * numComp + c];
         }
-        haveId.push_back(gid[node]);
+    }
+
+    std::vector<long> haveId;
+    std::vector<double> haveVal;
+    haveId.reserve(m.numNodes);
+    haveVal.reserve((size_t) m.numNodes * numComp);
+    for (long i = 0; i < m.numNodes; ++i) {
+        haveId.push_back(gid[i]);
         for (int c = 0; c < numComp; ++c)
-            haveVal.push_back(v[c]);
+            haveVal.push_back(nodeVal[(size_t) i * numComp + c]);
     }
 
     escript::Data result = makeLike(source, escript::continuousFunction(*target));
@@ -1541,7 +1805,7 @@ escript::Data toFinleyReducedData(const escript::Data& source,
     for (long e = 0; e < m.numElements; ++e) {
         const double* in = readSample(source, e);
         for (int t = 0; t < count[e]; ++t) {
-            haveId.push_back((m.globalElementOffset + e) * MAX_SIMPLICES + t);
+            haveId.push_back((m.globalElementOffset + e) * maxSimplices(m.numDim) + t);
             for (int c = 0; c < numComp; ++c)
                 haveVal.push_back(in[c]);
         }
@@ -1603,7 +1867,7 @@ escript::Data fromFinleyReducedData(const escript::Data& source,
     std::vector<long> wantId;
     for (long e = 0; e < m.numElements; ++e)
         for (int t = 0; t < count[e]; ++t)
-            wantId.push_back((m.globalElementOffset + e) * MAX_SIMPLICES + t);
+            wantId.push_back((m.globalElementOffset + e) * maxSimplices(m.numDim) + t);
 
     std::vector<double> wantVal;
     exchangeByGlobalId(dom->getMPI(), numComp, haveId, haveVal, wantId, wantVal);
@@ -1663,7 +1927,8 @@ void pointOrder(const escript::Data& x, long sample, int numPoints, int dim,
 }
 
 /// names one octant face across both meshes: the export builds the ids of its
-/// two triangles as base + key*2 + t, so either side can form the other's
+/// triangles as base + key*maxFaceSimplices + t, so either side can form the
+/// other's
 inline long faceQuadKey(const MeshAccess& m, long f)
 {
     const long elem = m.faceElements.empty() ? 0 : m.faceElements[f];
@@ -1733,7 +1998,7 @@ escript::Data transferBoundary3D(const escript::Data& source,
                 targetFS.getTypeCode());
         std::vector<long> wantId(n);
         for (long j = 0; j < n; ++j)
-            wantId[j] = ((long) ids[j] - base) / 2;
+            wantId[j] = ((long) ids[j] - base) / maxFaceSimplices(m.numDim);
 
         std::vector<double> wantVal;
         exchangeByGlobalId(dom.getMPI(), stride, haveId, haveVal,
@@ -1758,21 +2023,28 @@ escript::Data transferBoundary3D(const escript::Data& source,
         return result;
     }
 
-    // inbound: both triangles of every boundary face this rank holds
+    // inbound: every triangle of every boundary quad this rank holds. How many
+    // that is varies once the quad's edges carry hanging midpoints, so the
+    // triangles are addressed through a prefix sum rather than a fixed stride.
+    const int perQuad = maxFaceSimplices(m.numDim);
+    std::array<long,3> tris[8];
+    std::vector<long> triOffset(m.numFaces + 1, 0);
     std::vector<long> wantId;
     wantId.reserve((size_t) m.numFaces * 2);
-    for (long f = 0; f < m.numFaces; ++f)
-        for (int t = 0; t < 2; ++t)
-            wantId.push_back(base + faceQuadKey(m, f) * 2 + t);
+    for (long f = 0; f < m.numFaces; ++f) {
+        const int nt = boundaryTriangles(m, gid, f, tris);
+        triOffset[f+1] = triOffset[f] + nt;
+        for (int t = 0; t < nt; ++t)
+            wantId.push_back(base + faceQuadKey(m, f) * perQuad + t);
+    }
 
     std::vector<double> wantVal;
     exchangeByGlobalId(dom.getMPI(), stride, haveId, haveVal, wantId, wantVal);
 
-    std::array<long,3> tris[2];
     for (long f = 0; f < m.numFaces; ++f) {
-        triSplitOfFace(m, gid, f, tris);
-        double vert[2][9];
-        for (int t = 0; t < 2; ++t)
+        const int nt = boundaryTriangles(m, gid, f, tris);
+        double vert[8][9];
+        for (int t = 0; t < nt; ++t)
             for (int k = 0; k < 3; ++k)
                 nodePos(m, tris[t][k], &vert[t][k*3]);
 
@@ -1780,9 +2052,9 @@ escript::Data transferBoundary3D(const escript::Data& source,
         double* out = writeSample(result, f);
 
         if (srcPts == 1) {
-            // nothing to evaluate: average the two by the area each covers
-            double area[2], total = 0.;
-            for (int t = 0; t < 2; ++t) {
+            // nothing to evaluate: average the triangles by the area each covers
+            double area[8], total = 0.;
+            for (int t = 0; t < nt; ++t) {
                 double e1[3], e2[3], cr[3];
                 for (int d = 0; d < 3; ++d) {
                     e1[d] = vert[t][3+d] - vert[t][d];
@@ -1800,8 +2072,9 @@ escript::Data transferBoundary3D(const escript::Data& source,
                         "has no area.");
             for (int c = 0; c < numComp; ++c)
                 out[c] = 0.;
-            for (int t = 0; t < 2; ++t) {
-                const double* got = &wantVal[((size_t) f*2 + t) * stride];
+            for (int t = 0; t < nt; ++t) {
+                const double* got =
+                        &wantVal[(size_t)(triOffset[f] + t) * stride];
                 for (int c = 0; c < numComp; ++c)
                     out[c] += (area[t]/total) * got[c];
             }
@@ -1817,11 +2090,12 @@ escript::Data transferBoundary3D(const escript::Data& source,
             const double* p = &px[q*3];
             int best = 0;
             double bestDepth = -std::numeric_limits<double>::max();
-            for (int t = 0; t < 2; ++t) {
+            for (int t = 0; t < nt; ++t) {
                 const double d = depthIn(vert[t], 3, p);
                 if (d > bestDepth) { bestDepth = d; best = t; }
             }
-            const double* got = &wantVal[((size_t) f*2 + best) * stride];
+            const double* got =
+                    &wantVal[(size_t)(triOffset[f] + best) * stride];
             const double* pts = got + srcPts*numComp;
             double w[3];
             affineWeights(pts, 3, p, w);
@@ -2008,7 +2282,7 @@ escript::Data toFinleyFunctionData(const escript::Data& source,
                 targetFS.getTypeCode());
         std::vector<long> wantId(n);
         for (long j = 0; j < n; ++j)
-            wantId[j] = (long) ids[j] / MAX_SIMPLICES;      // the parent octant
+            wantId[j] = (long) ids[j] / maxSimplices(m.numDim);  // the parent octant
 
         std::vector<double> wantVal;
         exchangeByGlobalId(dom->getMPI(), stride, haveId, haveVal,
@@ -2056,7 +2330,7 @@ escript::Data toFinleyFunctionData(const escript::Data& source,
         splitOfElement(m, e, tris);
         for (size_t t = 0; t < tris.size(); ++t) {
             triangleQuadPoints(tris[t], pts);
-            haveId.push_back((m.globalElementOffset + e) * MAX_SIMPLICES
+            haveId.push_back((m.globalElementOffset + e) * maxSimplices(m.numDim)
                              + (long) t);
             for (int q = 0; q < 3; ++q) {
                 double lx0, lx1, ly0, ly1;
@@ -2146,12 +2420,21 @@ escript::Data fromFinleyFunctionData(const escript::Data& source,
             }
         }
 
-        // every tet of every octant this rank owns
+        // every tet of every octant this rank owns. How many that is varies
+        // with the octant's hanging configuration, so they are addressed
+        // through a prefix sum rather than a fixed stride.
+        const std::vector<long>& gid = exportIds(m);
+        std::array<long,4> tets[48];
+        std::vector<long> tetOffset(m.numElements + 1, 0);
         std::vector<long> wantId;
         wantId.reserve((size_t) m.numElements * 6);
-        for (long e = 0; e < m.numElements; ++e)
-            for (int t = 0; t < 6; ++t)
-                wantId.push_back((m.globalElementOffset + e) * MAX_SIMPLICES + t);
+        for (long e = 0; e < m.numElements; ++e) {
+            const int nt = octantSplit(m, gid, e, tets);
+            tetOffset[e+1] = tetOffset[e] + nt;
+            for (int t = 0; t < nt; ++t)
+                wantId.push_back((m.globalElementOffset + e)
+                                 * maxSimplices(m.numDim) + t);
+        }
 
         std::vector<double> wantVal;
         exchangeByGlobalId(dom->getMPI(), stride, haveId, haveVal,
@@ -2162,14 +2445,12 @@ escript::Data fromFinleyFunctionData(const escript::Data& source,
         const escript::FunctionSpace targetFS = escript::function(*target);
         const int dstPts = result.getNumDataPointsPerSample();
         escript::Data rx = targetFS.getX();
-        const std::vector<long>& gid = exportIds(m);
-        std::array<long,4> tets[6];
         for (long e = 0; e < m.numElements; ++e) {
-            tetSplitOfElement(m, gid, e, tets);
-            double vert[6][12];
-            for (int t = 0; t < 6; ++t)
+            const int nt = octantSplit(m, gid, e, tets);
+            std::vector<double> vert((size_t) nt * 12);
+            for (int t = 0; t < nt; ++t)
                 for (int k = 0; k < 4; ++k)
-                    nodePos(m, tets[t][k], &vert[t][k*3]);
+                    nodePos(m, tets[t][k], &vert[(size_t) t*12 + k*3]);
 
             const double* px = rx.getSampleDataRO(e, (double) 0);
             double* out = writeSample(result, e);
@@ -2179,12 +2460,12 @@ escript::Data fromFinleyFunctionData(const escript::Data& source,
                 // VERTICES: their quadrature points span only part of them
                 int best = 0;
                 double bestDepth = -std::numeric_limits<double>::max();
-                for (int t = 0; t < 6; ++t) {
-                    const double d = depthIn(vert[t], 4, p);
+                for (int t = 0; t < nt; ++t) {
+                    const double d = depthIn(&vert[(size_t) t*12], 4, p);
                     if (d > bestDepth) { bestDepth = d; best = t; }
                 }
                 const double* got =
-                        &wantVal[((size_t) e * 6 + best) * stride];
+                        &wantVal[(size_t)(tetOffset[e] + best) * stride];
                 const double* pts = got + srcPts*numComp;
                 double w[4];
                 affineWeights(pts, 4, p, w);
@@ -2230,7 +2511,7 @@ escript::Data fromFinleyFunctionData(const escript::Data& source,
         splitOfElement(m, e, tris);
         perElement[e] = (int) tris.size();
         for (size_t t = 0; t < tris.size(); ++t)
-            wantId.push_back((m.globalElementOffset + e) * MAX_SIMPLICES
+            wantId.push_back((m.globalElementOffset + e) * maxSimplices(m.numDim)
                              + (long) t);
     }
 

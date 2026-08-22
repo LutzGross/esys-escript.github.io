@@ -2084,6 +2084,12 @@ boost::python::dict OxleyDomain::getMeshInfo(bool materializeHanging) const
         std::memcpy(elementFaceHangingNode.get_data(),
                     m.elementFaceHangingNode.data(), nefh * sizeof(long));
 
+    const long neeh = (long) m.elementEdgeHangingNode.size();
+    np::ndarray elementEdgeHangingNode = np::zeros(bp::make_tuple(neeh), i64);
+    if (neeh > 0)
+        std::memcpy(elementEdgeHangingNode.get_data(),
+                    m.elementEdgeHangingNode.data(), neeh * sizeof(long));
+
     const long nDist = (long) m.finleyDistribution.size();
     np::ndarray finleyDistribution = np::zeros(bp::make_tuple(nDist), i64);
     if (nDist)
@@ -2103,6 +2109,7 @@ boost::python::dict OxleyDomain::getMeshInfo(bool materializeHanging) const
     d["elementTags"] = elementTags;
     d["nodeFinleyId"] = nodeFinleyId;
     d["elementFaceHangingNode"] = elementFaceHangingNode;
+    d["elementEdgeHangingNode"] = elementEdgeHangingNode;
     d["finleyDistribution"] = finleyDistribution;
 
     // materialised hanging positions (empty unless materializeHanging)
