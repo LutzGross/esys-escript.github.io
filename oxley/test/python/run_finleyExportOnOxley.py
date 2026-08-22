@@ -59,7 +59,7 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
-from esys.oxley import (Rectangle, toFinleyData, fromFinleyData,
+from esys.oxley import (Rectangle, Brick, toFinleyData, fromFinleyData,
                        toFinleyReducedData, fromFinleyReducedData,
                        toFinleyBoundaryData, fromFinleyBoundaryData,
                        toFinleyFunctionData, fromFinleyFunctionData)
@@ -745,6 +745,321 @@ class Test_ComplexTransfer2D(unittest.TestCase):
         r = Data(1., ContinuousFunction(self.dom))
         self.assertFalse(toFinleyData(r, self.fin).isComplex(),
                          "a real field must not come back complex")
+
+
+
+# ---------------------------------------------------------------------------
+# 3D. The forests are CONFORMING, because toFinley() still refuses a graded 3D
+# one - the tetrahedral split has no hanging cases yet. What is being tested is
+# the transfer, and it changes shape in 3D even without a seam:
+#
+#   - an octant becomes SIX tetrahedra and a boundary quad TWO triangles, so
+#     only ContinuousFunction is still a copy. Everything else evaluates.
+#   - the two sides' quadrature rules are unrelated: 2x2x2 Gauss on an octant
+#     against a four-point rule on a Tet4, 2x2 on a boundary quad against three
+#     edge midpoints on a Tri3. So values travel with the COORDINATES of the
+#     points they were taken at and the receiver rebuilds the polynomial those
+#     points determine; neither side has to know the other's rule.
+#
+# The exactness claims follow from what each set of points is unisolvent for,
+# and that is what these tests check - not a tolerance.
+# ---------------------------------------------------------------------------
+
+CASES_3D = [
+    ("unit_cube", dict(n0=2, n1=2, n2=2, l0=1., l1=1., l2=1., refine_level=1)),
+    ("refined", dict(n0=1, n1=1, n2=1, l0=1., l1=1., l2=1., refine_level=2)),
+    # not a cube, not the same number of blocks per axis, so nothing can hide
+    # behind a symmetry of the split
+    ("oblong", dict(n0=3, n1=2, n2=1, l0=1.5, l1=2., l2=3., refine_level=1)),
+]
+
+
+def forest3D(**kwargs):
+    return Brick(**kwargs)
+
+
+class Test_ContinuousFunctionTransfer3D(unittest.TestCase):
+    """
+    Still a copy in 3D: the export hands finley the forest's own node ids, so
+    the two meshes name the same nodes, and a conforming forest has no
+    materialised position needing a rule. Every field, however nonlinear, must
+    therefore cross EXACTLY - which is a sharper statement than in 2D, where
+    the seam nodes are averages.
+    """
+    def test_any_field_is_exact_both_ways(self):
+        for name, kw in CASES_3D:
+            dom = forest3D(**kw)
+            fin = dom.toFinley()
+            x, xf = ContinuousFunction(dom).getX(), ContinuousFunction(fin).getX()
+            u = sin(3.*x[0]) * cos(2.*x[1]) * exp(x[2])
+            uf = sin(3.*xf[0]) * cos(2.*xf[1]) * exp(xf[2])
+            self.assertEqual(Lsup(toFinleyData(u, fin) - uf), 0.,
+                             "%s: the export is not exact" % name)
+            self.assertEqual(Lsup(fromFinleyData(uf, dom) - u), 0.,
+                             "%s: the way home is not exact" % name)
+
+    def test_vector_data(self):
+        dom = forest3D(**CASES_3D[0][1])
+        fin = dom.toFinley()
+        v = ContinuousFunction(dom).getX()
+        self.assertEqual(Lsup(fromFinleyData(toFinleyData(v, fin), dom) - v), 0.)
+
+
+class Test_ReducedFunctionTransfer3D(unittest.TestCase):
+    """
+    One value per octant, replicated onto the six tets and volume-averaged on
+    the way back. The weights are recomputed on the oxley side from the same
+    cone split the export emitted, so the finley side never sends volumes.
+    """
+    def test_replicate_then_average_is_the_identity(self):
+        for name, kw in CASES_3D:
+            dom = forest3D(**kw)
+            fin = dom.toFinley()
+            x = ReducedFunction(dom).getX()
+            u = 1. + x[0]*x[1]*x[2]
+            back = fromFinleyReducedData(toFinleyReducedData(u, fin), dom)
+            self.assertLess(Lsup(back - u), 1e-14,
+                            "%s: the round trip changed the field" % name)
+
+    def test_integral_is_preserved_both_ways(self):
+        for name, kw in CASES_3D:
+            dom = forest3D(**kw)
+            fin = dom.toFinley()
+            x = ReducedFunction(dom).getX()
+            u = 1. + x[0]*x[1]*x[2]
+            a, b = integrate(u), integrate(toFinleyReducedData(u, fin))
+            self.assertAlmostEqual(a, b, 10, "%s: integral changed on export "
+                                   "(%.12g -> %.12g)" % (name, a, b))
+            xf = ReducedFunction(fin).getX()
+            ind = xf[0]*xf[0] + xf[1]
+            c, d = integrate(ind), integrate(fromFinleyReducedData(ind, dom))
+            self.assertAlmostEqual(c, d, 10, "%s: integral changed coming home "
+                                   "(%.12g -> %.12g)" % (name, c, d))
+
+    def test_constant_survives_the_split(self):
+        dom = forest3D(**CASES_3D[2][1])
+        home = fromFinleyReducedData(Data(2.5, ReducedFunction(dom.toFinley())),
+                                     dom)
+        self.assertLess(Lsup(home - 2.5), 1e-14)
+
+
+class Test_BoundaryTransfer3D(unittest.TestCase):
+    """
+    FunctionOnBoundary in 3D, where a boundary quad becomes two triangles.
+
+    Not a permutation, unlike 2D. Outbound the quad's four points determine a
+    function BILINEAR IN THE FACE'S OWN TWO AXES, so anything of that form
+    crosses exactly; inbound each triangle's three points determine an affine
+    function, so a linear field comes home exactly.
+
+    The reduced space carries one value per face and can do no better than
+    replicate it onto the two triangles, so unlike 2D it does NOT reproduce a
+    varying field outbound. What it does keep is the surface integral and the
+    round trip, and those are what is asserted.
+
+    A field that VARIES along the boundary is what makes a wrong face pairing
+    visible - the mesh view lists its boundary faces in one order and the
+    domain its FunctionOnBoundary samples in another unless the two are built
+    to agree, and a constant field would survive the mismatch. The normal is
+    the sharpest form of that check.
+    """
+    def test_face_bilinear_is_exact_outbound(self):
+        for name, kw in CASES_3D:
+            dom = forest3D(**kw)
+            fin = dom.toFinley()
+            x, xf = FunctionOnBoundary(dom).getX(), FunctionOnBoundary(fin).getX()
+            u = x[0]*x[1] + x[1]*x[2] + x[2]*x[0]
+            uf = xf[0]*xf[1] + xf[1]*xf[2] + xf[2]*xf[0]
+            err = Lsup(toFinleyBoundaryData(u, fin) - uf)
+            self.assertLess(err, 1e-12, "%s: %g" % (name, err))
+
+    def test_linear_is_exact_inbound(self):
+        for name, kw in CASES_3D:
+            dom = forest3D(**kw)
+            fin = dom.toFinley()
+            for label, fs in (("FunctionOnBoundary", FunctionOnBoundary),
+                              ("ReducedFunctionOnBoundary",
+                               ReducedFunctionOnBoundary)):
+                x, xf = fs(dom).getX(), fs(fin).getX()
+                err = Lsup(fromFinleyBoundaryData(1.+2.*xf[0]+3.*xf[1]-xf[2],
+                                                  dom)
+                           - (1.+2.*x[0]+3.*x[1]-x[2]))
+                self.assertLess(err, 1e-12, "%s/%s: %g" % (name, label, err))
+
+    def test_round_trip_is_exact_for_a_linear_field(self):
+        for name, kw in CASES_3D:
+            dom = forest3D(**kw)
+            fin = dom.toFinley()
+            for label, fs in (("FunctionOnBoundary", FunctionOnBoundary),
+                              ("ReducedFunctionOnBoundary",
+                               ReducedFunctionOnBoundary)):
+                x = fs(dom).getX()
+                u = 1. + 2.*x[0] + 3.*x[1] - x[2]
+                err = Lsup(fromFinleyBoundaryData(
+                        toFinleyBoundaryData(u, fin), dom) - u)
+                self.assertLess(err, 1e-12, "%s/%s: %g" % (name, label, err))
+
+    def test_reduced_round_trip_is_the_identity(self):
+        """
+        replicate onto the two triangles, then average them by area: the
+        weights sum to one, so ANY field survives - nonlinear included
+        """
+        for name, kw in CASES_3D:
+            dom = forest3D(**kw)
+            fin = dom.toFinley()
+            x = ReducedFunctionOnBoundary(dom).getX()
+            u = sin(3.*x[0]) * cos(2.*x[1]) * x[2]
+            err = Lsup(fromFinleyBoundaryData(
+                    toFinleyBoundaryData(u, fin), dom) - u)
+            self.assertLess(err, 1e-14, "%s: %g" % (name, err))
+
+    def test_surface_integral_is_preserved(self):
+        for name, kw in CASES_3D:
+            dom = forest3D(**kw)
+            fin = dom.toFinley()
+            for label, fs in (("FunctionOnBoundary", FunctionOnBoundary),
+                              ("ReducedFunctionOnBoundary",
+                               ReducedFunctionOnBoundary)):
+                x = fs(dom).getX()
+                u = x[0]*x[1] + x[1]*x[2] + x[2]*x[0]
+                a = integrate(u)
+                b = integrate(toFinleyBoundaryData(u, fin))
+                self.assertAlmostEqual(a, b, 10, "%s/%s: surface integral "
+                                       "changed (%.12g -> %.12g)"
+                                       % (name, label, a, b))
+
+    def test_the_normal_survives(self):
+        """
+        The sharpest check that a value lands on the face it came from: the
+        normal differs between neighbouring faces, and both triangles of a quad
+        must receive the same one. It also says the split kept the winding, so
+        the outward normal stayed outward.
+        """
+        for name, kw in CASES_3D:
+            dom = forest3D(**kw)
+            fin = dom.toFinley()
+            moved = toFinleyBoundaryData(FunctionOnBoundary(dom).getNormal(),
+                                         fin)
+            err = Lsup(moved - FunctionOnBoundary(fin).getNormal())
+            self.assertLess(err, 1e-14, "%s: %g" % (name, err))
+
+
+class Test_FunctionTransfer3D(unittest.TestCase):
+    """
+    Function in 3D: 2x2x2 Gauss points on an octant against a four-point rule
+    on each of six Tet4s.
+
+      outbound  the octant's eight values are unisolvent for a TRILINEAR
+                function, so anything trilinear crosses exactly.
+      inbound   a tet's four values are unisolvent for an AFFINE function, so a
+                linear field comes home exactly. Which tet to read a point from
+                is decided from the tets' vertices, since their quadrature
+                points span only part of them.
+
+    The volume integral is preserved outbound for any field. That is measured
+    rather than derived: the four-point rule is not exact for the xyz term of
+    the interpolant on a single tet, but the error cancels over the six of the
+    cone. The oblong case above is there so this is not read off a symmetric
+    mesh alone.
+    """
+    TOL = 1e-12
+
+    def test_trilinear_is_exact_outbound(self):
+        for name, kw in CASES_3D:
+            dom = forest3D(**kw)
+            fin = dom.toFinley()
+            x, xf = Function(dom).getX(), Function(fin).getX()
+            err = Lsup(toFinleyFunctionData(x[0]*x[1]*x[2], fin)
+                       - xf[0]*xf[1]*xf[2])
+            self.assertLess(err, self.TOL, "%s: %g" % (name, err))
+
+    def test_linear_is_exact_inbound(self):
+        for name, kw in CASES_3D:
+            dom = forest3D(**kw)
+            fin = dom.toFinley()
+            x, xf = Function(dom).getX(), Function(fin).getX()
+            err = Lsup(fromFinleyFunctionData(1.+2.*xf[0]+3.*xf[1]-xf[2], dom)
+                       - (1.+2.*x[0]+3.*x[1]-x[2]))
+            self.assertLess(err, self.TOL, "%s: %g" % (name, err))
+
+    def test_round_trip_is_exact_for_a_linear_field(self):
+        for name, kw in CASES_3D:
+            dom = forest3D(**kw)
+            fin = dom.toFinley()
+            x = Function(dom).getX()
+            u = 1. + 2.*x[0] + 3.*x[1] - x[2]
+            err = Lsup(fromFinleyFunctionData(toFinleyFunctionData(u, fin), dom)
+                       - u)
+            self.assertLess(err, self.TOL, "%s: %g" % (name, err))
+
+    def test_integral_is_preserved_outbound(self):
+        for name, kw in CASES_3D:
+            dom = forest3D(**kw)
+            fin = dom.toFinley()
+            x = Function(dom).getX()
+            w = sin(2.*x[0]) * cos(x[1]) * exp(x[2])
+            a, b = integrate(w), integrate(toFinleyFunctionData(w, fin))
+            self.assertAlmostEqual(a, b, 10, "%s: %.12g -> %.12g" % (name, a, b))
+
+
+class Test_ComplexTransfer3D(unittest.TestCase):
+    """
+    The same four transfers on complex data in 3D. As in 2D there is no
+    separate machinery - a complex field is a real one with twice as many
+    components - so what this checks is that the two parts are neither mixed
+    nor dropped, which is why they are different functions of position here.
+    """
+    def setUp(self):
+        self.dom = forest3D(**CASES_3D[0][1])
+        self.fin = self.dom.toFinley()
+
+    def tearDown(self):
+        del self.dom
+        del self.fin
+
+    def field(self, fs, domain):
+        x = fs(domain).getX()
+        return (1. + 2.*x[0] + 3.*x[1] - x[2]) + 1j * (0.5 - x[0] + 4.*x[2])
+
+    def test_continuous_function(self):
+        u = self.field(ContinuousFunction, self.dom)
+        uf = toFinleyData(u, self.fin)
+        self.assertTrue(uf.isComplex(), "the result lost its complexity")
+        self.assertEqual(Lsup(uf - self.field(ContinuousFunction, self.fin)), 0.)
+        self.assertEqual(Lsup(fromFinleyData(uf, self.dom) - u), 0.)
+
+    def test_reduced_function(self):
+        u = self.field(ReducedFunction, self.dom)
+        uf = toFinleyReducedData(u, self.fin)
+        self.assertTrue(uf.isComplex())
+        self.assertLess(Lsup(fromFinleyReducedData(uf, self.dom) - u), 1e-14)
+
+    def test_function_on_boundary(self):
+        u = self.field(FunctionOnBoundary, self.dom)
+        uf = toFinleyBoundaryData(u, self.fin)
+        self.assertTrue(uf.isComplex())
+        self.assertLess(Lsup(uf - self.field(FunctionOnBoundary, self.fin)),
+                        1e-12)
+        self.assertLess(Lsup(fromFinleyBoundaryData(uf, self.dom) - u), 1e-12)
+
+    def test_function(self):
+        u = self.field(Function, self.dom)
+        uf = toFinleyFunctionData(u, self.fin)
+        self.assertTrue(uf.isComplex())
+        self.assertLess(Lsup(uf - self.field(Function, self.fin)), 1e-12)
+        self.assertLess(Lsup(fromFinleyFunctionData(uf, self.dom) - u), 1e-12)
+
+
+class Test_GradedForestIsStillRefused3D(unittest.TestCase):
+    """
+    The transfers are 3D now; the tetrahedral SPLIT still is not. A graded 3D
+    forest must be refused rather than exported wrongly.
+    """
+    def test_graded_brick_is_refused(self):
+        dom = Brick(n0=2, n1=2, n2=2, l0=1., l1=1., l2=1.,
+                    refine_level=[[[2, 1], [1, 2]], [[1, 2], [2, 1]]])
+        self.assertFalse(dom.isConforming())
+        self.assertRaises(RuntimeError, dom.toFinley)
 
 
 if __name__ == '__main__':

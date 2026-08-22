@@ -334,6 +334,190 @@ void transferDiracPoints(const OxleyDomain& dom, const MeshAccess& m,
 }
 
 
+// ---------------------------------------------------------------------------
+// 3D transfers.
+//
+// 2D can rearrange: a boundary face corresponds to exactly one face of the
+// export, and only Function has to evaluate anything. In 3D neither holds - one
+// octant becomes six tetrahedra and one boundary quad becomes two triangles -
+// so every space but ContinuousFunction has to EVALUATE, and the two sides'
+// quadrature rules have nothing to do with each other.
+//
+// The rule used throughout, in both directions: a sample's values travel
+// together with the COORDINATES of the points they were taken at, and the
+// receiver rebuilds the polynomial those points are unisolvent for. Neither
+// side then needs to know the other's quadrature rule or point order. The 2D
+// code does know finley's, having measured it once (triangleQuadPoints); this
+// costs a dozen doubles per sample and cannot go quietly wrong if a rule ever
+// changes.
+//
+//   oxley -> finley: the octant's 2x2x2 points are a tensor grid, unisolvent
+//       for a TRILINEAR function - bilinear on a boundary face, whose normal
+//       axis simply has no spread - so two-point Lagrange per axis is exact.
+//   finley -> oxley: a simplex's quadrature points are unisolvent for an
+//       AFFINE function, so the affine weights through those points are exact.
+//       Which simplex to read is decided by the octant point's position
+//       against the simplex's VERTICES, since the quadrature points span only
+//       part of it.
+// ---------------------------------------------------------------------------
+
+/// The six tetrahedra one octant splits into, as local node indices, by the
+/// rule and in the order toFinley() emits them - so tet t here carries the id
+/// (global octant)*MAX_SIMPLICES + t there. Recomputed rather than stored, in
+/// the same spirit as splitOfElement.
+void tetSplitOfElement(const MeshAccess& m, const std::vector<long>& gid,
+                       long e, std::array<long,4> tets[6])
+{
+    const int V = m.nodesPerElement;
+    const long* en = &m.elementNodes[(size_t) e * V];
+    int apex = 0;
+    for (int c = 1; c < 8; ++c)
+        if (gid[en[c]] < gid[en[apex]])
+            apex = c;
+
+    int tet = 0;
+    for (int f = 0; f < 6; ++f) {
+        if (cornerOnFace(apex, f))
+            continue;                        // near face, the cone covers it
+        const int* q = brickFaceCorners[f];
+        const int mpos = lowestIdPos(q, 4,
+                [&](int c) { return gid[en[c]]; });
+        for (int t = 0; t < 2; ++t) {
+            long a = en[apex];
+            long b = en[q[mpos]];
+            long c = en[q[(mpos + 1 + t) % 4]];
+            long d = en[q[(mpos + 2 + t) % 4]];
+            if (signedVolume(m.nodeCoords, a, b, c, d) < 0.)
+                std::swap(c, d);
+            tets[tet][0] = a; tets[tet][1] = b;
+            tets[tet][2] = c; tets[tet][3] = d;
+            ++tet;
+        }
+    }
+}
+
+/// The two triangles a boundary quad splits into, as local node indices, in the
+/// order the export gives them the ids ...*2 + t.
+void triSplitOfFace(const MeshAccess& m, const std::vector<long>& gid, long f,
+                    std::array<long,3> tris[2])
+{
+    const int FV = m.nodesPerFace;                        // 4
+    const long* fn = &m.faceNodes[(size_t) f * FV];
+    static const int ident[4] = {0, 1, 2, 3};
+    const int mpos = lowestIdPos(ident, 4,
+            [&](int c) { return gid[fn[c]]; });
+    for (int t = 0; t < 2; ++t) {
+        tris[t][0] = fn[mpos];
+        tris[t][1] = fn[(mpos + 1 + t) % 4];
+        tris[t][2] = fn[(mpos + 2 + t) % 4];
+    }
+}
+
+/// coordinates of local node n
+inline void nodePos(const MeshAccess& m, long n, double p[3])
+{
+    for (int d = 0; d < 3; ++d)
+        p[d] = m.nodeCoords[(size_t) n * 3 + d];
+}
+
+/**
+   Weights of the tensor-product interpolant through sample points that form a
+   2x2x2 grid in the coordinate axes: w[k] is what sample k contributes at p.
+
+   An axis whose points do not spread - the one normal to a boundary face -
+   drops out, which is what lets the same routine do a face and an octant.
+*/
+void gridWeights(const double* pts, int numPts, const double* p,
+                 std::vector<double>& w)
+{
+    w.assign(numPts, 1.);
+    double lo[3], hi[3], widest = 0.;
+    for (int d = 0; d < 3; ++d) {
+        lo[d] = hi[d] = pts[d];
+        for (int k = 1; k < numPts; ++k) {
+            lo[d] = std::min(lo[d], pts[k*3 + d]);
+            hi[d] = std::max(hi[d], pts[k*3 + d]);
+        }
+        widest = std::max(widest, hi[d] - lo[d]);
+    }
+    for (int d = 0; d < 3; ++d) {
+        const double span = hi[d] - lo[d];
+        if (span <= 1e-12 * widest)
+            continue;                        // the axis normal to a face
+        const double l0 = (hi[d] - p[d]) / span;
+        const double l1 = (p[d] - lo[d]) / span;
+        for (int k = 0; k < numPts; ++k) {
+            const double t = pts[k*3 + d];
+            w[k] *= (std::fabs(t - lo[d]) <= std::fabs(t - hi[d])) ? l0 : l1;
+        }
+    }
+}
+
+/**
+   Weights of the affine interpolant through n points (4 in a tetrahedron, 3 in
+   a triangle): the barycentric coordinates of p with respect to them.
+
+   The three-point case solves the 2x2 Gram system instead of a 3x3, which is
+   what makes it work on a triangle that lies in no coordinate plane - and it
+   projects a point off the plane onto it, which is right here, since the values
+   only ever describe a function ON that triangle.
+*/
+void affineWeights(const double* v, int n, const double* p, double* w)
+{
+    double e1[3], e2[3], e3[3], r[3];
+    for (int d = 0; d < 3; ++d) {
+        e1[d] = v[3 + d] - v[d];
+        e2[d] = v[6 + d] - v[d];
+        r[d]  = p[d] - v[d];
+    }
+    if (n == 4) {
+        for (int d = 0; d < 3; ++d)
+            e3[d] = v[9 + d] - v[d];
+        const double det =
+              e1[0]*(e2[1]*e3[2] - e2[2]*e3[1])
+            - e2[0]*(e1[1]*e3[2] - e1[2]*e3[1])
+            + e3[0]*(e1[1]*e2[2] - e1[2]*e2[1]);
+        const double d1 =
+              r[0]*(e2[1]*e3[2] - e2[2]*e3[1])
+            - e2[0]*(r[1]*e3[2] - r[2]*e3[1])
+            + e3[0]*(r[1]*e2[2] - r[2]*e2[1]);
+        const double d2 =
+              e1[0]*(r[1]*e3[2] - r[2]*e3[1])
+            - r[0]*(e1[1]*e3[2] - e1[2]*e3[1])
+            + e3[0]*(e1[1]*r[2] - e1[2]*r[1]);
+        const double d3 =
+              e1[0]*(e2[1]*r[2] - e2[2]*r[1])
+            - e2[0]*(e1[1]*r[2] - e1[2]*r[1])
+            + r[0]*(e1[1]*e2[2] - e1[2]*e2[1]);
+        w[1] = d1 / det;
+        w[2] = d2 / det;
+        w[3] = d3 / det;
+        w[0] = 1. - w[1] - w[2] - w[3];
+        return;
+    }
+    const double a = e1[0]*e1[0] + e1[1]*e1[1] + e1[2]*e1[2];
+    const double b = e1[0]*e2[0] + e1[1]*e2[1] + e1[2]*e2[2];
+    const double c = e2[0]*e2[0] + e2[1]*e2[1] + e2[2]*e2[2];
+    const double u = e1[0]*r[0] + e1[1]*r[1] + e1[2]*r[2];
+    const double t = e2[0]*r[0] + e2[1]*r[1] + e2[2]*r[2];
+    const double det = a*c - b*b;
+    w[1] = (c*u - b*t) / det;
+    w[2] = (a*t - b*u) / det;
+    w[0] = 1. - w[1] - w[2];
+}
+
+/// how deep p sits in a simplex given by its vertices: negative means outside,
+/// and the largest value over the simplices of an octant names the one to read
+inline double depthIn(const double* v, int n, const double* p)
+{
+    double w[4];
+    affineWeights(v, n, p, w);
+    double d = w[0];
+    for (int k = 1; k < n; ++k)
+        d = std::min(d, w[k]);
+    return d;
+}
+
 /**
    For each local element, how many simplices the split emits and what fraction
    of the element each one covers.
@@ -344,18 +528,40 @@ void transferDiracPoints(const OxleyDomain& dom, const MeshAccess& m,
    That is what lets the inbound transfer weight by area without the finley side
    ever having to send areas along.
 
-   2D only. The fractions sum to one per element, so a field that is constant
-   over an element comes back unchanged whatever the split.
+   The fractions sum to one per element, so a field that is constant over an
+   element comes back unchanged whatever the split.
 */
-void simplexWeights(const MeshAccess& m, std::vector<int>& count,
+void simplexWeights(const MeshAccess& m, const std::vector<long>& gid,
+                    std::vector<int>& count,
                     std::vector<std::vector<double> >& weight)
 {
-    if (m.numDim != 2)
-        throw OxleyException("simplexWeights: 2D only so far.");
-    const int V = m.nodesPerElement;
     count.assign(m.numElements, 0);
     weight.assign(m.numElements, std::vector<double>());
 
+    if (m.numDim == 3) {
+        // six tetrahedra, of equal volume on a conforming octant - but measured
+        // rather than assumed, so the identity survives a change of split
+        std::array<long,4> tets[6];
+        for (long e = 0; e < m.numElements; ++e) {
+            tetSplitOfElement(m, gid, e, tets);
+            count[e] = 6;
+            weight[e].resize(6);
+            double total = 0.;
+            for (int t = 0; t < 6; ++t) {
+                const double v = std::fabs(signedVolume(m.nodeCoords,
+                        tets[t][0], tets[t][1], tets[t][2], tets[t][3]));
+                weight[e][t] = v;
+                total += v;
+            }
+            if (total <= 0.)
+                throw OxleyException("simplexWeights: an octant has no volume.");
+            for (int t = 0; t < 6; ++t)
+                weight[e][t] /= total;
+        }
+        return;
+    }
+
+    const int V = m.nodesPerElement;
     for (long e = 0; e < m.numElements; ++e) {
         const long* en = &m.elementNodes[(size_t) e * V];
         long V4[4], H4[4];
@@ -474,7 +680,6 @@ inline void gaussLagrange(double t, double& l0, double& l1)
     l0 = (1. - g - t) / (1. - 2. * g);
     l1 = (t - g) / (1. - 2. * g);
 }
-
 
 // ---------------------------------------------------------------------------
 // Complex data needs no separate transfer.
@@ -1328,7 +1533,7 @@ escript::Data toFinleyReducedData(const escript::Data& source,
     const int numComp = realComponents(source);
     std::vector<int> count;
     std::vector<std::vector<double> > weight;
-    simplexWeights(m, count, weight);
+    simplexWeights(m, exportIds(m), count, weight);
 
     // one octant value, repeated onto each simplex it was split into
     std::vector<long> haveId;
@@ -1379,7 +1584,7 @@ escript::Data fromFinleyReducedData(const escript::Data& source,
     const int numComp = realComponents(source);
     std::vector<int> count;
     std::vector<std::vector<double> > weight;
-    simplexWeights(m, count, weight);
+    simplexWeights(m, exportIds(m), count, weight);
 
     const escript::FunctionSpace sourceFS = source.getFunctionSpace();
     const long ns = (long) source.getNumSamples();
@@ -1457,6 +1662,180 @@ void pointOrder(const escript::Data& x, long sample, int numPoints, int dim,
     });
 }
 
+/// names one octant face across both meshes: the export builds the ids of its
+/// two triangles as base + key*2 + t, so either side can form the other's
+inline long faceQuadKey(const MeshAccess& m, long f)
+{
+    const long elem = m.faceElements.empty() ? 0 : m.faceElements[f];
+    const long dir = m.faceDirections.empty() ? 0 : m.faceDirections[f];
+    return (m.globalElementOffset + elem) * (2 * m.numDim) + dir;
+}
+
+/**
+   The 3D boundary transfer.
+
+   Not a permutation, unlike 2D: a boundary quad becomes two triangles, and
+   neither the point counts nor the rules match. Outbound, the quad's points are
+   a tensor grid in the face's two axes and so determine a bilinear function,
+   which the triangles' points read off. Inbound, each triangle's three points
+   determine an affine function, and each of the quad's points is read off the
+   triangle that contains it.
+
+   The reduced spaces carry a single value per sample, which no evaluation can
+   improve on: outbound it is replicated (gridWeights on one point does exactly
+   that), inbound the two triangles are averaged by area. Replicate followed by
+   average is the identity, as for ReducedFunction.
+*/
+escript::Data transferBoundary3D(const escript::Data& source,
+                                 escript::Domain_ptr target, bool toFinley,
+                                 const MeshAccess& m, long base,
+                                 const OxleyDomain& dom, int fsCode,
+                                 const char* what)
+{
+    const int numComp = realComponents(source);
+    const int srcPts = source.getNumDataPointsPerSample();
+    const std::vector<long>& gid = exportIds(m);
+    const int stride = srcPts * (numComp + 3);
+
+    const escript::FunctionSpace targetFS = (fsCode == FaceElements)
+            ? escript::functionOnBoundary(*target)
+            : escript::reducedFunctionOnBoundary(*target);
+    escript::Data result = makeLike(source, targetFS);
+    result.requireWrite();
+    const int dstPts = result.getNumDataPointsPerSample();
+    escript::Data sx = source.getFunctionSpace().getX();
+    escript::Data rx = targetFS.getX();
+
+    // what this side can supply, values and the points they were taken at
+    const long ns = (long) source.getNumSamples();
+    std::vector<long> haveId(ns);
+    std::vector<double> haveVal((size_t) ns * stride);
+    const dim_t* srcIds = toFinley ? NULL
+            : source.getFunctionSpace().getDomain()->borrowSampleReferenceIDs(
+                    source.getFunctionSpace().getTypeCode());
+    for (long j = 0; j < ns; ++j) {
+        haveId[j] = toFinley ? faceQuadKey(m, j) : (long) srcIds[j];
+        const double* in = readSample(source, j);
+        const double* xs = sx.getSampleDataRO(j, (double) 0);
+        double* out = &haveVal[(size_t) j * stride];
+        for (int q = 0; q < srcPts; ++q) {
+            for (int c = 0; c < numComp; ++c)
+                out[q*numComp + c] = in[q*numComp + c];
+            for (int d = 0; d < 3; ++d)
+                out[srcPts*numComp + q*3 + d] = xs[q*3 + d];
+        }
+    }
+
+    if (toFinley) {
+        // each triangle asks for the quad it was cut from
+        const long n = (long) result.getNumSamples();
+        const dim_t* ids = target->borrowSampleReferenceIDs(
+                targetFS.getTypeCode());
+        std::vector<long> wantId(n);
+        for (long j = 0; j < n; ++j)
+            wantId[j] = ((long) ids[j] - base) / 2;
+
+        std::vector<double> wantVal;
+        exchangeByGlobalId(dom.getMPI(), stride, haveId, haveVal,
+                           wantId, wantVal);
+
+        std::vector<double> w;
+        for (long j = 0; j < n; ++j) {
+            const double* got = &wantVal[(size_t) j * stride];
+            const double* pts = got + srcPts*numComp;
+            const double* px = rx.getSampleDataRO(j, (double) 0);
+            double* out = writeSample(result, j);
+            for (int q = 0; q < dstPts; ++q) {
+                gridWeights(pts, srcPts, &px[q*3], w);
+                for (int c = 0; c < numComp; ++c) {
+                    double v = 0.;
+                    for (int k = 0; k < srcPts; ++k)
+                        v += w[k] * got[k*numComp + c];
+                    out[q*numComp + c] = v;
+                }
+            }
+        }
+        return result;
+    }
+
+    // inbound: both triangles of every boundary face this rank holds
+    std::vector<long> wantId;
+    wantId.reserve((size_t) m.numFaces * 2);
+    for (long f = 0; f < m.numFaces; ++f)
+        for (int t = 0; t < 2; ++t)
+            wantId.push_back(base + faceQuadKey(m, f) * 2 + t);
+
+    std::vector<double> wantVal;
+    exchangeByGlobalId(dom.getMPI(), stride, haveId, haveVal, wantId, wantVal);
+
+    std::array<long,3> tris[2];
+    for (long f = 0; f < m.numFaces; ++f) {
+        triSplitOfFace(m, gid, f, tris);
+        double vert[2][9];
+        for (int t = 0; t < 2; ++t)
+            for (int k = 0; k < 3; ++k)
+                nodePos(m, tris[t][k], &vert[t][k*3]);
+
+        const double* px = rx.getSampleDataRO(f, (double) 0);
+        double* out = writeSample(result, f);
+
+        if (srcPts == 1) {
+            // nothing to evaluate: average the two by the area each covers
+            double area[2], total = 0.;
+            for (int t = 0; t < 2; ++t) {
+                double e1[3], e2[3], cr[3];
+                for (int d = 0; d < 3; ++d) {
+                    e1[d] = vert[t][3+d] - vert[t][d];
+                    e2[d] = vert[t][6+d] - vert[t][d];
+                }
+                cr[0] = e1[1]*e2[2] - e1[2]*e2[1];
+                cr[1] = e1[2]*e2[0] - e1[0]*e2[2];
+                cr[2] = e1[0]*e2[1] - e1[1]*e2[0];
+                area[t] = 0.5 * std::sqrt(cr[0]*cr[0] + cr[1]*cr[1]
+                                        + cr[2]*cr[2]);
+                total += area[t];
+            }
+            if (total <= 0.)
+                throw OxleyException(std::string(what) + ": a boundary face "
+                        "has no area.");
+            for (int c = 0; c < numComp; ++c)
+                out[c] = 0.;
+            for (int t = 0; t < 2; ++t) {
+                const double* got = &wantVal[((size_t) f*2 + t) * stride];
+                for (int c = 0; c < numComp; ++c)
+                    out[c] += (area[t]/total) * got[c];
+            }
+            continue;
+        }
+
+        if (srcPts != 3)
+            throw OxleyException(std::string(what) + ": a Tri3 must carry "
+                    "three quadrature points for its values to determine an "
+                    "affine function.");
+
+        for (int q = 0; q < dstPts; ++q) {
+            const double* p = &px[q*3];
+            int best = 0;
+            double bestDepth = -std::numeric_limits<double>::max();
+            for (int t = 0; t < 2; ++t) {
+                const double d = depthIn(vert[t], 3, p);
+                if (d > bestDepth) { bestDepth = d; best = t; }
+            }
+            const double* got = &wantVal[((size_t) f*2 + best) * stride];
+            const double* pts = got + srcPts*numComp;
+            double w[3];
+            affineWeights(pts, 3, p, w);
+            for (int c = 0; c < numComp; ++c) {
+                double v = 0.;
+                for (int k = 0; k < 3; ++k)
+                    v += w[k] * got[k*numComp + c];
+                out[q*numComp + c] = v;
+            }
+        }
+    }
+    return result;
+}
+
 /// shared by both directions: move boundary values keyed by (face, point)
 escript::Data transferBoundary(const escript::Data& source,
                                escript::Domain_ptr target, bool toFinley,
@@ -1482,6 +1861,10 @@ escript::Data transferBoundary(const escript::Data& source,
     const long base = faceIdBase(m, dom->getMPI());         // collective
     const int dim = m.numDim;
     const int numComp = realComponents(source);
+
+    if (dim == 3)
+        return transferBoundary3D(source, target, toFinley, m, base, *dom,
+                                  fsCode, what);
 
     // the same space on the other side
     escript::FunctionSpace targetFS = (fsCode == FaceElements)
@@ -1594,6 +1977,63 @@ escript::Data toFinleyFunctionData(const escript::Data& source,
     const MeshAccess m = viewMatchingExport(*dom);          // collective
     const int numComp = realComponents(source);
     const int srcPts = source.getNumDataPointsPerSample();
+
+    if (m.numDim == 3) {
+        // One message per OCTANT, not per tet: a tet's id already says which
+        // octant it came from, so all six ask for the same key and the buffer
+        // stays the size of the octant count.
+        escript::Data sx = source.getFunctionSpace().getX();
+        const int stride = srcPts * (numComp + 3);
+        std::vector<long> haveId(m.numElements);
+        std::vector<double> haveVal((size_t) m.numElements * stride);
+        for (long e = 0; e < m.numElements; ++e) {
+            haveId[e] = m.globalElementOffset + e;
+            const double* in = readSample(source, e);
+            const double* xs = sx.getSampleDataRO(e, (double) 0);
+            double* out = &haveVal[(size_t) e * stride];
+            for (int q = 0; q < srcPts; ++q) {
+                for (int c = 0; c < numComp; ++c)
+                    out[q*numComp + c] = in[q*numComp + c];
+                for (int d = 0; d < 3; ++d)
+                    out[srcPts*numComp + q*3 + d] = xs[q*3 + d];
+            }
+        }
+
+        escript::Data result = makeLike(source, escript::function(*target));
+        result.requireWrite();
+        const escript::FunctionSpace targetFS = escript::function(*target);
+        const long n = (long) result.getNumSamples();
+        const int dstPts = result.getNumDataPointsPerSample();
+        const dim_t* ids = target->borrowSampleReferenceIDs(
+                targetFS.getTypeCode());
+        std::vector<long> wantId(n);
+        for (long j = 0; j < n; ++j)
+            wantId[j] = (long) ids[j] / MAX_SIMPLICES;      // the parent octant
+
+        std::vector<double> wantVal;
+        exchangeByGlobalId(dom->getMPI(), stride, haveId, haveVal,
+                           wantId, wantVal);
+
+        escript::Data rx = targetFS.getX();
+        std::vector<double> w;
+        for (long j = 0; j < n; ++j) {
+            const double* got = &wantVal[(size_t) j * stride];
+            const double* pts = got + srcPts*numComp;
+            const double* px = rx.getSampleDataRO(j, (double) 0);
+            double* out = writeSample(result, j);
+            for (int q = 0; q < dstPts; ++q) {
+                gridWeights(pts, srcPts, &px[q*3], w);
+                for (int c = 0; c < numComp; ++c) {
+                    double v = 0.;
+                    for (int k = 0; k < srcPts; ++k)
+                        v += w[k] * got[k*numComp + c];
+                    out[q*numComp + c] = v;
+                }
+            }
+        }
+        return result;
+    }
+
     if (srcPts != 4)
         throw OxleyException("toFinleyFunctionData: expected the 2x2 Gauss "
                 "rule on the octants.");
@@ -1677,6 +2117,88 @@ escript::Data fromFinleyFunctionData(const escript::Data& source,
 
     const MeshAccess m = viewMatchingExport(*dom);          // collective
     const int numComp = realComponents(source);
+
+    if (m.numDim == 3) {
+        const int srcPts = source.getNumDataPointsPerSample();
+        if (srcPts != 4)
+            throw OxleyException("fromFinleyFunctionData: a Tet4 must carry "
+                    "four quadrature points for its values to determine an "
+                    "affine function.");
+
+        const escript::FunctionSpace sourceFS = source.getFunctionSpace();
+        escript::Data sx = sourceFS.getX();
+        const long ns = (long) source.getNumSamples();
+        const dim_t* ids = sourceFS.getDomain()->borrowSampleReferenceIDs(
+                sourceFS.getTypeCode());
+        const int stride = srcPts * (numComp + 3);
+        std::vector<long> haveId(ns);
+        std::vector<double> haveVal((size_t) ns * stride);
+        for (long j = 0; j < ns; ++j) {
+            haveId[j] = (long) ids[j];
+            const double* in = readSample(source, j);
+            const double* xs = sx.getSampleDataRO(j, (double) 0);
+            double* out = &haveVal[(size_t) j * stride];
+            for (int q = 0; q < srcPts; ++q) {
+                for (int c = 0; c < numComp; ++c)
+                    out[q*numComp + c] = in[q*numComp + c];
+                for (int d = 0; d < 3; ++d)
+                    out[srcPts*numComp + q*3 + d] = xs[q*3 + d];
+            }
+        }
+
+        // every tet of every octant this rank owns
+        std::vector<long> wantId;
+        wantId.reserve((size_t) m.numElements * 6);
+        for (long e = 0; e < m.numElements; ++e)
+            for (int t = 0; t < 6; ++t)
+                wantId.push_back((m.globalElementOffset + e) * MAX_SIMPLICES + t);
+
+        std::vector<double> wantVal;
+        exchangeByGlobalId(dom->getMPI(), stride, haveId, haveVal,
+                           wantId, wantVal);
+
+        escript::Data result = makeLike(source, escript::function(*target));
+        result.requireWrite();
+        const escript::FunctionSpace targetFS = escript::function(*target);
+        const int dstPts = result.getNumDataPointsPerSample();
+        escript::Data rx = targetFS.getX();
+        const std::vector<long>& gid = exportIds(m);
+        std::array<long,4> tets[6];
+        for (long e = 0; e < m.numElements; ++e) {
+            tetSplitOfElement(m, gid, e, tets);
+            double vert[6][12];
+            for (int t = 0; t < 6; ++t)
+                for (int k = 0; k < 4; ++k)
+                    nodePos(m, tets[t][k], &vert[t][k*3]);
+
+            const double* px = rx.getSampleDataRO(e, (double) 0);
+            double* out = writeSample(result, e);
+            for (int q = 0; q < dstPts; ++q) {
+                const double* p = &px[q*3];
+                // the tet this Gauss point sits in, decided against the tets'
+                // VERTICES: their quadrature points span only part of them
+                int best = 0;
+                double bestDepth = -std::numeric_limits<double>::max();
+                for (int t = 0; t < 6; ++t) {
+                    const double d = depthIn(vert[t], 4, p);
+                    if (d > bestDepth) { bestDepth = d; best = t; }
+                }
+                const double* got =
+                        &wantVal[((size_t) e * 6 + best) * stride];
+                const double* pts = got + srcPts*numComp;
+                double w[4];
+                affineWeights(pts, 4, p, w);
+                for (int c = 0; c < numComp; ++c) {
+                    double v = 0.;
+                    for (int k = 0; k < 4; ++k)
+                        v += w[k] * got[k*numComp + c];
+                    out[q*numComp + c] = v;
+                }
+            }
+        }
+        return result;
+    }
+
     if (source.getNumDataPointsPerSample() != 3)
         throw OxleyException("fromFinleyFunctionData: expected three points on "
                 "a Tri3.");

@@ -5092,6 +5092,16 @@ MeshAccess Brick::getMeshAccess(bool materializeHanging) const
         static const int faceCorner[6][4] = {
             {0,4,6,2}, {1,3,7,5}, {0,1,5,4}, {2,6,7,3}, {0,2,3,1}, {4,5,7,6} };
         static const long faceTag[6] = {1, 2, 10, 20, 100, 200};
+
+        // Faces are collected per direction and concatenated afterwards,
+        // because that is the order the domain gives its boundary SAMPLES:
+        // m_faceOffset lays them out in blocks -x, +x, -y, +y, -z, +z, each in
+        // octant order. Building them octant-major instead - as this did -
+        // makes MeshAccess face f a different face from FunctionOnBoundary
+        // sample f, which nothing notices until something pairs the two: the
+        // boundary transfer read every value off the wrong face. Rectangle
+        // carries the same rule; treat it as the invariant.
+        std::vector<long> bucketNodes[6], bucketElements[6];
         const p8est_connectivity_t* conn = p8est->connectivity;
         m.nodesPerFace = 4;
         long le = 0;
@@ -5123,13 +5133,22 @@ MeshAccess Brick::getMeshAccess(bool materializeHanging) const
                     // hangs on the coarse neighbour), and the face must name the
                     // node that is actually there
                     for (int c = 0; c < 4; ++c)
-                        m.faceNodes.push_back(
+                        bucketNodes[f].push_back(
                                 m.elementNodes[(size_t) le * V + faceCorner[f][c]]);
-                    m.faceTags.push_back(faceTag[f]);
-                    m.faceElements.push_back(le);
-                    m.faceDirections.push_back(f);
+                    bucketElements[f].push_back(le);
                 }
             }
+        }
+        for (int f = 0; f < 6; ++f) {
+            m.faceNodes.insert(m.faceNodes.end(), bucketNodes[f].begin(),
+                               bucketNodes[f].end());
+            m.faceElements.insert(m.faceElements.end(),
+                                  bucketElements[f].begin(),
+                                  bucketElements[f].end());
+            m.faceTags.insert(m.faceTags.end(), bucketElements[f].size(),
+                              faceTag[f]);
+            m.faceDirections.insert(m.faceDirections.end(),
+                                    bucketElements[f].size(), (long) f);
         }
         m.numFaces = (long) m.faceTags.size();
     }
