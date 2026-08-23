@@ -33,6 +33,7 @@ where the domain sits in space, so saveMesh writes that alongside as
 missing.
 """
 
+import glob
 import os
 
 import esys.escriptcore.utestselect as unittest
@@ -60,6 +61,27 @@ def numElements(domain):
 class Test_MeshIOOnOxley(unittest.TestCase):
     def path(self, name):
         return os.path.join(WORKDIR, "_meshio_%s_%d" % (name, getMPISizeWorld()))
+
+    def tearDown(self):
+        """
+        saveMesh writes several files per mesh - the header, the connectivity
+        and the forest - and nothing else removes them, so a run used to leave
+        them lying in whatever directory it started from. Cleared here rather
+        than at the end of the module so that a test which fails still tidies
+        up after itself.
+
+        Rank 0 alone removes, behind a barrier: every rank writes the same
+        paths, so removing on all of them is a race in which the losers find
+        the file already gone.
+        """
+        MPIBarrierWorld()
+        if getMPIRankWorld() == 0:
+            for f in glob.glob(os.path.join(WORKDIR, "_meshio_*")):
+                try:
+                    os.remove(f)
+                except OSError:
+                    pass
+        MPIBarrierWorld()
 
     def check_same_mesh(self, a, b, what):
         self.assertEqual(a.getDim(), b.getDim(), "%s: dimension" % what)

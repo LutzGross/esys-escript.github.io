@@ -49,6 +49,11 @@ test_*.log
 test_*.txt
 scons_py_tests*.log
 uniform_mesh_ae.silo/removed_code/
+# ... and what the oxley validators and the mesh IO tests write. Named rather
+# than a blanket *.vtu, because doc/examples ships .vtu files that ARE source.
+oxley_a3_*.vtu
+oxley_hanging_*.vtu
+_meshio_*
 
 # design working notes, kept out of the repo
 oxley-designs/DESIGN.md
