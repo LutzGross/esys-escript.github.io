@@ -1,17 +1,21 @@
 """
-Spike validation: oxley conforming forest -> finley mesh.
+Spike validation: oxley forest -> finley mesh, conforming and graded.
 
 Checks, in increasing order of how much of the pipeline they exercise:
-  1. mesh size        - element and node counts against the expected forest
-  2. volume           - integrate(1) over Function
-  3. boundary area    - integrate(1) over FunctionOnBoundary
-  4. NORMALS          - integrate(n.x) dS == dim * volume. This is the one that
+  1. volume           - integrate(1) over Function
+  2. boundary area    - integrate(1) over FunctionOnBoundary
+  3. NORMALS          - integrate(n.x) dS == dim * volume. This is the one that
                         catches a face element wound the wrong way round, which
                         is otherwise silent and corrupts Neumann/Robin BCs.
-  5. tags             - each boundary tag has the area it should
+  4. tags             - each boundary tag has the area it should
+  5. patch test       - a linear field solved exactly
   6. Poisson solve    - against the equivalent ripley domain
 
-Run:
+The 3D cases run twice: on a conforming forest, and on the GRADED forests from
+the shared table, where a coarse octant is cut into up to forty-eight
+tetrahedra and a boundary quad into up to six triangles.
+
+Run FROM THE PROJECT ROOT, which is where the shared table of forests is found:
     ./bin/run-escript -n1 oxley-designs/validate_finley_export.py
     ./bin/run-escript -n3 oxley-designs/validate_finley_export.py
 
@@ -28,6 +32,8 @@ nowhere near the cause. Evaluate on every rank, then print on rank 0.
 """
 import sys
 
+sys.path.insert(0, "oxley/test/python")   # for the shared table of forests
+
 from esys.escript import (Function, FunctionOnBoundary, Solution,
                           ContinuousFunction, Lsup, integrate, inf, sup,
                           whereZero, grad)
@@ -37,6 +43,7 @@ import esys.finley as finley
 import esys.oxley as oxley
 import esys.ripley as ripley
 import esys.escript as esc
+import oxley_meshes
 
 TOL = 1e-10
 failures = []
@@ -54,7 +61,7 @@ def check(name, got, want, tol=TOL):
     return ok
 
 
-def check_mesh(dom, dim, nelem, volume, area):
+def check_mesh(dom, dim, volume, area):
     """geometry and, crucially, normal orientation"""
     check("integrate(1) over Function", integrate(esc.Scalar(1, Function(dom))),
           volume)
@@ -121,7 +128,7 @@ def run_2d():
     if rank == 0:
         print("  -> finley domain, dim =", fin.getDim())
 
-    check_mesh(fin, 2, 64, 1.0, 4.0)
+    check_mesh(fin, 2, 1.0, 4.0)
 
     # each side of the unit square has length 1
     for tag, want in (("left", 1.0), ("right", 1.0),
@@ -157,7 +164,7 @@ def run_3d():
     if rank == 0:
         print("  -> finley domain, dim =", fin.getDim())
 
-    check_mesh(fin, 3, 64, 1.0, 6.0)
+    check_mesh(fin, 3, 1.0, 6.0)
 
     for tag, want in (("left", 1.0), ("right", 1.0), ("bottom", 1.0),
                       ("top", 1.0), ("front", 1.0), ("back", 1.0)):
@@ -174,11 +181,65 @@ def run_3d():
     check("Poisson sup(u) near analytic 1/8", su, 0.125, tol=5e-2)
 
 
+def run_3d_graded():
+    """
+    The same checks on forests with 2:1 seams, which is where the 3D split has
+    something to do.
+
+    A coarse octant then meets finer ones, so its faces carry a centre node and
+    its edges midpoints, it is cut into up to forty-eight tetrahedra coned from
+    a node at its own centre, and a boundary quad becomes up to six triangles
+    rather than two. The boundary checks are the ones that gain most from that:
+    a triangle dropped from a polygon shows up in the area, and one wound the
+    wrong way in the divergence theorem.
+
+    What is NOT checked here, and cannot be: whether neighbouring octants cut
+    their shared face the same way. A globally linear function lies in both
+    triangulations of a planar quad, so the patch test below passes at machine
+    precision on a mesh full of cracks, and so do the volume and the area. That
+    one is caught combinatorially by the face hash inside toFinley(), which runs
+    on every export - so reaching these checks at all already means it passed.
+    """
+    for name, levels in (("seam", oxley_meshes.SEAM_3D),
+                         ("mixed", oxley_meshes.MIXED_3D),
+                         ("isolated", oxley_meshes.ISOLATED_3D)):
+        if rank == 0:
+            print("\n=== 3D graded: oxley Brick, %s -> finley ===" % name)
+        ox = oxley_meshes.graded3D(levels)
+        conforming = ox.isConforming()   # collective: every rank must call it
+        if rank == 0:
+            print("  forest is conforming:", conforming)
+        if conforming:
+            # the case would silently become another conforming one
+            failures.append("%s: the forest has no 2:1 seam" % name)
+            if rank == 0:
+                print("  *** FAIL *** this case is supposed to be graded")
+            continue
+        fin = ox.toFinley()
+
+        check_mesh(fin, 3, 1.0, 6.0)
+
+        for tag in ("left", "right", "bottom", "top", "front", "back"):
+            m = esc.Scalar(0, FunctionOnBoundary(fin))
+            m.setTaggedValue(tag, 1.0)
+            check("boundary tag '%s' area" % tag, integrate(m), 1.0)
+
+        check("linear patch test  [relative Lsup]", patch_test(fin, 3), 0.0,
+              tol=1e-11)
+
+        u = poisson(fin, "left", "right")
+        su = sup(u)   # collective: every rank must call it
+        if rank == 0:
+            print("  oxley->finley sup(u) = %.12g" % su)
+        check("Poisson sup(u) near analytic 1/8", su, 0.125, tol=5e-2)
+
+
 if __name__ == "__main__":
     if rank == 0:
         print("ranks:", nranks)
     run_2d()
     run_3d()
+    run_3d_graded()
     if rank == 0:
         print()
         if failures:
