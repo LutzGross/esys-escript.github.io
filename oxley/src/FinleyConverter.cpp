@@ -192,20 +192,31 @@ inline void emitTriangle(std::vector<index_t>& elems, std::vector<int>& tags,
    Verifies that the simplices tile the domain without cracks: every face of
    every simplex must be shared with exactly one other simplex, or lie on the
    boundary. A quad face split one way by one element and the other way by its
-   neighbour produces faces with a count of one that are not on the boundary,
-   which is exactly what this catches - and which no physics test would, since
-   a globally linear function lies in both triangulations of a planar quad.
+   neighbour produces faces used once that are not on the boundary, which is
+   exactly what this catches - and which no physics test would, since a globally
+   linear function lies in both triangulations of a planar quad.
 
-   In serial the check is exact. Under MPI a face on the rank interface also has
-   a local count of one, so only the "never more than twice" half is checked;
-   the split rule is a deterministic function of global node ids, so agreeing in
-   serial implies agreeing across ranks.
+   Faces are keyed by their SORTED GLOBAL node ids, so a key means the same face
+   on every rank. That is what lets the rank interfaces be checked too: a face
+   there is used once locally and once on the neighbour, which looks exactly
+   like a crack from either side alone. The ones that cannot be settled locally -
+   used once, and not on the domain boundary - are routed by a hash of the key
+   to whichever rank is to adjudicate, and each must arrive exactly twice.
+
+   Only those are exchanged, not every face, so the traffic is the size of the
+   interface rather than of the mesh. Nothing is lost by that: a face used twice
+   on one rank and once on another is not sent by the rank that has it twice, so
+   the one copy arrives alone and is reported - as a dangling face rather than
+   as an over-used one, but reported.
+
+   Collective, and the verdict is a reduction, so every rank throws or none does.
 */
 template <int NF, int FN>
 void checkConformity(const std::vector<index_t>& elementNodes, int nodesPerElem,
                      const int (*localFaces)[FN],
                      const std::vector<index_t>& boundaryNodes,
-                     bool exact, const char* what)
+                     const std::vector<long>& gidOf,
+                     const escript::JMPI& mpi, const char* what)
 {
     typedef std::array<index_t, FN> Key;
     std::map<Key, int> count;
@@ -214,7 +225,8 @@ void checkConformity(const std::vector<index_t>& elementNodes, int nodesPerElem,
         for (int f = 0; f < NF; ++f) {
             Key k;
             for (int i = 0; i < FN; ++i)
-                k[i] = elementNodes[e * nodesPerElem + localFaces[f][i]];
+                k[i] = (index_t) gidOf[elementNodes[e * nodesPerElem
+                                                  + localFaces[f][i]]];
             std::sort(k.begin(), k.end());
             count[k]++;
         }
@@ -225,25 +237,91 @@ void checkConformity(const std::vector<index_t>& elementNodes, int nodesPerElem,
     for (size_t b = 0; b < nb; ++b) {
         Key k;
         for (int i = 0; i < FN; ++i)
-            k[i] = boundaryNodes[b * FN + i];
+            k[i] = (index_t) gidOf[boundaryNodes[b * FN + i]];
         std::sort(k.begin(), k.end());
         boundary.insert(k);
     }
 
-    long tooMany = 0, danglingInterior = 0;
+    long tooMany = 0;
+    std::vector<Key> undecided;             // used once, and not on the boundary
     for (typename std::map<Key, int>::const_iterator it = count.begin();
          it != count.end(); ++it) {
         if (it->second > 2)
             ++tooMany;
-        else if (it->second == 1 && exact && boundary.find(it->first) == boundary.end())
-            ++danglingInterior;
+        else if (it->second == 1 && boundary.find(it->first) == boundary.end())
+            undecided.push_back(it->first);
     }
 
-    if (tooMany || danglingInterior) {
+    long dangling = 0;
+    if (mpi->size == 1) {
+        dangling = (long) undecided.size();     // nobody else can be holding it
+    }
+#ifdef ESYS_MPI
+    else {
+        // route each key to the rank that will adjudicate it. Any function of
+        // the key will do as long as every rank computes the same one, which is
+        // why the key is global ids and sorted.
+        const int size = mpi->size;
+        std::vector<int> sendCount(size, 0), recvCount(size, 0);
+        std::vector<int> owner(undecided.size());
+        for (size_t i = 0; i < undecided.size(); ++i) {
+            unsigned long h = 1469598103934665603UL;
+            for (int j = 0; j < FN; ++j) {
+                h ^= (unsigned long) undecided[i][j];
+                h *= 1099511628211UL;
+            }
+            owner[i] = (int) (h % (unsigned long) size);
+            sendCount[owner[i]] += FN;
+        }
+        MPI_Alltoall(&sendCount[0], 1, MPI_INT, &recvCount[0], 1, MPI_INT,
+                     mpi->comm);
+
+        std::vector<int> sendDispl(size, 0), recvDispl(size, 0);
+        long sendTotal = 0, recvTotal = 0;
+        for (int r = 0; r < size; ++r) {
+            sendDispl[r] = (int) sendTotal;
+            recvDispl[r] = (int) recvTotal;
+            sendTotal += sendCount[r];
+            recvTotal += recvCount[r];
+        }
+        std::vector<index_t> sendBuf(sendTotal), recvBuf(recvTotal);
+        std::vector<int> fill(sendDispl);
+        for (size_t i = 0; i < undecided.size(); ++i) {
+            for (int j = 0; j < FN; ++j)
+                sendBuf[fill[owner[i]]++] = undecided[i][j];
+        }
+        MPI_Alltoallv(sendBuf.empty() ? NULL : &sendBuf[0], &sendCount[0],
+                      &sendDispl[0], MPI_DIM_T,
+                      recvBuf.empty() ? NULL : &recvBuf[0], &recvCount[0],
+                      &recvDispl[0], MPI_DIM_T, mpi->comm);
+
+        std::map<Key, int> arrivals;
+        for (long i = 0; i + FN <= recvTotal; i += FN) {
+            Key k;
+            for (int j = 0; j < FN; ++j)
+                k[j] = recvBuf[i + j];
+            arrivals[k]++;                  // already sorted by the sender
+        }
+        for (typename std::map<Key, int>::const_iterator it = arrivals.begin();
+             it != arrivals.end(); ++it) {
+            if (it->second != 2)
+                ++dangling;
+        }
+    }
+
+    if (mpi->size > 1) {
+        long local[2] = { tooMany, dangling }, total[2] = { 0, 0 };
+        MPI_Allreduce(local, total, 2, MPI_LONG, MPI_SUM, mpi->comm);
+        tooMany = total[0];
+        dangling = total[1];
+    }
+#endif
+
+    if (tooMany || dangling) {
         std::stringstream ss;
         ss << "toFinley: the " << what << " mesh is not conforming - "
            << tooMany << " face(s) shared by more than two elements, "
-           << danglingInterior << " interior face(s) with only one element. "
+           << dangling << " interior face(s) with only one element. "
               "The face split rule disagreed between neighbours.";
         throw OxleyException(ss.str());
     }
@@ -1184,12 +1262,17 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
         }
     }
 
-    const bool exact = (dom.getMPI()->size == 1);
+    // Collective, and exact on any number of ranks: the interface faces are
+    // settled by an exchange rather than assumed. Keyed by global node ids, so
+    // this has to come before the local indices are translated below - it does
+    // its own translation.
     if (simplices) {
         if (m.numDim == 3)
-            checkConformity<4, 3>(elems, 4, tetFaces, faces, exact, "tetrahedral");
+            checkConformity<4, 3>(elems, 4, tetFaces, faces, gidOf,
+                                  dom.getMPI(), "tetrahedral");
         else
-            checkConformity<3, 2>(elems, 3, triFaces, faces, exact, "triangular");
+            checkConformity<3, 2>(elems, 3, triFaces, faces, gidOf,
+                                  dom.getMPI(), "triangular");
     }
 
     // local node indices -> global node ids

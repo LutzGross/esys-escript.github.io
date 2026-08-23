@@ -198,7 +198,9 @@ def run_3d_graded():
     triangulations of a planar quad, so the patch test below passes at machine
     precision on a mesh full of cracks, and so do the volume and the area. That
     one is caught combinatorially by the face hash inside toFinley(), which runs
-    on every export - so reaching these checks at all already means it passed.
+    on every export and is exact on any number of ranks - the faces it cannot
+    settle locally are exchanged - so reaching these checks at all already means
+    it passed, and means it at 3 ranks as much as at 1.
     """
     for name, levels in (("seam", oxley_meshes.SEAM_3D),
                          ("mixed", oxley_meshes.MIXED_3D),
