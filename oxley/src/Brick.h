@@ -60,6 +60,10 @@ class Brick: public OxleyDomain
 
     template<class Scalar> friend class DefaultAssembler3D;
 
+    // grows the new forest a refinement produces; see the note below on why
+    // no refine* method may live on the domain itself
+    friend class RefinementQueue3D;
+
 public:
 
     /**
@@ -195,54 +199,11 @@ public:
 
     // See Rectangle.h: this refinement needs only p4est.
 
-    /**
-       \brief
-       refines the mesh
-       \param algorithmname The algorithm to use
-    */
-    virtual void refineMesh(std::string algorithmname);
-
-    /**
-       \brief
-       refines the mesh near a boundary
-       \param maxRecursion Max levels of recursion
-       \param algorithmname The algorithm to use
-    */
-    virtual void refineBoundary(std::string boundary, double dx);
-
-    /**
-       \brief
-       refines the mesh within the interior of a region bound by 
-       x0, x1, y0, y1
-       \param x0 boundary of the region
-       \param x1 boundary of the region
-       \param y0 boundary of the region
-       \param y1 boundary of the region
-    */
-    virtual void refineRegion(double x0, double x1, double y0, double y1, double z0, double z1);
-
-        /**
-       \brief
-       refines the mesh around the point x0, y0
-       \param x0 spatial coordinate of point
-       \param y0 spatial coordinate of point
-    */
-    virtual void refinePoint(double x0, double y0, double z0);
-
-    /**
-       \brief
-       refines a circle on the mesh with center x0, y0 and radius r
-       \param x0 spatial coordinate of center of the circle
-       \param y0 spatial coordinate of center of the circle
-       \param r radius of the circle
-    */
-    virtual void refineSphere(double x0, double y0, double z0, double r);
-
-    /**
-       \brief
-         refines a region defined by a mask
-    */
-    virtual void refineMask(escript::Data mask);
+    // NO refine* METHOD LIVES HERE, and none may be added. A domain that
+    // refined itself would leave every Data object standing on it referring to
+    // a mesh that no longer exists, so refinement grows a NEW forest instead:
+    // the operations are queued on a RefinementQueue3D and applied by its
+    // apply(), which is a friend below so that it can build that new forest.
 
     /**
        \brief
@@ -401,12 +362,6 @@ public:
     */
     bool isBelowBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
 
-    /**
-      \brief
-      Applies a refinementzone
-   */
-    escript::Domain_ptr applyRefinement(RefinementQueue& R);
-
 ////////////////////////////////
 private:
 
@@ -480,7 +435,6 @@ private:
     virtual Assembler_ptr createAssembler(std::string type,
                                           const DataMap& options) const;
 
-    virtual void updateMeshInformation();
 
     /**
       \brief

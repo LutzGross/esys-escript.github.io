@@ -1077,296 +1077,10 @@ void Rectangle::loadMesh(std::string filename)
 // guard above, swept in with saveMesh/loadMesh which do need trilinos, so a
 // build without trilinos had no refinement at all beyond the constructor.
 
-void Rectangle::refineMesh(std::string algorithmname)
-{
-    oxleytimer.toc("refineMesh...");
-
-    z_needs_update=true;
-    iz_needs_update=true;
-
-    p4estData * pForestData;
-    pForestData = &forestData;
-    p4est->user_pointer = pForestData;
-
-    if(!algorithmname.compare("uniform"))
-    {
-        p4est_refine_ext(p4est, true, -1, refine_uniform, init_rectangle_data, NULL);
-        p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
-    }
-    else if(!algorithmname.compare("MARE2DEM") || !algorithmname.compare("mare2dem"))
-    {
-        if(adaptive_refinement == true)
-        {
-            p4est_refine_ext(p4est, true, -1, refine_mare2dem, init_rectangle_data, NULL);
-            p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
-        }
-        else
-        {
-#ifdef OXLEY_ENABLE_DEBUG
-            std::cout << "Warning: Adaptive mesh refinement is disabled." << std::endl;
-#endif
-        }
-    }
-    else {
-        throw OxleyException("Unknown refinement algorithm name.");
-    }
-
-    // Make sure that nothing went wrong
-#ifdef OXLEY_ENABLE_DEBUG
-    if(!p4est_is_valid(p4est))
-        throw OxleyException("p4est broke during refinement");
-    if(!p4est_connectivity_is_valid(connectivity))
-        throw OxleyException("connectivity broke during refinement");
-#endif
-
-    bool partition_for_coarsening = true;
-    p4est_partition_ext(p4est, partition_for_coarsening, NULL);
-
-    // Update the nodes
-    p4est_lnodes_destroy(nodes);
-    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    nodes = p4est_lnodes_new(p4est, ghost, 1);
-    p4est_ghost_destroy(ghost);
-
-    // Update
-    if(autoMeshUpdates)
-        updateMesh();
-
-    oxleytimer.toc("refineMesh...done");
-}
-
-void Rectangle::refineBoundary(std::string boundaryname, double dx)
-{
-    oxleytimer.toc("refineBoundary...");
-
-    z_needs_update=true;
-    iz_needs_update=true;
-
-    forestData.refinement_depth = dx;
-
-    if(!boundaryname.compare("top") || !boundaryname.compare("Top")
-        || !boundaryname.compare("t") || !boundaryname.compare("T")
-        || !boundaryname.compare("TOP"))
-    {
-        p4est_refine_ext(p4est, true, -1, refine_north, init_rectangle_data, NULL);
-        p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
-    } 
-    else if(!boundaryname.compare("bottom") || !boundaryname.compare("Bottom")
-        || !boundaryname.compare("b") || !boundaryname.compare("B")
-        || !boundaryname.compare("BOTTOM"))
-    {
-        p4est_refine_ext(p4est, true, -1, refine_south, init_rectangle_data, NULL);
-        p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
-    }
-    else if(!boundaryname.compare("left") || !boundaryname.compare("Left")
-        || !boundaryname.compare("l") || !boundaryname.compare("L")
-        || !boundaryname.compare("LEFT"))
-    {
-        p4est_refine_ext(p4est, true, -1, refine_west, init_rectangle_data, NULL);
-        p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
-    }
-    else if(!boundaryname.compare("right") || !boundaryname.compare("Right")
-        || !boundaryname.compare("r") || !boundaryname.compare("R")
-        || !boundaryname.compare("RIGHT"))
-    {
-        p4est_refine_ext(p4est, true, -1, refine_east, init_rectangle_data, NULL);
-        p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);  
-    }
-    else {
-        throw OxleyException("Unknown boundary name. Please try 'top', 'bottom', 'left' or 'right'.");
-    }
-
-    // Make sure that nothing went wrong
-#ifdef OXLEY_ENABLE_DEBUG
-    if(!p4est_is_valid(p4est))
-        throw OxleyException("p4est broke during refinement");
-    if(!p4est_connectivity_is_valid(connectivity))
-        throw OxleyException("connectivity broke during refinement");
-#endif
-
-    bool partition_for_coarsening = true;
-    p4est_partition_ext(p4est, partition_for_coarsening, NULL);
-
-    // Update the nodes
-    p4est_lnodes_destroy(nodes);
-    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    nodes = p4est_lnodes_new(p4est, ghost, 1);
-    p4est_ghost_destroy(ghost);
-
-    // Update
-    if(autoMeshUpdates)
-        updateMesh();
-
-    oxleytimer.toc("refineBoundary...Done");
-}
-
-void Rectangle::refineRegion(double x0, double x1, double y0, double y1)
-{
-    oxleytimer.toc("refineRegion...");
-
-    z_needs_update=true;
-    iz_needs_update=true;
-
-    // If the boundaries were not specified by the user, default to the border of the domain
-    forestData.refinement_boundaries[0] = x0 == -1 ? forestData.m_origin[0] : x0; 
-    forestData.refinement_boundaries[1] = x1 == -1 ? forestData.m_origin[1] : x1;
-    forestData.refinement_boundaries[2] = y0 == -1 ? forestData.m_lxy[0] : y0;
-    forestData.refinement_boundaries[3] = y1 == -1 ? forestData.m_lxy[1] : y1;
-
-#ifdef OXLEY_ENABLE_DEBUG_REFINE_REGION
-    std::cout << "Rectangle::refineRegion" << std::endl;
-    std::cout << "Region boundaries = " << x0 << ", " << y0 << " and " << x1 << ", " << y1 << std::endl;
-#endif
-
-    p4est_refine_ext(p4est, true, -1, refine_region, init_rectangle_data, NULL);
-    p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
-
-    // Make sure that nothing went wrong
-#ifdef OXLEY_ENABLE_DEBUG
-    if(!p4est_is_valid(p4est))
-        throw OxleyException("p4est broke during refinement");
-    if(!p4est_connectivity_is_valid(connectivity))
-        throw OxleyException("connectivity broke during refinement");
-#endif
-
-    bool partition_for_coarsening = true;
-    p4est_partition_ext(p4est, partition_for_coarsening, NULL);
-
-    // Update the nodes
-    p4est_lnodes_destroy(nodes);
-    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    nodes = p4est_lnodes_new(p4est, ghost, 1);
-    p4est_ghost_destroy(ghost);
-
-    // Update
-    if(autoMeshUpdates)
-        updateMesh();
-
-    oxleytimer.toc("refineRegion...Done");
-}
-
-void Rectangle::refinePoint(double x0, double y0)
-{
-    oxleytimer.toc("refinePoint...");
-
-    z_needs_update=true;
-    iz_needs_update=true;
-
-    // Check that the point is inside the domain
-    if(x0 < forestData.m_origin[0] || x0 > forestData.m_length[0] 
-        || y0 < forestData.m_origin[1] || y0 > forestData.m_length[1] )
-    {
-        throw OxleyException("Coordinates lie outside the domain.");
-    }
-
-    // If the boundaries were not specified by the user, default to the border of the domain
-    forestData.refinement_boundaries[0] = x0;
-    forestData.refinement_boundaries[1] = y0;
-    p4est_refine_ext(p4est, true, -1, refine_point, init_rectangle_data, NULL);
-    p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
-
-    // Make sure that nothing went wrong
-#ifdef OXLEY_ENABLE_DEBUG
-    if(!p4est_is_valid(p4est))
-        throw OxleyException("p4est broke during refinement");
-    if(!p4est_connectivity_is_valid(connectivity))
-        throw OxleyException("connectivity broke during refinement");
-#endif
-
-    bool partition_for_coarsening = true;
-    p4est_partition_ext(p4est, partition_for_coarsening, NULL);
-
-    // Update
-    if(autoMeshUpdates)
-        updateMesh();
-
-    oxleytimer.toc("refinePoint...Done");
-}
-
-void Rectangle::refineCircle(double x0, double y0, double r)
-{
-    oxleytimer.toc("refineCircle...");
-
-    z_needs_update=true;
-    iz_needs_update=true;
-    
-    // Check that the point is inside the domain
-    if(x0 < forestData.m_origin[0] || x0 > forestData.m_lxy[0] 
-        || y0 < forestData.m_origin[1] || y0 > forestData.m_lxy[1] )
-    {
-        throw OxleyException("Coordinates lie outside the domain.");
-    }
-
-    // If the boundaries were not specified by the user, default to the border of the domain
-    forestData.refinement_boundaries[0] = x0;
-    forestData.refinement_boundaries[1] = y0;
-    forestData.refinement_boundaries[2] = r;
-    p4est_refine_ext(p4est, true, -1, refine_circle, init_rectangle_data, NULL);
-    p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
-
-    // Make sure that nothing went wrong
-#ifdef OXLEY_ENABLE_DEBUG
-    if(!p4est_is_valid(p4est))
-        throw OxleyException("p4est broke during refinement");
-    if(!p4est_connectivity_is_valid(connectivity))
-        throw OxleyException("connectivity broke during refinement");
-#endif
-
-    bool partition_for_coarsening = true;
-    p4est_partition_ext(p4est, partition_for_coarsening, NULL);
-
-    // Update the nodes
-    p4est_lnodes_destroy(nodes);
-    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    nodes = p4est_lnodes_new(p4est, ghost, 1);
-    p4est_ghost_destroy(ghost);
-
-    // Update
-    if(autoMeshUpdates)
-        updateMesh();
-
-    oxleytimer.toc("refineCircle...Done");
-}
-void Rectangle::refineMask(escript::Data mask)
-{
-    oxleytimer.toc("refineCircle...");
-
-    z_needs_update=true;
-    iz_needs_update=true;
-
-    // update the quadrant id information
-    updateQuadrantIDinformation();
-
-    // If the boundaries were not specified by the user, default to the border of the domain
-    forestData.mask = mask;
-    bool refine_recursively = false;
-    p4est_refine_ext(p4est, refine_recursively, -1, 
-                refine_mask, init_rectangle_data, NULL);
-    p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
-
-    // Make sure that nothing went wrong
-#ifdef OXLEY_ENABLE_DEBUG
-    if(!p4est_is_valid(p4est))
-        throw OxleyException("p4est broke during refinement");
-    if(!p4est_connectivity_is_valid(connectivity))
-        throw OxleyException("connectivity broke during refinement");
-#endif
-
-    bool partition_for_coarsening = true;
-    p4est_partition_ext(p4est, partition_for_coarsening, NULL);
-
-    // Update the nodes
-    p4est_lnodes_destroy(nodes);
-    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    nodes = p4est_lnodes_new(p4est, ghost, 1);
-    p4est_ghost_destroy(ghost);
-
-    // Update
-    if(autoMeshUpdates)
-        updateMesh();
-
-    oxleytimer.toc("refineCircle...Done");
-}
+// The refinement itself lives on the RefinementQueue, not here. A domain that
+// refined itself would invalidate every Data object standing on it, so the
+// forest a queue grows is always a NEW one - see RefinementQueue2D::apply at
+// the end of this file, where these used to be Rectangle::refineX methods.
 
 void Rectangle::updateQuadrantIDinformation()
 {
@@ -4440,11 +4154,6 @@ void Rectangle::updateFaceOffset()
     p4est_iterate(p4est, NULL, NULL, update_node_faceoffset, NULL, NULL);
 }
 
-void Rectangle::updateMeshInformation()
-{
-    refineMesh("MARE2DEM");
-}
-
 static inline void
 brick_linear_to_xyz (p4est_topidx_t ti, const int logx[P4EST_DIM],
                      const int rankx[P4EST_DIM], p4est_topidx_t tx[P4EST_DIM])
@@ -5165,114 +4874,6 @@ void Rectangle::AutomaticMeshUpdateOnOff(bool new_setting)
     \brief
     Applies a refinementzone
 */
-escript::Domain_ptr Rectangle::applyRefinement(RefinementQueue& R)
-{
-    oxleytimer.toc("Applying the refinement zone...");
-
-    oxley::Rectangle * newDomain = new Rectangle(*this, m_order);
-    int numberOfRefinements = R.getNumberOfOperations();
-
-    newDomain->AutomaticMeshUpdateOnOff(false);
-
-    for(int n = 0; n < numberOfRefinements; n++)
-    {
-        RefinementType Refinement = R.getRefinement(n);
-        //set the refinement level for this refinement
-        newDomain->setRefinementLevels(Refinement.levels);
-        switch(Refinement.flavour)
-        {
-            case UNIFORM:
-            {
-                newDomain->refineMesh("uniform");
-                break;
-            }
-            case POINT2D:
-            {
-                double x=Refinement.x0;
-                double y=Refinement.y0;
-                newDomain->refinePoint(x,y);
-                break;
-            }
-            case REGION2D:
-            {
-                double x0=Refinement.x0;
-                double y0=Refinement.y0;
-                double x1=Refinement.x1;
-                double y1=Refinement.y1;
-                newDomain->refineRegion(x0,x1,y0,y1);
-                break;
-            }
-            case CIRCLE:
-            {
-                double x0=Refinement.x0;
-                double y0=Refinement.y0;
-                double r0=Refinement.r;
-                newDomain->refineCircle(x0,y0,r0);
-                break;
-            }
-            case BOUNDARY:
-            {
-                double dx=Refinement.depth;
-                switch(Refinement.b)
-                {
-                    case NORTH:
-                    {
-                        newDomain->refineBoundary("TOP",dx);
-                        break;
-                    }
-                    case SOUTH:
-                    {
-                        newDomain->refineBoundary("BOTTOM",dx);
-                        break;
-                    }
-                    case WEST:
-                    {
-                        newDomain->refineBoundary("LEFT",dx);
-                        break;
-                    }
-                    case EAST:
-                    {
-                        newDomain->refineBoundary("RIGHT",dx);
-                        break;
-                    }
-                    case TOP:
-                    case BOTTOM:
-                    default:
-                    {
-                        throw OxleyException("Invalid border direction.");
-                    }
-                }
-                break;
-            }
-            case MASK2D:
-            {
-                if(n == 0)
-                {
-                    escript::Data d = *Refinement.data;
-                    newDomain->refineMask(d);
-                    break;
-                }
-                else
-                {
-                    throw OxleyException("Can only apply a mask refinement if it is first in the queue.");
-                }
-            }
-            case MASK3D:
-            case SPHERE:
-            case POINT3D:
-            case REGION3D:
-            default:
-                throw OxleyException("Unknown refinement algorithm.");
-        }
-    }
-
-    newDomain->updateMesh();
-    newDomain->AutomaticMeshUpdateOnOff(true);
-
-    oxleytimer.toc("done");
-    return escript::Domain_ptr(newDomain);
-}
-
 // interpolateWorker_Data::interpolateWorker_Data(const escript::Data * s, 
 //                                                const escript::Data * t, 
 //                                                const oxley::Rectangle * o)
@@ -5301,15 +4902,412 @@ void Rectangle::assembleGradientImpl<cplx_t>(escript::Data& out,
 // Defined here rather than in RefinementQueue.cpp: it needs the concrete
 // domain class, and including this header there runs into the OxleyData.h <->
 // Rectangle.h include cycle.
+void RefinementQueue2D::growByAlgorithm(Rectangle& dom, std::string algorithmname)
+{
+    dom.oxleytimer.toc("growByAlgorithm...");
+
+    dom.z_needs_update=true;
+    dom.iz_needs_update=true;
+
+    p4estData * pForestData;
+    pForestData = &dom.forestData;
+    dom.p4est->user_pointer = pForestData;
+
+    if(!algorithmname.compare("uniform"))
+    {
+        p4est_refine_ext(dom.p4est, true, -1, refine_uniform, init_rectangle_data, NULL);
+        p4est_balance_ext(dom.p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
+    }
+    else if(!algorithmname.compare("MARE2DEM") || !algorithmname.compare("mare2dem"))
+    {
+        if(dom.adaptive_refinement == true)
+        {
+            p4est_refine_ext(dom.p4est, true, -1, refine_mare2dem, init_rectangle_data, NULL);
+            p4est_balance_ext(dom.p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
+        }
+        else
+        {
+#ifdef OXLEY_ENABLE_DEBUG
+            std::cout << "Warning: Adaptive mesh refinement is disabled." << std::endl;
+#endif
+        }
+    }
+    else {
+        throw OxleyException("Unknown refinement algorithm name.");
+    }
+
+    // Make sure that nothing went wrong
+#ifdef OXLEY_ENABLE_DEBUG
+    if(!p4est_is_valid(dom.p4est))
+        throw OxleyException("p4est broke during refinement");
+    if(!p4est_connectivity_is_valid(dom.connectivity))
+        throw OxleyException("connectivity broke during refinement");
+#endif
+
+    bool partition_for_coarsening = true;
+    p4est_partition_ext(dom.p4est, partition_for_coarsening, NULL);
+
+    // Update the nodes
+    p4est_lnodes_destroy(dom.nodes);
+    p4est_ghost_t * ghost = p4est_ghost_new(dom.p4est, P4EST_CONNECT_FULL);
+    dom.nodes = p4est_lnodes_new(dom.p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+
+    // Update
+    if(dom.autoMeshUpdates)
+        dom.updateMesh();
+
+    dom.oxleytimer.toc("growByAlgorithm...done");
+}
+
+void RefinementQueue2D::growAtBorder(Rectangle& dom, std::string boundaryname, double dx)
+{
+    dom.oxleytimer.toc("growAtBorder...");
+
+    dom.z_needs_update=true;
+    dom.iz_needs_update=true;
+
+    dom.forestData.refinement_depth = dx;
+
+    if(!boundaryname.compare("top") || !boundaryname.compare("Top")
+        || !boundaryname.compare("t") || !boundaryname.compare("T")
+        || !boundaryname.compare("TOP"))
+    {
+        p4est_refine_ext(dom.p4est, true, -1, refine_north, init_rectangle_data, NULL);
+        p4est_balance_ext(dom.p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
+    } 
+    else if(!boundaryname.compare("bottom") || !boundaryname.compare("Bottom")
+        || !boundaryname.compare("b") || !boundaryname.compare("B")
+        || !boundaryname.compare("BOTTOM"))
+    {
+        p4est_refine_ext(dom.p4est, true, -1, refine_south, init_rectangle_data, NULL);
+        p4est_balance_ext(dom.p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
+    }
+    else if(!boundaryname.compare("left") || !boundaryname.compare("Left")
+        || !boundaryname.compare("l") || !boundaryname.compare("L")
+        || !boundaryname.compare("LEFT"))
+    {
+        p4est_refine_ext(dom.p4est, true, -1, refine_west, init_rectangle_data, NULL);
+        p4est_balance_ext(dom.p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
+    }
+    else if(!boundaryname.compare("right") || !boundaryname.compare("Right")
+        || !boundaryname.compare("r") || !boundaryname.compare("R")
+        || !boundaryname.compare("RIGHT"))
+    {
+        p4est_refine_ext(dom.p4est, true, -1, refine_east, init_rectangle_data, NULL);
+        p4est_balance_ext(dom.p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);  
+    }
+    else {
+        throw OxleyException("Unknown boundary name. Please try 'top', 'bottom', 'left' or 'right'.");
+    }
+
+    // Make sure that nothing went wrong
+#ifdef OXLEY_ENABLE_DEBUG
+    if(!p4est_is_valid(dom.p4est))
+        throw OxleyException("p4est broke during refinement");
+    if(!p4est_connectivity_is_valid(dom.connectivity))
+        throw OxleyException("connectivity broke during refinement");
+#endif
+
+    bool partition_for_coarsening = true;
+    p4est_partition_ext(dom.p4est, partition_for_coarsening, NULL);
+
+    // Update the nodes
+    p4est_lnodes_destroy(dom.nodes);
+    p4est_ghost_t * ghost = p4est_ghost_new(dom.p4est, P4EST_CONNECT_FULL);
+    dom.nodes = p4est_lnodes_new(dom.p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+
+    // Update
+    if(dom.autoMeshUpdates)
+        dom.updateMesh();
+
+    dom.oxleytimer.toc("growAtBorder...Done");
+}
+
+void RefinementQueue2D::growInRegion(Rectangle& dom, double x0, double x1, double y0, double y1)
+{
+    dom.oxleytimer.toc("growInRegion...");
+
+    dom.z_needs_update=true;
+    dom.iz_needs_update=true;
+
+    // If the boundaries were not specified by the user, default to the border of the domain
+    dom.forestData.refinement_boundaries[0] = x0 == -1 ? dom.forestData.m_origin[0] : x0; 
+    dom.forestData.refinement_boundaries[1] = x1 == -1 ? dom.forestData.m_origin[1] : x1;
+    dom.forestData.refinement_boundaries[2] = y0 == -1 ? dom.forestData.m_lxy[0] : y0;
+    dom.forestData.refinement_boundaries[3] = y1 == -1 ? dom.forestData.m_lxy[1] : y1;
+
+#ifdef OXLEY_ENABLE_DEBUG_REFINE_REGION
+    std::cout << "RefinementQueue2D::growInRegion" << std::endl;
+    std::cout << "Region boundaries = " << x0 << ", " << y0 << " and " << x1 << ", " << y1 << std::endl;
+#endif
+
+    p4est_refine_ext(dom.p4est, true, -1, refine_region, init_rectangle_data, NULL);
+    p4est_balance_ext(dom.p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
+
+    // Make sure that nothing went wrong
+#ifdef OXLEY_ENABLE_DEBUG
+    if(!p4est_is_valid(dom.p4est))
+        throw OxleyException("p4est broke during refinement");
+    if(!p4est_connectivity_is_valid(dom.connectivity))
+        throw OxleyException("connectivity broke during refinement");
+#endif
+
+    bool partition_for_coarsening = true;
+    p4est_partition_ext(dom.p4est, partition_for_coarsening, NULL);
+
+    // Update the nodes
+    p4est_lnodes_destroy(dom.nodes);
+    p4est_ghost_t * ghost = p4est_ghost_new(dom.p4est, P4EST_CONNECT_FULL);
+    dom.nodes = p4est_lnodes_new(dom.p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+
+    // Update
+    if(dom.autoMeshUpdates)
+        dom.updateMesh();
+
+    dom.oxleytimer.toc("growInRegion...Done");
+}
+
+void RefinementQueue2D::growAtPoint(Rectangle& dom, double x0, double y0)
+{
+    dom.oxleytimer.toc("growAtPoint...");
+
+    dom.z_needs_update=true;
+    dom.iz_needs_update=true;
+
+    // Check that the point is inside the domain
+    if(x0 < dom.forestData.m_origin[0] || x0 > dom.forestData.m_length[0] 
+        || y0 < dom.forestData.m_origin[1] || y0 > dom.forestData.m_length[1] )
+    {
+        throw OxleyException("Coordinates lie outside the domain.");
+    }
+
+    // If the boundaries were not specified by the user, default to the border of the domain
+    dom.forestData.refinement_boundaries[0] = x0;
+    dom.forestData.refinement_boundaries[1] = y0;
+    p4est_refine_ext(dom.p4est, true, -1, refine_point, init_rectangle_data, NULL);
+    p4est_balance_ext(dom.p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
+
+    // Make sure that nothing went wrong
+#ifdef OXLEY_ENABLE_DEBUG
+    if(!p4est_is_valid(dom.p4est))
+        throw OxleyException("p4est broke during refinement");
+    if(!p4est_connectivity_is_valid(dom.connectivity))
+        throw OxleyException("connectivity broke during refinement");
+#endif
+
+    bool partition_for_coarsening = true;
+    p4est_partition_ext(dom.p4est, partition_for_coarsening, NULL);
+
+    // Update
+    if(dom.autoMeshUpdates)
+        dom.updateMesh();
+
+    dom.oxleytimer.toc("growAtPoint...Done");
+}
+
+void RefinementQueue2D::growAtCircle(Rectangle& dom, double x0, double y0, double r)
+{
+    dom.oxleytimer.toc("growAtCircle...");
+
+    dom.z_needs_update=true;
+    dom.iz_needs_update=true;
+    
+    // Check that the point is inside the domain
+    if(x0 < dom.forestData.m_origin[0] || x0 > dom.forestData.m_lxy[0] 
+        || y0 < dom.forestData.m_origin[1] || y0 > dom.forestData.m_lxy[1] )
+    {
+        throw OxleyException("Coordinates lie outside the domain.");
+    }
+
+    // If the boundaries were not specified by the user, default to the border of the domain
+    dom.forestData.refinement_boundaries[0] = x0;
+    dom.forestData.refinement_boundaries[1] = y0;
+    dom.forestData.refinement_boundaries[2] = r;
+    p4est_refine_ext(dom.p4est, true, -1, refine_circle, init_rectangle_data, NULL);
+    p4est_balance_ext(dom.p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
+
+    // Make sure that nothing went wrong
+#ifdef OXLEY_ENABLE_DEBUG
+    if(!p4est_is_valid(dom.p4est))
+        throw OxleyException("p4est broke during refinement");
+    if(!p4est_connectivity_is_valid(dom.connectivity))
+        throw OxleyException("connectivity broke during refinement");
+#endif
+
+    bool partition_for_coarsening = true;
+    p4est_partition_ext(dom.p4est, partition_for_coarsening, NULL);
+
+    // Update the nodes
+    p4est_lnodes_destroy(dom.nodes);
+    p4est_ghost_t * ghost = p4est_ghost_new(dom.p4est, P4EST_CONNECT_FULL);
+    dom.nodes = p4est_lnodes_new(dom.p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+
+    // Update
+    if(dom.autoMeshUpdates)
+        dom.updateMesh();
+
+    dom.oxleytimer.toc("growAtCircle...Done");
+}
+void RefinementQueue2D::growFromMask(Rectangle& dom, escript::Data mask)
+{
+    dom.oxleytimer.toc("growFromMask...");
+
+    dom.z_needs_update=true;
+    dom.iz_needs_update=true;
+
+    // update the quadrant id information
+    dom.updateQuadrantIDinformation();
+
+    // If the boundaries were not specified by the user, default to the border of the domain
+    dom.forestData.mask = mask;
+    bool refine_recursively = false;
+    p4est_refine_ext(dom.p4est, refine_recursively, -1, 
+                refine_mask, init_rectangle_data, NULL);
+    p4est_balance_ext(dom.p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
+
+    // Make sure that nothing went wrong
+#ifdef OXLEY_ENABLE_DEBUG
+    if(!p4est_is_valid(dom.p4est))
+        throw OxleyException("p4est broke during refinement");
+    if(!p4est_connectivity_is_valid(dom.connectivity))
+        throw OxleyException("connectivity broke during refinement");
+#endif
+
+    bool partition_for_coarsening = true;
+    p4est_partition_ext(dom.p4est, partition_for_coarsening, NULL);
+
+    // Update the nodes
+    p4est_lnodes_destroy(dom.nodes);
+    p4est_ghost_t * ghost = p4est_ghost_new(dom.p4est, P4EST_CONNECT_FULL);
+    dom.nodes = p4est_lnodes_new(dom.p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+
+    // Update
+    if(dom.autoMeshUpdates)
+        dom.updateMesh();
+
+    dom.oxleytimer.toc("growFromMask...Done");
+}
+
 escript::Domain_ptr RefinementQueue2D::apply(escript::Domain_ptr domain)
 {
     if(domain.get() == NULL)
         throw OxleyException("RefinementQueue2D::apply: no domain given.");
-    Rectangle * d = dynamic_cast<Rectangle *>(domain.get());
-    if(d == NULL)
-        throw OxleyException("RefinementQueue2D::apply: the domain is not a Rectangle. "
-                "Use RefinementQueue3D for a Brick.");
-    return d->applyRefinement(*this);
+    Rectangle * source = dynamic_cast<Rectangle *>(domain.get());
+    if(source == NULL)
+        throw OxleyException("RefinementQueue2D::apply: the domain is not a "
+                "Rectangle. Use RefinementQueue3D for a Brick.");
+    source->oxleytimer.toc("Applying the refinement zone...");
+
+    // The refinement grows a NEW forest and never touches the one it was
+    // handed: a domain that changed under a Data object would leave every
+    // sample on it referring to a mesh that no longer exists.
+    oxley::Rectangle * newDomain = new Rectangle(*source, source->m_order);
+    int numberOfRefinements = getNumberOfOperations();
+
+    newDomain->AutomaticMeshUpdateOnOff(false);
+
+    for(int n = 0; n < numberOfRefinements; n++)
+    {
+        RefinementType Refinement = getRefinement(n);
+        //set the refinement level for this refinement
+        newDomain->setRefinementLevels(Refinement.levels);
+        switch(Refinement.flavour)
+        {
+            case UNIFORM:
+            {
+                growByAlgorithm(*newDomain, "uniform");
+                break;
+            }
+            case POINT2D:
+            {
+                double x=Refinement.x0;
+                double y=Refinement.y0;
+                growAtPoint(*newDomain, x,y);
+                break;
+            }
+            case REGION2D:
+            {
+                double x0=Refinement.x0;
+                double y0=Refinement.y0;
+                double x1=Refinement.x1;
+                double y1=Refinement.y1;
+                growInRegion(*newDomain, x0,x1,y0,y1);
+                break;
+            }
+            case CIRCLE:
+            {
+                double x0=Refinement.x0;
+                double y0=Refinement.y0;
+                double r0=Refinement.r;
+                growAtCircle(*newDomain, x0,y0,r0);
+                break;
+            }
+            case BOUNDARY:
+            {
+                double dx=Refinement.depth;
+                switch(Refinement.b)
+                {
+                    case NORTH:
+                    {
+                        growAtBorder(*newDomain, "TOP",dx);
+                        break;
+                    }
+                    case SOUTH:
+                    {
+                        growAtBorder(*newDomain, "BOTTOM",dx);
+                        break;
+                    }
+                    case WEST:
+                    {
+                        growAtBorder(*newDomain, "LEFT",dx);
+                        break;
+                    }
+                    case EAST:
+                    {
+                        growAtBorder(*newDomain, "RIGHT",dx);
+                        break;
+                    }
+                    case TOP:
+                    case BOTTOM:
+                    default:
+                    {
+                        throw OxleyException("Invalid border direction.");
+                    }
+                }
+                break;
+            }
+            case MASK2D:
+            {
+                if(n == 0)
+                {
+                    escript::Data d = *Refinement.data;
+                    growFromMask(*newDomain, d);
+                    break;
+                }
+                else
+                {
+                    throw OxleyException("Can only apply a mask refinement if it is first in the queue.");
+                }
+            }
+            case MASK3D:
+            case SPHERE:
+            case POINT3D:
+            case REGION3D:
+            default:
+                throw OxleyException("Unknown refinement algorithm.");
+        }
+    }
+
+    newDomain->updateMesh();
+    newDomain->AutomaticMeshUpdateOnOff(true);
+
+    source->oxleytimer.toc("done");
+    return escript::Domain_ptr(newDomain);
 }
 
 } // end of namespace oxley

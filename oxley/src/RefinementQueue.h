@@ -18,6 +18,11 @@ namespace oxley {
 class RefinementQueue;
 class RefinementQueue2D;
 class RefinementQueue3D;
+// the domains a queue grows a new forest of. Only referred to here; including
+// their headers walks into the OxleyData.h <-> Rectangle.h include cycle, which
+// is also why each apply() is defined in the domain's own translation unit.
+class Rectangle;
+class Brick;
 
 typedef POINTER_WRAPPER_CLASS(RefinementQueue)   RefinementQueue_Ptr;
 typedef POINTER_WRAPPER_CLASS(RefinementQueue2D) RefinementQueue2D_Ptr;
@@ -148,6 +153,24 @@ public:
     */
     void print();
 
+private:
+    // The forest-growing steps, one per queued operation. These used to be
+    // refine* methods on Rectangle; they moved here because a domain must not
+    // refine itself - every Data object over it would then refer to a mesh that
+    // is gone. They act on the NEW domain apply() has just built and nobody
+    // else holds yet, which is the only forest it is safe to change.
+    //
+    // Defined in Rectangle.cpp, next to apply(), for the same include-cycle
+    // reason apply() is.
+    void growByAlgorithm(Rectangle& dom, std::string algorithmname);
+    void growAtBorder(Rectangle& dom, std::string boundaryname, double dx);
+    void growInRegion(Rectangle& dom, double x0, double x1, double y0, double y1);
+    void growAtPoint(Rectangle& dom, double x0, double y0);
+    void growAtCircle(Rectangle& dom, double x0, double y0, double r);
+    void growFromMask(Rectangle& dom, escript::Data mask);
+
+public:
+
     /**
        \brief
        Removes the nt^th item from the queue
@@ -195,6 +218,25 @@ public:
        Prints the current queue to console
     */
     void print();
+
+private:
+    // The forest-growing steps, one per queued operation. These used to be
+    // refine* methods on Brick; they moved here because a domain must not
+    // refine itself - every Data object over it would then refer to a mesh that
+    // is gone. They act on the NEW domain apply() has just built and nobody
+    // else holds yet, which is the only forest it is safe to change.
+    //
+    // Defined in Brick.cpp, next to apply(), for the same include-cycle reason
+    // apply() is.
+    void growByAlgorithm(Brick& dom, std::string algorithmname);
+    void growAtBorder(Brick& dom, std::string boundaryname, double dx);
+    void growInRegion(Brick& dom, double x0, double x1, double y0,
+                      double y1, double z0, double z1);
+    void growAtPoint(Brick& dom, double x0, double y0, double z0);
+    void growAtSphere(Brick& dom, double x0, double y0, double z0, double r);
+    void growFromMask(Brick& dom, escript::Data mask);
+
+public:
 
     /**
        \brief

@@ -55,6 +55,10 @@ class Rectangle: public OxleyDomain
 
     template<class Scalar> friend class DefaultAssembler2D;
 
+    // grows the new forest a refinement produces; see the note below on why
+    // no refine* method may live on the domain itself
+    friend class RefinementQueue2D;
+
 public:
 
     /**
@@ -192,58 +196,11 @@ public:
     */
     virtual void loadMesh(std::string filename);
 
-    // The refinement below needs only p4est. It used to sit inside the
-    // trilinos guard with saveMesh/loadMesh, which left a build without
-    // trilinos unable to refine at all.
-
-    /**
-       \brief
-       refines the mesh
-       \param algorithmname The algorithm to use
-    */
-    virtual void refineMesh(std::string algorithmname);
-
-    /**
-       \brief
-       refines the mesh near a boundary
-       \param maxRecursion Max levels of recursion
-       \param algorithmname The algorithm to use
-    */
-    virtual void refineBoundary(std::string boundary, double dx);
-
-    /**
-       \brief
-       refines the mesh within the interior of a region bound by 
-       x0, x1, y0, y1
-       \param x0 boundary of the region
-       \param x1 boundary of the region
-       \param y0 boundary of the region
-       \param y1 boundary of the region
-    */
-    virtual void refineRegion(double x0, double x1, double y0, double y1);
-
-    /**
-       \brief
-       refines the mesh around the point x0, y0
-       \param x0 spatial coordinate of point
-       \param y0 spatial coordinate of point
-    */
-    virtual void refinePoint(double x0, double y0);
-
-    /**
-       \brief
-       refines a circle on the mesh with center x0, y0 and radius r
-       \param x0 spatial coordinate of center of the circle
-       \param y0 spatial coordinate of center of the circle
-       \param r radius of the circle
-    */
-    virtual void refineCircle(double x0, double y0, double r);
-
-    /**
-       \brief
-         refines a region defined by a mask
-    */
-    virtual void refineMask(escript::Data mask);
+    // NO refine* METHOD LIVES HERE, and none may be added. A domain that
+    // refined itself would leave every Data object standing on it referring to
+    // a mesh that no longer exists, so refinement grows a NEW forest instead:
+    // the operations are queued on a RefinementQueue2D and applied by its
+    // apply(), which is a friend below so that it can build that new forest.
 
     /**
        \brief
@@ -378,12 +335,6 @@ public:
                         p4est_qcoord_t x, p4est_qcoord_t y,
                         double vxyz[3]) const;
 
-    /**
-      \brief
-      Applies a refinementzone
-   */
-    escript::Domain_ptr applyRefinement(RefinementQueue& R);
-
    /**
      * \brief
      * Updates the mesh after refinement
@@ -460,7 +411,6 @@ new_rectangle_connectivity(int mi, int ni, int periodic_a, int periodic_b,
     */
     virtual Assembler_ptr createAssembler(std::string type, const DataMap& options) const;
 
-    virtual void updateMeshInformation();
 
     /**
       \brief

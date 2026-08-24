@@ -446,80 +446,11 @@ public:
     */
     virtual void setRefinementLevels(int refinementlevels) = 0;
 
-    /**
-       \brief
-       refines the mesh using enum RefinementAlgorithm
-    */
-    virtual void refineMesh(std::string algorithm);
-
-    /**
-       \brief
-       refines the mesh near a boundary
-       \param maxRecursion Max levels of recursion
-       \param algorithmname The algorithm to use
-    */
-    virtual void refineBoundary(std::string boundary, double dx);
-
-    /**
-       \brief
-       refines the mesh within the interior of a region bound by 
-       x0, x1, y0, y1
-       \param x0 boundary of the region
-       \param x1 boundary of the region
-       \param y0 boundary of the region
-       \param y1 boundary of the region
-    */
-    virtual void refineRegion(double x0, double x1, double y0, double y1);
-
-    /**
-       \brief
-       refines the mesh within the interior of a region bound by 
-       x0, x1, y0, y1
-       \param x0 boundary of the region
-       \param x1 boundary of the region
-       \param y0 boundary of the region
-       \param y1 boundary of the region
-       \param z0 boundary of the region
-       \param z1 boundary of the region
-    */
-    virtual void refineRegion(double x0, double x1, double y0, double y1, double z0, double z1);
-
-    /**
-       \brief
-       refines the mesh around the point
-       x0, y1
-       \param x0 
-       \param y1 
-    */
-    virtual void refinePoint(double x0, double y0);
-
-    /**
-       \brief
-       refines the mesh around the point
-       x0, y0
-       \param x0 
-       \param y0
-       \param z0
-    */
-    virtual void refinePoint(double x0, double y0, double z0);
-
-    /**
-       \brief
-       refines a circle on the mesh centered at (x0, y0) with radius r
-       \param x0 
-       \param y1 
-       \param r
-    */
-    virtual void refineCircle(double x0, double y0, double r);
-
-    /**
-       \brief
-       refines a sphere on the mesh centered at (x0, y0, z0) with radius r
-       \param x0 
-       \param y1 
-       \param r
-    */
-    virtual void refineSphere(double x0, double y0, double z0, double r);
+    // NO refine* METHOD LIVES HERE, and none may be added to this class or to
+    // any domain deriving from it. A domain that refined itself would leave
+    // every Data object standing on it referring to a mesh that no longer
+    // exists. Refinement is queued on a RefinementQueue2D/3D and applied by its
+    // apply(), which grows a NEW forest and returns it as a new domain.
 
     /**
        \brief
@@ -743,7 +674,6 @@ public:
     /**
        Refines / coarsens the mesh based on the solution information
     */
-    virtual void updateMeshInformation();
 
     /**
        Sets adaptive refinement on or off

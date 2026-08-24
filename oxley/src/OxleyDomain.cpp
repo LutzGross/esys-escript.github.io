@@ -935,46 +935,6 @@ namespace oxley {
         throw OxleyException("unknown error");
     }
 
-    void OxleyDomain::refineMesh(std::string algorithm)
-    {
-        throw OxleyException("unknown error");
-    }
-
-    void OxleyDomain::refineBoundary(std::string boundary, double dx)
-    {
-        throw OxleyException("unknown error");
-    }
-
-    void OxleyDomain::refineRegion(double x0, double x1, double y0, double y1)
-    {
-        throw OxleyException("unknown error");   
-    }
-
-    void OxleyDomain::refineRegion(double x0, double x1, double y0, double y1, double z0, double z1)
-    {
-        throw OxleyException("unknown error");   
-    }
-
-    void OxleyDomain::refinePoint(double x0, double y0)
-    {
-        throw OxleyException("unknown error");   
-    }
-
-    void OxleyDomain::refinePoint(double x0, double y0, double z0)
-    {
-        throw OxleyException("unknown error");   
-    }
-
-    void OxleyDomain::refineCircle(double x0, double y0, double r)
-    {
-        throw OxleyException("unknown error");   
-    }
-
-    void OxleyDomain::refineSphere(double x0, double y0, double z0, double r)
-    {
-        throw OxleyException("unknown error");   
-    }
-
     void OxleyDomain::setTags(int fsType, int newTag, const escript::Data& mask) const
     {
         vector<int>* target=NULL;
@@ -1868,11 +1828,6 @@ bool OxleyDomain::probeInterpolationAcross(int fsType_source,
 void OxleyDomain::updateSolutionInformation(escript::Data solution)
 {
     throw OxleyException("programming error3");
-}
-
-void OxleyDomain::updateMeshInformation()
-{
-    throw OxleyException("programming error4");
 }
 
 #ifdef ESYS_HAVE_BOOST_NUMPY
