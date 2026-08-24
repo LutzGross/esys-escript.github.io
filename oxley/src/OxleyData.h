@@ -89,6 +89,10 @@ struct borderNodeInfo
 	p4est_qcoord_t z; // Not used by Rectangle
 	// p4est_quadrant_t * quad;
 	p4est_topidx_t treeid=-1;
+	/// local leaf index of the element this face belongs to, in lnodes order.
+	/// The only way back to its face_code, which says which of the neighbours
+	/// above are hanging slots holding a master rather than a corner value.
+	long quadIndex=-1;
 };
 
 struct hangingNodeInfo // used by Rectangle
@@ -198,6 +202,12 @@ public:
     // periodic boundary conditions
     bool periodic[2] {false, false};
 
+	// per-block (p4est tree) initial refinement level, indexed by tree id.
+	// Set at construction from the scalar-or-array refine_level; read by the
+	// refine_to_block_level callback to build a base mesh whose blocks carry
+	// different uniform levels (which creates hanging nodes at block seams).
+	std::vector<int> block_levels;
+
 	// maximum levels of recursion to use during refinement
 	int max_levels_refinement = 0;
 	double refinement_depth=0.0;
@@ -269,6 +279,12 @@ public:
 
     // periodic boundary conditions
     bool periodic[3] {false, false, false};
+
+	// per-block (p8est tree) initial refinement level, indexed by tree id.
+	// Set at construction from the scalar-or-array refine_level; read by the
+	// refine_to_block_level callback to build a base mesh whose blocks carry
+	// different uniform levels (which creates hanging nodes at block seams).
+	std::vector<int> block_levels;
 
 	// maximum levels of recursion to use during refinement
 	int max_levels_refinement = 0;

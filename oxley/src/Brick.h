@@ -27,7 +27,7 @@
 #include <oxley/OxleyDomain.h>
 #include <oxley/OxleyData.h>
 #include <oxley/RefinementType.h>
-#include <oxley/RefinementZone.h>
+#include <oxley/RefinementQueue.h>
 
 #include <oxley/tictoc.h>
 
@@ -76,7 +76,8 @@ public:
     Brick(escript::JMPI jmpi, int order, dim_t n0, dim_t n1, dim_t n2,
       double x0, double y0, double z0, double x1, double y1, double z1,
       const std::vector<double>& points, const std::vector<int>& tags,
-      const TagMap& tagnamestonums, int refine_level=0);
+      const TagMap& tagnamestonums,
+      const std::vector<int>& refine_level = std::vector<int>(1, 0));
 
     // DANGEROUS: If update is false then the mesh is not properly initialised
     Brick(oxley::Brick& B, int order, bool update);
@@ -184,12 +185,15 @@ public:
     */
     virtual void saveMesh(std::string filename) ;
 
-    #ifdef ESYS_HAVE_TRILINOS
+    // saveMesh/loadMesh use only p4est; they do not belong in the trilinos
+    // guard, which used to make them unavailable in a build without it.
     /**
        \brief
        writes the mesh to file
     */
     virtual void loadMesh(std::string filename) ;
+
+    // See Rectangle.h: this refinement needs only p4est.
 
     /**
        \brief
@@ -233,7 +237,6 @@ public:
        \param r radius of the circle
     */
     virtual void refineSphere(double x0, double y0, double z0, double r);
-    #endif //ESYS_HAVE_TRILINOS
 
     /**
        \brief
@@ -402,7 +405,7 @@ public:
       \brief
       Applies a refinementzone
    */
-    escript::Domain_ptr apply_refinementzone(RefinementZone R);
+    escript::Domain_ptr applyRefinement(RefinementQueue& R);
 
 ////////////////////////////////
 private:
@@ -418,7 +421,6 @@ private:
 
     // This structure records the node numbering information
     p8est_lnodes * nodes;
-    long * nodeIncrements;
 
     // Indices
     std::vector<IndexVector> * indices;
@@ -511,9 +513,26 @@ protected:
 
     /**
        \brief
-       Returns an lnodes-based, p4est-independent view of the mesh.
+       Returns an lnodes-based, p4est-independent view of the mesh. With
+       materializeHanging the hanging positions become nodes of their own; see
+       OxleyDomain::getMeshAccess().
     */
-    virtual MeshAccess getMeshAccess() const;
+    virtual MeshAccess getMeshAccess(bool materializeHanging = false) const;
+
+    virtual unsigned forestChecksum() const;
+
+    virtual bool isConforming() const;
+
+    /**
+       \brief
+       Decodes an lnodes face_code. For each element corner, fills in how many
+       masters it is the average of (0 when it does not hang: 2 on a coarse edge,
+       4 on a coarse face) and which of this element's corners those are, and
+       returns whether anything hangs.
+    */
+    bool getHangingNodes(p8est_lnodes_code_t face_code,
+                         int masterCount[P8EST_CHILDREN],
+                         int masters[P8EST_CHILDREN][4]) const;
 
     /**
        \brief
@@ -573,7 +592,6 @@ protected:
        \brief
        Updates NodeIncrements
     */
-    void updateNodeIncrements();
 
     /**
        \brief
@@ -706,7 +724,27 @@ protected:
     template <typename S>
     void interpolateNodesOnFacesWorker(escript::Data& out,
                                          const escript::Data& in,
-                                         bool reduced, S sentinel) const; 
+                                         bool reduced, S sentinel) const;
+
+    /// The eight corner values of one octant, with the hanging slots replaced
+    /// by the values at the positions they stand for; corners[n*numComp+i].
+    /// scratch is caller-owned only to keep the allocation out of the loop.
+    template <typename S>
+    void gatherCornersConstrained(const escript::Data& in, long quadIndex,
+                                  dim_t numComp, S sentinel,
+                                  std::vector<S>& corners,
+                                  std::vector<S>& scratch) const;
+
+    /// The four values on a boundary face, in the order borderNodeInfo lists
+    /// them. They come from the whole element because a corner of a boundary
+    /// face can hang on a coarse edge lying in the boundary plane.
+    template <typename S>
+    void gatherFaceCornersConstrained(const escript::Data& in,
+                                      const borderNodeInfo& b, int face,
+                                      dim_t numComp, S sentinel,
+                                      std::vector<S>& onFace,
+                                      std::vector<S>& corners,
+                                      std::vector<S>& scratch) const;
 
     template<typename Scalar>
     void assembleGradientImpl(escript::Data& out,

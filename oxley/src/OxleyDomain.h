@@ -598,10 +598,12 @@ public:
       \brief
       finalises the matrix system
    */
-   #ifdef ESYS_HAVE_TRILINOS
-
+   // Set by anything that changes the mesh, to say the cached ordering is
+   // stale. The flags themselves are not trilinos-specific - the refinement
+   // and mesh IO that set them are not either - so only resetRhs is guarded.
    bool z_needs_update=false;
    bool iz_needs_update=false;
+   #ifdef ESYS_HAVE_TRILINOS
    void resetRhs(escript::Data& rhs) const;
    #endif //ESYS_HAVE_TRILINOS
    
@@ -829,6 +831,11 @@ protected:
     // Status
     StatusType m_status;
 
+    /// blocks (p4est trees) per axis, as handed to the constructor. Kept
+    /// because nothing else records it: forestData holds block SIZES, and
+    /// saveMesh has to write the counts so loadMesh can rebuild the domain.
+    long m_blocks[3] = {0, 0, 0};
+
     //max levels of refinement
     int m_refinement_levels;
 
@@ -861,13 +868,58 @@ public:
     /// returns an lnodes-based, p4est-independent view of the mesh (see MeshAccess).
     /// This is the single public description of the mesh topology consumed by
     /// output and (later) assembly; the node numbering stays inside the domain.
-    virtual MeshAccess getMeshAccess() const = 0;
+    ///
+    /// With materializeHanging every hanging position becomes a node of its own,
+    /// appended after the lnodes nodes and described by MeshAccess's constraint
+    /// arrays. Consumers that need one node per element corner - anything that
+    /// draws the cells - want this; consumers that resolve the constraint
+    /// themselves do not. Without it, an element whose corner hangs lists a
+    /// MASTER there, which lies outside the element.
+    virtual MeshAccess getMeshAccess(bool materializeHanging = false) const = 0;
+
+    /// A fingerprint of the forest, used to tell whether a finley domain was
+    /// exported from THIS forest. Two meshes with overlapping id ranges would
+    /// otherwise transfer values into each other without complaint.
+    /// Collective, like p4est's own checksum.
+    virtual unsigned forestChecksum() const = 0;
+
+    /// true when no element anywhere in the forest has a hanging node, so the
+    /// mesh is a conforming all-quad/all-hex mesh. Collective: every rank gets
+    /// the same answer.
+    virtual bool isConforming() const = 0;
 
     #ifdef ESYS_HAVE_BOOST_NUMPY
       /// Python view of getMeshAccess(): a dict of scalars and numpy arrays.
-      boost::python::dict getMeshInfo() const;
+      boost::python::dict getMeshInfo(bool materializeHanging = false) const;
     #endif
+
+    /// the domain's tag name -> tag value map, so that a consumer building
+    /// another domain from this one can carry the NAMES across; the tag values
+    /// alone travel with the elements and faces.
+    const TagMap& getTagMap() const { return m_tagMap; }
+
+    /// the Dirac points this rank owns. addPoints() has already resolved each
+    /// one to the nearest OWNED lnodes node - never a hanging position, which
+    /// is not a node of this domain - and settled, collectively, which single
+    /// rank keeps it. A consumer must therefore place a point at that node's
+    /// position and nowhere else, or it will disagree with this domain about
+    /// where the source sits.
+    const std::vector<DiracPoint>& getDiracPoints() const { return m_diracPoints; }
+
 protected:
+
+    /// Completes the node numbering of a freshly built MeshAccess:
+    ///   - gives the nodes materialised at hanging positions globally unique
+    ///     ids, in a per-rank block above every lnodes id;
+    ///   - builds the contiguous output numbering (nodeDenseIndex and
+    ///     denseDistribution, see MeshAccess).
+    /// ownedPerRank is the number of lnodes nodes owned by each rank, which
+    /// p4est already knows everywhere (lnodes->global_owned_count), so the only
+    /// communication is one Allgather of this rank's materialised count.
+    /// Collective under MPI.
+    void finaliseNodeNumbering(MeshAccess& m,
+                               const std::vector<long>& ownedPerRank) const;
+
 
     // Tagmap
     TagMap m_tagMap;

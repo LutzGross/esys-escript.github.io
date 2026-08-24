@@ -28,6 +28,12 @@ RefinementType::~RefinementType()
 	// delete [] data;
 }
 
+void RefinementType::UniformRefinement(int r_levels)
+{
+	levels=r_levels;
+	flavour=UNIFORM;
+}
+
 void RefinementType::Point2DRefinement(double x, double y, int r_levels)
 {
 	levels=r_levels;

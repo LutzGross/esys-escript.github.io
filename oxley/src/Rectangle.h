@@ -26,7 +26,7 @@
 #include <oxley/Oxley.h>
 #include <oxley/OxleyData.h>
 #include <oxley/OxleyDomain.h>
-#include <oxley/RefinementZone.h>
+#include <oxley/RefinementQueue.h>
 
 #include <oxley/tictoc.h>
 
@@ -70,7 +70,8 @@ public:
     Rectangle(escript::JMPI jmpi, int order, dim_t n0, dim_t n1,
         double x0, double y0, double x1, double y1,
         const std::vector<double>& points, const std::vector<int>& tags,
-        const TagMap& tagnamestonums, int refine_level=0);
+        const TagMap& tagnamestonums,
+        const std::vector<int>& refine_level = std::vector<int>(1, 0));
 
     /**
        \brief creates a rectangular mesh from numpy arrays [x,y].
@@ -177,7 +178,8 @@ public:
     */
     virtual void writeToVTK(std::string filename, bool writeMesh) const;
 
-   #ifdef ESYS_HAVE_TRILINOS
+    // saveMesh/loadMesh use only p4est; they do not belong in the trilinos
+    // guard, which used to make them unavailable in a build without it.
     /**
        \brief
        writes the mesh to file
@@ -189,6 +191,10 @@ public:
        writes the mesh to file
     */
     virtual void loadMesh(std::string filename);
+
+    // The refinement below needs only p4est. It used to sit inside the
+    // trilinos guard with saveMesh/loadMesh, which left a build without
+    // trilinos unable to refine at all.
 
     /**
        \brief
@@ -232,7 +238,6 @@ public:
        \param r radius of the circle
     */
     virtual void refineCircle(double x0, double y0, double r);
-    #endif //ESYS_HAVE_TRILINOS
 
     /**
        \brief
@@ -377,7 +382,7 @@ public:
       \brief
       Applies a refinementzone
    */
-    escript::Domain_ptr apply_refinementzone(RefinementZone R);
+    escript::Domain_ptr applyRefinement(RefinementQueue& R);
 
    /**
      * \brief
@@ -405,7 +410,6 @@ private:
 
     // Node numbering
     p4est_lnodes_t * nodes;
-    long nodeIncrements[MAXTREES] = {0};
 
     // Pointer that records the location of a temporary data structure
     void * temp_data;
@@ -489,9 +493,16 @@ protected:
 
     /**
        \brief
-       Returns an lnodes-based, p4est-independent view of the mesh.
+       Returns an lnodes-based, p4est-independent view of the mesh. With
+       materializeHanging the hanging positions become nodes of their own; see
+       OxleyDomain::getMeshAccess().
     */
-    virtual MeshAccess getMeshAccess() const;
+    virtual MeshAccess getMeshAccess(bool materializeHanging = false) const;
+
+    virtual unsigned forestChecksum() const;
+
+    virtual bool isConforming() const;
+
 
     /**
        \brief
@@ -547,6 +558,16 @@ protected:
 
     /**
        \brief
+       Positions of the nodes our elements reference ONLY through hanging slots,
+       which the ordinary coordinate walk therefore leaves unset. Reconstructed
+       locally: a hanging corner is the midpoint of the coarse neighbour's edge
+       and the other end is a corner of the same element, so the far master is at
+       2H - A. Returns parallel arrays of local node index and position.
+    */
+    void farMasterCoords(std::vector<long>& ids, std::vector<double>& xy) const;
+
+    /**
+       \brief
        Returns true if the node is hanging
     */
     int getNumHangingNodes() { return num_hanging; };
@@ -555,7 +576,6 @@ protected:
        \brief
        Updates NodeIncrements
     */
-    void updateNodeIncrements();
 
     /**
        \brief
@@ -647,7 +667,19 @@ protected:
     template <typename S>
     void interpolateNodesOnFacesWorker(escript::Data& out,
                                          const escript::Data& in,
-                                         bool reduced, S sentinel) const;  
+                                         bool reduced, S sentinel) const;
+
+    /// Gathers the four corner values of the element owning a boundary face,
+    /// in z-order, with the hanging-node constraint applied. A face routine
+    /// needs only the two values on its own face, but a hanging corner is
+    /// constrained against a corner that may lie off the face, so all four
+    /// have to be read to correct either.
+    template <typename S>
+    void gatherCornersConstrained(const escript::Data& in,
+                                  const borderNodeInfo& b, dim_t numComp,
+                                  S sentinel, std::vector<S>& f_00,
+                                  std::vector<S>& f_10, std::vector<S>& f_01,
+                                  std::vector<S>& f_11) const;
 
     template<typename Scalar>
     void assembleGradientImpl(escript::Data& out,

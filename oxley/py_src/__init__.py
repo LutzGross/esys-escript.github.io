@@ -28,8 +28,6 @@ import esys.escript       # This is just to ensure required libraries are loaded
 from .oxleycpp import *
 from .oxleycpp import Rectangle as _Rectangle, Brick as _Brick
 
-from esys.oxley.RefinementZone import *
-
 
 # Parameters that never had any effect in oxley:
 #   d0/d1/d2   - domain decomposition is handled internally by p4est, so these
@@ -45,6 +43,25 @@ _LEGACY_RECTANGLE_ARGS = frozenset(['d0', 'd1', 'periodic0', 'periodic1',
 _LEGACY_BRICK_ARGS = frozenset(['d0', 'd1', 'd2',
                                 'periodic0', 'periodic1', 'periodic2',
                                 'order'])
+
+
+def _flatten_refine_level(refine_level, shape):
+    """
+    Normalise ``refine_level`` for the C++ factories: a scalar is passed through
+    unchanged (uniform refinement), an array of shape ``shape`` (the block grid)
+    is validated and flattened to a plain list in row-major (C) order, matching
+    the per-block indexing used by the domain constructors.
+    """
+    try:
+        return int(refine_level)
+    except (TypeError, ValueError):
+        pass
+    import numpy as np
+    arr = np.asarray(refine_level, dtype=int)
+    if arr.shape != tuple(shape):
+        raise ValueError("refine_level array shape %s does not match numBlocks %s"
+                         % (arr.shape, tuple(shape)))
+    return [int(v) for v in arr.reshape(-1)]
 
 
 def _warn_legacy(factory, legacy, allowed):
@@ -72,7 +89,9 @@ def Rectangle(n0=10, n1=10, l0=1.0, l1=1.0, refine_level=0,
     :param n1: number of blocks in direction 1
     :param l0: length of side 0 or coordinate range of side 0
     :param l1: length of side 1 or coordinate range of side 1
-    :param refine_level: uniform refinement level applied to every block
+    :param refine_level: refinement level applied to every block (a single int),
+                         or an array of shape (n0, n1) giving a per-block level
+                         (differing levels create hanging nodes at block seams)
     :param diracPoints: Dirac point coordinates
     :param diracTags: Dirac point tags
     :param comm: MPI communicator (optional, from mpi4py)
@@ -80,6 +99,7 @@ def Rectangle(n0=10, n1=10, l0=1.0, l1=1.0, refine_level=0,
     :return: Domain object
     """
     _warn_legacy("Rectangle", legacy, _LEGACY_RECTANGLE_ARGS)
+    refine_level = _flatten_refine_level(refine_level, (n0, n1))
     dom = _Rectangle(n0=n0, n1=n1, l0=l0, l1=l1, refine_level=refine_level,
                      diracPoints=diracPoints, diracTags=diracTags, comm=comm)
     if framework is not None:
@@ -100,7 +120,9 @@ def Brick(n0=10, n1=10, n2=10, l0=1.0, l1=1.0, l2=1.0, refine_level=0,
     :param l0: length of side 0 or coordinate range of side 0
     :param l1: length of side 1 or coordinate range of side 1
     :param l2: length of side 2 or coordinate range of side 2
-    :param refine_level: uniform refinement level applied to every block
+    :param refine_level: refinement level applied to every block (a single int),
+                         or an array of shape (n0, n1, n2) giving a per-block level
+                         (differing levels create hanging nodes at block seams)
     :param diracPoints: Dirac point coordinates
     :param diracTags: Dirac point tags
     :param comm: MPI communicator (optional, from mpi4py)
@@ -108,6 +130,7 @@ def Brick(n0=10, n1=10, n2=10, l0=1.0, l1=1.0, l2=1.0, refine_level=0,
     :return: Domain object
     """
     _warn_legacy("Brick", legacy, _LEGACY_BRICK_ARGS)
+    refine_level = _flatten_refine_level(refine_level, (n0, n1, n2))
     dom = _Brick(n0=n0, n1=n1, n2=n2, l0=l0, l1=l1, l2=l2, refine_level=refine_level,
                  diracPoints=diracPoints, diracTags=diracTags, comm=comm)
     if framework is not None:

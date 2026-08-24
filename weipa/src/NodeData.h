@@ -20,6 +20,24 @@
 
 namespace weipa {
 
+/// \brief A node whose value is not a sample of the data but a weighted average
+/// of other nodes' values.
+///
+/// An adaptive mesh has nodes at positions the coarse side does not share - the
+/// hanging positions. They are needed to draw the fine cells, but they carry no
+/// degree of freedom, so a variable has no sample for them and DataVar fills
+/// them in from the masters instead. Indices are into the node mesh they belong
+/// to. Only oxley produces these; for every other domain the list is empty.
+struct NodeConstraint
+{
+    int node;                   ///< the node being defined
+    int numMasters;             ///< how many nodes it is the average of
+    int master[4];              ///< those nodes
+    float weight[4];            ///< and their weights, summing to 1
+};
+
+typedef std::vector<NodeConstraint> NodeConstraints;
+
 /// \brief
 class NodeData
 {
@@ -56,6 +74,14 @@ public:
 
     /// \brief Returns the total number of mesh nodes for a distributed mesh.
     virtual int getGlobalNumNodes() const = 0;
+
+    /// \brief Returns the nodes of this mesh that carry no sample of their own
+    /// (see NodeConstraint). Empty unless the mesh is an adaptive oxley one.
+    virtual const NodeConstraints& getNodeConstraints() const
+    {
+        static const NodeConstraints none;
+        return none;
+    }
 
 protected:
     /// \brief Virtual destructor

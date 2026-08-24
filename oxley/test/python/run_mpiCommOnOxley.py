@@ -36,20 +36,7 @@ except ImportError:
 # Determine optimal domain subdivisions for current MPI configuration
 mpiSize = getMPISizeWorld()
 
-# For 2D domains
-for x in [int(mpiSize**0.5), 2, 3, 5, 7, 1]:
-    NX = x
-    NY = mpiSize // x
-    if NX * NY == mpiSize:
-        break
 
-# For 3D domains
-for x in [(int(mpiSize**(1/3.)), int(mpiSize**(1/3.))), (2, 3), (2, 2), (1, 2), (1, 1)]:
-    NXb = x[0]
-    NYb = x[1]
-    NZb = mpiSize // (x[0] * x[1])
-    if NXb * NYb * NZb == mpiSize:
-        break
 
 
 @unittest.skipIf(not HAVE_TRILINOS, "Trilinos not available")

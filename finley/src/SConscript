@@ -49,6 +49,7 @@ sources = """
     IndexList.cpp
     Mesh_addPoints.cpp
     Mesh_findMatchingFaces.cpp
+    Mesh_fromArrays.cpp
     Mesh_getPasoPattern.cpp
     Mesh_getTrilinosGraph.cpp
     Mesh_glueFaces.cpp

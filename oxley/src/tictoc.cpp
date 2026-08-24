@@ -32,6 +32,15 @@ time_t TicTocClock::getTime()
 {
 #ifdef OXLEY_ENABLE_PROFILE_TIMERS
 	return starttime;
+#else
+	// Without the profile timers this used to fall off the end of a function
+	// that must return a value - undefined behaviour, which the stack
+	// protector turns into "*** stack smashing detected ***". Its one caller
+	// is the Brick copy constructor, so every 3D refinement went through it:
+	// RefinementQueue3D::apply copies the Brick before refining the copy.
+	// Whether it actually aborted came down to codegen, which is what made it
+	// look intermittent across builds.
+	return (time_t) 0;
 #endif
 }
 

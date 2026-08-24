@@ -74,7 +74,7 @@ class Test_LinearPDEOnOxleyRectangle(Test_LinearPDE):
         #         break
         NX = 1
         NY = 1
-        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1.)
         self.order = 1
     def tearDown(self):
         del self.domain
@@ -92,7 +92,7 @@ class Test_LinearPDEOnOxleyRectangle(Test_LinearPDE):
 #             if NX*NY*NZ == mpiSize:
 #                 break
 
-#         self.domain = Brick(n0=NE*NX-1, n1=NE*NY-1, n2=NE*NZ-1, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
+#         self.domain = Brick(n0=NE*NX-1, n1=NE*NY-1, n2=NE*NZ-1, l0=1., l1=1., l2=1.)
 #         self.order = 1
 
 #     def tearDown(self):
@@ -103,12 +103,9 @@ class Test_PoissonOnOxley(Test_Poisson):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
     def setUp(self):
-        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
-            NX=x
-            NY=mpiSize//x
-            if NX*NY == mpiSize:
-                break
-        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        NX = 1
+        NY = 1
+        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1.)
     def tearDown(self):
         del self.domain
 

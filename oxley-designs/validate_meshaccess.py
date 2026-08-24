@@ -69,7 +69,7 @@ def validate(numBlocks, length, origin, refine_level):
     _check(ok, "elementNodes shape (%d,%d)" % (exp_nelem, nc),
            conn.shape == (exp_nelem, nc))
     _check(ok, "serial global ids are identity",
-           np.array_equal(info["nodeGlobalId"], np.arange(exp_nnode)))
+           np.array_equal(info["nodeLnodesId"], np.arange(exp_nnode)))
     _check(ok, "connectivity indices in [0,numNodes)",
            conn.size and conn.min() >= 0 and conn.max() < exp_nnode)
     _check(ok, "every node referenced by an element",

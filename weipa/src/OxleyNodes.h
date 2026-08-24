@@ -81,7 +81,10 @@ public:
     virtual const IntVec& getNodeDistribution() const { return nodeDist; }
 
     /// \brief Returns the global node index array.
-    virtual const IntVec& getGlobalNodeIndices() const { return nodeID; }
+    /// The contiguous global output index (NOT nodeID, which is the lnodes id
+    /// used to match escript samples). VTK writes one shared point list, so it
+    /// needs a numbering in which each rank owns exactly one contiguous range.
+    virtual const IntVec& getGlobalNodeIndices() const { return nodeGNI; }
 
     /// \brief Returns the coordinates of the mesh nodes.
     virtual const CoordArray& getCoords() const { return coords; }
@@ -95,11 +98,18 @@ public:
     /// \brief Returns the total number of mesh nodes for a distributed mesh.
     virtual int getGlobalNumNodes() const { return globalNumNodes; }
 
+    /// \brief Returns the nodes materialised at hanging positions, which carry
+    /// no sample of their own (see NodeConstraint).
+    virtual const NodeConstraints& getNodeConstraints() const
+        { return nodeConstraints; }
+
 protected:
     CoordArray coords;     /// x, y[, z] coordinates of nodes
     int numDims;           /// dimensionality (2 or 3)
     int numNodes;          /// number of nodes
     int globalNumNodes;    /// global number of nodes
+    NodeConstraints nodeConstraints;
+    IntVec nodeGNI;       /// contiguous global output index
     IntVec nodeID;         /// node IDs
     IntVec nodeTag;        /// node tags
     IntVec nodeDist;       /// node distribution

@@ -12,6 +12,7 @@
 *****************************************************************************/
 
 #include <algorithm>
+#include <cmath>
 #include <ctime>
 #include <exception>
 #include <random>
@@ -31,10 +32,11 @@
 #include <oxley/InitAlgorithms.h>
 #include <oxley/Oxley.h>
 #include <oxley/OxleyData.h>
+#include <oxley/MeshIO.h>
 #include <oxley/Rectangle.h>
 #include <oxley/RefinementAlgorithms.h>
 #include <oxley/RefinementType.h>
-#include <oxley/RefinementZone.h>
+#include <oxley/RefinementQueue.h>
 
 // p4est headers will include MPI via sc.h when SC_ENABLE_MPI is defined
 #include <p4est.h>
@@ -83,19 +85,29 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order,
     const std::vector<double>& points,
     const std::vector<int>& tags,
     const TagMap& tagnamestonums,
-    int refine_level):
+    const std::vector<int>& refine_level):
     OxleyDomain(2, order, jmpi){
 
     // MPI communicator passed to base class constructor
     // Caller is responsible for ensuring MPI is initialized
 
     // n0/n1 are the number of BLOCKS (p4est trees) per axis; refine_level is the
-    // uniform subdivision applied to every block, so the base mesh has
-    // n0*2^refine_level by n1*2^refine_level elements.
+    // subdivision applied to each block. It is either a single value (uniform, so
+    // the base mesh has n0*2^L by n1*2^L elements) or one value per block (row-
+    // major over (n0,n1), index i*n1+j), which lets blocks carry different levels
+    // and so introduces hanging nodes at the block seams.
     if(n0 <= 0 || n1 <= 0)
         throw OxleyException("Number of blocks in each spatial dimension must be positive");
-    if(refine_level < 0)
-        throw OxleyException("refine_level must be non-negative");
+    const dim_t num_trees = n0 * n1;
+    if(refine_level.empty())
+        throw OxleyException("refine_level must not be empty");
+    if(refine_level.size() != 1 && (dim_t) refine_level.size() != num_trees)
+        throw OxleyException("refine_level must be a single value or one value per block (n0*n1)");
+    for(size_t i = 0; i < refine_level.size(); i++)
+        if(refine_level[i] < 0)
+            throw OxleyException("refine_level must be non-negative");
+    const int min_level = *std::min_element(refine_level.begin(), refine_level.end());
+    const int max_level = *std::max_element(refine_level.begin(), refine_level.end());
 
     // Domain decomposition across MPI ranks is handled by p4est (see
     // p4est_partition below), not by a Cartesian d0 x d1 block grid.
@@ -112,16 +124,38 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order,
 #endif
 
     // Create a p4est - use the custom communicator.
-    // fill_uniform + min_level=refine_level builds a uniform base mesh where every
-    // block is subdivided refine_level times. min_quadrants MUST be 0: it is
-    // p4est's PER-PROCESSOR minimum, so a positive value forces extra refinement
-    // under MPI and makes the mesh depend on the rank count. (A6.)
+    // fill_uniform + min_level builds a uniform base mesh where every block is
+    // subdivided min_level times. min_quadrants MUST be 0: it is p4est's
+    // PER-PROCESSOR minimum, so a positive value forces extra refinement under
+    // MPI and makes the mesh depend on the rank count. (A6.)
     p4est_locidx_t min_quadrants = 0;
-    int min_level = refine_level;
     int fill_uniform = 1;
 
     p4est = p4est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
             min_level, fill_uniform, sizeof(quadrantData), init_rectangle_data, (void *) &forestData);
+
+    // If the blocks do not all share the same level, refine each block up to its
+    // own target level and 2:1-balance the base mesh. block_levels is indexed by
+    // p4est tree id, so map each tree to its block (i,j) via its lower-left
+    // connectivity vertex (the trees are Morton-ordered, not row-major).
+    if(max_level > min_level) {
+        const double dxb = (x1-x0)/n0, dyb = (y1-y0)/n1;
+        forestData.block_levels.assign(num_trees, min_level);
+        for(p4est_topidx_t t = 0; t < num_trees; t++) {
+            const p4est_topidx_t v = connectivity->tree_to_vertex[P4EST_CHILDREN*t + 0];
+            const double vx = connectivity->vertices[3*v + 0];
+            const double vy = connectivity->vertices[3*v + 1];
+            int bi = (int) std::lround((vx - x0)/dxb);
+            int bj = (int) std::lround((vy - y0)/dyb);
+            if(bi < 0) bi = 0; else if(bi >= n0) bi = n0-1;
+            if(bj < 0) bj = 0; else if(bj >= n1) bj = n1-1;
+            forestData.block_levels[t] = refine_level[(size_t) bi*n1 + bj];
+        }
+        const int recursive = 1;
+        p4est_refine_ext(p4est, recursive, max_level, refine_to_block_level,
+                         init_rectangle_data, NULL);
+        p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
+    }
 
 #ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
     std::cout << "Checking p4est ... ";
@@ -155,6 +189,9 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order,
     m_NN[1] = n1;
 
     // Record the physical dimensions of the domain and the location of the origin
+    m_blocks[0] = n0;
+    m_blocks[1] = n1;
+
     forestData.m_origin[0] = x0;
     forestData.m_origin[1] = y0;
     forestData.m_lxy[0] = x1;
@@ -187,7 +224,6 @@ Rectangle::Rectangle(escript::JMPI jmpi, int order,
     // (p4est_partition happens above, before the lnodes are built)
 
     // Number the nodes
-    updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
     updateNodeDistribution();
@@ -270,6 +306,9 @@ Rectangle::Rectangle(const oxley::Rectangle& R, int order):
     m_NN[0] = R.m_NN[0];
     m_NN[1] = R.m_NN[1];
 
+    m_blocks[0] = R.m_blocks[0];
+    m_blocks[1] = R.m_blocks[1];
+
     forestData.m_origin[0] = R.forestData.m_origin[0];
     forestData.m_origin[1] = R.forestData.m_origin[1];
     forestData.m_lxy[0] = R.forestData.m_lxy[0];
@@ -319,7 +358,6 @@ Rectangle::Rectangle(const oxley::Rectangle& R, int order):
     p4est_ghost_destroy(ghost);
 
     // Number the nodes
-    updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
     updateNodeDistribution();
@@ -810,7 +848,7 @@ void Rectangle::dump(const std::string& fileName) const
     {
         pNodex[i]    = (float) m.nodeCoords[(size_t) i*m.numDim + 0];
         pNodey[i]    = (float) m.nodeCoords[(size_t) i*m.numDim + 1];
-        pNode_ids[i] = m.nodeGlobalId[i];
+        pNode_ids[i] = m.nodeLnodesId[i];
     }
 
     // Array of the coordinate arrays
@@ -956,9 +994,26 @@ void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
     }
 }
 
-#ifdef ESYS_HAVE_TRILINOS
+// saveMesh/loadMesh use only p4est; they sat inside the trilinos guard
+// for no reason anyone recorded, which left a build without trilinos
+// unable to save or read a mesh at all.
 void Rectangle::saveMesh(std::string filename) 
 {
+    // p4est stores the connectivity and the quadrants but nothing about where
+    // the domain sits in space, so a reader would have to be told. Write that
+    // alongside, which is what lets loadMesh() build the domain itself.
+    MeshHeader header;
+    header.dim = 2;
+    header.order = m_order;
+    header.n[0] = m_blocks[0];
+    header.n[1] = m_blocks[1];
+    header.origin[0] = forestData.m_origin[0];
+    header.origin[1] = forestData.m_origin[1];
+    header.extent[0] = forestData.m_lxy[0];
+    header.extent[1] = forestData.m_lxy[1];
+    if(m_mpiInfo->rank == 0)
+        writeMeshHeader(filename, header);
+
     std::string fnames=filename+".p4est";
     std::string cnames=filename+".conn";
 
@@ -967,19 +1022,16 @@ void Rectangle::saveMesh(std::string filename)
 
     p4est_deflate_quadrants(p4est, NULL);
 
-#ifdef ESYS_MPI
-    if(escript::getMPIRankWorld()==0)
-    {
-#endif
+    // The connectivity is replicated, so one rank writes it. p4est_save_ext is
+    // COLLECTIVE and every rank must reach it - it used to sit inside the same
+    // rank-0 guard, which deadlocked any save on more than one rank.
+    if(m_mpiInfo->rank == 0) {
         int retval = p4est_connectivity_save(cname, connectivity)==0;
         ESYS_ASSERT(retval!=0,"Failed to save connectivity");
-        int save_partition = 0;
-        int save_data = 1;
-        p4est_save_ext(fname, p4est, save_data, save_partition); // Should abort on file error
-        // p4est_save(fname,p4est,1);
-#ifdef ESYS_MPI
     }
-#endif
+    int save_partition = 0;
+    int save_data = 1;
+    p4est_save_ext(fname, p4est, save_data, save_partition); // Should abort on file error
 }
 
 void Rectangle::loadMesh(std::string filename) 
@@ -1020,6 +1072,10 @@ void Rectangle::loadMesh(std::string filename)
     z_needs_update=true;
     iz_needs_update=true;
 }
+
+// The refinement below needs only p4est. It used to sit inside the trilinos
+// guard above, swept in with saveMesh/loadMesh which do need trilinos, so a
+// build without trilinos had no refinement at all beyond the constructor.
 
 void Rectangle::refineMesh(std::string algorithmname)
 {
@@ -1271,8 +1327,6 @@ void Rectangle::refineCircle(double x0, double y0, double r)
 
     oxleytimer.toc("refineCircle...Done");
 }
-#endif //ESYS_HAVE_TRILINOS
-
 void Rectangle::refineMask(escript::Data mask)
 {
     oxleytimer.toc("refineCircle...");
@@ -1362,6 +1416,15 @@ void Rectangle::print_debug_report(std::string locat)
 
 Assembler_ptr Rectangle::createAssembler(std::string type, const DataMap& constants) const
 {
+#ifndef ESYS_HAVE_TRILINOS
+    // The 2D assembler is trilinos-only, and PDEs on an adaptive oxley mesh
+    // are solved by exporting to finley anyway - so a build without trilinos
+    // simply has no assembler, rather than half of one.
+    throw escript::NotImplementedError("oxley was built without trilinos and "
+            "has no assembler. Export the mesh with toFinley() and solve on "
+            "the finley domain, which is how an adaptive oxley mesh is meant "
+            "to be solved on in any case.");
+#else
     bool isComplex = false;
     DataMap::const_iterator it;
     for(it = constants.begin(); it != constants.end(); it++) {
@@ -1379,6 +1442,7 @@ Assembler_ptr Rectangle::createAssembler(std::string type, const DataMap& consta
         }
     } 
     throw escript::NotImplementedError("oxley::rectangle does not support the requested assembler");
+#endif
 }
 
 // return True for a boundary node and False for an internal node
@@ -1504,17 +1568,6 @@ bool Rectangle::getHangingNodes(p4est_lnodes_code_t face_code, int hanging_corne
 }
 
 //protected
-void Rectangle::updateNodeIncrements()
-{
-    nodeIncrements[0] = 1;
-    for(p4est_topidx_t treeid = p4est->first_local_tree+1, k=1; treeid <= p4est->last_local_tree; treeid++, k++) 
-    {
-        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        nodeIncrements[k] = nodeIncrements[k-1] + Q;
-    }
-}
 
 // void Rectangle::renumberHangingNodes()
 // {
@@ -1711,8 +1764,22 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
 
+            // A HANGING corner has no node of its own: the slot holds a MASTER,
+            // which is a node of the coarse neighbour and lies OUTSIDE this
+            // element. Writing this corner's position into it would move the
+            // master to the hanging position, so skip those slots. Usually the
+            // master gets its coordinate from an element where it is a real
+            // corner; under MPI it need not have one here, which the second pass
+            // below deals with.
+            int hangingCorner[P4EST_CHILDREN];
+            const bool anyHanging = getHangingNodes(nodes->face_code[e],
+                                                    hangingCorner);
+
             // Loop over the four corners of the quadrant (z-order matches lnodes)
             for(int n = 0; n < 4; ++n){
+                if(anyHanging && hangingCorner[n] >= 0)
+                    continue;
+
                 double lx = length * ((int) (n % 2) == 1);
                 double ly = length * ((int) (n / 2) == 1);
                 double xy[3];
@@ -1740,6 +1807,23 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
             }
         }
     }
+    // Fill in any node our elements only ever reference as a hanging slot; it
+    // has no coordinate yet and would silently stay at the origin. (MPI only.)
+    {
+        std::vector<long> fmIds;
+        std::vector<double> fmXY;
+        farMasterCoords(fmIds, fmXY);
+        for (size_t i = 0; i < fmIds.size(); ++i) {
+            const long lni = fmIds[i];
+            if (lni < 0 || lni >= (long) getNumNodes() || duplicates[lni])
+                continue;
+            duplicates[lni] = true;
+            double * point = arg.getSampleDataRW(lni);
+            point[0] = fmXY[2*i];
+            point[1] = fmXY[2*i+1];
+        }
+    }
+
 #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_COORDINATES_POINTS
     std::cout << "assembleCoordinates new points are..." << std::endl;
     for(int i = 0; i < getNumNodes() ; i++)
@@ -2176,6 +2260,47 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
 }
 
 
+namespace {
+
+/**
+   \brief
+   Replaces the values sitting in an element's hanging corner slots by the
+   values AT those corners.
+
+   lnodes does not number the position at a 2:1 seam, so the slot of a hanging
+   corner holds a MASTER instead: the FAR one, the node at the other end of the
+   coarse neighbour's edge, a distance 2h away. (That is the same fact
+   getGhostRealCornerCoords uses to place it at 2H-A.) The value at the hanging
+   position is the mean of the two masters, and BOTH of them are corners of this
+   very element - the far master in the hanging slot itself, the near one in the
+   slot getHangingNodes reports - so the constraint is local to the element and
+   needs no halo, no communication and no node that does not already exist.
+
+   Correcting in place is safe: the near master is p4est's anchor corner, which
+   is never itself hanging, so no corrected value is ever read back.
+
+   Without this an element on the fine side of a seam reads a value from 2h away
+   as though it sat on its own edge. Nothing crashes and nothing looks wrong -
+   grad() is simply wrong by O(1) along every seam, and integrals of anything
+   interpolated from nodes are slightly wrong everywhere near one.
+*/
+template<typename Scalar>
+inline void constrainHangingCorners(const int hangingCorner[P4EST_CHILDREN],
+                                    Scalar* corner[P4EST_CHILDREN],
+                                    dim_t numComp)
+{
+    for (int n = 0; n < P4EST_CHILDREN; ++n) {
+        const int a = hangingCorner[n];
+        if (a < 0)
+            continue;
+        for (dim_t i = 0; i < numComp; ++i)
+            corner[n][i] = static_cast<Scalar>(0.5)
+                         * (corner[n][i] + corner[a][i]);
+    }
+}
+
+} // anonymous namespace
+
 // private   
 template <typename S> 
 void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
@@ -2208,6 +2333,16 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                 memcpy(&f_01[0], in.getSampleDataRO(ids[2],sentinel), numComp*sizeof(S));
                 memcpy(&f_10[0], in.getSampleDataRO(ids[1],sentinel), numComp*sizeof(S));
                 memcpy(&f_11[0], in.getSampleDataRO(ids[3],sentinel), numComp*sizeof(S));
+
+                // on the fine side of a seam these slots hold masters, not the
+                // corner values; see constrainHangingCorners
+                int hangingCorner[P4EST_CHILDREN];
+                if (getHangingNodes(nodes->face_code[e], hangingCorner)) {
+                    S* corner[P4EST_CHILDREN] =
+                            { &f_00[0], &f_10[0], &f_01[0], &f_11[0] };
+                    constrainHangingCorners(hangingCorner, corner, numComp);
+                }
+
                 S* o = out.getSampleDataRW(quadID,sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c0*(f_00[i] + f_01[i] + f_10[i] + f_11[i]);
@@ -2248,7 +2383,16 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                 memcpy(&f_01[0], in.getSampleDataRO(ids[2], sentinel), numComp*sizeof(S));
                 memcpy(&f_10[0], in.getSampleDataRO(ids[1], sentinel), numComp*sizeof(S));
                 memcpy(&f_11[0], in.getSampleDataRO(ids[3], sentinel), numComp*sizeof(S));
-                
+
+                // on the fine side of a seam these slots hold masters, not the
+                // corner values; see constrainHangingCorners
+                int hangingCorner[P4EST_CHILDREN];
+                if (getHangingNodes(nodes->face_code[e], hangingCorner)) {
+                    S* corner[P4EST_CHILDREN] =
+                            { &f_00[0], &f_10[0], &f_01[0], &f_11[0] };
+                    constrainHangingCorners(hangingCorner, corner, numComp);
+                }
+
                 S* o = out.getSampleDataRW(quadId, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c0*(f_01[i] + f_10[i]) + c1*f_11[i] + c2*f_00[i];
@@ -2419,6 +2563,35 @@ int Rectangle::getHangingBorderNodeFacecode(p4est_quadrant_t * quad, int8_t leve
 
 //private
 template <typename S>
+void Rectangle::gatherCornersConstrained(const escript::Data& in,
+                                         const borderNodeInfo& b, dim_t numComp,
+                                         S sentinel, std::vector<S>& f_00,
+                                         std::vector<S>& f_10,
+                                         std::vector<S>& f_01,
+                                         std::vector<S>& f_11) const
+{
+    memcpy(&f_00[0], in.getSampleDataRO(b.neighbours[0], sentinel), numComp*sizeof(S));
+    memcpy(&f_10[0], in.getSampleDataRO(b.neighbours[1], sentinel), numComp*sizeof(S));
+    memcpy(&f_01[0], in.getSampleDataRO(b.neighbours[2], sentinel), numComp*sizeof(S));
+    memcpy(&f_11[0], in.getSampleDataRO(b.neighbours[3], sentinel), numComp*sizeof(S));
+
+    // A hanging corner never lies ON the domain boundary: it is the midpoint of
+    // a face shared by two elements, and the relative interior of a shared face
+    // is interior to the domain. So neither value on THIS face is ever hanging.
+    // The face gradient, however, combines them with the element's other two
+    // corners to get the tangential derivative, and one of those can be - which
+    // is why all four are read here and corrected together. A routine that uses
+    // only the on-face pair is unaffected either way.
+    int hangingCorner[P4EST_CHILDREN];
+    if (b.quadIndex >= 0
+            && getHangingNodes(nodes->face_code[b.quadIndex], hangingCorner)) {
+        S* corner[P4EST_CHILDREN] = { &f_00[0], &f_10[0], &f_01[0], &f_11[0] };
+        constrainHangingCorners(hangingCorner, corner, numComp);
+    }
+}
+
+//private
+template <typename S>
 void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
                                         const escript::Data& in,
                                         bool reduced, S sentinel) const
@@ -2437,8 +2610,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 #pragma omp for nowait
             for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                 borderNodeInfo tmp = NodeIDsLeft[k];
-                memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
+                gatherCornersConstrained(in, tmp, numComp, sentinel,
+                                         f_00, f_10, f_01, f_11);
                 
                 S* o = out.getSampleDataRW(m_faceOffset[0]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
@@ -2450,8 +2623,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 #pragma omp for nowait
             for (index_t k=0; k<NodeIDsRight.size(); k++) {
                 borderNodeInfo tmp = NodeIDsRight[k];
-                memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
-                memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                gatherCornersConstrained(in, tmp, numComp, sentinel,
+                                         f_00, f_10, f_01, f_11);
                 S* o = out.getSampleDataRW(m_faceOffset[1]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = (f_10[i] + f_11[i])/static_cast<S>(2);
@@ -2462,8 +2635,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 #pragma omp for nowait
             for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                 borderNodeInfo tmp = NodeIDsBottom[k];
-                memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                gatherCornersConstrained(in, tmp, numComp, sentinel,
+                                         f_00, f_10, f_01, f_11);
                 S* o = out.getSampleDataRW(m_faceOffset[2]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = (f_00[i] + f_10[i])/static_cast<S>(2);
@@ -2474,8 +2647,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 #pragma omp for nowait
             for (index_t k=0; k<NodeIDsTop.size(); k++) {
                 borderNodeInfo tmp = NodeIDsTop[k];
-                memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
-                memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                gatherCornersConstrained(in, tmp, numComp, sentinel,
+                                         f_00, f_10, f_01, f_11);
                 S* o = out.getSampleDataRW(m_faceOffset[3]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = (f_01[i] + f_11[i])/static_cast<S>(2);
@@ -2495,8 +2668,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
     #pragma omp for nowait
             for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                 borderNodeInfo tmp = NodeIDsLeft[k];
-                memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
+                gatherCornersConstrained(in, tmp, numComp, sentinel,
+                                         f_00, f_10, f_01, f_11);
                 S* o = out.getSampleDataRW(m_faceOffset[0]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c0*f_01[i] + c1*f_00[i];
@@ -2508,8 +2681,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
     #pragma omp for nowait
             for (index_t k=0; k<NodeIDsRight.size(); k++) {
                 borderNodeInfo tmp = NodeIDsRight[k];
-                memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
-                memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                gatherCornersConstrained(in, tmp, numComp, sentinel,
+                                         f_00, f_10, f_01, f_11);
                 S* o = out.getSampleDataRW(m_faceOffset[1]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c1*f_10[i] + c0*f_11[i];
@@ -2521,8 +2694,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
     #pragma omp for nowait
              for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                 borderNodeInfo tmp = NodeIDsBottom[k];
-                memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                gatherCornersConstrained(in, tmp, numComp, sentinel,
+                                         f_00, f_10, f_01, f_11);
                 S* o = out.getSampleDataRW(m_faceOffset[2]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c0*f_10[i] + c1*f_00[i];
@@ -2534,8 +2707,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
     #pragma omp for nowait
             for (index_t k=0; k<NodeIDsTop.size(); k++) {
                 borderNodeInfo tmp = NodeIDsTop[k];
-                memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
-                memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                gatherCornersConstrained(in, tmp, numComp, sentinel,
+                                         f_00, f_10, f_01, f_11);
                 S* o = out.getSampleDataRW(m_faceOffset[3]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c0*f_11[i] + c1*f_01[i];
@@ -2595,7 +2768,222 @@ inline dim_t Rectangle::getNumElements() const
     return numElements;
 }
 
-MeshAccess Rectangle::getMeshAccess() const
+unsigned Rectangle::forestChecksum() const
+{
+    // collective; the same value on every rank
+    return p4est_checksum(p4est);
+}
+
+bool Rectangle::isConforming() const
+{
+    int localHang = 0;
+    if (nodes) {
+        for (long e = 0; e < (long) nodes->num_local_elements; ++e) {
+            if (nodes->face_code[e] != 0) { localHang = 1; break; }
+        }
+    }
+    int anyHang = localHang;
+#ifdef ESYS_MPI
+    MPI_Allreduce(&localHang, &anyHang, 1, MPI_INT, MPI_MAX, m_mpiInfo->comm);
+#endif
+    return anyHang == 0;
+}
+
+//protected
+void Rectangle::farMasterCoords(std::vector<long>& ids,
+                                std::vector<double>& xy) const
+{
+    ids.clear();
+    xy.clear();
+
+    // A node referenced by our elements ONLY through hanging slots never gets a
+    // coordinate from the ordinary walk, which skips those slots so they cannot
+    // overwrite their master's position. That happens under MPI: the far master
+    // is a corner of the coarse neighbour and of the adjacent fine element, and
+    // the SFC cut can put both on another rank. The node is then left at the
+    // origin, and everything read through it - getX, any field built from it,
+    // and the average that defines the hanging node - is silently wrong.
+    //
+    // No halo and no communication are needed to repair it. A hanging corner H
+    // is the MIDPOINT of the coarse neighbour's edge; the other end A of that
+    // edge is a real corner of this same element (it is the slot getHangingNodes
+    // reports), so the far master sits at 2H - A. Both H and A are local.
+    const int V = nodes->vnodes;
+    long e = 0;
+    for (p4est_topidx_t treeid = p4est->first_local_tree;
+         treeid <= p4est->last_local_tree; ++treeid) {
+        p4est_tree_t* tree = p4est_tree_array_index(p4est->trees, treeid);
+        sc_array_t* quads = &tree->quadrants;
+        const p4est_locidx_t Q = (p4est_locidx_t) quads->elem_count;
+        for (p4est_locidx_t q = 0; q < Q; ++q, ++e) {
+            int hangingCorner[P4EST_CHILDREN];
+            if (!getHangingNodes(nodes->face_code[e], hangingCorner))
+                continue;
+            p4est_quadrant_t* quad = p4est_quadrant_array_index(quads, q);
+            const p4est_qcoord_t len = P4EST_QUADRANT_LEN(quad->level);
+            for (int c = 0; c < V; ++c) {
+                const int a = hangingCorner[c];
+                if (a < 0)
+                    continue;
+                double H[3] = {0.,0.,0.}, A[3] = {0.,0.,0.};
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid,
+                        quad->x + (c & 1)*len, quad->y + ((c >> 1) & 1)*len, H);
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid,
+                        quad->x + (a & 1)*len, quad->y + ((a >> 1) & 1)*len, A);
+                ids.push_back((long) nodes->element_nodes[(size_t) e * V + c]);
+                xy.push_back(2.*H[0] - A[0]);
+                xy.push_back(2.*H[1] - A[1]);
+            }
+        }
+    }
+}
+
+namespace {
+
+/// the two corners of face f, in z-order corner indexing
+const int rectFaceCorners[4][2] = { {0,2}, {1,3}, {0,1}, {2,3} };
+
+/// One 2:1 seam, described from the COARSE side. The hanging node sits at the
+/// midpoint of that octant's face, and (globalQuad, face) is its identity: a
+/// hanging position is the midpoint of exactly one coarse face, and every rank
+/// touching the seam derives the same pair, so no agreement protocol is needed.
+struct Seam
+{
+    long   globalQuad;      ///< Q: coarse octant's number in the global z-order
+    int    face;            ///< f: which of its faces, p4est numbering
+    int    owner;           ///< rank owning the coarse octant, hence the node
+    double mid[3];          ///< where the node goes
+    long   coarseElem;      ///< local element index of the coarse octant, or -1
+    long   fineElem[2];     ///< local element indices of the fine octants, or -1
+    int    fineCorner[2];   ///< z-order corner of each fine octant sitting at mid
+    int    fineOwner[2];    ///< rank owning each fine octant, or -1
+};
+
+struct SeamCtx
+{
+    const p4est_ghost_t* ghost;
+    std::vector<Seam>* out;
+};
+
+/// owner rank of ghost quadrant g, from the per-rank ghost offsets
+inline int ghostOwner(const p4est_ghost_t* ghost, p4est_locidx_t g, int size)
+{
+    for (int r = 0; r < size; ++r) {
+        if (g >= ghost->proc_offsets[r] && g < ghost->proc_offsets[r+1])
+            return r;
+    }
+    return -1;
+}
+
+/// cumulative local index of a local quadrant, matching the order the element
+/// walk numbers elements in
+inline long localElemIndex(p4est_t* p4est, p4est_topidx_t treeid,
+                           p4est_locidx_t quadid)
+{
+    p4est_tree_t* tree = p4est_tree_array_index(p4est->trees, treeid);
+    return (long) tree->quadrants_offset + quadid;
+}
+
+/**
+   p4est_iterate face callback: records every 2:1 seam.
+
+   p4est_iterate fires a face callback on any face shared by two quadrants,
+   hanging or not, and skips only faces whose quadrants are all ghosts. So a
+   seam is reported on EVERY rank holding either side of it - which is the
+   point, since the coarse side has no local mark of its own (face_code lives
+   on the fine side).
+*/
+void collectSeam(p4est_iter_face_info_t* info, void* user)
+{
+    SeamCtx* ctx = (SeamCtx*) user;
+    if (info->sides.elem_count != 2)
+        return;                                     // a domain boundary face
+
+    p4est_iter_face_side_t* s0 = p4est_iter_fside_array_index_int(&info->sides, 0);
+    p4est_iter_face_side_t* s1 = p4est_iter_fside_array_index_int(&info->sides, 1);
+    if (s0->is_hanging == s1->is_hanging)
+        return;                                     // equal levels: no seam
+    p4est_iter_face_side_t* coarse = s0->is_hanging ? s1 : s0;
+    p4est_iter_face_side_t* fine   = s0->is_hanging ? s0 : s1;
+
+    p4est_quadrant_t* cq = coarse->is.full.quad;
+    if (cq == NULL)
+        return;                                     // not in the ghost layer
+
+    p4est_t* p4est = info->p4est;
+    Seam s;
+    s.face = coarse->face;
+    s.coarseElem = -1;
+    if (!coarse->is.full.is_ghost) {
+        s.owner = p4est->mpirank;
+        s.coarseElem = localElemIndex(p4est, coarse->treeid,
+                                      coarse->is.full.quadid);
+        s.globalQuad = (long) p4est->global_first_quadrant[s.owner] + s.coarseElem;
+    } else {
+        s.owner = ghostOwner(ctx->ghost, coarse->is.full.quadid, p4est->mpisize);
+        if (s.owner < 0)
+            return;
+        s.globalQuad = (long) p4est->global_first_quadrant[s.owner]
+                     + (long) cq->p.piggy3.local_num;
+    }
+
+    // midpoint of the coarse face, in that octant's tree coordinates
+    const p4est_qcoord_t len = P4EST_QUADRANT_LEN(cq->level);
+    const p4est_qcoord_t h = len / 2;
+    p4est_qcoord_t mx = cq->x, my = cq->y;
+    switch (s.face) {
+        case 0:  my += h;              break;       // -x
+        case 1:  mx += len; my += h;   break;       // +x
+        case 2:  mx += h;              break;       // -y
+        default: mx += h;   my += len; break;       // +y
+    }
+    s.mid[0] = s.mid[1] = s.mid[2] = 0.;
+    p4est_qcoord_to_vertex(p4est->connectivity, coarse->treeid, mx, my, s.mid);
+
+    // The fine octants are listed in the face's own z-order, so the half that
+    // comes first touches the coarse face's LOW corner and its far corner is
+    // the midpoint - hence 1-k. Only valid while faces are aligned, which holds
+    // for the brick connectivity oxley builds (orientation 0).
+    for (int k = 0; k < 2; ++k) {
+        s.fineElem[k] = -1;
+        s.fineOwner[k] = -1;
+        s.fineCorner[k] = rectFaceCorners[fine->face][1-k];
+        if (fine->is.hanging.quad[k] == NULL)
+            continue;
+        if (!fine->is.hanging.is_ghost[k]) {
+            s.fineElem[k] = localElemIndex(p4est, fine->treeid,
+                                           fine->is.hanging.quadid[k]);
+            s.fineOwner[k] = p4est->mpirank;
+        } else {
+            s.fineOwner[k] = ghostOwner(ctx->ghost, fine->is.hanging.quadid[k],
+                                        p4est->mpisize);
+        }
+    }
+    ctx->out->push_back(s);
+}
+
+/// Collects every 2:1 seam this rank can see. Builds its own ghost layer if the
+/// domain is not already holding one, since the callback needs the far side of
+/// a seam whose other half lives on another rank.
+void collectSeams(p4est_t* p4est, p4est_ghost_t* keptGhost,
+                  std::vector<Seam>& seams)
+{
+    seams.clear();
+    p4est_ghost_t* ghost = keptGhost;
+    const bool ownGhost = (ghost == NULL);
+    if (ownGhost)
+        ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    SeamCtx ctx;
+    ctx.ghost = ghost;
+    ctx.out = &seams;
+    p4est_iterate(p4est, ghost, (void*) &ctx, NULL, collectSeam, NULL);
+    if (ownGhost)
+        p4est_ghost_destroy(ghost);
+}
+
+} // anonymous namespace
+
+MeshAccess Rectangle::getMeshAccess(bool materializeHanging) const
 {
     MeshAccess m;
     m.numDim = 2;
@@ -2604,22 +2992,38 @@ MeshAccess Rectangle::getMeshAccess() const
     m.numOwnedNodes = nodes->owned_count;
     m.numElements = nodes->num_local_elements;
     m.globalNodeOffset = (long) nodes->global_offset;
+    m.globalElementOffset = (long) p4est->global_first_quadrant[m_mpiInfo->rank];
+    m.numRealNodes = m.numNodes;
+    m.mastersPerConstrainedNode = 2;                   // an edge midpoint
 
     m.nodeCoords.assign((size_t) m.numNodes * m.numDim, 0.0);
-    m.nodeGlobalId.resize(m.numNodes);
+    m.nodeLnodesId.resize(m.numNodes);
     m.elementNodes.resize((size_t) m.numElements * m.nodesPerElement);
     m.elementTags.resize(m.numElements);
+
+    // node tags. m_nodeTags is indexed by local node, the same order used here,
+    // and populateSampleIds() has sized it - but a domain that has not been
+    // through that yet would leave it short, so copy only what is there.
+    m.nodeTags.assign(m.numNodes, 0);
+    for (long i = 0; i < m.numNodes && i < (long) m_nodeTags.size(); ++i)
+        m.nodeTags[i] = (long) m_nodeTags[i];
 
     // global node ids: owned nodes are contiguous from global_offset, ghost
     // nodes carry their explicit global id in nonlocal_nodes.
     for (long i = 0; i < m.numOwnedNodes; ++i)
-        m.nodeGlobalId[i] = m.globalNodeOffset + i;
+        m.nodeLnodesId[i] = m.globalNodeOffset + i;
     for (long i = m.numOwnedNodes; i < m.numNodes; ++i)
-        m.nodeGlobalId[i] = (long) nodes->nonlocal_nodes[i - m.numOwnedNodes];
+        m.nodeLnodesId[i] = (long) nodes->nonlocal_nodes[i - m.numOwnedNodes];
 
     // walk the leaves in lnodes element order, filling connectivity, tags and
     // (deduplicated by node index) coordinates.
+    //
+    // A HANGING corner has no node of its own: its element_nodes slot holds the
+    // far master, a node that lies OUTSIDE this element. So the slot's coordinate
+    // must not be written - it would move the master to the hanging position -
+    // and with materializeHanging the slot is redirected to a node created here.
     const int V = m.nodesPerElement;
+    std::vector<bool> haveCoords(m.numNodes, false);
     long e = 0;
     for (p4est_topidx_t treeid = p4est->first_local_tree;
          treeid <= p4est->last_local_tree; ++treeid) {
@@ -2631,6 +3035,11 @@ MeshAccess Rectangle::getMeshAccess() const
             const quadrantData * qd = (const quadrantData *) quad->p.user_data;
             m.elementTags[e] = qd ? qd->quadTag : 0;
             const p4est_qcoord_t len = P4EST_QUADRANT_LEN(quad->level);
+
+            int hangingCorner[P4EST_CHILDREN];
+            const bool anyHanging = getHangingNodes(nodes->face_code[e],
+                                                    hangingCorner);
+
             for (int c = 0; c < V; ++c) {
                 const long ni = (long) nodes->element_nodes[(size_t) e * V + c];
                 m.elementNodes[(size_t) e * V + c] = ni;
@@ -2639,11 +3048,228 @@ MeshAccess Rectangle::getMeshAccess() const
                 double xy[3] = {0., 0., 0.};
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid,
                                        quad->x + cx * len, quad->y + cy * len, xy);
+                if (anyHanging && hangingCorner[c] >= 0)
+                    continue;                  // a master, not this corner
                 m.nodeCoords[(size_t) ni * m.numDim + 0] = xy[0];
                 m.nodeCoords[(size_t) ni * m.numDim + 1] = xy[1];
+                haveCoords[ni] = true;
+            }
+
+        }
+    }
+
+    // Materialise the hanging positions, one per 2:1 seam. Driven by the seam
+    // list rather than by face_code, because face_code marks the FINE side only
+    // and the coarse side needs the node just as much: the node is a corner of
+    // the finer neighbour, so the coarse element does not list it, yet it must
+    // become a vertex of that element's simplices.
+    std::vector<Seam> seams;
+    if (materializeHanging) {
+        collectSeams(p4est, m_ghost, seams);
+        m.elementFaceHangingNode.assign((size_t) m.numElements * 4, -1);
+        for (size_t si = 0; si < seams.size(); ++si) {
+            const Seam& s = seams[si];
+
+            // The two masters are the endpoints of the coarse face. Read them
+            // off the coarse element when it is local; otherwise off a fine one,
+            // where the hanging slot holds the far master and getHangingNodes
+            // names the near one. Same two nodes either way.
+            long masters[2] = {-1, -1};
+            if (s.coarseElem >= 0) {
+                for (int k = 0; k < 2; ++k)
+                    masters[k] = m.elementNodes[(size_t) s.coarseElem * V
+                                              + rectFaceCorners[s.face][k]];
+            } else {
+                for (int k = 0; k < 2 && masters[0] < 0; ++k) {
+                    const long fe = s.fineElem[k];
+                    if (fe < 0)
+                        continue;
+                    int hc[P4EST_CHILDREN];
+                    if (!getHangingNodes(nodes->face_code[fe], hc))
+                        continue;
+                    const int c = s.fineCorner[k];
+                    if (hc[c] < 0)
+                        continue;
+                    masters[0] = (long) nodes->element_nodes[(size_t) fe * V + c];
+                    masters[1] = (long) nodes->element_nodes[(size_t) fe * V + hc[c]];
+                }
+            }
+
+            const long ni = m.numNodes++;
+            m.nodeCoords.push_back(s.mid[0]);
+            m.nodeCoords.push_back(s.mid[1]);
+            m.nodeLnodesId.push_back(-1);   // set by finaliseNodeNumbering
+            // no node of the domain tagged this position, so it takes its
+            // masters' tag when they agree - see inheritedTag()
+            m.nodeTags.push_back(inheritedTag(m, masters, 2));
+            m.constrainedNodes.push_back(ni);
+
+            // Who WRITES this node in the output. Not the coarse octant's rank,
+            // which owns it for the export numbering: weipa emits the octant
+            // mesh, and a hanging node is not a corner of the coarse quad - only
+            // of the two fine ones. A coarse-side owner would write a point that
+            // appears in none of its own cells and has no value to give it, and
+            // the point comes out zero. So the writer is the lowest-numbered
+            // rank holding a FINE octant of this seam, which every rank can work
+            // out from the ghost layer without communicating.
+            int writer = -1;
+            for (int k = 0; k < 2; ++k) {
+                if (s.fineOwner[k] >= 0 && (writer < 0 || s.fineOwner[k] < writer))
+                    writer = s.fineOwner[k];
+            }
+            m.hangingWriterRank.push_back(writer >= 0 ? writer : s.owner);
+            for (int k = 0; k < m.mastersPerConstrainedNode; ++k) {
+                m.constraintMasters.push_back(k < 2 ? masters[k] : -1);
+                m.constraintWeights.push_back(k < 2 ? 0.5 : 0.);
+            }
+
+            // the coarse element reaches it by face, the fine ones by corner
+            if (s.coarseElem >= 0)
+                m.elementFaceHangingNode[(size_t) s.coarseElem * 4 + s.face] = ni;
+            for (int k = 0; k < 2; ++k) {
+                if (s.fineElem[k] >= 0)
+                    m.elementNodes[(size_t) s.fineElem[k] * V + s.fineCorner[k]] = ni;
             }
         }
     }
+
+
+    // Any node our elements only ever reference as a hanging slot has no
+    // coordinate yet; see farMasterCoords(). (MPI only.)
+    {
+        std::vector<long> fmIds;
+        std::vector<double> fmXY;
+        farMasterCoords(fmIds, fmXY);
+        for (size_t i = 0; i < fmIds.size(); ++i) {
+            const long ni = fmIds[i];
+            if (ni < 0 || ni >= m.numRealNodes || haveCoords[ni])
+                continue;
+            haveCoords[ni] = true;
+            m.nodeCoords[(size_t) ni * m.numDim + 0] = fmXY[2*i];
+            m.nodeCoords[(size_t) ni * m.numDim + 1] = fmXY[2*i+1];
+        }
+    }
+
+    // Boundary faces. A quadrant face lies on the domain boundary when the
+    // quadrant touches the tree boundary in that direction AND the connectivity
+    // sends that tree face back to itself, which is p4est's encoding for "no
+    // neighbour". This is topological, unlike updateFaceElementCount() which
+    // compares coordinates against the domain extent.
+    // Hanging nodes need no treatment here, and cannot in 2D: a hanging node is
+    // the midpoint of a face that HAS a finer neighbour, so it lies on an
+    // interior face, half an edge away from either end - never on the boundary,
+    // and never at an octant corner. A boundary edge is therefore always a plain
+    // Line2 on two corners. (3D is not like this: a boundary FACE is still never
+    // a seam, but its edges can be, so it can carry hanging edge nodes and become
+    // a polygon of up to 8 vertices.)
+    {
+        // face -> its two corners in z-order indexing, wound so that the domain
+        // lies to the LEFT of the directed edge, i.e. the outward normal is the
+        // clockwise rotation of the tangent. Matches finley's Mesh_rec4.
+        static const int faceCorner[4][2] = {{2,0}, {1,3}, {0,1}, {3,2}};
+        static const long faceTag[4] = {1, 2, 10, 20};  // left, right, bottom, top
+
+        // Faces are collected per direction and concatenated afterwards,
+        // because that is the order the domain gives its boundary SAMPLES:
+        // m_faceOffset lays them out in blocks left, right, bottom, top, each
+        // in octant order. Building them octant-major instead would make
+        // MeshAccess face f a different face from FunctionOnBoundary sample f,
+        // which is exactly the sort of quiet mismatch a transfer cannot see.
+        std::vector<long> bucketNodes[4], bucketElements[4];
+        const p4est_connectivity_t* conn = p4est->connectivity;
+        m.nodesPerFace = 2;
+        long le = 0;
+        for (p4est_topidx_t treeid = p4est->first_local_tree;
+             treeid <= p4est->last_local_tree; ++treeid) {
+            p4est_tree_t* tree = p4est_tree_array_index(p4est->trees, treeid);
+            sc_array_t* quads = &tree->quadrants;
+            const p4est_locidx_t Q = (p4est_locidx_t) quads->elem_count;
+            for (p4est_locidx_t q = 0; q < Q; ++q, ++le) {
+                p4est_quadrant_t* quad = p4est_quadrant_array_index(quads, q);
+                const p4est_qcoord_t len = P4EST_QUADRANT_LEN(quad->level);
+                for (int f = 0; f < 4; ++f) {
+                    if (conn->tree_to_tree[treeid * 4 + f] != treeid ||
+                        conn->tree_to_face[treeid * 4 + f] != f)
+                        continue;               // a neighbouring tree is there
+                    bool touches;
+                    switch (f) {
+                        case 0:  touches = (quad->x == 0); break;
+                        case 1:  touches = (quad->x + len == P4EST_ROOT_LEN); break;
+                        case 2:  touches = (quad->y == 0); break;
+                        default: touches = (quad->y + len == P4EST_ROOT_LEN); break;
+                    }
+                    if (!touches)
+                        continue;
+                    // from m.elementNodes, not element_nodes: a boundary edge of
+                    // a fine element can end at a hanging corner, and the face
+                    // must name the node that is actually there
+                    for (int c = 0; c < 2; ++c)
+                        bucketNodes[f].push_back(
+                                m.elementNodes[(size_t) le * V + faceCorner[f][c]]);
+                    bucketElements[f].push_back(le);
+                }
+            }
+        }
+        for (int f = 0; f < 4; ++f) {
+            m.faceNodes.insert(m.faceNodes.end(), bucketNodes[f].begin(),
+                               bucketNodes[f].end());
+            m.faceElements.insert(m.faceElements.end(),
+                                  bucketElements[f].begin(),
+                                  bucketElements[f].end());
+            m.faceTags.insert(m.faceTags.end(), bucketElements[f].size(),
+                              faceTag[f]);
+            m.faceDirections.insert(m.faceDirections.end(),
+                                    bucketElements[f].size(), (long) f);
+        }
+        m.numFaces = (long) m.faceTags.size();
+    }
+
+    std::vector<long> ownedPerRank(m_mpiInfo->size);
+    for (int i = 0; i < m_mpiInfo->size; ++i)
+        ownedPerRank[i] = (long) nodes->global_owned_count[i];
+
+    // The export numbering, derived from replicated data alone: every rank
+    // computes the same id for a shared node, with nothing exchanged. Built
+    // BEFORE finaliseNodeNumbering, which uses the export id of a materialised
+    // node as the key naming it across ranks.
+    {
+        const int size = m_mpiInfo->size;
+        const int slots = slotsPerElement(2);
+        std::vector<long> realOffset(size + 1, 0);
+        m.finleyDistribution.assign(size + 1, 0);
+        for (int r = 0; r < size; ++r) {
+            const long quads = (long) p4est->global_first_quadrant[r+1]
+                             - (long) p4est->global_first_quadrant[r];
+            realOffset[r+1] = realOffset[r] + ownedPerRank[r];
+            m.finleyDistribution[r+1] = m.finleyDistribution[r]
+                                      + ownedPerRank[r] + slots * quads;
+        }
+
+        // lnodes nodes keep their position within their owner's block. The
+        // owner follows from the lnodes id, since lnodes numbers each rank's
+        // owned nodes consecutively - so ghosts need no lookup either.
+        m.nodeFinleyId.assign(m.numNodes, -1);
+        for (long i = 0; i < m.numRealNodes; ++i) {
+            const long g = m.nodeLnodesId[i];
+            int r = 0;                              // realOffset is sorted
+            while (r + 1 < size && realOffset[r+1] <= g)
+                ++r;
+            m.nodeFinleyId[i] = m.finleyDistribution[r] + (g - realOffset[r]);
+        }
+
+        // hanging nodes sit above their owner's lnodes nodes, at the slot their
+        // (octant, face) key names
+        for (size_t si = 0; si < seams.size(); ++si) {
+            const Seam& s = seams[si];
+            const long firstQuad = (long) p4est->global_first_quadrant[s.owner];
+            m.nodeFinleyId[m.constrainedNodes[si]] =
+                    m.finleyDistribution[s.owner] + ownedPerRank[s.owner]
+                  + slots * (s.globalQuad - firstQuad) + s.face;
+        }
+    }
+
+    finaliseNodeNumbering(m, ownedPerRank);
+
     return m;
 }
 
@@ -2875,6 +3501,7 @@ void Rectangle::updateFaceElementCount()
                 tmp.y=quad->y;
                 tmp.level=quad->level;
                 tmp.treeid=treeid;
+                tmp.quadIndex=e;
 
                 // Push each boundary FACE exactly once, keyed on its canonical
                 // corner (SW=0 for left/bottom, SE=1 for right, NW=2 for top).
@@ -3292,6 +3919,15 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 memcpy(&f_10[0], in.getSampleDataRO(ids[1], zero), numComp*sizeof(Scalar));
                 memcpy(&f_11[0], in.getSampleDataRO(ids[3], zero), numComp*sizeof(Scalar));
 
+                // on the fine side of a seam these slots hold masters, not the
+                // corner values; see constrainHangingCorners
+                int hangingCorner[P4EST_CHILDREN];
+                if (getHangingNodes(nodes->face_code[e], hangingCorner)) {
+                    Scalar* corner[P4EST_CHILDREN] =
+                            { &f_00[0], &f_10[0], &f_01[0], &f_11[0] };
+                    constrainHangingCorners(hangingCorner, corner, numComp);
+                }
+
                 Scalar* o = out.getSampleDataRW(e, zero);
                 for(index_t i = 0; i < numComp; ++i) {
                     o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[1][l] + (f_11[i]-f_01[i])*cx[0][l];
@@ -3333,6 +3969,15 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 memcpy(&f_10[0], in.getSampleDataRO(ids[1], zero), numComp*sizeof(Scalar));
                 memcpy(&f_11[0], in.getSampleDataRO(ids[3], zero), numComp*sizeof(Scalar));
 
+                // on the fine side of a seam these slots hold masters, not the
+                // corner values; see constrainHangingCorners
+                int hangingCorner[P4EST_CHILDREN];
+                if (getHangingNodes(nodes->face_code[e], hangingCorner)) {
+                    Scalar* corner[P4EST_CHILDREN] =
+                            { &f_00[0], &f_10[0], &f_01[0], &f_11[0] };
+                    constrainHangingCorners(hangingCorner, corner, numComp);
+                }
+
                 Scalar* o = out.getSampleDataRW(e, zero);
 
                 for(index_t i = 0; i < numComp; ++i) {
@@ -3368,10 +4013,9 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                         borderNodeInfo tmp = NodeIDsLeft[k];
                         long l = tmp.level;
-                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        gatherCornersConstrained(in, tmp, numComp, zero,
+                                                 f_00, f_10, f_01, f_11);
+
                         Scalar* o = out.getSampleDataRW(m_faceOffset[0]+k, zero);
                         for(index_t i = 0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[1][l] + (f_11[i]-f_01[i])*cx[0][l];
@@ -3385,10 +4029,9 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     for (index_t k=0; k<NodeIDsRight.size(); k++) {
                         borderNodeInfo tmp = NodeIDsRight[k];
                         long l = tmp.level;
-                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        gatherCornersConstrained(in, tmp, numComp, zero,
+                                                 f_00, f_10, f_01, f_11);
+
                         Scalar* o = out.getSampleDataRW(m_faceOffset[1]+k, zero);
                         for(index_t i = 0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[1][l] + (f_11[i]-f_01[i])*cx[0][l];
@@ -3402,10 +4045,9 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                         borderNodeInfo tmp = NodeIDsBottom[k];
                         long l = tmp.level;
-                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        gatherCornersConstrained(in, tmp, numComp, zero,
+                                                 f_00, f_10, f_01, f_11);
+
                         Scalar* o = out.getSampleDataRW(m_faceOffset[2]+k, zero);
                         for(index_t i = 0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[2][l];
@@ -3419,10 +4061,9 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     for (index_t k=0; k<NodeIDsTop.size(); k++) {
                         borderNodeInfo tmp = NodeIDsTop[k];
                         long l = tmp.level;
-                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        gatherCornersConstrained(in, tmp, numComp, zero,
+                                                 f_00, f_10, f_01, f_11);
+
                         Scalar* o = out.getSampleDataRW(m_faceOffset[3]+k, zero);
                         for(index_t i = 0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,2)] = (f_11[i]-f_01[i])*cx[2][l];
@@ -3461,10 +4102,9 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     for (index_t k=0; k<NodeIDsLeft.size(); k++) {
                         borderNodeInfo tmp = NodeIDsLeft[k];
                         long l = tmp.level;
-                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        gatherCornersConstrained(in, tmp, numComp, zero,
+                                                 f_00, f_10, f_01, f_11);
+
                         Scalar* o = out.getSampleDataRW(m_faceOffset[0]+k, zero);
                         for(index_t i = 0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx[2][l] * 0.5;
@@ -3476,10 +4116,9 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     for (index_t k=0; k<NodeIDsRight.size(); k++) {
                         borderNodeInfo tmp = NodeIDsRight[k];
                         long l = tmp.level;
-                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        gatherCornersConstrained(in, tmp, numComp, zero,
+                                                 f_00, f_10, f_01, f_11);
+
                         Scalar* o = out.getSampleDataRW(m_faceOffset[1]+k, zero);
                         for(index_t i = 0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx[2][l] * 0.5;
@@ -3491,10 +4130,9 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     for (index_t k=0; k<NodeIDsBottom.size(); k++) {
                         borderNodeInfo tmp = NodeIDsBottom[k];
                         long l = tmp.level;
-                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        gatherCornersConstrained(in, tmp, numComp, zero,
+                                                 f_00, f_10, f_01, f_11);
+
                         Scalar* o = out.getSampleDataRW(m_faceOffset[2]+k, zero);
                         for(index_t i = 0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[2][l];
@@ -3506,10 +4144,9 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     for (index_t k=0; k<NodeIDsTop.size(); k++) {
                         borderNodeInfo tmp = NodeIDsTop[k];
                         long l = tmp.level;
-                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
-                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        gatherCornersConstrained(in, tmp, numComp, zero,
+                                                 f_00, f_10, f_01, f_11);
+
                         Scalar* o = out.getSampleDataRW(m_faceOffset[3]+k, zero);
                         for(index_t i = 0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,2)] = (f_11[i]-f_01[i])*cx[2][l];
@@ -4505,7 +5142,6 @@ void Rectangle::updateMesh()
     nodes = p4est_lnodes_new(p4est, ghost, 1);
     p4est_ghost_destroy(ghost);
     
-    updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
     updateNodeDistribution();
@@ -4529,7 +5165,7 @@ void Rectangle::AutomaticMeshUpdateOnOff(bool new_setting)
     \brief
     Applies a refinementzone
 */
-escript::Domain_ptr Rectangle::apply_refinementzone(RefinementZone R)
+escript::Domain_ptr Rectangle::applyRefinement(RefinementQueue& R)
 {
     oxleytimer.toc("Applying the refinement zone...");
 
@@ -4545,6 +5181,11 @@ escript::Domain_ptr Rectangle::apply_refinementzone(RefinementZone R)
         newDomain->setRefinementLevels(Refinement.levels);
         switch(Refinement.flavour)
         {
+            case UNIFORM:
+            {
+                newDomain->refineMesh("uniform");
+                break;
+            }
             case POINT2D:
             {
                 double x=Refinement.x0;
@@ -4655,5 +5296,20 @@ template
 void Rectangle::assembleGradientImpl<cplx_t>(escript::Data& out,
                                              const escript::Data& in) const;
 
+
+
+// Defined here rather than in RefinementQueue.cpp: it needs the concrete
+// domain class, and including this header there runs into the OxleyData.h <->
+// Rectangle.h include cycle.
+escript::Domain_ptr RefinementQueue2D::apply(escript::Domain_ptr domain)
+{
+    if(domain.get() == NULL)
+        throw OxleyException("RefinementQueue2D::apply: no domain given.");
+    Rectangle * d = dynamic_cast<Rectangle *>(domain.get());
+    if(d == NULL)
+        throw OxleyException("RefinementQueue2D::apply: the domain is not a Rectangle. "
+                "Use RefinementQueue3D for a Brick.");
+    return d->applyRefinement(*this);
+}
 
 } // end of namespace oxley

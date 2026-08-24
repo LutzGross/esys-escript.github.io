@@ -17,17 +17,17 @@ module_name = 'oxley'
 
 sources = """
     Brick.cpp
-    DefaultAssembler2D.cpp
-    DefaultAssembler3D.cpp
     domainhelpers.cpp
+    FinleyConverter.cpp
     InitAlgorithms.cpp
     Rectangle.cpp
     OtherAlgorithms.cpp
     OxleyData.cpp
     OxleyDomain.cpp
+    MeshIO.cpp
     RefinementAlgorithms.cpp
     RefinementType.cpp
-    RefinementZone.cpp
+    RefinementQueue.cpp
     tictoc.cpp
 """.split()
 
@@ -37,6 +37,7 @@ headers = """
     DefaultAssembler2D.h
     DefaultAssembler3D.h
     domainhelpers.h
+    FinleyConverter.h
     InitAlgorithms.h
     MeshAccess.h
     Rectangle.h
@@ -46,11 +47,24 @@ headers = """
     OxleyData.h
     OxleyDomain.h
     OxleyException.h
+    MeshIO.h
     RefinementAlgorithms.h
     RefinementType.h
-    RefinementZone.h
+    RefinementQueue.h
     tictoc.h
 """.split()
+
+# The assembler is trilinos-only: it builds the matrix through
+# trilinoswrap, and there is no paso path for it. It is also the one part of
+# oxley that the current design does not need - an adaptive oxley mesh is
+# solved by exporting it to finley - so a build without trilinos leaves it out
+# rather than shipping an oxley that cannot be imported. createAssembler
+# throws in that case, naming toFinley().
+if env['trilinos']:
+    sources += """
+        DefaultAssembler2D.cpp
+        DefaultAssembler3D.cpp
+    """.split()
 
 local_env = env.Clone()
 
@@ -58,6 +72,8 @@ local_env = env.Clone()
 oxleylibs = []
 oxleylibs += env['escript_libs']
 oxleylibs += env['p4est_libs']
+# oxley hands its mesh over to finley for degrees of freedom and assembly
+oxleylibs += env['finley_libs']
 if env['paso']:
     oxleylibs += env['paso_libs']
 if env['trilinos']:

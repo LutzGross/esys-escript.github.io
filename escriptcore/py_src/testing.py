@@ -133,6 +133,26 @@ def run_tests(modulename, classes = [], exit_on_failure = False):
     else:
         for test_class in classes:
             suite.addTest(unittest.TestLoader().loadTestsFromTestCase(test_class))
+
+    # A suite that collects nothing is not a passing suite. unittest calls an
+    # empty result successful, so without this the script exits 0, scons writes
+    # its .passed file and the suite is indistinguishable from one whose tests
+    # all passed - which is how several suites went years without running.
+    # Note this is about COLLECTING nothing: a skipped test is still collected,
+    # reported as skipped, and does not trip this.
+    if suite.countTestCases() == 0:
+        if rank == 0:
+            sys.stderr.write(
+                "ERROR: %s collected no tests. Test classes must be named "
+                "Test* to be discovered; if the suite is deliberately "
+                "disabled, leave one Test class marked "
+                "@unittest.skip(reason) so it reports as skipped.\n"
+                % modulename)
+            sys.stderr.flush()
+        if exit_on_failure:
+            MPIBarrierWorld()
+            sys.exit(1)
+
     s=unittest.TextTestRunner(stream=stream,verbosity=verb).run(suite)
     if exit_on_failure and not s.wasSuccessful():
         sys.stderr.flush()

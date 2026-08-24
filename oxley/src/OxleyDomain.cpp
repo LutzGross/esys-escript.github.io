@@ -11,9 +11,12 @@
 *
 *****************************************************************************/
 
+#include <algorithm>
 #include <cstring>
+#include <map>
 #include <string>
 #include <typeinfo>
+#include <utility>
 
 #include <oxley/OxleyDomain.h>
 #include <oxley/OxleyData.h>
@@ -1878,12 +1881,174 @@ boost::python::numpy::ndarray OxleyDomain::getNumpyX() const
     return continuousFunction(*this).getNumpyX();
 }
 
-boost::python::dict OxleyDomain::getMeshInfo() const
+//protected
+void OxleyDomain::finaliseNodeNumbering(MeshAccess& m,
+                                        const std::vector<long>& ownedPerRank) const
+{
+    const int size = m_mpiInfo->size;
+    const int rank = m_mpiInfo->rank;
+    const long numExtra = (long) m.constrainedNodes.size();
+
+    // Which materialised nodes this rank OWNS.
+    //
+    // Both sides of a 2:1 seam materialise the node - the coarse side needs it
+    // as a vertex on its face, the fine side as one of its corners - so without
+    // an owner the same position takes a slot in TWO ranks' output blocks, and
+    // the copy whose rank does not fill it is written as a zero.
+    // hangingWriterRank names the one rank that writes it.
+    // (Brick does not set it yet; there each creator still owns what it made,
+    // and the branches below collapse to the original behaviour.)
+    //
+    // Whether the mesh view names that rank, and a cross-rank key, is decided
+    // COLLECTIVELY, because the gather below is a collective while the tests
+    // themselves are per-rank: a rank that materialised nothing has
+    // hangingWriterRank.size() == numExtra == 0 and would answer "yes", while a
+    // rank with hanging nodes and no owners answers "no". One rank then enters
+    // the gather alone and the run deadlocks. Ask every rank, take the minimum.
+    int localReady = (((long) m.hangingWriterRank.size() == numExtra)
+                   && ((long) m.nodeFinleyId.size() == m.numNodes)) ? 1 : 0;
+    int ready = localReady;
+#ifdef ESYS_MPI
+    if (size > 1)
+        MPI_Allreduce(&localReady, &ready, 1, MPI_INT, MPI_MIN, m_mpiInfo->comm);
+#endif
+    const bool haveOwners = (ready != 0);
+    const bool haveKeys = haveOwners;
+
+    // The materialised nodes this rank owns, kept in LOCAL INDEX ORDER.
+    //
+    // That order is load-bearing and the constraint is not local to this file:
+    // weipa's writers walk the local nodes and emit the ones falling in this
+    // rank's block (OxleyNodes::writeCoordinatesVTK, DataVar::writeToVTK),
+    // indexing them afterwards by nodeDenseIndex. So within a rank's block the
+    // output index MUST increase with the local index, or points and values are
+    // written in one order and referenced in another. Sorting these by key -
+    // which would have made the position derivable - silently scrambles the
+    // geometry, cells stop being boxes and volumes come out short.
+    std::vector<long> ownedExtras;                    // indices into the extras
+    for (long i = 0; i < numExtra; ++i) {
+        if (!haveOwners || m.hangingWriterRank[i] == rank)
+            ownedExtras.push_back(i);
+    }
+    const long numOwnedExtra = (long) ownedExtras.size();
+
+    // how many nodes each rank OWNS. p4est already told every rank how many
+    // lnodes nodes every other rank owns, so this is the only count exchanged.
+    std::vector<long> extraPerRank(size, 0);
+    extraPerRank[rank] = numOwnedExtra;
+#ifdef ESYS_MPI
+    if (size > 1) {
+        MPI_Allgather(&extraPerRank[rank], 1, MPI_LONG,
+                      &extraPerRank[0], 1, MPI_LONG, m_mpiInfo->comm);
+    }
+#endif
+
+    // A rank holding a hanging node it does not own needs that node's position
+    // inside the OWNER's block, and that is the one thing here which cannot be
+    // derived - it depends on the order the owner happened to create its own,
+    // which is now fixed by the paragraph above. So each rank's keys are
+    // gathered once, in its own order, and the position is where the key sits
+    // in that list. This is the single exchange the numbering needs; the export
+    // ids themselves stay communication-free.
+    //
+    // The key is the export id, the only name for a hanging node that both
+    // sides of a seam compute alike - it comes from the coarse octant's
+    // (global quadrant, face).
+    std::map<long,long> slotOfKey;                    // key -> position in owner
+    std::vector<long> keyOffset(size + 1, 0);
+    for (int r = 0; r < size; ++r)
+        keyOffset[r+1] = keyOffset[r] + extraPerRank[r];
+    if (haveOwners && haveKeys && size > 1) {
+        std::vector<long> allKeys(keyOffset[size], 0);
+        std::vector<long> mine(numOwnedExtra);
+        for (long j = 0; j < numOwnedExtra; ++j)
+            mine[j] = m.nodeFinleyId[m.constrainedNodes[ownedExtras[j]]];
+#ifdef ESYS_MPI
+        std::vector<int> counts(size), displs(size);
+        for (int r = 0; r < size; ++r) {
+            counts[r] = (int) extraPerRank[r];
+            displs[r] = (int) keyOffset[r];
+        }
+        MPI_Allgatherv(mine.empty() ? NULL : &mine[0], (int) numOwnedExtra,
+                       MPI_LONG, allKeys.empty() ? NULL : &allKeys[0],
+                       &counts[0], &displs[0], MPI_LONG, m_mpiInfo->comm);
+#endif
+        for (int r = 0; r < size; ++r) {
+            for (long j = 0; j < extraPerRank[r]; ++j)
+                slotOfKey[allKeys[keyOffset[r] + j]] = j;
+        }
+    }
+
+    // where each rank's lnodes ids start, and where its output block starts
+    std::vector<long> realOffset(size + 1, 0);
+    m.denseDistribution.assign(size + 1, 0);
+    for (int r = 0; r < size; ++r) {
+        realOffset[r + 1] = realOffset[r] + ownedPerRank[r];
+        m.denseDistribution[r + 1] = m.denseDistribution[r]
+                                    + ownedPerRank[r] + extraPerRank[r];
+    }
+    const long globalRealNodes = realOffset[size];
+
+    // the materialised nodes take a per-rank block above every lnodes id, so
+    // their ids collide neither with an lnodes id nor with another rank's block.
+    // Only the OWNER numbers a node here; a node this rank merely holds is given
+    // its owner's id, found from the gathered keys below.
+    long idOffset = globalRealNodes;
+    for (int r = 0; r < rank; ++r)
+        idOffset += extraPerRank[r];
+    for (long j = 0; j < numOwnedExtra; ++j)
+        m.nodeLnodesId[m.constrainedNodes[ownedExtras[j]]] = idOffset + j;
+
+    // the contiguous output numbering. An owned lnodes node keeps its position
+    // within this rank's block; a ghost is placed in ITS OWNER's block, at the
+    // same position it has there - which follows from its lnodes global id,
+    // since lnodes numbers each rank's owned nodes consecutively from
+    // global_offset. So no communication is needed for the ghosts either.
+    m.nodeDenseIndex.assign(m.numNodes, -1);
+    for (long i = 0; i < m.numOwnedNodes; ++i)
+        m.nodeDenseIndex[i] = m.denseDistribution[rank] + i;
+    for (long i = m.numOwnedNodes; i < m.numRealNodes; ++i) {
+        const long g = m.nodeLnodesId[i];
+        int owner = 0;                          // realOffset is sorted
+        while (owner + 1 < size && realOffset[owner + 1] <= g)
+            ++owner;
+        m.nodeDenseIndex[i] = m.denseDistribution[owner] + (g - realOffset[owner]);
+    }
+    // owned materialised nodes sit above this rank's lnodes nodes, in the local
+    // index order the writers rely on
+    for (long j = 0; j < numOwnedExtra; ++j)
+        m.nodeDenseIndex[m.constrainedNodes[ownedExtras[j]]] =
+                m.denseDistribution[rank] + ownedPerRank[rank] + j;
+
+    // and one this rank only holds goes to the slot it occupies in its OWNER's
+    // block, so that exactly one rank writes it
+    if (haveOwners && haveKeys) {
+        for (long i = 0; i < numExtra; ++i) {
+            const int owner = m.hangingWriterRank[i];
+            if (owner == rank)
+                continue;
+            const long ni = m.constrainedNodes[i];
+            std::map<long,long>::const_iterator it =
+                    slotOfKey.find(m.nodeFinleyId[ni]);
+            if (it == slotOfKey.end()) {
+                throw OxleyException("finaliseNodeNumbering: a hanging node is "
+                        "not in its owner's list - the two sides of a seam "
+                        "disagree about which octant is the coarse one.");
+            }
+            const long j = it->second;
+            m.nodeDenseIndex[ni] = m.denseDistribution[owner]
+                                  + ownedPerRank[owner] + j;
+            m.nodeLnodesId[ni] = globalRealNodes + keyOffset[owner] + j;
+        }
+    }
+}
+
+boost::python::dict OxleyDomain::getMeshInfo(bool materializeHanging) const
 {
     namespace bp = boost::python;
     namespace np = boost::python::numpy;
 
-    const MeshAccess m = getMeshAccess();
+    const MeshAccess m = getMeshAccess(materializeHanging);
     const np::dtype f64 = np::dtype::get_builtin<double>();
     const np::dtype i64 = np::dtype::get_builtin<long>();
 
@@ -1892,10 +2057,10 @@ boost::python::dict OxleyDomain::getMeshInfo() const
         std::memcpy(nodeCoords.get_data(), m.nodeCoords.data(),
                     m.nodeCoords.size() * sizeof(double));
 
-    np::ndarray nodeGlobalId = np::zeros(bp::make_tuple(m.numNodes), i64);
-    if (!m.nodeGlobalId.empty())
-        std::memcpy(nodeGlobalId.get_data(), m.nodeGlobalId.data(),
-                    m.nodeGlobalId.size() * sizeof(long));
+    np::ndarray nodeLnodesId = np::zeros(bp::make_tuple(m.numNodes), i64);
+    if (!m.nodeLnodesId.empty())
+        std::memcpy(nodeLnodesId.get_data(), m.nodeLnodesId.data(),
+                    m.nodeLnodesId.size() * sizeof(long));
 
     np::ndarray elementNodes = np::zeros(
             bp::make_tuple(m.numElements, m.nodesPerElement), i64);
@@ -1908,6 +2073,29 @@ boost::python::dict OxleyDomain::getMeshInfo() const
         std::memcpy(elementTags.get_data(), m.elementTags.data(),
                     m.elementTags.size() * sizeof(long));
 
+    np::ndarray nodeFinleyId = np::zeros(bp::make_tuple(m.numNodes), i64);
+    if (!m.nodeFinleyId.empty())
+        std::memcpy(nodeFinleyId.get_data(), m.nodeFinleyId.data(),
+                    m.nodeFinleyId.size() * sizeof(long));
+
+    const long nefh = (long) m.elementFaceHangingNode.size();
+    np::ndarray elementFaceHangingNode = np::zeros(bp::make_tuple(nefh), i64);
+    if (nefh)
+        std::memcpy(elementFaceHangingNode.get_data(),
+                    m.elementFaceHangingNode.data(), nefh * sizeof(long));
+
+    const long neeh = (long) m.elementEdgeHangingNode.size();
+    np::ndarray elementEdgeHangingNode = np::zeros(bp::make_tuple(neeh), i64);
+    if (neeh > 0)
+        std::memcpy(elementEdgeHangingNode.get_data(),
+                    m.elementEdgeHangingNode.data(), neeh * sizeof(long));
+
+    const long nDist = (long) m.finleyDistribution.size();
+    np::ndarray finleyDistribution = np::zeros(bp::make_tuple(nDist), i64);
+    if (nDist)
+        std::memcpy(finleyDistribution.get_data(),
+                    m.finleyDistribution.data(), nDist * sizeof(long));
+
     bp::dict d;
     d["numDim"] = m.numDim;
     d["nodesPerElement"] = m.nodesPerElement;
@@ -1916,9 +2104,69 @@ boost::python::dict OxleyDomain::getMeshInfo() const
     d["numElements"] = m.numElements;
     d["globalNodeOffset"] = m.globalNodeOffset;
     d["nodeCoords"] = nodeCoords;
-    d["nodeGlobalId"] = nodeGlobalId;
+    d["nodeLnodesId"] = nodeLnodesId;
     d["elementNodes"] = elementNodes;
     d["elementTags"] = elementTags;
+    d["nodeFinleyId"] = nodeFinleyId;
+    d["elementFaceHangingNode"] = elementFaceHangingNode;
+    d["elementEdgeHangingNode"] = elementEdgeHangingNode;
+    d["finleyDistribution"] = finleyDistribution;
+
+    // materialised hanging positions (empty unless materializeHanging)
+    const long numExtra = (long) m.constrainedNodes.size();
+    const int mpc = m.mastersPerConstrainedNode;
+    np::ndarray constrainedNodes = np::zeros(bp::make_tuple(numExtra), i64);
+    np::ndarray constraintMasters = np::zeros(bp::make_tuple(numExtra, mpc), i64);
+    np::ndarray constraintWeights = np::zeros(bp::make_tuple(numExtra, mpc), f64);
+    if (numExtra > 0) {
+        std::memcpy(constrainedNodes.get_data(), m.constrainedNodes.data(),
+                    m.constrainedNodes.size() * sizeof(long));
+        std::memcpy(constraintMasters.get_data(), m.constraintMasters.data(),
+                    m.constraintMasters.size() * sizeof(long));
+        std::memcpy(constraintWeights.get_data(), m.constraintWeights.data(),
+                    m.constraintWeights.size() * sizeof(double));
+    }
+    // boundary faces (the arrays weipa's FaceElements and the finley converter
+    // both consume)
+    np::ndarray faceNodes = np::zeros(bp::make_tuple(m.numFaces, m.nodesPerFace), i64);
+    np::ndarray faceTags = np::zeros(bp::make_tuple(m.numFaces), i64);
+    np::ndarray faceElements = np::zeros(bp::make_tuple(m.numFaces), i64);
+    if (m.numFaces > 0) {
+        std::memcpy(faceNodes.get_data(), m.faceNodes.data(),
+                    m.faceNodes.size() * sizeof(long));
+        std::memcpy(faceTags.get_data(), m.faceTags.data(),
+                    m.faceTags.size() * sizeof(long));
+        std::memcpy(faceElements.get_data(), m.faceElements.data(),
+                    m.faceElements.size() * sizeof(long));
+    }
+    d["nodesPerFace"] = m.nodesPerFace;
+    d["numFaces"] = m.numFaces;
+    d["faceNodes"] = faceNodes;
+    d["faceTags"] = faceTags;
+    d["faceElements"] = faceElements;
+
+    d["numRealNodes"] = m.numRealNodes;
+    d["mastersPerConstrainedNode"] = mpc;
+    d["constrainedNodes"] = constrainedNodes;
+    d["constraintMasters"] = constraintMasters;
+    d["constraintWeights"] = constraintWeights;
+
+    np::ndarray nodeDenseIndex = np::zeros(bp::make_tuple(m.numNodes), i64);
+    if (!m.nodeDenseIndex.empty())
+        std::memcpy(nodeDenseIndex.get_data(), m.nodeDenseIndex.data(),
+                    m.nodeDenseIndex.size() * sizeof(long));
+    const long nOD = (long) m.denseDistribution.size();
+    np::ndarray denseDistribution = np::zeros(bp::make_tuple(nOD), i64);
+    if (nOD)
+        std::memcpy(denseDistribution.get_data(),
+                    m.denseDistribution.data(), nOD * sizeof(long));
+    const long nCO = (long) m.hangingWriterRank.size();
+    np::ndarray hangingWriterRank = np::zeros(bp::make_tuple(nCO), i64);
+    for (long i = 0; i < nCO; ++i)
+        ((long*) hangingWriterRank.get_data())[i] = (long) m.hangingWriterRank[i];
+    d["nodeDenseIndex"] = nodeDenseIndex;
+    d["denseDistribution"] = denseDistribution;
+    d["hangingWriterRank"] = hangingWriterRank;
     return d;
 }
 #endif

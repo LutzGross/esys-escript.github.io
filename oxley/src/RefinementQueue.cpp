@@ -1,25 +1,34 @@
 
-#include "oxley/RefinementZone.h"
+#include "oxley/RefinementQueue.h"
 #include "oxley/OxleyException.h"
+
+#include <cctype>
+#include <string>
+
+// apply() is NOT defined here. It needs the concrete domain classes, and
+// including Rectangle.h/Brick.h from this file walks into the OxleyData.h <->
+// Rectangle.h include cycle. Each apply() therefore lives in the translation
+// unit of the domain it builds: RefinementQueue2D::apply in Rectangle.cpp,
+// RefinementQueue3D::apply in Brick.cpp.
 
 namespace oxley {
 
-RefinementZone::RefinementZone()
+RefinementQueue::RefinementQueue()
 {
 	refinement_levels=0;
 }
 
-RefinementZone::~RefinementZone()
+RefinementQueue::~RefinementQueue()
 {
 
 }
 
-void RefinementZone::addToQueue(RefinementType R)
+void RefinementQueue::addToQueue(RefinementType R)
 {	
 	queue.push_back(R);
 }
 
-RefinementType RefinementZone::getRefinement(int n)
+RefinementType RefinementQueue::getRefinement(int n)
 {
     if(n <= getNumberOfOperations())
         return queue[n];
@@ -27,7 +36,7 @@ RefinementType RefinementZone::getRefinement(int n)
         throw OxleyException("Number is greater than queue length");
 }
 
-void RefinementZone::setRefinementLevel(int n)
+void RefinementQueue::setRefinementLevel(int n)
 {
 	if(n >= 0)
     	refinement_levels=n;
@@ -35,27 +44,36 @@ void RefinementZone::setRefinementLevel(int n)
     	throw OxleyException("The levels of refinement must be equal to or greater than zero.");
 }
 
-void RefinementZone::deleteFromQueue(int n)
+void RefinementQueue::deleteFromQueue(int n)
 {
 	throw OxleyException("Unknown error.");
 }
 
-void RefinementZone::print()
+void RefinementQueue::print()
 {
    	throw OxleyException("Unknown error.");
 }
 
-RefinementZone2D::RefinementZone2D()
+RefinementQueue2D::RefinementQueue2D()
 {
 
 }
 
-RefinementZone2D::~RefinementZone2D()
+RefinementQueue2D::~RefinementQueue2D()
 {
 
 }
 
-void RefinementZone2D::refinePoint(float x0, float y0, int level)
+void RefinementQueue2D::refineUniform(int level)
+{
+    if(level == -1)
+        level=refinement_levels;
+	RefinementType refine;
+	refine.UniformRefinement(level);
+	addToQueue(refine);
+}
+
+void RefinementQueue2D::refinePoint(float x0, float y0, int level)
 {
     if(level == -1)
         level=refinement_levels;
@@ -64,7 +82,7 @@ void RefinementZone2D::refinePoint(float x0, float y0, int level)
 	addToQueue(refine);
 }
 
-void RefinementZone2D::refineRegion(float x0, float y0, float x1, float y1, int level)
+void RefinementQueue2D::refineRegion(float x0, float y0, float x1, float y1, int level)
 {
     if(level == -1)
         level=refinement_levels;
@@ -73,7 +91,7 @@ void RefinementZone2D::refineRegion(float x0, float y0, float x1, float y1, int 
 	addToQueue(refine);
 }
 
-void RefinementZone2D::refineCircle(float x0, float y0, float r, int level)
+void RefinementQueue2D::refineCircle(float x0, float y0, float r, int level)
 {
     if(level == -1)
         level=refinement_levels;
@@ -82,7 +100,7 @@ void RefinementZone2D::refineCircle(float x0, float y0, float r, int level)
 	addToQueue(refine);
 }
 
-void RefinementZone2D::refineBorder(Border b, float dx, int level)
+void RefinementQueue2D::refineBorder(Border b, float dx, int level)
 {
     if(level == -1)
         level=refinement_levels;
@@ -91,7 +109,7 @@ void RefinementZone2D::refineBorder(Border b, float dx, int level)
 	addToQueue(refine);
 }
 
-void RefinementZone2D::refineMask(escript::Data mask, int level)
+void RefinementQueue2D::refineMask(escript::Data mask, int level)
 {
 	level == -1 ? 1 : level;
 
@@ -117,7 +135,7 @@ void RefinementZone2D::refineMask(escript::Data mask, int level)
     }
 }
 
-void RefinementZone2D::print()
+void RefinementQueue2D::print()
 {
 	for(int i = 0; i < queue.size(); i++)
 	{
@@ -204,7 +222,7 @@ void RefinementZone2D::print()
 	}
 }
 
-void RefinementZone2D::deleteFromQueue(int n)
+void RefinementQueue2D::deleteFromQueue(int n)
 {
 	if(n <= queue.size())
 		queue.erase(queue.begin()+n-1);
@@ -212,17 +230,26 @@ void RefinementZone2D::deleteFromQueue(int n)
 		throw OxleyException("n must be smaller than the length of the queue");
 }
 
-RefinementZone3D::RefinementZone3D()
+RefinementQueue3D::RefinementQueue3D()
 {
 
 }
 
-RefinementZone3D::~RefinementZone3D()
+RefinementQueue3D::~RefinementQueue3D()
 {
 
 }
 
-void RefinementZone3D::refinePoint(float x0, float y0, float z0, int level)
+void RefinementQueue3D::refineUniform(int level)
+{
+    if(level == -1)
+        level=refinement_levels;
+	RefinementType refine;
+	refine.UniformRefinement(level);
+	addToQueue(refine);
+}
+
+void RefinementQueue3D::refinePoint(float x0, float y0, float z0, int level)
 {
     if(level == -1)
         level=refinement_levels;
@@ -231,7 +258,7 @@ void RefinementZone3D::refinePoint(float x0, float y0, float z0, int level)
 	addToQueue(refine);
 }
 
-void RefinementZone3D::refineRegion(float x0, float y0, float z0, float x1, float y1, float z1, int level)
+void RefinementQueue3D::refineRegion(float x0, float y0, float z0, float x1, float y1, float z1, int level)
 {
     if(level == -1)
         level=refinement_levels;
@@ -240,7 +267,7 @@ void RefinementZone3D::refineRegion(float x0, float y0, float z0, float x1, floa
 	addToQueue(refine);
 }
 
-void RefinementZone3D::refineSphere(float x0, float y0, float z0, float r, int level)
+void RefinementQueue3D::refineSphere(float x0, float y0, float z0, float r, int level)
 {
     if(level == -1)
         level=refinement_levels;
@@ -249,7 +276,7 @@ void RefinementZone3D::refineSphere(float x0, float y0, float z0, float r, int l
 	addToQueue(refine);
 }
 
-void RefinementZone3D::refineBorder(Border b, float dx, int level)
+void RefinementQueue3D::refineBorder(Border b, float dx, int level)
 {
     if(level == -1)
         level=refinement_levels;
@@ -258,7 +285,7 @@ void RefinementZone3D::refineBorder(Border b, float dx, int level)
 	addToQueue(refine);
 }
 
-void RefinementZone3D::refineMask(escript::Data mask, int level)
+void RefinementQueue3D::refineMask(escript::Data mask, int level)
 {
     level == -1 ? 1 : level;
 
@@ -345,7 +372,7 @@ void RefinementZone3D::refineMask(escript::Data mask, int level)
 // #endif
 }
 
-void RefinementZone3D::print()
+void RefinementQueue3D::print()
 {
 	for(int i = 0; i < queue.size(); i++)
 	{
@@ -443,12 +470,40 @@ void RefinementZone3D::print()
 	}
 }
 
-void RefinementZone3D::deleteFromQueue(int n)
+void RefinementQueue3D::deleteFromQueue(int n)
 {
 	if(n <= queue.size())
 		queue.erase(queue.begin()+n-1);
 	else
 		throw OxleyException("n must be smaller than the length of the queue");
+}
+
+
+namespace {
+/// maps a border name onto the enum, accepting both the geographic and the
+/// geometric spelling, which the old domain-level refineBoundary took too
+Border borderFromName(std::string name, int dim)
+{
+    for(size_t i = 0; i < name.size(); ++i)
+        name[i] = std::tolower(name[i]);
+    if(name == "top" || name == "north")     return NORTH;
+    if(name == "bottom" || name == "south")  return SOUTH;
+    if(name == "left" || name == "west")     return WEST;
+    if(name == "right" || name == "east")    return EAST;
+    if(dim == 3 && (name == "front"))        return TOP;
+    if(dim == 3 && (name == "back"))         return BOTTOM;
+    throw OxleyException("refineBorder: unknown border '" + name + "'.");
+}
+} // anonymous namespace
+
+void RefinementQueue2D::refineBorder(std::string border, float dx, int level)
+{
+    refineBorder(borderFromName(border, 2), dx, level);
+}
+
+void RefinementQueue3D::refineBorder(std::string border, float dx, int level)
+{
+    refineBorder(borderFromName(border, 3), dx, level);
 }
 
 } //namespace oxley

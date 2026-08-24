@@ -37,24 +37,19 @@ try:
 except KeyError:
      OXLEY_WORKDIR='.'
 
-NE=4 # number elements, must be even
+NE=4 # number elements per axis, for the classes whose expectations are
+     # structural (the CSV line counts below)
 mpiSize=getMPISizeWorld()
-for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
-    NX=x
-    NY=mpiSize//x
-    if NX*NY == mpiSize:
-        break
 
-for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
-    NXb=x[0]
-    NYb=x[1]
-    NZb=mpiSize//(x[0]*x[1])
-    if NXb*NYb*NZb == mpiSize:
-        break
+import oxley_meshes
+
+# Meshes come from oxley_meshes and are GRADED: a uniform forest never enters
+# the hanging-node path. The NX/NY decomposition block is gone - it only fed
+# d0/d1, which oxley ignores with a warning, since p4est owns the partition.
 
 class Test_SharedOnOxley(Test_Shared):
     def setUp(self):
-        self.domain=Rectangle(n0=NE, n1=NE, l0=1., l1=1.)
+        self.domain=oxley_meshes.graded()
         self.tol=0.001
     def tearDown(self):
         del self.domain
@@ -63,8 +58,8 @@ class Test_SharedOnOxley(Test_Shared):
 class Test_DomainOnOxley(Test_Domain):
     def setUp(self):
         self.boundary_tag_list = [1, 2, 10, 20]
-        self.domain=Rectangle(n0=NE, n1=NE, l0=1., l1=1.)
-        self.rdomain=Rectangle(n0=(NE+6), n1=(NE+6), l0=1., l1=1.)
+        self.domain=oxley_meshes.graded()
+        self.rdomain=oxley_meshes.graded(oxley_meshes.SEAM_2D)
 
     def tearDown(self):
         del self.domain
@@ -103,10 +98,12 @@ class Test_DataOpsOnOxley(Test_Dump, Test_SetDataPointValue, Test_Lazy):
     def test_DumpAndLoad_Expanded(self):
         pass
     def setUp(self):
-        self.domain=Rectangle(n0=NE, n1=NE, l0=1., l1=1.)
-        self.domain_with_different_number_of_samples=Rectangle(n0=7*NE, n1=3*NE, l0=1., l1=1.)
-        self.domain_with_different_number_of_data_points_per_sample=Rectangle(n0=7*NE, n1=3*NE, l0=1., l1=1.)
-        self.domain_with_different_sample_ordering=Rectangle(n0=NE, n1=NE, l0=1., l1=1.)
+        self.domain=oxley_meshes.graded()
+        self.domain_with_different_number_of_samples=oxley_meshes.graded(
+                oxley_meshes.PEAK_2D)
+        self.domain_with_different_number_of_data_points_per_sample=\
+                oxley_meshes.graded(oxley_meshes.PEAK_2D)
+        self.domain_with_different_sample_ordering=oxley_meshes.graded()
         self.filename_base=OXLEY_WORKDIR
         self.mainfs=Function(self.domain)
         self.otherfs=Solution(self.domain)
@@ -132,7 +129,7 @@ class Test_DataOpsOnOxley(Test_Dump, Test_SetDataPointValue, Test_Lazy):
 
 class Test_TableInterpolationOnOxley(Test_TableInterpolation):
     def setUp(self):
-        self.domain = Brick(n0=NE, n1=NE, n2=NE, l0=1., l1=1., l2=1.)
+        self.domain = oxley_meshes.uniform3D()
         self.functionspaces=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
             FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain)]
         #We aren't testing DiracDeltaFunctions
@@ -147,8 +144,7 @@ class Test_TableInterpolationOnOxley(Test_TableInterpolation):
 
 class Test_InterpolationTableOnOxley(Test_InterpolationTable):
     def setUp(self):
-        self.domain = Brick(n0=NE, n1=NE, n2=NE,
-                            l0=1., l1=1., l2=1.)
+        self.domain = oxley_meshes.uniform3D()
         self.functionspaces = [ContinuousFunction(self.domain), Function(self.domain),
                                ReducedFunction(self.domain),
                                FunctionOnBoundary(self.domain),
@@ -163,6 +159,11 @@ class Test_InterpolationTableOnOxley(Test_InterpolationTable):
 
 
 class Test_CSVOnOxley(Test_saveCSV):
+    """
+    Stays on a uniform NE x NE mesh: the expected line counts below are a
+    function of the mesh structure, not of anything a graded mesh would
+    exercise, and this is an IO test rather than a mesh one.
+    """
     def setUp(self):
         self.workdir=OXLEY_WORKDIR
         self.domain=Rectangle(n0=NE, n1=NE, l0=1., l1=1.)

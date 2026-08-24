@@ -12,10 +12,12 @@
 *****************************************************************************/
 
 #include <oxley/Brick.h>
+#include <oxley/FinleyConverter.h>
 #include <oxley/Rectangle.h>
 #include <oxley/OtherAlgorithms.h>
 #include <oxley/OxleyDomain.h>
-#include <oxley/RefinementZone.h>
+#include <oxley/MeshIO.h>
+#include <oxley/RefinementQueue.h>
 
 #include <boost/python.hpp>
 #ifdef ESYS_HAVE_BOOST_NUMPY
@@ -27,10 +29,59 @@
 
 namespace oxley {
 
+// converts the diagnostic's counts to a python list
+boost::python::list _lnodesDegree2Report(const oxley::OxleyDomain& dom)
+{
+    const std::vector<long> r = oxley::lnodesDegree2Report(dom);
+    boost::python::list out;
+    for (size_t i = 0; i < r.size(); ++i)
+        out.append(r[i]);
+    return out;
+}
+
+// one python tuple per degree-2 lnodes slot: (element, slot, gid, x, y, z,
+// faceCode, isCorner)
+boost::python::list _lnodesDegree2Slots(const oxley::OxleyDomain& dom)
+{
+    const std::vector<oxley::SlotRecord> recs = oxley::lnodesDegree2Slots(dom);
+    boost::python::list out;
+    for (size_t i = 0; i < recs.size(); ++i) {
+        const oxley::SlotRecord& r = recs[i];
+        out.append(boost::python::make_tuple(r.element, r.slot, r.gid,
+                                            r.x, r.y, r.z, r.faceCode, r.corner));
+    }
+    return out;
+}
+
+// Convert a Python refine_level (an int, or a flat sequence of ints of length
+// n0*n1[*n2] in row-major block order) into the per-block vector the domain
+// constructors expect. A scalar becomes a size-1 vector (uniform, broadcast in
+// the constructor).
+static std::vector<int> extractRefineLevel(const object& refine_level, dim_t numBlocks)
+{
+    std::vector<int> levels;
+    extract<int> as_int(refine_level);
+    if (as_int.check()) {
+        levels.push_back(as_int());
+        return levels;
+    }
+    extract<boost::python::list> as_list(refine_level);
+    if (!as_list.check())
+        throw OxleyException("refine_level must be an int or a list of ints");
+    boost::python::list pylist = as_list();
+    int n = extract<int>(pylist.attr("__len__")());
+    if (n != (int) numBlocks)
+        throw OxleyException("refine_level list length must equal the number of blocks (n0*n1[*n2])");
+    levels.reserve(n);
+    for (int i = 0; i < n; ++i)
+        levels.push_back(extract<int>(pylist[i]));
+    return levels;
+}
+
 escript::Domain_ptr _rectangle(double _n0, double _n1,
                         const object& l0, const object& l1,
                         const object& objpoints, const object& objtags,
-                        const object& py_comm, int refine_level)
+                        const object& py_comm, const object& refine_level)
 {
     // The assembler always uses a fixed 2-point Gauss rule, which is exact to
     // cubic, i.e. integration order 3. m_order records this actual order.
@@ -114,15 +165,17 @@ escript::Domain_ptr _rectangle(double _n0, double _n1,
     // Handle optional MPI communicator
     escript::JMPI jmpi = escript::makeInfoFromPyComm(py_comm);
 
+    std::vector<int> levels = extractRefineLevel(refine_level, n0*n1);
+
     return escript::Domain_ptr(new Rectangle(jmpi, order, n0,n1, x0,y0, x1,y1,
-                                points, tags, tagstonames, refine_level));
+                                points, tags, tagstonames, levels));
 }
 
 
 escript::Domain_ptr _brick(double _n0, double _n1, double _n2,
                         const object& l0, const object& l1, const object& l2,
                         const object& objpoints, const object& objtags,
-                        const object& py_comm, int refine_level)
+                        const object& py_comm, const object& refine_level)
 {
     // The assembler always uses a fixed 2-point Gauss rule, which is exact to
     // cubic, i.e. integration order 3. m_order records this actual order.
@@ -218,26 +271,28 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2,
     // Handle optional MPI communicator
     escript::JMPI jmpi = escript::makeInfoFromPyComm(py_comm);
 
+    std::vector<int> levels = extractRefineLevel(refine_level, n0*n1*n2);
+
     return escript::Domain_ptr(new Brick(jmpi, order, n0,n1,n2, x0,y0,z0, x1,y1,z1,
-                                points, tags, tagstonames, refine_level));
+                                points, tags, tagstonames, levels));
 }
 
 // //tmp
-// oxley::RefinementZone_Ptr _refinementZone()
+// oxley::RefinementQueue_Ptr _refinementQueue()
 // {
-//     return oxley::RefinementZone_Ptr(new RefinementZone());
-//     // return oxley::RefinementZone2D_Ptr(new RefinementZone2D());
+//     return oxley::RefinementQueue_Ptr(new RefinementQueue());
+//     // return oxley::RefinementQueue2D_Ptr(new RefinementQueue2D());
 // }
 
 
-oxley::RefinementZone2D_Ptr _refinementZone2D()
+oxley::RefinementQueue2D_Ptr _refinementQueue2D()
 {
-    return oxley::RefinementZone2D_Ptr(new RefinementZone2D());
+    return oxley::RefinementQueue2D_Ptr(new RefinementQueue2D());
 }
 
-oxley::RefinementZone3D_Ptr _refinementZone3D()
+oxley::RefinementQueue3D_Ptr _refinementQueue3D()
 {
-    return oxley::RefinementZone3D_Ptr(new RefinementZone3D());
+    return oxley::RefinementQueue3D_Ptr(new RefinementQueue3D());
 }
 
 BOOST_PYTHON_MODULE(oxleycpp)
@@ -249,12 +304,14 @@ BOOST_PYTHON_MODULE(oxleycpp)
     arg("diracPoints")=list(), arg("diracTags")=list(),
     arg("comm")=object(), arg("refine_level")=0),
     "Creates a rectangular p4est mesh of n0 x n1 blocks over the rectangle [0,l0] x [0,l1],\n"
-    "each block uniformly subdivided refine_level times.\n\n"
+    "each block subdivided refine_level times.\n\n"
     ":param n0: number of blocks in direction 0\n:type n0: ``int``\n"
     ":param n1: number of blocks in direction 1\n:type n1: ``int``\n"
     ":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
     ":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
-    ":param refine_level: uniform refinement level applied to every block\n:type refine_level: ``int``\n"
+    ":param refine_level: refinement level applied to every block, or a flat list\n"
+    "    of one level per block in row-major block order (differing levels create\n"
+    "    hanging nodes at the block seams)\n:type refine_level: ``int`` or ``list`` of ``int``\n"
     ":param comm: MPI communicator (optional, from mpi4py)\n:type comm: ``mpi4py.MPI.Comm``");
 
     def("Brick", oxley::_brick, (
@@ -263,25 +320,103 @@ BOOST_PYTHON_MODULE(oxleycpp)
     arg("diracPoints")=list(), arg("diracTags")=list(),
     arg("comm")=object(), arg("refine_level")=0),
     "Creates a brick p8est mesh of n0 x n1 x n2 blocks over [0,l0] x [0,l1] x [0,l2],\n"
-    "each block uniformly subdivided refine_level times.\n\n"
+    "each block subdivided refine_level times.\n\n"
     ":param n0: number of blocks in direction 0\n:type n0: ``int``\n"
     ":param n1: number of blocks in direction 1\n:type n1: ``int``\n"
     ":param n2: number of blocks in direction 2\n:type n2: ``int``\n"
     ":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
     ":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
     ":param l2: length of side 2 or coordinate range of side 1\n:type l2: ``float`` or ``tuple``\n"
-    ":param refine_level: uniform refinement level applied to every block\n:type refine_level: ``int``\n"
+    ":param refine_level: refinement level applied to every block, or a flat list\n"
+    "    of one level per block in row-major block order (differing levels create\n"
+    "    hanging nodes at the block seams)\n:type refine_level: ``int`` or ``list`` of ``int``\n"
     ":param comm: MPI communicator (optional, from mpi4py)\n:type comm: ``mpi4py.MPI.Comm``");
 
-    // def("RefinementZone", oxley::_refinementZone, 
+    // def("RefinementQueue", oxley::_refinementQueue, 
     //     "Creates a refinement zone parent class.\n\n"
     //     );
 
-    def("RefinementZone2D", oxley::_refinementZone2D, 
+    def("toFinleyData", oxley::toFinleyData, (arg("source"), arg("target")),
+        "Copies a ContinuousFunction from an oxley forest onto its finley export.\n\n"
+        "The two meshes name their shared nodes identically, so this carries the\n"
+        "values across unchanged rather than interpolating. The nodes the export\n"
+        "has and the forest does not - the positions materialised at a 2:1 seam -\n"
+        "take the average of their masters.\n\n"
+        ":param source: a Data on ContinuousFunction of an oxley domain\n"
+        ":param target: the domain toFinley() built from that forest\n"
+        ":return: the same field on ContinuousFunction of the finley domain");
+
+    def("fromFinleyData", oxley::fromFinleyData, (arg("source"), arg("target")),
+        "Copies a ContinuousFunction from a finley export back onto its forest.\n\n"
+        "The inverse of toFinleyData for the nodes the two meshes share. Values at\n"
+        "the materialised seam positions are dropped - they are not nodes of the\n"
+        "forest.\n\n"
+        ":param source: a Data on ContinuousFunction of the finley export\n"
+        ":param target: the oxley domain the export was built from\n"
+        ":return: the same field on ContinuousFunction of the oxley domain");
+
+    def("toFinleyReducedData", oxley::toFinleyReducedData, (arg("source"), arg("target")),
+        "Copies a ReducedFunction - one value per element - onto the finley export.\n\n"
+        "An octant becomes 2 to 6 triangles and the value is repeated onto each.\n\n"
+        ":param source: a Data on ReducedFunction of an oxley domain\n"
+        ":param target: the domain toFinley() built from that forest\n"
+        ":return: the same field on ReducedFunction of the finley domain");
+
+    def("fromFinleyReducedData", oxley::fromFinleyReducedData, (arg("source"), arg("target")),
+        "Brings a ReducedFunction back from the finley export onto the forest.\n\n"
+        "An octant's value is the area-weighted mean of its simplices, so a field\n"
+        "constant over the octant returns unchanged however it was split. This is\n"
+        "the transfer an adaptive loop needs: the indicator is computed on the\n"
+        "finley mesh and comes home per octant.\n\n"
+        ":param source: a Data on ReducedFunction of the finley export\n"
+        ":param target: the oxley domain the export was built from\n"
+        ":return: the same field on ReducedFunction of the oxley domain");
+
+    def("toFinleyBoundaryData", oxley::toFinleyBoundaryData, (arg("source"), arg("target")),
+        "Copies a FunctionOnBoundary (or its reduced form) onto the finley export.\n\n"
+        "The boundary faces correspond one to one - the 2D split never subdivides a\n"
+        "boundary edge - but the two meshes order a face's quadrature points\n"
+        "differently, so this is a permutation rather than a copy.\n\n"
+        ":param source: a Data on FunctionOnBoundary of an oxley domain\n"
+        ":param target: the domain toFinley() built from that forest");
+
+    def("fromFinleyBoundaryData", oxley::fromFinleyBoundaryData, (arg("source"), arg("target")),
+        "Brings a FunctionOnBoundary (or its reduced form) back onto the forest.\n\n"
+        ":param source: a Data on FunctionOnBoundary of the finley export\n"
+        ":param target: the oxley domain the export was built from");
+
+    def("toFinleyFunctionData", oxley::toFinleyFunctionData, (arg("source"), arg("target")),
+        "Copies a Function - values at the quadrature points - onto the export.\n\n"
+        "The two meshes use different rules (2x2 Gauss on an octant, the three edge\n"
+        "midpoints on a triangle), so this evaluates rather than moves: the four\n"
+        "values of an octant fix a bilinear function, which is evaluated at the\n"
+        "triangles' points. Exact for a bilinear field, an approximation otherwise.\n\n"
+        ":param source: a Data on Function of an oxley domain\n"
+        ":param target: the domain toFinley() built from that forest");
+
+    def("fromFinleyFunctionData", oxley::fromFinleyFunctionData, (arg("source"), arg("target")),
+        "Brings a Function back from the export onto the forest.\n\n"
+        "Each triangle's three values fix a linear function and the octant's Gauss\n"
+        "points are read off whichever triangle contains them. Exact for a field\n"
+        "linear on the split, an approximation otherwise.\n\n"
+        ":param source: a Data on Function of the finley export\n"
+        ":param target: the oxley domain the export was built from");
+
+    def("loadMesh", oxley::loadMesh, (arg("filename"), arg("comm")=object()),
+        "Reads a mesh written by saveMesh and returns it as a NEW domain.\n\n"
+        "A function rather than a method on the domain: loading into an\n"
+        "existing domain would replace its mesh, leaving every Data already\n"
+        "built over that domain the wrong size with nothing to say so.\n\n"
+        ":param filename: the name given to saveMesh, without extension\n"
+        ":type filename: ``string``\n"
+        ":param comm: optional MPI communicator, default the world\n"
+        ":return: the mesh that was saved\n:rtype: `Domain`");
+
+    def("RefinementQueue2D", oxley::_refinementQueue2D, 
         "Creates a refinement zone of dimension 2.\n\n"
         );
 
-    def("RefinementZone3D", oxley::_refinementZone3D, 
+    def("RefinementQueue3D", oxley::_refinementQueue3D, 
         "Creates a refinement zone of dimension 3.\n\n"
         );
 
@@ -293,6 +428,40 @@ BOOST_PYTHON_MODULE(oxleycpp)
 
     class_<oxley::OxleyDomain, bases<escript::AbstractContinuousDomain>, boost::noncopyable >
         ("OxleyDomain", "", no_init)
+        .def("toFinley", &oxley::toFinley,
+            (arg("self"), arg("order")=-1, arg("reducedOrder")=-1,
+             arg("optimize")=false, arg("simplices")=true),
+            "returns a finley domain describing the same mesh\n\n"
+            "Each octant is split into simplices, Tri3 in 2D and Tet4 in 3D. "
+            "The forest supplies the geometry; finley owns the degrees of "
+            "freedom and the parallel overlap. Only conforming forests can be "
+            "converted so far.\n\n"
+            ":param order: integration order, -1 for the default\n"
+            ":type order: ``int``\n"
+            ":param reducedOrder: reduced integration order, -1 for the default\n"
+            ":type reducedOrder: ``int``\n"
+            ":param optimize: whether to let finley repartition with ParMETIS\n"
+            ":type optimize: ``bool``\n"
+            ":param simplices: when False emit one Rec4/Hex8 per octant "
+            "instead of splitting; for debugging only\n"
+            ":type simplices: ``bool``\n"
+            ":rtype: `Domain`")
+        .def("lnodesDegree2Report", &oxley::_lnodesDegree2Report,
+            (arg("self")),
+            "diagnostic: does a degree-2 lnodes number the hanging positions?\n\n"
+            "returns [octants, cornerSlots, distinctIds, idsAtSeveralPositions, "
+            "hangingOctants, localNodes, distinctPositions, positionsWithSeveralIds]. "
+            "idsAtSeveralPositions and positionsWithSeveralIds must both be 0.\n\n"
+            ":rtype: ``list``")
+        .def("lnodesDegree2Slots", &oxley::_lnodesDegree2Slots,
+            (arg("self")),
+            "diagnostic: every degree-2 lnodes slot as a tuple\n"
+            "(element, slot, globalId, x, y, z, faceCode, isCorner), where x,y,z is "
+            "the position OF THE SLOT and globalId is what the slot holds\n\n"
+            ":rtype: ``list``")
+        .def("isConforming", &oxley::OxleyDomain::isConforming,
+            "returns True when no element in the forest has a hanging node\n\n"
+            ":rtype: ``bool``")
         .def("addToRHS",&oxley::OxleyDomain::addToRHSFromPython,
             args("rhs", "data"),
             "adds a PDE onto the stiffness matrix mat and a rhs, "
@@ -346,17 +515,21 @@ BOOST_PYTHON_MODULE(oxleycpp)
             ":rtype: `Data`")
         #ifdef ESYS_HAVE_BOOST_NUMPY
         .def("getMeshInfo",&oxley::OxleyDomain::getMeshInfo,
+            (arg("materializeHanging")=false),
             "Returns an lnodes-based view of the mesh (node coordinates, global ids,\n"
             "element-to-node connectivity and element tags) as a dict of numpy arrays.\n\n"
+            ":param materializeHanging: give every hanging position a node of its own,\n"
+            "    appended after the lnodes nodes and described by the returned\n"
+            "    numRealNodes/constrainedNodes/constraintMasters/constraintWeights.\n"
+            "    Without it an element whose corner hangs lists a master there, a node\n"
+            "    that lies outside the element.\n"
+            ":type materializeHanging: ``bool``\n"
             ":rtype: ``dict``")
         #endif
         #ifdef ESYS_HAVE_TRILINOS
         #endif
         .def("saveFsType",&oxley::OxleyDomain::saveFsType, arg("rhs"), "saves the fs type")
         .def("getOrigFsType",&oxley::OxleyDomain::getOrigFsType, "returns the fs type")
-        .def("loadMesh", &oxley::OxleyDomain::loadMesh, (arg("filename")),
-                "Loads a mesh (in p4est format)\n"
-                ":param filename: The name of the file to load\n")
         .def("newOperator",&oxley::OxleyDomain::newSystemMatrix,
             args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
             "creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros\n\n"
@@ -365,27 +538,11 @@ BOOST_PYTHON_MODULE(oxleycpp)
             ":param column_blocksize:\n:type column_blocksize: ``int``\n"
             ":param column_functionspace:\n:type column_functionspace: `FunctionSpace`\n"
             ":param type:\n:type type: ``int``")
-        .def("refineMesh", &oxley::OxleyDomain::refineMesh, (args("RefinementAlgorithm")),
-                "Refines the mesh.\n\n"
-                ":param RefinementAlgorithm: The refinement algorithm. "
-                "Accepted values are ``uniform``, ``MARE2DEM``.\n"
-                ":type RefinementAlgorithm: ``str``")
-        // .def("resetRhs",&oxley::OxleyDomain::resetRhs, arg("rhs"), "resets the RHS")
         .def("saveMesh", &oxley::OxleyDomain::saveMesh, (arg("filename")),
                 "Saves the mesh to file using p4est format\n"
                 ":param filename: The name of the output file\n")
-        .def("setRefinementLevel", &oxley::OxleyDomain::setRefinementLevels, (arg("refinementlevels")),
-                "Sets the number of levels of refinement\n"
-                ":param refinementLevels:\ntype int: `Maximum number of levels of refinement,`\n")
-        .def("setAdaptiveRefinement", &oxley::OxleyDomain::setAdaptiveRefinement, (arg("on/off")), 
-                "Sets adaptive refinement on or off\n"
-                ":param on/off:\n:type bool: true or false")
         .def("showTagNames",&oxley::OxleyDomain::showTagNames,
                 ":return: A space separated list of tag names\n:rtype: ``string``")
-        .def("updateSolutionInformation", &oxley::OxleyDomain::updateSolutionInformation, (arg("solution")),
-                "Internal use. Updates the mesh with the latest solution\n")
-        .def("updateMeshInformation", &oxley::OxleyDomain::updateMeshInformation, 
-                "Internal use. Refines the mesh based on the solution information\n")
         .def("writeToVTK", &oxley::OxleyDomain::writeToVTK, (arg("filename"), arg("writeMesh")=false),
                 "Writes the mesh to a VTK file.\n"
                 ":param filename: The name of the output file\n"
@@ -394,89 +551,53 @@ BOOST_PYTHON_MODULE(oxleycpp)
         ;
 
     // These two class exports are necessary to ensure that the extra methods
-    // added by oxley make it to python. 
+    // added by oxley make it to python.
+    //
+    // The refinement methods that used to live here are gone: refinement now
+    // goes through RefinementQueue2D/3D, which applies to a domain and hands
+    // back a NEW one. They mutated the domain in place, which left every Data
+    // already defined over it silently stale.
     class_<oxley::Brick, bases<oxley::OxleyDomain> >("OxleyBrick", "", no_init)
-        .def("applyRefinementZone",&oxley::Brick::apply_refinementzone, (args("RefinementZone")),
-                "Applies a RefinementZone to the Brick.\n"
-                ":param RefinementZone:\n:type RefinementZone: A RefinementZone. \n")
-        .def("refineBoundary", &oxley::Brick::refineBoundary, (args("boundary","dx")),
-                "Refines the mesh near a boundary.\n\n"
-                ":param boundary: The boundary name (top, bottom, right, left, north, south, east, west).\n"
-                ":type boundary: ``str``\n"
-                ":param dx: All quadrants closer to the boundary than dx will be refined.\n"
-                ":type dx: ``float``")
-        .def("refineRegion", &oxley::Brick::refineRegion, (arg("x0")=-1,arg("x1")=-1,arg("y0")=-1,arg("y1")=-1,arg("z0")=-1,arg("z1")=-1),
-                "Refines the mesh within the interior of a region.\n"
-                ":param x0:\n:type double: boundary of the region.\n"
-                ":param x1:\n:type double: boundary of the region.\n"
-                ":param y0:\n:type double: boundary of the region.\n"
-                ":param y1:\n:type double: boundary of the region.\n")
-        .def("refinePoint", &oxley::Brick::refinePoint, (arg("x0")=-1,arg("y0")=-1,arg("z0")=-1),
-                "Refines the mesh around the point (x0,y0) to the level of refinement.\n"
-                "set by setRefinementLevel\n"
-                ":param x0:\n:type double: x coordinate of the point to be refined.\n"
-                ":param y0:\n:type double: y coordinate of the point to be refined.\n")
-        .def("refineSphere", &oxley::Brick::refineSphere, (arg("x0")=-1,arg("y0")=-1,arg("z0")=-1,arg("r")=-1),
-                "Refines the mesh around the point (x0,y0) to the level of refinement.\n"
-                "set by setRefinementLevel\n"
-                ":param x0:\n:type double: x coordinate of the point to be refined.\n"
-                ":param y0:\n:type double: y coordinate of the point to be refined.\n"
-                ":param r: \n:type double: radius of the circle.\n")
         ;
 
     class_<oxley::Rectangle, bases<oxley::OxleyDomain> >("OxleyRectangle", "", no_init)
-        .def("applyRefinementZone",&oxley::Rectangle::apply_refinementzone, (args("RefinementZone")),
-                "Applies a RefinementZone to the Rectangle.\n"
-                ":param RefinementZone:\n:type RefinementZone: A RefinementZone. \n")
-        .def("refineBoundary", &oxley::Rectangle::refineBoundary, (args("boundary","dx")),
-                "Refines the mesh near a boundary.\n\n"
-                ":param boundary: The boundary name (top, bottom, right, left).\n"
-                ":type boundary: ``str``\n"
-                ":param dx: All quadrants closer to the boundary than dx will be refined.\n"
-                ":type dx: ``float``")
-        .def("refineRegion", &oxley::Rectangle::refineRegion, (arg("x0")=-1,arg("x1")=-1,arg("y0")=-1,arg("y1")=-1),
-                "Refines the mesh within the interior of a region.\n"
-                ":param x0:\n:type double: boundary of the region.\n"
-                ":param x1:\n:type double: boundary of the region.\n"
-                ":param y0:\n:type double: boundary of the region.\n"
-                ":param y1:\n:type double: boundary of the region.\n")
-        .def("refinePoint", &oxley::Rectangle::refinePoint, (arg("x0")=-1,arg("y0")=-1),
-                "Refines the mesh around the point (x0,y0) to the level of refinement.\n"
-                "set by setRefinementLevel\n"
-                ":param x0:\n:type double: x coordinate of the point to be refined.\n"
-                ":param y0:\n:type double: y coordinate of the point to be refined.\n")
-        .def("refineCircle", &oxley::Rectangle::refineCircle, (arg("x0")=-1,arg("y0")=-1,arg("r")=-1),
-                "Refines the mesh around the point (x0,y0) to the level of refinement.\n"
-                "set by setRefinementLevel\n"
-                ":param x0:\n:type double: x coordinate of the point to be refined.\n"
-                ":param y0:\n:type double: y coordinate of the point to be refined.\n"
-                ":param r: \n:type double: radius of the circle.\n")
         .def("interpolate", &oxley::Rectangle::interpolateAcross, (arg("target"),arg("source")),
                 "Interpolates source to target\n"
                 ":param source:\n:type Data: The source Data object. \n"
                 ":param target:\n:type Data: The target Data object. \n")
         ;
 
-    class_<oxley::RefinementZone>("RefinementZone", "")
+    class_<oxley::RefinementQueue>("RefinementQueue", "")
 
     ;
 
-    class_<oxley::RefinementZone2D, bases<oxley::RefinementZone>>("RefinementZone2D")
-        .def("setRefinementLevel", &oxley::RefinementZone2D::setRefinementLevel, (arg("level")),
+    class_<oxley::RefinementQueue2D, bases<oxley::RefinementQueue>>("RefinementQueue2D")
+        .def("refineUniform", &oxley::RefinementQueue2D::refineUniform, (arg("level")=-1),
+                "Queues a refinement of EVERY element, the old refineMesh(\"uniform\").\n"
+                ":param level: levels of refinement, default the queue's own\n"
+                ":type level: ``int``")
+        .def("apply", &oxley::RefinementQueue2D::apply, (arg("domain")),
+                "Applies the queued refinements to a domain and returns the RESULT as\n"
+                "a new domain. The domain passed in is not modified, so the caller\n"
+                "keeps a usable handle on the coarser mesh and on any Data over it.\n\n"
+                ":param domain: the domain to refine\n"
+                ":type domain: `Domain`\n"
+                ":return: the refined domain\n:rtype: `Domain`")
+        .def("setRefinementLevel", &oxley::RefinementQueue2D::setRefinementLevel, (arg("level")),
                 "Sets the level of refinement\n"
                 ":param level:\n:type int: the level of the refinement.\n")
-        .def("print", &oxley::RefinementZone2D::print,
+        .def("print", &oxley::RefinementQueue2D::print,
                 "Prints the current queue to console\n")
-        .def("remove", &oxley::RefinementZone2D::deleteFromQueue, (arg("n")),
+        .def("remove", &oxley::RefinementQueue2D::deleteFromQueue, (arg("n")),
                 "Removes the n^th item from the queue\n"
                 ":param n:\n:type int: the refinement to remove.\n")
-        .def("refinePoint", &oxley::RefinementZone2D::refinePoint, (arg("x0"),arg("y0"),arg("level")=-1),
+        .def("refinePoint", &oxley::RefinementQueue2D::refinePoint, (arg("x0"),arg("y0"),arg("level")=-1),
                 "Refines the mesh around the point (x0,y0) to the level of refinement"
                 "set by setRefinementLevel \n"
                 ":param x0:\n:type float: x coordinate of the point to be refined.\n"
                 ":param y0:\n:type float: y coordinate of the point to be refined.\n"
                 ":param level:\n:type float: the level of refinement.\n")
-        .def("refineRegion", &oxley::RefinementZone2D::refineRegion, (arg("x0"),arg("y0"),arg("x1"),arg("y1"),arg("level")=-1),
+        .def("refineRegion", &oxley::RefinementQueue2D::refineRegion, (arg("x0"),arg("y0"),arg("x1"),arg("y1"),arg("level")=-1),
                 "Refines the mesh around a rectangular region bound by the points (x0,y0)"
                 "and (x1,y1) to the level of refinement set by setRefinementLevel\n"
                 ":param x0:\n:type float: x coordinate of the upper left coordinate.\n"
@@ -484,41 +605,52 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param x1:\n:type float: x coordinate of the lower right coordinate.\n"
                 ":param y1:\n:type float: y coordinate of the lower right coordinate.\n"
                 ":param level:\n:type float: the level of refinement.\n")
-        .def("refineCircle", &oxley::RefinementZone2D::refineCircle, (arg("x0"),arg("y0"),arg("r"),arg("level")=-1),
+        .def("refineCircle", &oxley::RefinementQueue2D::refineCircle, (arg("x0"),arg("y0"),arg("r"),arg("level")=-1),
                 "Refines the mesh around a circular region with radius r and center"
                 "and (x0,y0) to the level of refinement set by setRefinementLevel\n"
                 ":param x0:\n:type float: x coordinate of the center of the circle.\n"
                 ":param y0:\n:type float: y coordinate of the center of the circle.\n"
                 ":param r :\n:type float: the radius of the circle.\n"
                 ":param level:\n:type float: the level of refinement.\n")
-        .def("refineBorder", &oxley::RefinementZone2D::refineBorder, (arg("Border"),arg("dx"),arg("level")=-1),
+        .def("refineBorder", static_cast<void (oxley::RefinementQueue2D::*)(std::string, float, int)>(&oxley::RefinementQueue2D::refineBorder), (arg("border"),arg("dx"),arg("level")=-1),
                 "Refines the border of the mesh to depth dx to the level of refinement"
                 "set by setRefinementLevel\n"
                 ":param Border:\n:type string: The border to refine (top,bottom,right,left).\n"
                 ":param dx:\n:type float: the depth of the refinement.\n"
                 ":param level:\n:type float: the level of refinement.\n")
-        .def("refineMask", &oxley::RefinementZone2D::refineMask, (args("mask")),
+        .def("refineMask", &oxley::RefinementQueue2D::refineMask, (args("mask")),
                 "Refines the mesh in regions defined by a mask\n"
                 ":param mask:\n:type Data: a mask.\n")
         ;
 
-    class_<oxley::RefinementZone3D, bases<oxley::RefinementZone>>("RefinementZone3D")
-        .def("setRefinementLevel", &oxley::RefinementZone3D::setRefinementLevel, (args("level")),
+    class_<oxley::RefinementQueue3D, bases<oxley::RefinementQueue>>("RefinementQueue3D")
+        .def("refineUniform", &oxley::RefinementQueue3D::refineUniform, (arg("level")=-1),
+                "Queues a refinement of EVERY element, the old refineMesh(\"uniform\").\n"
+                ":param level: levels of refinement, default the queue's own\n"
+                ":type level: ``int``")
+        .def("apply", &oxley::RefinementQueue3D::apply, (arg("domain")),
+                "Applies the queued refinements to a domain and returns the RESULT as\n"
+                "a new domain. The domain passed in is not modified, so the caller\n"
+                "keeps a usable handle on the coarser mesh and on any Data over it.\n\n"
+                ":param domain: the domain to refine\n"
+                ":type domain: `Domain`\n"
+                ":return: the refined domain\n:rtype: `Domain`")
+        .def("setRefinementLevel", &oxley::RefinementQueue3D::setRefinementLevel, (args("level")),
                 "Sets the level of refinement\n"
                 ":param level:\n:type int: the level of the refinement.\n")
-        .def("print", &oxley::RefinementZone3D::print, (arg("level")),
+        .def("print", &oxley::RefinementQueue3D::print, (arg("level")),
                 "Prints the current queue to console\n")
-        .def("remove", &oxley::RefinementZone3D::deleteFromQueue, (arg("n")),
+        .def("remove", &oxley::RefinementQueue3D::deleteFromQueue, (arg("n")),
                 "Removes the n^th item from the queue\n"
                 ":param n:\n:type int: the refinement to remove.\n")
-        .def("refinePoint", &oxley::RefinementZone3D::refinePoint, (arg("x0"),arg("y0"),arg("z0"),arg("level")=-1),
+        .def("refinePoint", &oxley::RefinementQueue3D::refinePoint, (arg("x0"),arg("y0"),arg("z0"),arg("level")=-1),
                 "Refines the mesh around the point (x0,y0,z0) to the level of refinement"
                 "set by setRefinementLevel \n"
                 ":param x0:\n:type float: x coordinate of the point to be refined.\n"
                 ":param y0:\n:type float: y coordinate of the point to be refined.\n"
                 ":param z0:\n:type float: z coordinate of the point to be refined.\n"
                 ":param level:\n:type float: the level of refinement.\n")
-        .def("refineRegion", &oxley::RefinementZone3D::refineRegion, (arg("x0"),arg("y0"),arg("z0"),arg("x1"),arg("y1"),arg("z1"),arg("level")=-1),
+        .def("refineRegion", &oxley::RefinementQueue3D::refineRegion, (arg("x0"),arg("y0"),arg("z0"),arg("x1"),arg("y1"),arg("z1"),arg("level")=-1),
                 "Refines the mesh around a rectangular region bound by the points (x0,y0,z0)"
                 "and (x1,y1,z1) to the level of refinement set by setRefinementLevel\n"
                 ":param x0:\n:type float: x coordinate of the upper left coordinate.\n"
@@ -528,7 +660,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param y1:\n:type float: y coordinate of the lower right coordinate.\n"
                 ":param z1:\n:type float: z coordinate of the lower right coordinate.\n"
                 ":param level:\n:type float: the level of refinement.\n")
-        .def("refineSphere", &oxley::RefinementZone3D::refineSphere, (arg("x0"),arg("y0"),arg("z0"),arg("r"),arg("level")=-1),
+        .def("refineSphere", &oxley::RefinementQueue3D::refineSphere, (arg("x0"),arg("y0"),arg("z0"),arg("r"),arg("level")=-1),
                 "Refines the mesh around a spherical region with radius r and center"
                 "and (x0,y0,z0) to the level of refinement set by setRefinementLevel\n"
                 ":param x0:\n:type float: x coordinate of the center of the circle.\n"
@@ -536,22 +668,22 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param z0:\n:type float: z coordinate of the center of the circle.\n"
                 ":param r :\n:type float: the radius of the circle.\n"
                 ":param level:\n:type float: the level of refinement.\n")
-        .def("refineBorder", &oxley::RefinementZone3D::refineBorder, (arg("Border"),arg("dx"),arg("level")=-1),
+        .def("refineBorder", static_cast<void (oxley::RefinementQueue3D::*)(std::string, float, int)>(&oxley::RefinementQueue3D::refineBorder), (arg("border"),arg("dx"),arg("level")=-1),
                 "Refines the border of the mesh to depth dx to the level of refinement"
                 "set by setRefinementLevel\n"
                 ":param Border:\n:type string: The border to refine (top,bottom,right,left).\n"
                 ":param dx:\n:type float: the depth of the refinement.\n"
                 ":param level:\n:type float: the level of refinement.\n")
-        .def("refineMask", &oxley::RefinementZone3D::refineMask, (arg("mask"),arg("level")=-1),
+        .def("refineMask", &oxley::RefinementQueue3D::refineMask, (arg("mask"),arg("level")=-1),
                 "Refines the mesh in regions defined by a mask\n"
                 ":param mask:\n:type Data: a mask.\n")
         ;
 
     class_<oxley::AbstractAssembler, oxley::Assembler_ptr, boost::noncopyable >  ("AbstractAssembler", "", no_init);
 
-    // register_ptr_to_python<boost::shared_ptr<RefinementZone>>();
-    // register_ptr_to_python<boost::shared_ptr<RefinementZone2D>>();
-    // register_ptr_to_python<boost::shared_ptr<RefinementZone3D>>();
+    // register_ptr_to_python<boost::shared_ptr<RefinementQueue>>();
+    // register_ptr_to_python<boost::shared_ptr<RefinementQueue2D>>();
+    // register_ptr_to_python<boost::shared_ptr<RefinementQueue3D>>();
 
 }
 
