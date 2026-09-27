@@ -1,0 +1,163 @@
+app-id: au.edu.uq.esys.escript
+runtime: org.freedesktop.Sdk
+runtime-version: "26.08"
+sdk: org.freedesktop.Sdk
+command: run-escript
+
+finish-args:
+  - --filesystem=home
+  - --share=network
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  - --share=ipc
+  - --env=LD_LIBRARY_PATH=/app/lib:/app/lib/esys:/app/lib64
+  
+cleanup: 
+  - /share/man
+  - /share/doc
+  - /include
+  - "*.la"
+  - "*.a"
+  
+build-options:
+  cflags: "-O3 -fPIC"
+  cxxflags: "-O3 -fPIC"
+  append-pkg-config-path: /app/lib64/pkgconfig
+  env:
+    LD_LIBRARY_PATH: /app/lib:/app/lib64
+
+modules:
+  - python3-modules.json
+  
+  - name: boost
+    buildsystem: simple
+    build-commands:
+      - ./bootstrap.sh --with-libraries=python,iostreams,random --prefix=${FLATPAK_DEST}
+      - ./b2 cxxflags=\"-fPIC\" -j`nproc --all` install
+    sources:
+      - type: archive
+        url: https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz
+        sha256: f55c340aa49763b1925ccf02b2e83f35fdcf634c9d5164a2acb87540173c741d
+        
+  - name: openmpi
+    buildsystem: autotools
+    sources:
+      - type: archive
+        url: https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.11.tar.bz2
+        sha256: e668a3c4acd50c41dc204c8a6dd98a611e0f26af89cf677577fa9be8a2698003
+        
+  - name: hdf5
+    buildsystem: cmake-ninja
+    builddir: true
+    build-options:
+      env:
+        CC: /app/bin/mpicc
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=None
+      - -DHDF5_ENABLE_ZLIB_SUPPORT=ON
+      - -DHDF5_ENABLE_PARALLEL=ON
+      - -DCMAKE_CXX_COMPILER=mpicxx
+      - -DCMAKE_Fortran_COMPILER=mpif90
+      - -DHDF5_BUILD_FORTRAN=ON
+      - -DCMAKE_C_COMPILER=mpicc
+      - -DHDF5_ALLOW_UNSUPPORTED=ON
+      - -DALLOW_UNSUPPORTED=ON
+      - -DHDF5_BUILD_CPP_LIB=ON
+      - -DHDF5_ENABLE_ZLIB_SUPPORT=ON
+      - -DHDF5_BUILD_HL_LIB=ON
+    sources:
+      - type: archive
+        url: https://github.com/HDFGroup/hdf5/archive/refs/tags/2.2.0.tar.gz
+        sha256: 5b8d75125ae7b4fef55d3b39e8d3dbfd238cdf63b6518afd67fa69ac80f06542
+      
+  - name: netcdf-c
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DNETCDF_ENABLE_LOGGING=ON
+      - -DNETCDF_ENABLE_NETCDF4=ON
+    sources:
+      - type: archive
+        url: https://mirror.sobukus.de/files/src/netcdf/netcdf-c-4.10.1.tar.gz
+        sha256: db3b69ff4a5ee1a7d79a5c36664d2128b752c266e966369fcf7311ec5f927564
+        
+  - name: netcdf-cxx
+    buildsystem: autotools
+    sources:
+      - type: archive
+        url: https://mirror.sobukus.de/files/src/netcdf/netcdf-cxx4-4.3.1.tar.gz
+        sha256: 6a1189a181eed043b5859e15d5c080c30d0e107406fbb212c8fb9814e90f3445
+   
+  - name: gmsh
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DDEFAULT=0
+      - -DENABLE_POST=1
+      - -DENABLE_PARSER=1
+    sources:
+      - type: archive
+        url: http://gmsh.info/src/gmsh-4.15.2-source.tgz
+        sha256: be3f66f225d27ba9fa014f07e83169285da8a051b0e8ab7103d88066b39bdd3e   
+        
+  - name: lapack
+    buildsystem: simple
+    build-commands: #-DCMAKE_INSTALL_LIBDIR=lib
+      - cmake -Bbuild -DBUILD_SHARED_LIBS=ON -DLAPACKE=ON -DCBLAS=ON -DCMAKE_INSTALL_PREFIX=${FLATPAK_DEST}
+      - cd build && make -j`nproc` && make install
+    sources:
+      - type: archive
+        url: https://github.com/Reference-LAPACK/lapack/archive/refs/tags/v3.12.1.tar.gz
+        sha256: 2ca6407a001a474d4d4d35f3a61550156050c48016d949f0da0529c0aa052422 
+       
+  - name: silo
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_INSTALL_LIBDIR=lib
+    sources:
+      - type: archive
+        url: https://github.com/llnl/Silo/archive/refs/tags/4.12.1.tar.gz
+        sha256: 5ae33320eb545544c3e5d5c11723093d5c02eef88f0f7fd816190353d2986856
+        
+  - name: scons
+    buildsystem: simple
+    build-commands:
+      - pip3 install --no-index --find-links="file://${PWD}" --prefix=${FLATPAK_DEST} scons
+    sources:
+      - type: file
+        url: https://files.pythonhosted.org/packages/8e/43/d6285848e893c19682c06e92679dc1a07d37ff7ea148747b1df681ec496c/scons-4.11.1-py3-none-any.whl
+        sha256: 454cef364348053422696e3d2ecb4fa593c96a624f955842eaaea64f95c8d11d
+        
+  - name: pip
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 -t /app/bin pip.pyz
+      - ln -s /app/bin/pip.pyz /app/bin/pip3 && ln -s /app/bin/pip.pyz /app/bin/pip
+    sources:
+      - type: file
+        dest-filename: pip.pyz
+        url: https://bootstrap.pypa.io/pip/zipapp/pip-26.2.pyz
+        sha256: 8f6ca1935a8a84c9fd03fd29b532019b3bdf7f66de8060e0d91b397d90694000
+        
+  - name: escript
+    buildsystem: simple
+    build-commands:
+      - scons options_file=scons/flatpak_options.py cxx_extra='-fPIC' -j`nproc --all` prefix=${FLATPAK_DEST}
+      - cp -r bin/* ${FLATPAK_DEST}/bin/
+      - cp -r lib/* ${FLATPAK_DEST}/lib/
+      - cp -r esys.trilinos/* ${FLATPAK_DEST}/
+      - cp -r esys ${FLATPAK_DEST}/lib/python3.14/site-packages/
+    post-install:
+      - install -Dm644 tools/flatpak/au.edu.uq.esys.escript.png /app/share/icons/hicolor/256x256/apps/au.edu.uq.esys.escript.png
+      - install -Dm644 tools/flatpak/au.edu.uq.esys.escript.desktop /app/share/applications/au.edu.uq.esys.escript.desktop
+      - install -Dm644 au.edu.uq.esys.escript.appdata.xml /app/share/appdata/au.edu.uq.esys.escript.appdata.xml
+    sources:
+      - type: git
+        url: https://github.com/LutzGross/esys-escript.github.io.git
+        tag: 6.1.1
+      - type: file
+        path: au.edu.uq.esys.escript.appdata.xml
+       
+       
+        
+    
