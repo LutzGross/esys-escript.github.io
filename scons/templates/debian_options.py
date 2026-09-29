@@ -21,10 +21,12 @@
 #   sudo apt-get install libnetcdf-dev libsilo-dev libhdf5-serial-dev
 #   sudo apt-get install libsuitesparse-dev liblapacke-dev libmumps-seq-dev
 #   sudo apt-get install libmetis-dev libparmetis-dev zlib1g-dev
+#     (Ubuntu 26.04: libscotchparmetis-dev instead of libparmetis-dev)
 #   sudo apt-get install libopenmpi-dev openmpi-bin python3-mpi4py
 #
 # For no-MPI build, use debian_nompi_options.py instead.
 
+import os
 import subprocess
 
 escript_opts_version = 203
@@ -76,9 +78,13 @@ metis_libs = ['metis']
 
 # ParMETIS parallel graph partitioning (requires MPI)
 parmetis = True
-# Note: On Ubuntu 24.04+, parmetis headers and libs are in /usr/include and /usr/lib
-# (no longer in /usr/include/parmetis or /usr/lib/x86_64-linux-gnu)
-parmetis_prefix = ['/usr/include', '/usr/lib']
+# Ubuntu 24.04 (libparmetis-dev): headers and libs are in /usr/include and /usr/lib.
+# Ubuntu 26.04 no longer ships libparmetis-dev; libscotchparmetis-dev provides
+# PT-Scotch's ParMETIS v3 compatibility library instead.
+if os.path.isfile('/usr/lib/libparmetis.so'):
+    parmetis_prefix = ['/usr/include', '/usr/lib']
+else:
+    parmetis_prefix = ['/usr/include/scotch', '/usr/lib/x86_64-linux-gnu']
 parmetis_libs = ['parmetis']
 
 # LAPACK configuration
