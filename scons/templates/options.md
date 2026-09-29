@@ -200,6 +200,9 @@ Each option is followed by a brief explanation.
 - `parmetis_libs = ['parmetis']`:
   parMETIS library/libraries to link against.
   On Debian/Ubuntu, install with: `sudo apt-get install libparmetis-dev`
+  On Ubuntu 25.04 and later, `libparmetis-dev` is not available; install
+  `libscotchparmetis-dev` instead (PT-Scotch's ParMETIS-compatible library) and use
+  `parmetis_prefix = ['/usr/include/scotch', '/usr/lib/x86_64-linux-gnu']`
 
 - `mkl = False`:
   Whether to add support for the Intel MKL (Math Kernel Library) direct solver

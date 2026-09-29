@@ -166,6 +166,9 @@ sudo apt-get install libparmetis-dev   # ParMETIS (if available)
 sudo apt-get install libscotch-dev     # PT-Scotch (alternative)
 ```
 
+If `libparmetis-dev` is not available, `libscotchparmetis-dev` provides PT-Scotch's
+ParMETIS-compatible `libparmetis.so`, which the `debian_options.py` template picks up automatically.
+
 For building documentation, additionally install:
 
 ```bash
@@ -202,9 +205,14 @@ For MPI support, additionally install:
 ```bash
 sudo apt-get install python3-mpi4py
 # For graph partitioning (choose one or both):
-sudo apt-get install libparmetis-dev   # ParMETIS (if available)
-sudo apt-get install libscotch-dev     # PT-Scotch (alternative)
+sudo apt-get install libparmetis-dev        # ParMETIS, Ubuntu 24.04 (multiverse)
+sudo apt-get install libscotchparmetis-dev  # ParMETIS via PT-Scotch, Ubuntu 25.04 and later
+sudo apt-get install libscotch-dev          # PT-Scotch (alternative)
 ```
+
+Ubuntu 25.04 and later no longer ship `libparmetis-dev`. `libscotchparmetis-dev` provides
+PT-Scotch's ParMETIS-compatible `libparmetis.so` instead, and the `ubuntu_options.py`
+template picks it up automatically.
 
 For building documentation, additionally install:
 
@@ -578,6 +586,9 @@ sudo apt-get install python3-mpi4py
 sudo apt-get install libparmetis-dev   # ParMETIS (if available)
 sudo apt-get install libscotch-dev     # PT-Scotch (alternative)
 ```
+
+If `libparmetis-dev` is not available, `libscotchparmetis-dev` provides PT-Scotch's
+ParMETIS-compatible `libparmetis.so`, which the `debian_options.py` template picks up automatically.
 
 **Note:** WSL2 provides near-native Linux performance and full compatibility with esys-escript. GUI applications (like VisIt or ParaView for visualization) require WSLg (included in Windows 11) or an X server on Windows 10.
 
