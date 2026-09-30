@@ -44,6 +44,12 @@ void UnrolledBlockCrsMatrixWrapper<ST>::add(const std::vector<LO>& rowIdx,
                         vals[ci*blockSize + cj] = array[srcIdx];
                     }
                 }
+                // Tpetra::CrsMatrix::sumIntoLocalValues is not thread-safe
+                // (concurrent calls race on shared CrsGraph/Kokkos refcounts
+                // and abort with "SharedAllocationRecord failed decrement").
+                // Finley invokes add() from inside an OpenMP parallel region,
+                // so serialize the Tpetra call.
+                #pragma omp critical (TpetraSumIntoLocalValues)
                 this->mat.sumIntoLocalValues(row, cols, vals);
             }
         }
