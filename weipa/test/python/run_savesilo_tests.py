@@ -1419,9 +1419,14 @@ class Test_Ripley_SaveSilo(SiloSaver):
      self.check_silo("ripley_3D_boundary", data_s=x[0], data_v=x[0]*[1.,2.,3.],
                                            data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
 
+HAVE_OXLEY_SILO_REFERENCES = all(
+    os.path.isfile(os.path.join(WEIPA_TEST_MESHES, "oxley_%s_%s.silo" % (dim, kind)))
+    for dim in ("2D", "3D") for kind in ("node", "cell", "boundary"))
+
 @unittest.skipIf(getMPISizeWorld()>1, "MPI size > 1")
 @unittest.skipIf(not HAVE_OXLEY, "oxley module not available")
 @unittest.skipIf(not HAVE_SILO, "python3-silo module not available (install python3-silo)")
+@unittest.skipIf(not HAVE_OXLEY_SILO_REFERENCES, "oxley reference .silo files missing in %s" % WEIPA_TEST_MESHES)
 class Test_Oxley_SaveSilo(SiloSaver):
 
   # === Oxley 2D =============================================================
