@@ -285,7 +285,9 @@ def runPyExample(target, source, env):
            app = "cd "+ pn +" & "+sys.executable + " " + sn
    else:
     
-     app = "cd "+pn+"; pwd; "+binpath(env, "run-escript")+" -ov "+sn
+     mpi_size = env.get('EXAMPLE_MPI_SIZE', 1)
+     mpi_opt = " -n %d"%mpi_size if mpi_size > 1 else ""
+     app = "cd "+pn+"; pwd; "+binpath(env, "run-escript")+mpi_opt+" -ov "+sn
    print("Executing test: ",app)
    if env.Execute(app) == 0:
       open(str(target[0]),'w').write("PASSED\n")

@@ -40,7 +40,15 @@ for i in example_files:
         f_out=File(i, test_dir)
         c=Command(f_out, f_in, Copy("$TARGET", "$SOURCE"))
         copies+=c
-        programs+=local_env.RunPyExample(c)
+        # examples such as MT_master_slave.py need several MPI ranks
+        # (and mpi4py) and abort when started with fewer
+        meta = example_metadata.get(i, {})
+        mpi_size = meta.get('minMPISize', 1)
+        if mpi_size > 1 and local_env['mpi']=='none':
+            continue
+        if meta.get('requiresMPI4py', False) and not local_env['mpi4py']:
+            continue
+        programs+=local_env.RunPyExample(c, EXAMPLE_MPI_SIZE=mpi_size)
 
 env.Alias('build_py_tests', data_files)
 env.Alias('build_py_tests', copies)
