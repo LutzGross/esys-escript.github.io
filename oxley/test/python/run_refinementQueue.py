@@ -48,9 +48,15 @@ L2 = 1.
 
 
 def numElements(domain):
-    """elements, not quadrature points: 4 per element in 2D, 8 in 3D"""
+    """
+    GLOBAL number of elements, not quadrature points: 4 per element in 2D, 8
+    in 3D. The local count is no use under MPI: refining a border need not add
+    elements on every rank, and an assertion failing on one rank only sends
+    that rank on to the next test while the others wait in a collective.
+    """
     perElement = 4 if domain.getDim() == 2 else 8
-    return Data(1., Function(domain)).getNumberOfDataPoints() // perElement
+    local = Data(1., Function(domain)).getNumberOfDataPoints() // perElement
+    return getMPIWorldSum(int(local))
 
 
 class Test_RefinementQueue2D(unittest.TestCase):
@@ -99,8 +105,8 @@ class Test_RefinementQueue2D(unittest.TestCase):
 
         # the old Data is still usable and still sized for the coarse mesh
         self.assertEqual(Lsup(s + s), 2.0, "Data over the source domain broke")
-        self.assertGreater(sr.getNumberOfDataPoints(),
-                           s.getNumberOfDataPoints(),
+        self.assertGreater(getMPIWorldSum(sr.getNumberOfDataPoints()),
+                           getMPIWorldSum(s.getNumberOfDataPoints()),
                            "the refined domain should carry more nodes")
         # and the two cannot be mixed by accident
         self.assertRaises(RuntimeError, lambda: Lsup(s + sr))
