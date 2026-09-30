@@ -33,7 +33,7 @@ from mpi4py import MPI
 from esys.escript import *
 from esys.finley import Rectangle
 from esys.escript.pdetools import Locator
-from esys.escript.linearPDEs import LinearSinglePDE
+from esys.escript.linearPDEs import LinearSinglePDE, SolverOptions
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -101,7 +101,9 @@ def solve_MT_problem(frequency):
     mD = whereZero(x[1] - L1)
     pde.setValue(q=mD, r=1)
 
-    # Solve for magnetic field Hx
+    # Solve for magnetic field Hx. Use a direct solver: the default iterative
+    # solver (BiCGStab) fails to converge for some frequencies (e.g. 0.17 Hz).
+    pde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
     Hx = pde.getSolution()
 
     # Calculate electric field and impedance
