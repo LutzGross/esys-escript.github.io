@@ -2724,6 +2724,10 @@ MeshAccess Rectangle::getMeshAccess(bool materializeHanging) const
     m.globalElementOffset = (long) p4est->global_first_quadrant[m_mpiInfo->rank];
     m.numRealNodes = m.numNodes;
     m.mastersPerConstrainedNode = 2;                   // an edge midpoint
+    for (int d = 0; d < 2; ++d) {
+        m.domainOrigin[d] = forestData.m_origin[d];
+        m.domainLength[d] = forestData.m_length[d];
+    }
 
     m.nodeCoords.assign((size_t) m.numNodes * m.numDim, 0.0);
     m.nodeLnodesId.resize(m.numNodes);

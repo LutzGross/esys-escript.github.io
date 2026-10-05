@@ -1189,5 +1189,38 @@ class Test_GradedContinuousFunctionTransfer3D(unittest.TestCase):
                              0., "%s: the way home is not a copy" % name)
 
 
+class Test_FinleyExportSplit3D(unittest.TestCase):
+    """
+    The tetrahedra a graded Brick is split into must be a function of the
+    forest alone. The split picks the lowest vertex of each face and octant;
+    "lowest" used to mean lowest global node id, which p4est assigns by owning
+    rank, so the same forest became a different mesh - and gave a different
+    solution - on a different number of ranks. It now means lowest position.
+
+    A linear field cannot tell two splits apart, so the integral of the
+    piecewise linear interpolant of a cubic one is compared with its value
+    under the position rule. The id rule missed it even on one rank.
+    """
+    def interpolantIntegral(self, dom):
+        fin = dom.toFinley()
+        x = fin.getX()
+        g = x[0]*x[1]*x[2] + x[0]**2
+        return integrate(interpolate(g, Function(fin)))
+
+    def test_graded_forest(self):
+        dom = Brick(n0=2, n1=2, n2=2,
+                    refine_level=[[[1, 2], [1, 1]], [[2, 1], [1, 1]]])
+        self.assertAlmostEqual(self.interpolantIntegral(dom),
+                               0.468376159668, places=11)
+
+    def test_refined_forest(self):
+        from esys.oxley import RefinementQueue3D
+        q = RefinementQueue3D()
+        q.refinePoint(x0=0.3, y0=0.6, z0=0.4, level=3)
+        dom = q.apply(Brick(n0=4, n1=4, n2=4, refine_level=1))
+        self.assertAlmostEqual(self.interpolantIntegral(dom),
+                               0.462587610042, places=11)
+
+
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)

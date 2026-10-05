@@ -21,6 +21,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <limits>
 #include <array>
 #include <cmath>
@@ -465,16 +466,21 @@ void transferDiracPoints(const OxleyDomain& dom, const MeshAccess& m,
    exactly what toFinley() emits, and in the same order, so simplex t here
    carries the id (global octant)*maxSimplices + t there.
 
-   THE RULE, in one line: every face of an octant is fanned from its LOWEST-ID
+   THE RULE, in one line: every face of an octant is fanned from its LOWEST
    vertex, and a hanging face is not one polygon but the four faces of the finer
    octants across it, each fanned by that same rule.
 
    Why the rule has to be a property of the FACE and not of the octant looking at
    it: two octants share a face, and each has to cut it into the same triangles
-   or the mesh is cracked along it. The lowest-id vertex is the same vertex from
+   or the mesh is cracked along it. The lowest vertex is the same vertex from
    either side however the two octants number their own corners. For a plain quad
-   this is the diagonal through the lowest-id corner, which is the rule the
-   conforming split already used - a hanging face just has more vertices.
+   this is the diagonal through the lowest corner - a hanging face just has more
+   vertices.
+
+   "Lowest" is by POSITION, see SplitOrder. It used to be by global node id,
+   which p4est assigns by owning rank: the same forest split differently on a
+   different number of ranks, and so gave a different finley mesh and a
+   (slightly) different solution.
 
    And why the hanging face is done as four sub-quads rather than as one octagon:
    the fine side has already cut it, each of its four octants seeing a plain quad
@@ -483,6 +489,46 @@ void transferDiracPoints(const OxleyDomain& dom, const MeshAccess& m,
    mismatched diagonal is a crack that no physics test can see - a linear field
    lies in both triangulations. Only the conformity check finds it.
 */
+
+/**
+   The order the split picks its lowest vertices by: lexicographic in the
+   position of the node, snapped to a lattice of 2^40 steps per side of the
+   domain. Positions are the same on every rank and under every partition,
+   which global node ids are not. The lattice makes the comparison exact: the
+   same node computed from two different trees may differ in the last bits,
+   but not by half a step, and two different nodes are many steps apart - the
+   finest p8est element is 2^-19 of a block.
+*/
+class SplitOrder
+{
+public:
+    explicit SplitOrder(const MeshAccess& m)
+        : dim(m.numDim), key((size_t) m.numNodes * m.numDim)
+    {
+        const double steps = 1099511627776.;    // 2^40
+        for (long n = 0; n < m.numNodes; ++n)
+            for (int d = 0; d < dim; ++d)
+                key[(size_t) n * dim + d] = std::llround(
+                        (m.nodeCoords[(size_t) n * dim + d] - m.domainOrigin[d])
+                        / m.domainLength[d] * steps);
+    }
+
+    /// true if local node a comes before local node b
+    bool less(long a, long b) const
+    {
+        for (int d = 0; d < dim; ++d) {
+            const long long ka = key[(size_t) a * dim + d];
+            const long long kb = key[(size_t) b * dim + d];
+            if (ka != kb)
+                return ka < kb;
+        }
+        return false;
+    }
+
+private:
+    int dim;
+    std::vector<long long> key;
+};
 
 /// the node at the midpoint of the octant edge joining two of its corners, or -1
 inline long edgeNode(const MeshAccess& m, long e, int a, int b)
@@ -496,9 +542,9 @@ inline long edgeNode(const MeshAccess& m, long e, int a, int b)
 /**
    Fans a polygon, keeping the winding it came in with. Returns n-2 triangles.
 
-   From the lowest-id vertex, except that a vertex sitting between two COLLINEAR
+   From the lowest vertex, except that a vertex sitting between two COLLINEAR
    neighbours - an edge midpoint, where the polygon runs corner, midpoint, corner
-   along one straight edge - is preferred, and among those the lowest-id one.
+   along one straight edge - is preferred, and among those the lowest one.
 
    The exception is not a nicety. Fanning from either END of such an edge makes
    the triangle (corner, midpoint, corner), which is three points on a line: a
@@ -514,20 +560,20 @@ inline long edgeNode(const MeshAccess& m, long e, int a, int b)
    the polygon was built by inserting them, but it is exactly the geometric
    one: a vertex whose two neighbours are collinear with it.)
 */
-int fanPolygon(const std::vector<long>& gid, const long* poly, const bool* isMid,
+int fanPolygon(const SplitOrder& order, const long* poly, const bool* isMid,
                int n, std::array<long,3>* tris)
 {
     int p = -1;
     for (int i = 0; i < n; ++i) {
         if (isMid != NULL && !isMid[i])
             continue;
-        if (p < 0 || gid[poly[i]] < gid[poly[p]])
+        if (p < 0 || order.less(poly[i], poly[p]))
             p = i;
     }
     if (p < 0) {
         p = 0;
         for (int i = 1; i < n; ++i)
-            if (gid[poly[i]] < gid[poly[p]])
+            if (order.less(poly[i], poly[p]))
                 p = i;
     }
     for (int i = 0; i < n - 2; ++i) {
@@ -540,7 +586,7 @@ int fanPolygon(const std::vector<long>& gid, const long* poly, const bool* isMid
 
 /// The triangles one face of an octant is cut into, wound counter-clockwise as
 /// seen from OUTSIDE. At most eight.
-int faceTriangles(const MeshAccess& m, const std::vector<long>& gid, long e,
+int faceTriangles(const MeshAccess& m, const SplitOrder& order, long e,
                   int f, std::array<long,3>* tris)
 {
     const int V = m.nodesPerElement;
@@ -561,7 +607,7 @@ int faceTriangles(const MeshAccess& m, const std::vector<long>& gid, long e,
                         "with no midpoint. The finer octants across it subdivide "
                         "all four, so the seam list has missed one.");
             const long quad[4] = { en[c], a, centre, b };
-            n += fanPolygon(gid, quad, NULL, 4, tris + n);
+            n += fanPolygon(order, quad, NULL, 4, tris + n);
         }
         return n;
     }
@@ -580,7 +626,7 @@ int faceTriangles(const MeshAccess& m, const std::vector<long>& gid, long e,
             poly[np++] = mid;
         }
     }
-    return fanPolygon(gid, poly, isMid, np, tris);
+    return fanPolygon(order, poly, isMid, np, tris);
 }
 
 /// One tetrahedron of a cone: an apex over an outward-wound boundary triangle.
@@ -597,7 +643,7 @@ inline void coneTet(const MeshAccess& m, long apex, const std::array<long,3>& tr
 /**
    The tetrahedra one octant splits into. Returns how many, at most 48.
 
-   A CONFORMING octant is coned from its lowest-id corner over the three faces
+   A CONFORMING octant is coned from its lowest corner over the three faces
    that do not contain it: six tetrahedra, and the three faces that DO contain
    the apex are covered by the walls of the cone, which fan through the apex -
    which is the same triangulation they would get anyway, the apex being their
@@ -610,7 +656,7 @@ inline void coneTet(const MeshAccess& m, long apex, const std::array<long,3>& tr
    all six faces hanging, every corner lies on one. The octant is convex, so its
    centre always serves; that is the whole reason elementCentreNode exists.
 */
-int octantSplit(const MeshAccess& m, const std::vector<long>& gid, long e,
+int octantSplit(const MeshAccess& m, const SplitOrder& order, long e,
                 std::array<long,4>* tets)
 {
     const int V = m.nodesPerElement;
@@ -623,12 +669,12 @@ int octantSplit(const MeshAccess& m, const std::vector<long>& gid, long e,
     if (centre < 0) {
         int apex = 0;
         for (int c = 1; c < 8; ++c)
-            if (gid[en[c]] < gid[en[apex]])
+            if (order.less(en[c], en[apex]))
                 apex = c;
         for (int f = 0; f < 6; ++f) {
             if (cornerOnFace(apex, f))
                 continue;                    // near face, the cone covers it
-            const int nt = faceTriangles(m, gid, e, f, tris);
+            const int nt = faceTriangles(m, order, e, f, tris);
             for (int t = 0; t < nt; ++t)
                 coneTet(m, en[apex], tris[t], tets[tet++]);
         }
@@ -636,7 +682,7 @@ int octantSplit(const MeshAccess& m, const std::vector<long>& gid, long e,
     }
 
     for (int f = 0; f < 6; ++f) {
-        const int nt = faceTriangles(m, gid, e, f, tris);
+        const int nt = faceTriangles(m, order, e, f, tris);
         for (int t = 0; t < nt; ++t)
             coneTet(m, centre, tris[t], tets[tet++]);
     }
@@ -647,7 +693,7 @@ int octantSplit(const MeshAccess& m, const std::vector<long>& gid, long e,
 /// them the ids base + key*maxFaceSimplices + t. The octant's own split cuts
 /// that face exactly the same way, so the boundary elements sit on the faces of
 /// the tetrahedra rather than across them.
-int boundaryTriangles(const MeshAccess& m, const std::vector<long>& gid, long f,
+int boundaryTriangles(const MeshAccess& m, const SplitOrder& order, long f,
                       std::array<long,3>* tris)
 {
     const long e = m.faceElements.empty() ? 0 : m.faceElements[f];
@@ -657,7 +703,7 @@ int boundaryTriangles(const MeshAccess& m, const std::vector<long>& gid, long f,
         throw OxleyException("boundaryTriangles: a face on the domain boundary "
                 "is hanging, so it has a finer neighbour - and then it is not "
                 "on the boundary.");
-    return faceTriangles(m, gid, e, dir, tris);
+    return faceTriangles(m, order, e, dir, tris);
 }
 
 /**
@@ -862,7 +908,7 @@ inline double depthIn(const double* v, int n, const double* p)
    The fractions sum to one per element, so a field that is constant over an
    element comes back unchanged whatever the split.
 */
-void simplexWeights(const MeshAccess& m, const std::vector<long>& gid,
+void simplexWeights(const MeshAccess& m, const SplitOrder& order,
                     std::vector<int>& count,
                     std::vector<std::vector<double> >& weight)
 {
@@ -875,7 +921,7 @@ void simplexWeights(const MeshAccess& m, const std::vector<long>& gid,
         // rather than assumed, so the identity survives a change of split.
         std::array<long,4> tets[48];
         for (long e = 0; e < m.numElements; ++e) {
-            const int nt = octantSplit(m, gid, e, tets);
+            const int nt = octantSplit(m, order, e, tets);
             count[e] = nt;
             weight[e].resize(nt);
             double total = 0.;
@@ -1219,19 +1265,20 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
         }
 
     } else {
-        // ---- 3D: cone each octant, and cut every face from its lowest-id
-        // vertex. A conforming octant is coned from its lowest-id CORNER over
+        // ---- 3D: cone each octant, and cut every face from its lowest
+        // vertex. A conforming octant is coned from its lowest CORNER over
         // the three faces that do not contain it - six tetrahedra - and a
         // hanging one from its centre over all six. See octantSplit().
         out.elementType = finley::Tet4;
         out.faceElementType = finley::Tri3;
 
+        const SplitOrder order(m);
         std::array<long,4> tets[48];
         std::array<long,3> tris[8];
         elems.reserve((size_t) m.numElements * 6 * 4);
         out.elementTag.reserve(m.numElements * 6);
         for (long e = 0; e < m.numElements; ++e) {
-            const int nt = octantSplit(m, gidOf, e, tets);
+            const int nt = octantSplit(m, order, e, tets);
             for (int t = 0; t < nt; ++t) {
                 for (int k = 0; k < 4; ++k)
                     elems.push_back((index_t) tets[t][k]);
@@ -1252,7 +1299,7 @@ escript::Domain_ptr toFinley(const OxleyDomain& dom, int order,
         out.faceTag.reserve(m.numFaces * 2);
         facesPerBoundaryQuad.resize(m.numFaces);
         for (long f = 0; f < m.numFaces; ++f) {
-            const int nt = boundaryTriangles(m, gidOf, f, tris);
+            const int nt = boundaryTriangles(m, order, f, tris);
             facesPerBoundaryQuad[f] = nt;
             for (int t = 0; t < nt; ++t) {
                 for (int k = 0; k < 3; ++k)
@@ -1880,7 +1927,7 @@ escript::Data toFinleyReducedData(const escript::Data& source,
     const int numComp = realComponents(source);
     std::vector<int> count;
     std::vector<std::vector<double> > weight;
-    simplexWeights(m, exportIds(m), count, weight);
+    simplexWeights(m, SplitOrder(m), count, weight);
 
     // one octant value, repeated onto each simplex it was split into
     std::vector<long> haveId;
@@ -1931,7 +1978,7 @@ escript::Data fromFinleyReducedData(const escript::Data& source,
     const int numComp = realComponents(source);
     std::vector<int> count;
     std::vector<std::vector<double> > weight;
-    simplexWeights(m, exportIds(m), count, weight);
+    simplexWeights(m, SplitOrder(m), count, weight);
 
     const escript::FunctionSpace sourceFS = source.getFunctionSpace();
     const long ns = (long) source.getNumSamples();
@@ -2042,7 +2089,7 @@ escript::Data transferBoundary3D(const escript::Data& source,
 {
     const int numComp = realComponents(source);
     const int srcPts = source.getNumDataPointsPerSample();
-    const std::vector<long>& gid = exportIds(m);
+    const SplitOrder order(m);
     const int stride = srcPts * (numComp + 3);
 
     const escript::FunctionSpace targetFS = (fsCode == FaceElements)
@@ -2115,7 +2162,7 @@ escript::Data transferBoundary3D(const escript::Data& source,
     std::vector<long> wantId;
     wantId.reserve((size_t) m.numFaces * 2);
     for (long f = 0; f < m.numFaces; ++f) {
-        const int nt = boundaryTriangles(m, gid, f, tris);
+        const int nt = boundaryTriangles(m, order, f, tris);
         triOffset[f+1] = triOffset[f] + nt;
         for (int t = 0; t < nt; ++t)
             wantId.push_back(base + faceQuadKey(m, f) * perQuad + t);
@@ -2125,7 +2172,7 @@ escript::Data transferBoundary3D(const escript::Data& source,
     exchangeByGlobalId(dom.getMPI(), stride, haveId, haveVal, wantId, wantVal);
 
     for (long f = 0; f < m.numFaces; ++f) {
-        const int nt = boundaryTriangles(m, gid, f, tris);
+        const int nt = boundaryTriangles(m, order, f, tris);
         double vert[8][9];
         for (int t = 0; t < nt; ++t)
             for (int k = 0; k < 3; ++k)
@@ -2506,13 +2553,13 @@ escript::Data fromFinleyFunctionData(const escript::Data& source,
         // every tet of every octant this rank owns. How many that is varies
         // with the octant's hanging configuration, so they are addressed
         // through a prefix sum rather than a fixed stride.
-        const std::vector<long>& gid = exportIds(m);
+        const SplitOrder order(m);
         std::array<long,4> tets[48];
         std::vector<long> tetOffset(m.numElements + 1, 0);
         std::vector<long> wantId;
         wantId.reserve((size_t) m.numElements * 6);
         for (long e = 0; e < m.numElements; ++e) {
-            const int nt = octantSplit(m, gid, e, tets);
+            const int nt = octantSplit(m, order, e, tets);
             tetOffset[e+1] = tetOffset[e] + nt;
             for (int t = 0; t < nt; ++t)
                 wantId.push_back((m.globalElementOffset + e)
@@ -2529,7 +2576,7 @@ escript::Data fromFinleyFunctionData(const escript::Data& source,
         const int dstPts = result.getNumDataPointsPerSample();
         escript::Data rx = targetFS.getX();
         for (long e = 0; e < m.numElements; ++e) {
-            const int nt = octantSplit(m, gid, e, tets);
+            const int nt = octantSplit(m, order, e, tets);
             std::vector<double> vert((size_t) nt * 12);
             for (int t = 0; t < nt; ++t)
                 for (int k = 0; k < 4; ++k)

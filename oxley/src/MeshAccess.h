@@ -66,6 +66,12 @@ struct MeshAccess
     /// which is what lets the export give its simplices derivable ids.
     long globalElementOffset = 0;
 
+    /// lower corner and side lengths of the domain, the same on every rank.
+    /// The 3D simplex split orders vertices by their position on a lattice
+    /// spanning this box, which no partition can change.
+    double domainOrigin[3] = {0., 0., 0.};
+    double domainLength[3] = {1., 1., 1.};
+
     /// node coordinates, size numNodes*numDim (node i at [i*numDim + d])
     std::vector<double> nodeCoords;
     /// global id of each local node, size numNodes
