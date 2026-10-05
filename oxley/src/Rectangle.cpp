@@ -339,6 +339,9 @@ Rectangle::Rectangle(const oxley::Rectangle& R, int order):
 
     // Update the user_data pointer in p4est 
     p4est->user_pointer=&forestData;
+    // p4est_copy keeps R's connectivity; point the copy at its own, identical
+    // one, which this Rectangle owns, so it does not depend on R staying alive
+    p4est->connectivity=connectivity;
 
     // element order
     m_order = R.m_order;
@@ -1130,6 +1133,18 @@ void Rectangle::print_debug_report(std::string locat)
 
 Assembler_ptr Rectangle::createAssembler(std::string type, const DataMap& constants) const
 {
+    // The assembler knows nothing of hanging nodes: at a 2:1 seam the element
+    // matrix of the fine element lands on the far master, 2h away, as if it
+    // were the element's own corner. On a graded forest it assembles a wrong
+    // operator without complaint - the linear patch test misses by ~20% and
+    // the answer changes with the number of ranks. Refuse rather than return
+    // plausible numbers. Collective, as every rank builds the PDE.
+    if (!isConforming())
+        throw escript::NotImplementedError("PDEs cannot be solved directly on "
+                "an oxley domain with hanging nodes (a refined or graded "
+                "forest). Export the mesh with toFinley(), solve on the finley "
+                "domain, and bring the solution back with fromFinleyData().");
+
 #ifndef ESYS_HAVE_TRILINOS
     // The 2D assembler is trilinos-only, and PDEs on an adaptive oxley mesh
     // are solved by exporting to finley anyway - so a build without trilinos
@@ -5152,21 +5167,64 @@ void RefinementQueue2D::growAtCircle(Rectangle& dom, double x0, double y0, doubl
 
     dom.oxleytimer.toc("growAtCircle...Done");
 }
-void RefinementQueue2D::growFromMask(Rectangle& dom, escript::Data mask)
+void RefinementQueue2D::collectMasked(Rectangle& source, const escript::Data& mask,
+                                      std::set<std::array<long,4>>& masked)
+{
+    if(mask.isEmpty())
+        throw OxleyException("RefinementQueue2D::apply: a mask is empty.");
+    if(mask.getDomain().get() != &source)
+        throw OxleyException("RefinementQueue2D::apply: a mask must be defined "
+                "on the domain passed to apply().");
+    if(mask.getDataPointRank() != 0 || mask.isComplex())
+        throw OxleyException("RefinementQueue2D::apply: a mask must be a real "
+                "scalar.");
+
+    // an element is marked if the mask is positive at any of its quadrature
+    // points; the samples of Function are the local leaves in tree order
+    escript::Data m(mask, escript::function(source));
+    // a constant or tagged Data stores one value per sample, not one per point
+    m.expand();
+    const int numPoints = m.getNumDataPointsPerSample();
+    const escript::DataTypes::real_t zero = 0;
+    std::vector<long> keys;
+    long e = 0;
+    for(p4est_topidx_t treeid = source.p4est->first_local_tree;
+            treeid <= source.p4est->last_local_tree; ++treeid)
+    {
+        p4est_tree_t * tree = p4est_tree_array_index(source.p4est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        for(size_t q = 0; q < tquadrants->elem_count; q++, e++)
+        {
+            const double* v = m.getSampleDataRO(e, zero);
+            bool marked = false;
+            for(int i = 0; i < numPoints && !marked; i++)
+                marked = v[i] > 0.;
+            if(marked)
+            {
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                keys.insert(keys.end(), {(long) treeid, (long) quad->x,
+                                         (long) quad->y, (long) quad->level});
+            }
+        }
+    }
+
+    // each rank sees the mask only on its own elements, but every rank must
+    // refine the same quadrants
+    allgatherLongs(source.p4est->mpicomm, keys);
+    for(size_t k = 0; k < keys.size(); k += 4)
+        masked.insert({keys[k], keys[k+1], keys[k+2], keys[k+3]});
+}
+
+void RefinementQueue2D::growFromMask(Rectangle& dom, const std::set<std::array<long,4>>& masked)
 {
     dom.oxleytimer.toc("growFromMask...");
 
     dom.z_needs_update=true;
     dom.iz_needs_update=true;
 
-    // update the quadrant id information
-    dom.updateQuadrantIDinformation();
-
-    // If the boundaries were not specified by the user, default to the border of the domain
-    dom.forestData.mask = mask;
-    bool refine_recursively = false;
-    p4est_refine_ext(dom.p4est, refine_recursively, -1, 
-                refine_mask, init_rectangle_data, NULL);
+    dom.forestData.mask_quadrants = masked;
+    p4est_refine_ext(dom.p4est, true, -1, refine_mask, init_rectangle_data, NULL);
+    dom.forestData.mask_quadrants.clear();
     p4est_balance_ext(dom.p4est, P4EST_CONNECT_FULL, init_rectangle_data, NULL);
 
     // Make sure that nothing went wrong
@@ -5193,7 +5251,8 @@ void RefinementQueue2D::growFromMask(Rectangle& dom, escript::Data mask)
     dom.oxleytimer.toc("growFromMask...Done");
 }
 
-escript::Domain_ptr RefinementQueue2D::apply(escript::Domain_ptr domain)
+escript::Domain_ptr RefinementQueue2D::apply(escript::Domain_ptr domain,
+                                             const MaskMap& masks)
 {
     if(domain.get() == NULL)
         throw OxleyException("RefinementQueue2D::apply: no domain given.");
@@ -5201,6 +5260,7 @@ escript::Domain_ptr RefinementQueue2D::apply(escript::Domain_ptr domain)
     if(source == NULL)
         throw OxleyException("RefinementQueue2D::apply: the domain is not a "
                 "Rectangle. Use RefinementQueue3D for a Brick.");
+    checkMasks(masks, "RefinementQueue2D::apply");
     source->oxleytimer.toc("Applying the refinement zone...");
 
     // The refinement grows a NEW forest and never touches the one it was
@@ -5283,16 +5343,13 @@ escript::Domain_ptr RefinementQueue2D::apply(escript::Domain_ptr domain)
             }
             case MASK2D:
             {
-                if(n == 0)
-                {
-                    escript::Data d = *Refinement.data;
-                    growFromMask(*newDomain, d);
-                    break;
-                }
-                else
-                {
-                    throw OxleyException("Can only apply a mask refinement if it is first in the queue.");
-                }
+                // the mask is read on the SOURCE, whose leaves every quadrant
+                // of the new forest descends from, so a mask refinement can
+                // sit anywhere in the queue
+                std::set<std::array<long,4>> masked;
+                collectMasked(*source, masks.find(Refinement.tag)->second, masked);
+                growFromMask(*newDomain, masked);
+                break;
             }
             case MASK3D:
             case SPHERE:

@@ -2,8 +2,7 @@
 #ifndef _OXLEY_REFINEMENTTYPE
 #define _OXLEY_REFINEMENTTYPE
 
-#include "escript/Data.h"
-#include "escript/DataExpanded.h"
+#include <string>
 
 namespace oxley {
 
@@ -27,7 +26,8 @@ public:
 	double depth;
 	RefinementAlgorithm flavour;
 	int levels;
-	escript::Data * data;
+	// a mask refinement names its mask; the Data is handed to apply()
+	std::string tag;
 
 	RefinementType();
 	~RefinementType();
@@ -54,8 +54,8 @@ public:
 
 	void UniformRefinement(int levels);
 
-	void Mask2DRefinement(escript::Data * d, int levels);
-	void Mask3DRefinement(escript::Data * d, int levels);
+	void Mask2DRefinement(std::string tag, int levels);
+	void Mask3DRefinement(std::string tag, int levels);
 
 };
 

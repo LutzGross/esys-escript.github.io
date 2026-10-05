@@ -37,7 +37,11 @@ test_uniform_matches_the_constructor pins down.
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript import *
-from esys.oxley import Rectangle, Brick, RefinementQueue2D, RefinementQueue3D
+from esys.escript.linearPDEs import LinearPDE
+# finley must be imported for toFinley() to hand back a usable domain
+import esys.finley
+from esys.oxley import Rectangle, Brick, RefinementQueue2D, RefinementQueue3D, \
+                       fromFinleyData
 
 N0 = 2
 N1 = 2
@@ -47,17 +51,27 @@ L1 = 1.
 L2 = 1.
 
 
+def refinedFraction(domain, coarse):
+    """the fraction of the volume covered by elements finer than coarse's"""
+    h = interpolate(domain.getSize(), Function(domain))
+    vol = integrate(Scalar(1., Function(domain)))
+    return integrate(whereNegative(h - 0.99*Lsup(coarse.getSize()))) / vol
+
+
 def numElements(domain):
     """
-    GLOBAL number of elements, not quadrature points: 4 per element in 2D, 8
-    in 3D. The local count is no use under MPI: refining a border need not add
-    elements on every rank, and an assertion failing on one rank only sends
-    that rank on to the next test while the others wait in a collective.
+    the global number of elements of domain. getMeshInfo() gives the elements
+    this rank owns - each element belongs to exactly one rank, whereas the
+    samples of a Function also count the overlap shared with neighbouring
+    ranks - and they are summed over the communicator the domain lives on,
+    which need not be all ranks. Without mpi4py there is no communicator to
+    hand back, but then the domain lives on all ranks.
     """
-    perElement = 4 if domain.getDim() == 2 else 8
-    local = Data(1., Function(domain)).getNumberOfDataPoints() // perElement
-    return getMPIWorldSum(int(local))
-
+    local = int(domain.getMeshInfo()["numElements"])
+    comm = domain.getMPIComm()
+    if comm is None:
+        return getMPIWorldSum(local)
+    return comm.allreduce(local)
 
 class Test_RefinementQueue2D(unittest.TestCase):
     def setUp(self):
@@ -168,16 +182,164 @@ class Test_RefinementQueue2D(unittest.TestCase):
         self.assertGreater(numElements(f.apply(self.domain)),
                            numElements(self.domain))
 
+    def test_refine_circle(self):
+        """
+        A circle refines every element it overlaps. It used to refine only an
+        element whose centre lay exactly on the circle, i.e. none at all.
+        """
+        f = RefinementQueue2D()
+        f.setRefinementLevel(2)
+        f.refineCircle(x0=0.3, y0=0.6, r=0.1)
+        refined = f.apply(self.domain)
+        self.assertGreater(numElements(refined), numElements(self.domain),
+                           "refineCircle refined nothing")
+        g = RefinementQueue2D()
+        g.setRefinementLevel(2)
+        g.refineUniform()
+        self.assertLess(numElements(refined), numElements(g.apply(self.domain)),
+                        "a circle is not the whole domain")
+
+    def test_refine_small_circle(self):
+        """a circle inside one element, touching none of its corners"""
+        f = RefinementQueue2D()
+        f.setRefinementLevel(1)
+        f.refineCircle(x0=0.25, y0=0.25, r=0.01)
+        self.assertGreater(numElements(f.apply(self.domain)),
+                           numElements(self.domain))
+
     def test_refine_border_by_name(self):
-        """the Border enum is not exposed to python, so names are the API"""
-        for name in ("top", "bottom", "left", "right", "north", "south",
-                     "east", "west"):
+        """
+        The Border enum is not exposed to python, so names are the API. On a
+        2 x 1 domain of 8 x 4 blocks, a border strip thinner than a block
+        refines exactly the layer of blocks along that border: a quarter of
+        the domain along top or bottom, an eighth along left or right. This
+        used to refine nothing, everything or an arbitrary part of the
+        domain as soon as it was not the unit square.
+        """
+        coarse = Rectangle(n0=8, n1=4, l0=2., l1=1.)
+        for name, fraction in (("top", 0.25), ("north", 0.25),
+                               ("bottom", 0.25), ("south", 0.25),
+                               ("left", 0.125), ("west", 0.125),
+                               ("right", 0.125), ("east", 0.125)):
             f = RefinementQueue2D()
-            f.setRefinementLevel(1)
-            f.refineBorder(border=name, dx=0.3)
-            self.assertGreater(numElements(f.apply(self.domain)),
-                               numElements(self.domain),
-                               "border '%s' refined nothing" % name)
+            f.refineBorder(border=name, dx=0.1, level=2)
+            self.assertAlmostEqual(refinedFraction(f.apply(coarse), coarse),
+                                   fraction, places=10,
+                                   msg="border '%s' refined the wrong part" % name)
+
+    def disc(self, domain, r=0.1):
+        x = Function(domain).getX()
+        return whereNegative(length(x - [0.3, 0.6]) - r)
+
+    def test_refine_mask(self):
+        """
+        The queue holds only the name of a mask, a template not tied to any
+        domain; the mask itself comes with apply()
+        """
+        f = RefinementQueue2D()
+        f.refineMask("fault", level=3)
+        refined = f.apply(self.domain, fault=self.disc(self.domain))
+        self.assertGreater(numElements(refined), numElements(self.domain),
+                           "refineMask refined nothing")
+        g = RefinementQueue2D()
+        g.refineUniform(level=3)
+        self.assertLess(numElements(refined), numElements(g.apply(self.domain)),
+                        "a mask is not the whole domain")
+        # the same queue on another domain, with a mask on that domain
+        other = Rectangle(n0=4, n1=4, l0=L0, l1=L1)
+        self.assertGreater(numElements(f.apply(other, fault=self.disc(other))),
+                           numElements(other))
+
+    def test_zero_mask_refines_nothing(self):
+        """a constant Data stores one value, not one per quadrature point"""
+        f = RefinementQueue2D()
+        f.refineMask("fault", level=3)
+        self.assertEqual(numElements(f.apply(self.domain,
+                                     fault=Scalar(0., Function(self.domain)))),
+                         numElements(self.domain))
+
+    def test_mask_anywhere_in_the_queue(self):
+        """
+        A mask is read on the domain passed to apply(), so it no longer has
+        to come first: refining around it after a uniform refinement must
+        give more than the uniform refinement alone
+        """
+        f = RefinementQueue2D()
+        f.refineUniform(level=1)
+        f.refineMask("fault", level=3)
+        g = RefinementQueue2D()
+        g.refineUniform(level=1)
+        self.assertGreater(numElements(f.apply(self.domain,
+                                       fault=self.disc(self.domain))),
+                           numElements(g.apply(self.domain)))
+
+    def test_mask_must_match_the_tags(self):
+        f = RefinementQueue2D()
+        f.refineMask("fault")
+        mask = self.disc(self.domain)
+        # no mask for a tag
+        self.assertRaises(RuntimeError, f.apply, self.domain)
+        # a mask for no tag: most likely a misspelt one
+        self.assertRaises(RuntimeError, lambda: f.apply(self.domain,
+                                                        fault=mask, fualt=mask))
+        # a mask that is not Data, or not a scalar
+        self.assertRaises(RuntimeError, lambda: f.apply(self.domain, fault=1.))
+        self.assertRaises(RuntimeError, lambda: f.apply(self.domain,
+                                        fault=Function(self.domain).getX()))
+        # a mask on another domain
+        other = Rectangle(n0=N0, n1=N1, l0=L0, l1=L1)
+        self.assertRaises(RuntimeError, lambda: f.apply(self.domain,
+                                        fault=Scalar(1., Function(other))))
+
+    def test_mask_tag_must_be_a_name(self):
+        """the tag is a keyword argument of apply()"""
+        f = RefinementQueue2D()
+        self.assertRaises(RuntimeError, f.refineMask, "my fault")
+        self.assertRaises(RuntimeError, f.refineMask, "")
+        self.assertRaises(RuntimeError, f.refineMask, "domain")
+
+    def test_refined_domain_outlives_its_source(self):
+        f = RefinementQueue2D()
+        f.refineUniform(level=1)
+        source = Rectangle(n0=N0, n1=N1, l0=L0, l1=L1)
+        refined = f.apply(source)
+        del source
+        self.assertAlmostEqual(integrate(Scalar(1., Function(refined))),
+                               L0*L1, places=10)
+
+    def test_no_pde_on_a_refined_domain(self):
+        """
+        oxley's assembler ignores hanging nodes, so on a refined forest it
+        used to return a wrong solution without complaint
+        """
+        f = RefinementQueue2D()
+        f.refinePoint(x0=0.3, y0=0.6, level=2)
+        self.assertRaises(NotImplementedError, LinearPDE, f.apply(self.domain))
+        # a uniform forest has no hanging nodes and still assembles
+        g = RefinementQueue2D()
+        g.refineUniform(level=1)
+        LinearPDE(g.apply(self.domain))
+
+    def test_pde_on_the_finley_export(self):
+        """
+        the way to solve on a refined domain: the linear patch test is exact
+        on the finley export, hanging nodes included
+        """
+        f = RefinementQueue2D()
+        f.refinePoint(x0=0.3, y0=0.6, level=3)
+        refined = f.apply(self.domain)
+        fin = refined.toFinley()
+        x = fin.getX()
+        exact = 1. + 2*x[0] - x[1]
+        pde = LinearPDE(fin)
+        pde.setSymmetryOn()
+        pde.setValue(A=kronecker(fin), r=exact,
+                     q=whereZero(x[0]) + whereZero(x[0]-L0)
+                     + whereZero(x[1]) + whereZero(x[1]-L1))
+        pde.getSolverOptions().setTolerance(1e-12)
+        u = fromFinleyData(pde.getSolution(), refined)
+        xo = refined.getX()
+        self.assertLess(Lsup(u - (1. + 2*xo[0] - xo[1])), 1e-8)
 
     def test_unknown_border_is_refused(self):
         f = RefinementQueue2D()
@@ -228,6 +390,62 @@ class Test_RefinementQueue3D(unittest.TestCase):
         f.refineRegion(x0=0.0, y0=0.0, z0=0.0, x1=0.4, y1=0.4, z1=0.4)
         self.assertGreater(numElements(f.apply(self.domain)),
                            numElements(self.domain))
+
+    def test_empty_queue_keeps_the_refinement(self):
+        """apply() used to rebuild a Brick at level 0, dropping its refinement"""
+        brick = Brick(n0=N0, n1=N1, n2=N2, l0=L0, l1=L1, l2=L2, refine_level=2)
+        self.assertEqual(numElements(RefinementQueue3D().apply(brick)),
+                         numElements(brick))
+
+    def test_no_pde_on_a_refined_domain(self):
+        f = RefinementQueue3D()
+        f.refinePoint(x0=0.3, y0=0.6, z0=0.4, level=2)
+        self.assertRaises(NotImplementedError, LinearPDE, f.apply(self.domain))
+
+    def test_refine_mask(self):
+        x = Function(self.domain).getX()
+        f = RefinementQueue3D()
+        f.refineMask("blob", level=2)
+        refined = f.apply(self.domain,
+                          blob=whereNegative(length(x - [0.3, 0.6, 0.4]) - 0.1))
+        self.assertGreater(numElements(refined), numElements(self.domain))
+        g = RefinementQueue3D()
+        g.refineUniform(level=2)
+        self.assertLess(numElements(refined), numElements(g.apply(self.domain)))
+
+    def test_refine_border_by_name(self):
+        """
+        In 3D top and bottom are the faces normal to z, north (back) and
+        south (front) those normal to y, and left (west) and right (east)
+        those normal to x. See the 2D case for the fractions.
+        """
+        coarse = Brick(n0=8, n1=4, n2=4, l0=2., l1=1., l2=1.)
+        for name, fraction in (("top", 0.25), ("bottom", 0.25),
+                               ("north", 0.25), ("back", 0.25),
+                               ("south", 0.25), ("front", 0.25),
+                               ("left", 0.125), ("west", 0.125),
+                               ("right", 0.125), ("east", 0.125)):
+            f = RefinementQueue3D()
+            f.refineBorder(border=name, dx=0.1, level=1)
+            self.assertAlmostEqual(refinedFraction(f.apply(coarse), coarse),
+                                   fraction, places=10,
+                                   msg="border '%s' refined the wrong part" % name)
+        self.assertRaises(RuntimeError, RefinementQueue3D().refineBorder,
+                          "sideways", 0.1)
+
+    def test_refine_sphere(self):
+        """see the 2D circle: a sphere refines every element it overlaps"""
+        f = RefinementQueue3D()
+        f.setRefinementLevel(2)
+        f.refineSphere(x0=0.3, y0=0.6, z0=0.4, r=0.1)
+        refined = f.apply(self.domain)
+        self.assertGreater(numElements(refined), numElements(self.domain),
+                           "refineSphere refined nothing")
+        g = RefinementQueue3D()
+        g.setRefinementLevel(2)
+        g.refineUniform()
+        self.assertLess(numElements(refined), numElements(g.apply(self.domain)),
+                        "a sphere is not the whole domain")
 
     def test_wrong_dimension_is_refused(self):
         rect = Rectangle(n0=N0, n1=N1, l0=L0, l1=L1)

@@ -20,12 +20,10 @@ RefinementType::RefinementType()
 	depth = 0.0;
 	flavour = POINT2D;
 	levels = 1;
-	data = new escript::Data();
 }
 
 RefinementType::~RefinementType()
 {
-	// delete [] data;
 }
 
 void RefinementType::UniformRefinement(int r_levels)
@@ -189,20 +187,18 @@ void RefinementType::Border3DRefinement()
 	depth = -1;
 }
 
-void RefinementType::Mask2DRefinement(escript::Data * d, int r_levels)
+void RefinementType::Mask2DRefinement(std::string t, int r_levels)
 {
 	levels=r_levels;
 	flavour=MASK2D;
-	data->copy(*d);
-	// data = new escript::Data(d->copySelf());
+	tag=t;
 }
 
-void RefinementType::Mask3DRefinement(escript::Data * d, int r_levels)
+void RefinementType::Mask3DRefinement(std::string t, int r_levels)
 {
 	levels=r_levels;
 	flavour=MASK3D;
-	data->copy(*d);
-	// data = new escript::Data(d->copySelf());
+	tag=t;
 }
 
 } //namespace oxley

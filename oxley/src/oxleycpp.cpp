@@ -20,6 +20,8 @@
 #include <oxley/RefinementQueue.h>
 
 #include <boost/python.hpp>
+#include <boost/python/object/add_to_namespace.hpp>
+#include <boost/python/raw_function.hpp>
 #ifdef ESYS_HAVE_BOOST_NUMPY
 #include <boost/python/numpy.hpp>
 #include <boost/python/numpy/dtype.hpp>
@@ -295,6 +297,44 @@ oxley::RefinementQueue3D_Ptr _refinementQueue3D()
     return oxley::RefinementQueue3D_Ptr(new RefinementQueue3D());
 }
 
+// queue.apply(domain, tag=mask, ...): the keyword arguments are the masks
+// for the tags refineMask queued. boost::python cannot declare **kwargs, hence
+// a raw function.
+template<class Queue>
+boost::python::object _applyQueue(boost::python::tuple args, boost::python::dict kwargs)
+{
+    using namespace boost::python;
+    dict masks = kwargs.copy();
+    object domain;
+    if(len(args) == 2 && !masks.has_key("domain"))
+        domain = args[1];
+    else if(len(args) == 1 && masks.has_key("domain"))
+    {
+        domain = masks["domain"];
+        masks.attr("pop")("domain");
+    }
+    else
+        throw OxleyException("apply() takes the domain to refine as its one "
+                "positional argument, followed by the masks as tag=mask.");
+    extract<escript::Domain_ptr> dom(domain);
+    if(!dom.check())
+        throw OxleyException("apply(): the first argument must be a domain.");
+
+    oxley::MaskMap maskMap;
+    list tags = masks.keys();
+    for(int i = 0; i < len(tags); i++)
+    {
+        std::string tag = extract<std::string>(tags[i]);
+        extract<escript::Data> mask(masks[tag]);
+        if(!mask.check())
+            throw OxleyException("apply(): the mask '" + tag + "' must be a "
+                    "Data object.");
+        maskMap[tag] = mask();
+    }
+    Queue& queue = extract<Queue&>(args[0]);
+    return object(queue.apply(dom(), maskMap));
+}
+
 BOOST_PYTHON_MODULE(oxleycpp)
 {
 
@@ -567,22 +607,28 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param target:\n:type Data: The target Data object. \n")
         ;
 
+    const char* applyDoc =
+            "apply(domain, **masks)\n\n"
+            "Applies the queued refinements to a domain and returns the RESULT as\n"
+            "a new domain. The domain passed in is not modified, so the caller\n"
+            "keeps a usable handle on the coarser mesh and on any Data over it.\n"
+            "Collective: every rank of the domain's communicator must call it,\n"
+            "with the same queue.\n\n"
+            ":param domain: the domain to refine\n"
+            ":type domain: `Domain`\n"
+            ":param masks: tag=mask for every tag refineMask queued, each a\n"
+            "              scalar Data on domain\n"
+            ":return: the refined domain\n:rtype: `Domain`";
+
     class_<oxley::RefinementQueue>("RefinementQueue", "")
 
     ;
 
-    class_<oxley::RefinementQueue2D, bases<oxley::RefinementQueue>>("RefinementQueue2D")
+    object queue2D = class_<oxley::RefinementQueue2D, bases<oxley::RefinementQueue>>("RefinementQueue2D")
         .def("refineUniform", &oxley::RefinementQueue2D::refineUniform, (arg("level")=-1),
                 "Queues a refinement of EVERY element, the old refineMesh(\"uniform\").\n"
                 ":param level: levels of refinement, default the queue's own\n"
                 ":type level: ``int``")
-        .def("apply", &oxley::RefinementQueue2D::apply, (arg("domain")),
-                "Applies the queued refinements to a domain and returns the RESULT as\n"
-                "a new domain. The domain passed in is not modified, so the caller\n"
-                "keeps a usable handle on the coarser mesh and on any Data over it.\n\n"
-                ":param domain: the domain to refine\n"
-                ":type domain: `Domain`\n"
-                ":return: the refined domain\n:rtype: `Domain`")
         .def("setRefinementLevel", &oxley::RefinementQueue2D::setRefinementLevel, (arg("level")),
                 "Sets the level of refinement\n"
                 ":param level:\n:type int: the level of the refinement.\n")
@@ -615,26 +661,29 @@ BOOST_PYTHON_MODULE(oxleycpp)
         .def("refineBorder", static_cast<void (oxley::RefinementQueue2D::*)(std::string, float, int)>(&oxley::RefinementQueue2D::refineBorder), (arg("border"),arg("dx"),arg("level")=-1),
                 "Refines the border of the mesh to depth dx to the level of refinement"
                 "set by setRefinementLevel\n"
-                ":param Border:\n:type string: The border to refine (top,bottom,right,left).\n"
+                ":param border: top or bottom (north, south): the faces normal to x1;\n"
+                "    left or right (west, east): the faces normal to x0\n"
+                ":type border: ``string``\n"
                 ":param dx:\n:type float: the depth of the refinement.\n"
                 ":param level:\n:type float: the level of refinement.\n")
-        .def("refineMask", &oxley::RefinementQueue2D::refineMask, (args("mask")),
-                "Refines the mesh in regions defined by a mask\n"
-                ":param mask:\n:type Data: a mask.\n")
+        .def("refineMask", &oxley::RefinementQueue2D::refineMask, (arg("tag"),arg("level")=-1),
+                "Queues a refinement of the elements where the mask named ``tag``\n"
+                "is positive at any quadrature point. The queue only holds the\n"
+                "name; the mask, a scalar Data on the domain being refined, is\n"
+                "handed to apply as a keyword: ``q.apply(domain, tag=mask)``.\n\n"
+                ":param tag: the name of the mask, a python identifier\n"
+                ":type tag: ``string``\n"
+                ":param level: the level of refinement, default the queue's own\n"
+                ":type level: ``int``")
         ;
+    objects::add_to_namespace(queue2D, "apply",
+            raw_function(&oxley::_applyQueue<oxley::RefinementQueue2D>, 1), applyDoc);
 
-    class_<oxley::RefinementQueue3D, bases<oxley::RefinementQueue>>("RefinementQueue3D")
+    object queue3D = class_<oxley::RefinementQueue3D, bases<oxley::RefinementQueue>>("RefinementQueue3D")
         .def("refineUniform", &oxley::RefinementQueue3D::refineUniform, (arg("level")=-1),
                 "Queues a refinement of EVERY element, the old refineMesh(\"uniform\").\n"
                 ":param level: levels of refinement, default the queue's own\n"
                 ":type level: ``int``")
-        .def("apply", &oxley::RefinementQueue3D::apply, (arg("domain")),
-                "Applies the queued refinements to a domain and returns the RESULT as\n"
-                "a new domain. The domain passed in is not modified, so the caller\n"
-                "keeps a usable handle on the coarser mesh and on any Data over it.\n\n"
-                ":param domain: the domain to refine\n"
-                ":type domain: `Domain`\n"
-                ":return: the refined domain\n:rtype: `Domain`")
         .def("setRefinementLevel", &oxley::RefinementQueue3D::setRefinementLevel, (args("level")),
                 "Sets the level of refinement\n"
                 ":param level:\n:type int: the level of the refinement.\n")
@@ -671,13 +720,23 @@ BOOST_PYTHON_MODULE(oxleycpp)
         .def("refineBorder", static_cast<void (oxley::RefinementQueue3D::*)(std::string, float, int)>(&oxley::RefinementQueue3D::refineBorder), (arg("border"),arg("dx"),arg("level")=-1),
                 "Refines the border of the mesh to depth dx to the level of refinement"
                 "set by setRefinementLevel\n"
-                ":param Border:\n:type string: The border to refine (top,bottom,right,left).\n"
+                ":param border: top or bottom: the faces normal to x2; north or south\n"
+                "    (back, front): normal to x1; east or west (right, left): normal to x0\n"
+                ":type border: ``string``\n"
                 ":param dx:\n:type float: the depth of the refinement.\n"
                 ":param level:\n:type float: the level of refinement.\n")
-        .def("refineMask", &oxley::RefinementQueue3D::refineMask, (arg("mask"),arg("level")=-1),
-                "Refines the mesh in regions defined by a mask\n"
-                ":param mask:\n:type Data: a mask.\n")
+        .def("refineMask", &oxley::RefinementQueue3D::refineMask, (arg("tag"),arg("level")=-1),
+                "Queues a refinement of the elements where the mask named ``tag``\n"
+                "is positive at any quadrature point. The queue only holds the\n"
+                "name; the mask, a scalar Data on the domain being refined, is\n"
+                "handed to apply as a keyword: ``q.apply(domain, tag=mask)``.\n\n"
+                ":param tag: the name of the mask, a python identifier\n"
+                ":type tag: ``string``\n"
+                ":param level: the level of refinement, default the queue's own\n"
+                ":type level: ``int``")
         ;
+    objects::add_to_namespace(queue3D, "apply",
+            raw_function(&oxley::_applyQueue<oxley::RefinementQueue3D>, 1), applyDoc);
 
     class_<oxley::AbstractAssembler, oxley::Assembler_ptr, boost::noncopyable >  ("AbstractAssembler", "", no_init);
 

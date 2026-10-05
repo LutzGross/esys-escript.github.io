@@ -2,11 +2,15 @@
 #ifndef _OXLEY_REFINEMENTQUEUE
 #define _OXLEY_REFINEMENTQUEUE
 
+#include <array>
 #include <iostream>
+#include <map>
+#include <set>
 #include <string>
 #include <vector>
 
 #include <escript/AbstractContinuousDomain.h>
+#include <escript/Data.h>
 #include <escript/DataTypes.h>
 #include <escript/Pointers.h>
 
@@ -30,6 +34,9 @@ typedef POINTER_WRAPPER_CLASS(RefinementQueue3D) RefinementQueue3D_Ptr;
 typedef POINTER_WRAPPER_CLASS(const RefinementQueue)   const_RefinementQueue_Ptr;
 typedef POINTER_WRAPPER_CLASS(const RefinementQueue2D) const_RefinementQueue2D_Ptr;
 typedef POINTER_WRAPPER_CLASS(const RefinementQueue3D) const_RefinementQueue3D_Ptr;
+
+/// the masks handed to apply(), by the tag refineMask queued them under
+typedef std::map<std::string, escript::Data> MaskMap;
 
 /**
     \brief
@@ -110,6 +117,9 @@ public:
 private:
 
 protected:
+    /// throws unless masks holds exactly the tags refineMask queued; who
+    /// names the caller in the message
+    void checkMasks(const MaskMap& masks, const std::string& who);
 };
 
 
@@ -132,7 +142,10 @@ public:
     /// south, west, east). The Border enum is not exposed to python, so this
     /// is the form callers actually use.
     void refineBorder(std::string border, float dx, int level);
-    void refineMask(escript::Data d, int level);
+    /// queues a refinement where the mask named tag is positive. The queue is
+    /// a template that is not tied to a domain, so it holds only the name: the
+    /// mask itself is handed to apply().
+    void refineMask(std::string tag, int level);
 
     /**
        \brief
@@ -142,10 +155,16 @@ public:
        the caller keeps a usable handle on the coarser mesh and on any Data
        defined over it.
 
+       Collective: every rank of the domain's communicator must call it, with
+       the same queue.
+
        \param domain the domain to refine; must be 2D (a Rectangle)
+       \param masks the mask for each tag refineMask queued, a scalar Data
+              on domain. Every tag must have one, and every mask a tag.
        \return the refined domain
     */
-    escript::Domain_ptr apply(escript::Domain_ptr domain);
+    escript::Domain_ptr apply(escript::Domain_ptr domain,
+                              const MaskMap& masks = MaskMap());
 
     /**
        \brief
@@ -167,7 +186,10 @@ private:
     void growInRegion(Rectangle& dom, double x0, double x1, double y0, double y1);
     void growAtPoint(Rectangle& dom, double x0, double y0);
     void growAtCircle(Rectangle& dom, double x0, double y0, double r);
-    void growFromMask(Rectangle& dom, escript::Data mask);
+    void growFromMask(Rectangle& dom, const std::set<std::array<long,4>>& masked);
+    /// the leaves of source where mask is positive, gathered from all ranks
+    void collectMasked(Rectangle& source, const escript::Data& mask,
+                       std::set<std::array<long,4>>& masked);
 
 public:
 
@@ -198,7 +220,8 @@ public:
     /// The Border enum is not exposed to python, so this is the form
     /// callers actually use.
     void refineBorder(std::string border, float dx, int level);
-    void refineMask(escript::Data d, int level);
+    /// see RefinementQueue2D::refineMask
+    void refineMask(std::string tag, int level);
 
     /**
        \brief
@@ -208,10 +231,16 @@ public:
        the caller keeps a usable handle on the coarser mesh and on any Data
        defined over it.
 
+       Collective: every rank of the domain's communicator must call it, with
+       the same queue.
+
        \param domain the domain to refine; must be 3D (a Brick)
+       \param masks the mask for each tag refineMask queued, a scalar Data
+              on domain. Every tag must have one, and every mask a tag.
        \return the refined domain
     */
-    escript::Domain_ptr apply(escript::Domain_ptr domain);
+    escript::Domain_ptr apply(escript::Domain_ptr domain,
+                              const MaskMap& masks = MaskMap());
 
     /**
        \brief
@@ -234,7 +263,10 @@ private:
                       double y1, double z0, double z1);
     void growAtPoint(Brick& dom, double x0, double y0, double z0);
     void growAtSphere(Brick& dom, double x0, double y0, double z0, double r);
-    void growFromMask(Brick& dom, escript::Data mask);
+    void growFromMask(Brick& dom, const std::set<std::array<long,5>>& masked);
+    /// the leaves of source where mask is positive, gathered from all ranks
+    void collectMasked(Brick& source, const escript::Data& mask,
+                       std::set<std::array<long,5>>& masked);
 
 public:
 

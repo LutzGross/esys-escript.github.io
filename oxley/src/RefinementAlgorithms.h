@@ -13,6 +13,8 @@
 
 #include <oxley/OxleyData.h>
 
+#include <vector>
+
 #include <p4est.h>
 #include <p4est_iterate.h>
 #include <p8est.h>
@@ -60,6 +62,11 @@ int refine_point(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadra
 int refine_sphere(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant);
 int refine_mask(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
 int refine_mask(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant);
+
+/// replaces v, on every rank of comm, by the concatenation of v over all ranks
+/// in rank order. Used by the mask refinements, which must mark the same
+/// quadrants on every rank: each rank sees only the mask on its own elements.
+void allgatherLongs(sc_MPI_Comm comm, std::vector<long>& v);
 
 /*
  *  \brief

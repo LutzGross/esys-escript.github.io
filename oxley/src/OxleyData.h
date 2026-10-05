@@ -19,6 +19,8 @@
 #include <oxley/OxleyDomain.h>
 #include <oxley/Rectangle.h>
 
+#include <array>
+#include <set>
 #include <unordered_map>
 #include <utility>
 
@@ -212,7 +214,9 @@ public:
 	int max_levels_refinement = 0;
 	double refinement_depth=0.0;
 	double refinement_boundaries[4]={0.0};
-	escript::Data mask; // a mask
+	// leaves (tree, x, y, level) of the SOURCE forest a mask refinement marked;
+	// read by refine_mask, set and cleared by RefinementQueue2D::growFromMask
+	std::set<std::array<long,4>> mask_quadrants;
 
 	// Pointer to the current solution and Node ID info
 	// std::unordered_map<long,double> * current_solution;
@@ -290,7 +294,10 @@ public:
 	int max_levels_refinement = 0;
 	double refinement_depth=0.0;
 	double refinement_boundaries[6]={0.0};
-	escript::Data mask; // a pointer to a mask
+	// leaves (tree, x, y, z, level) of the SOURCE forest a mask refinement
+	// marked; read by refine_mask, set and cleared by
+	// RefinementQueue3D::growFromMask
+	std::set<std::array<long,5>> mask_octants;
 
 	// Pointer to the current solution and Node ID info
 	std::unordered_map<long,double> * current_solution;

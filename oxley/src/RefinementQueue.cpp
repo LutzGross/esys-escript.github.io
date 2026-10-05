@@ -13,6 +13,42 @@
 
 namespace oxley {
 
+namespace {
+/// a mask tag is handed to apply() as a keyword argument, apply(domain,
+/// tag=mask), so it has to be a python identifier, and cannot be "domain"
+void checkMaskTag(const std::string& tag)
+{
+    bool ok = !tag.empty() && (std::isalpha((unsigned char) tag[0]) || tag[0] == '_');
+    for(size_t i = 1; ok && i < tag.size(); i++)
+        ok = std::isalnum((unsigned char) tag[i]) || tag[i] == '_';
+    if(!ok)
+        throw OxleyException("refineMask: the tag '" + tag + "' is not a valid "
+                "name. It is passed to apply() as a keyword argument, so it "
+                "must be a python identifier.");
+    if(tag == "domain")
+        throw OxleyException("refineMask: 'domain' cannot be a tag, it is "
+                "the name of apply()'s first argument.");
+}
+} // anonymous namespace
+
+void RefinementQueue::checkMasks(const MaskMap& masks, const std::string& who)
+{
+    std::set<std::string> tags;
+    for(size_t i = 0; i < queue.size(); i++)
+        if(queue[i].flavour == MASK2D || queue[i].flavour == MASK3D)
+            tags.insert(queue[i].tag);
+    for(const std::string& tag : tags)
+        if(masks.find(tag) == masks.end())
+            throw OxleyException(who + ": no mask given for the tag '" + tag
+                    + "'. Pass it as apply(domain, " + tag + "=mask).");
+    // an unknown name is most likely a misspelt tag, which would otherwise
+    // silently refine nothing
+    for(MaskMap::const_iterator m = masks.begin(); m != masks.end(); ++m)
+        if(tags.count(m->first) == 0)
+            throw OxleyException(who + ": '" + m->first + "' is not the tag "
+                    "of any mask refinement in the queue.");
+}
+
 RefinementQueue::RefinementQueue()
 {
 	refinement_levels=0;
@@ -109,30 +145,14 @@ void RefinementQueue2D::refineBorder(Border b, float dx, int level)
 	addToQueue(refine);
 }
 
-void RefinementQueue2D::refineMask(escript::Data mask, int level)
+void RefinementQueue2D::refineMask(std::string tag, int level)
 {
-	level == -1 ? 1 : level;
-
-    int numsamples = mask.getNumSamples();
-    int dpps = mask.getNumDataPointsPerSample(); // should always be = 1
-
-    for (int i=0; i<numsamples; ++i) 
-    {
-        const escript::DataTypes::real_t onlyreal=0;
-        for (int j=0; j<dpps; ++j)
-        {
-            const double* masksample = mask.getSampleDataRO(i, onlyreal);
-            bool doRefinement = masksample[0];
-            if(!doRefinement)
-            {
-                escript::Data x = mask.getXFromFunctionSpace();
-                auto p = x.getSampleDataRO(i, onlyreal);
-                RefinementType refine;
-                refine.Point3DRefinement(*(p), *(p+1), *(p+2), level);
-                addToQueue(refine); 
-            }
-        }
-    }
+    checkMaskTag(tag);
+    if(level == -1)
+        level=refinement_levels;
+	RefinementType refine;
+	refine.Mask2DRefinement(tag,level);
+	addToQueue(refine);
 }
 
 void RefinementQueue2D::print()
@@ -207,7 +227,7 @@ void RefinementQueue2D::print()
             }
         	case MASK2D:
     		{
-    			std::cout << "A mask refinement " << std::endl;
+    			std::cout << "Mask '" << Refinement.tag << "', level=" << l << std::endl;
     			break;
     		}
         	case POINT3D:
@@ -285,91 +305,14 @@ void RefinementQueue3D::refineBorder(Border b, float dx, int level)
 	addToQueue(refine);
 }
 
-void RefinementQueue3D::refineMask(escript::Data mask, int level)
+void RefinementQueue3D::refineMask(std::string tag, int level)
 {
-    level == -1 ? 1 : level;
-
-    int numsamples = mask.getNumSamples();
-    int dpps = mask.getNumDataPointsPerSample(); // should always be = 1
-
-    for (int i=0; i<numsamples; ++i) 
-    {
-        const escript::DataTypes::real_t onlyreal=0;
-        for (int j=0; j<dpps; ++j)
-        {
-            const double* masksample = mask.getSampleDataRO(i, onlyreal);
-            bool doRefinement = masksample[0];
-            if(!doRefinement)
-            {
-                escript::Data x = mask.getXFromFunctionSpace();
-                auto p = x.getSampleDataRO(i, onlyreal);
-                RefinementType refine;
-                refine.Point3DRefinement(*(p), *(p+1), *(p+2), level);
-                addToQueue(refine);
-            }
-        }
-    }
-
-// #ifdef HAVE_OPENMP
-//     if(omp_get_num_threads() == 1)
-//     {
-//     }
-//     else
-//     {
-//         #pragma omp parallel
-//         {
-//             int numsamples = mask.getNumSamples();
-//             int dpps = mask.getNumDataPointsPerSample();
-//             std::vector<std::vector<RefinementType>> storage;
-//             // #pragma omp parallel for shared(storage)
-//             for (int i=0; i<numsamples; ++i) 
-//             {
-//                 const escript::DataTypes::real_t onlyreal=0;
-//                 for (int j=0; j<dpps; ++j) 
-//                 {
-//                     const double* masksample = mask.getSampleDataRO(i, onlyreal);
-//                     bool doRefinement = masksample[j];
-//                     if(doRefinement == true)
-//                     {
-//                         escript::Data x = mask.getXFromFunctionSpace();
-
-
-//                         // RefinementType refine;
-//                         // refine.Point3DRefinement(x0, y0, z0, level);
-//                         // storage.push_back(refine);
-//                     }
-//                 }
-//             }
-
-//             #pragma omp barrier
-//             if(omp_get_thread_num()==0)
-//             {
-//                 for(int i = 0; i > omp_get_num_threads(); i++)
-//                 {
-//                     std::vector<RefinementType> tmp = storage[i];
-//                     for(int j = 0; j < tmp.size(); j++)
-//                         addToQueue(tmp[j]); 
-//                 }
-//             }
-//         } // omp parallel
-//     }
-
-// #else
-//     int numsamples = mask.getNumSamples();
-//     int dpps = mask.getNumDataPointsPerSample();
-//     const escript::DataTypes::real_t onlyreal=0;
-//     for (int i=0; i<numsamples; ++i) {
-//         for (int j=0; j<dpps; ++j) {
-//             bool doRefinement = mask.getSampleDataRO(i, onlyreal);
-
-//             // RefinementType refine;
-//             // refine.Point3DRefinement(x0, y0, z0, level);
-//             // addToQueue(refine); 
-//         }
-//     }
-
-
-// #endif
+    checkMaskTag(tag);
+    if(level == -1)
+        level=refinement_levels;
+	RefinementType refine;
+	refine.Mask3DRefinement(tag,level);
+	addToQueue(refine);
 }
 
 void RefinementQueue3D::print()
@@ -419,22 +362,22 @@ void RefinementQueue3D::print()
                 {
                     case NORTH:
                     {
-                        std::cout << " (Top)";
+                        std::cout << " (North)";
                         break;
                     }
                     case SOUTH:
                     {
-                        std::cout << " (Bottom)";
+                        std::cout << " (South)";
                         break;
                     }
                     case WEST:
                     {
-                        std::cout << " (Left)";
+                        std::cout << " (West)";
                         break;
                     }
                     case EAST:
                     {
-                        std::cout << " (Right)";
+                        std::cout << " (East)";
                         break;
                     }
                     case TOP:
@@ -457,7 +400,7 @@ void RefinementQueue3D::print()
             }
         	case MASK3D:
     		{
-    			std::cout << "A mask refinement " << std::endl;
+    			std::cout << "Mask '" << Refinement.tag << "', level=" << l << std::endl;
     			break;
     		}
         	case POINT2D:
@@ -486,12 +429,22 @@ Border borderFromName(std::string name, int dim)
 {
     for(size_t i = 0; i < name.size(); ++i)
         name[i] = std::tolower(name[i]);
-    if(name == "top" || name == "north")     return NORTH;
-    if(name == "bottom" || name == "south")  return SOUTH;
-    if(name == "left" || name == "west")     return WEST;
-    if(name == "right" || name == "east")    return EAST;
-    if(dim == 3 && (name == "front"))        return TOP;
-    if(dim == 3 && (name == "back"))         return BOTTOM;
+    if(name == "left" || name == "west")     return WEST;    // x minimal
+    if(name == "right" || name == "east")    return EAST;    // x maximal
+    if(dim == 2)
+    {
+        if(name == "top" || name == "north")     return NORTH;   // y maximal
+        if(name == "bottom" || name == "south")  return SOUTH;   // y minimal
+    }
+    else
+    {
+        // in 3D top and bottom are the faces normal to z, north and south
+        // (back and front) those normal to y
+        if(name == "north" || name == "back")    return NORTH;   // y maximal
+        if(name == "south" || name == "front")   return SOUTH;   // y minimal
+        if(name == "top")                        return TOP;     // z maximal
+        if(name == "bottom")                     return BOTTOM;  // z minimal
+    }
     throw OxleyException("refineBorder: unknown border '" + name + "'.");
 }
 } // anonymous namespace

@@ -365,12 +365,15 @@ Brick::Brick(oxley::Brick& B, int order, bool update):
                                           forestData->m_origin[1], forestData->m_lxyz[1], 
                                           forestData->m_origin[2], forestData->m_lxyz[2]);    
 
-    p8est_locidx_t min_quadrants = 0;  // per-processor min; keep 0 for MPI mesh consistency (A6)
-    int min_level = 0;
-    int fill_uniform = 1;
-    oxleytimer.toc("\t creating p8est...");
-    p8est = p8est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
-        min_level, fill_uniform, sizeof(octantData), &init_brick_data, (void *) forestData);
+    // Copy the forest, refinement and partition included. This used to build
+    // a fresh uniform level-0 forest, so a queue applied to a refined Brick
+    // threw that refinement away. The copy keeps B's communicator, but is
+    // pointed at its own (identical) connectivity, which this Brick owns: it
+    // must not depend on B staying alive.
+    oxleytimer.toc("\t copying p8est...");
+    p8est = p8est_copy(B.p8est, 1);
+    p8est->connectivity = connectivity;
+    p8est->user_pointer = (void *) forestData;
 
 //These checks are turned off by default as they can be very timeconsuming
 #ifdef OXLEY_ENABLE_TIMECONSUMING_DEBUG_CHECKS
@@ -1207,6 +1210,18 @@ void Brick::print_debug_report(std::string locat)
 
 Assembler_ptr Brick::createAssembler(std::string type, const DataMap& constants) const
 {
+    // The assembler knows nothing of hanging nodes: at a 2:1 seam the element
+    // matrix of the fine element lands on the far master, 2h away, as if it
+    // were the element's own corner. On a graded forest it assembles a wrong
+    // operator without complaint - the linear patch test misses by ~20% and
+    // the answer changes with the number of ranks. Refuse rather than return
+    // plausible numbers. Collective, as every rank builds the PDE.
+    if (!isConforming())
+        throw escript::NotImplementedError("PDEs cannot be solved directly on "
+                "an oxley domain with hanging nodes (a refined or graded "
+                "forest). Export the mesh with toFinley(), solve on the finley "
+                "domain, and bring the solution back with fromFinleyData().");
+
 #ifndef ESYS_HAVE_TRILINOS
     // The 3D assembler is trilinos-only, and PDEs on an adaptive oxley mesh
     // are solved by exporting to finley anyway - so a build without trilinos
@@ -7050,14 +7065,14 @@ void RefinementQueue3D::growAtBorder(Brick& dom, std::string boundaryname, doubl
     }
     else if(!boundaryname.compare("top") || !boundaryname.compare("Top")
         || !boundaryname.compare("t") || !boundaryname.compare("T")
-        || !boundaryname.compare("EAST"))
+        || !boundaryname.compare("TOP"))
     {
         p8est_refine_ext(dom.p8est, true, -1, refine_top, init_brick_data, refine_copy_parent_octant);
         p8est_balance_ext(dom.p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);  
     }
     else if(!boundaryname.compare("bottom") || !boundaryname.compare("Bottom")
         || !boundaryname.compare("b") || !boundaryname.compare("B")
-        || !boundaryname.compare("EAST"))
+        || !boundaryname.compare("BOTTOM"))
     {
         p8est_refine_ext(dom.p8est, true, -1, refine_bottom, init_brick_data, refine_copy_parent_octant);
         p8est_balance_ext(dom.p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);  
@@ -7189,14 +7204,62 @@ void RefinementQueue3D::growAtSphere(Brick& dom, double x0, double y0, double z0
     if(dom.autoMeshUpdates)
         dom.updateMesh();
 }
-void RefinementQueue3D::growFromMask(Brick& dom, escript::Data mask)
+void RefinementQueue3D::collectMasked(Brick& source, const escript::Data& mask,
+                                      std::set<std::array<long,5>>& masked)
+{
+    if(mask.isEmpty())
+        throw OxleyException("RefinementQueue3D::apply: a mask is empty.");
+    if(mask.getDomain().get() != &source)
+        throw OxleyException("RefinementQueue3D::apply: a mask must be defined "
+                "on the domain passed to apply().");
+    if(mask.getDataPointRank() != 0 || mask.isComplex())
+        throw OxleyException("RefinementQueue3D::apply: a mask must be a real "
+                "scalar.");
+
+    // an element is marked if the mask is positive at any of its quadrature
+    // points; the samples of Function are the local leaves in tree order
+    escript::Data m(mask, escript::function(source));
+    // a constant or tagged Data stores one value per sample, not one per point
+    m.expand();
+    const int numPoints = m.getNumDataPointsPerSample();
+    const escript::DataTypes::real_t zero = 0;
+    std::vector<long> keys;
+    long e = 0;
+    for(p8est_topidx_t treeid = source.p8est->first_local_tree;
+            treeid <= source.p8est->last_local_tree; ++treeid)
+    {
+        p8est_tree_t * tree = p8est_tree_array_index(source.p8est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        for(size_t q = 0; q < tquadrants->elem_count; q++, e++)
+        {
+            const double* v = m.getSampleDataRO(e, zero);
+            bool marked = false;
+            for(int i = 0; i < numPoints && !marked; i++)
+                marked = v[i] > 0.;
+            if(marked)
+            {
+                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+                keys.insert(keys.end(), {(long) treeid, (long) quad->x,
+                        (long) quad->y, (long) quad->z, (long) quad->level});
+            }
+        }
+    }
+
+    // each rank sees the mask only on its own elements, but every rank must
+    // refine the same octants
+    allgatherLongs(source.p8est->mpicomm, keys);
+    for(size_t k = 0; k < keys.size(); k += 5)
+        masked.insert({keys[k], keys[k+1], keys[k+2], keys[k+3], keys[k+4]});
+}
+
+void RefinementQueue3D::growFromMask(Brick& dom, const std::set<std::array<long,5>>& masked)
 {
     dom.z_needs_update=true;
     dom.iz_needs_update=true;
 
-    // If the boundaries were not specified by the user, default to the border of the domain
-    dom.forestData->mask = mask;
+    dom.forestData->mask_octants = masked;
     p8est_refine_ext(dom.p8est, true, -1, refine_mask, init_brick_data, refine_copy_parent_octant);
+    dom.forestData->mask_octants.clear();
     p8est_balance_ext(dom.p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
 
     // Make sure that nothing went wrong
@@ -7214,7 +7277,8 @@ void RefinementQueue3D::growFromMask(Brick& dom, escript::Data mask)
         dom.updateMesh();
 }
 
-escript::Domain_ptr RefinementQueue3D::apply(escript::Domain_ptr domain)
+escript::Domain_ptr RefinementQueue3D::apply(escript::Domain_ptr domain,
+                                             const MaskMap& masks)
 {
     if(domain.get() == NULL)
         throw OxleyException("RefinementQueue3D::apply: no domain given.");
@@ -7222,6 +7286,7 @@ escript::Domain_ptr RefinementQueue3D::apply(escript::Domain_ptr domain)
     if(source == NULL)
         throw OxleyException("RefinementQueue3D::apply: the domain is not a Brick. "
                 "Use RefinementQueue2D for a Rectangle.");
+    checkMasks(masks, "RefinementQueue3D::apply");
 
     source->oxleytimer.toc("Applying the refinement zone...");
 
@@ -7322,32 +7387,32 @@ escript::Domain_ptr RefinementQueue3D::apply(escript::Domain_ptr domain)
                 {
                     case NORTH:
                     {
-                        growAtBorder(*newDomain, "TOP",dx);
+                        growAtBorder(*newDomain, "north",dx);
                         break;
                     }
                     case SOUTH:
                     {
-                        growAtBorder(*newDomain, "BOTTOM",dx);
+                        growAtBorder(*newDomain, "south",dx);
                         break;
                     }
                     case WEST:
                     {
-                        growAtBorder(*newDomain, "LEFT",dx);
+                        growAtBorder(*newDomain, "west",dx);
                         break;
                     }
                     case EAST:
                     {
-                        growAtBorder(*newDomain, "RIGHT",dx);
+                        growAtBorder(*newDomain, "east",dx);
                         break;
                     }
                     case TOP:
                     {
-                        growAtBorder(*newDomain, "TOP",dx);
+                        growAtBorder(*newDomain, "top",dx);
                         break;
                     }
                     case BOTTOM:
                     {
-                        growAtBorder(*newDomain, "BOTTOM",dx);
+                        growAtBorder(*newDomain, "bottom",dx);
                         break;
                     }
                     default:
@@ -7359,16 +7424,13 @@ escript::Domain_ptr RefinementQueue3D::apply(escript::Domain_ptr domain)
             }
             case MASK3D:
             {
-                if(n == 0)
-                {
-                    escript::Data d = *Refinement.data;
-                    growFromMask(*newDomain, d);
-                    break;
-                }
-                else
-                {
-                    throw OxleyException("Can only apply a mask refinement if it is first in the queue.");
-                }
+                // the mask is read on the SOURCE, whose leaves every octant of
+                // the new forest descends from, so a mask refinement can sit
+                // anywhere in the queue
+                std::set<std::array<long,5>> masked;
+                collectMasked(*source, masks.find(Refinement.tag)->second, masked);
+                growFromMask(*newDomain, masked);
+                break;
             }
             case MASK2D:
             case CIRCLE:
