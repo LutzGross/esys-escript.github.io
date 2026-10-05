@@ -490,6 +490,17 @@ protected:
 
     /**
        \brief
+       Positions of the nodes our elements reference ONLY through hanging slots,
+       which the ordinary coordinate walk therefore leaves unset. Reconstructed
+       locally: every hanging corner H of an octant is the midpoint between the
+       octant's anchor corner A (the corner the face_code names) and the master
+       its slot holds, so that master is at 2H - A. Returns parallel arrays of
+       local node index and position (three coordinates per node).
+    */
+    void farMasterCoords(std::vector<long>& ids, std::vector<double>& xyz) const;
+
+    /**
+       \brief
        Returns the number of face elements
     */
     dim_t getNumFaceElements() const;

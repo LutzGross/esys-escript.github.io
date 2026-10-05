@@ -3885,6 +3885,23 @@ void Brick::assembleCoordinates(escript::Data& arg) const
             }
         }
     }
+    // Any node our elements only ever reference as a hanging slot has no
+    // coordinate yet and would silently stay at the origin; see
+    // farMasterCoords(). (MPI only.)
+    {
+        std::vector<long> fmIds;
+        std::vector<double> fmXYZ;
+        farMasterCoords(fmIds, fmXYZ);
+        for (size_t k = 0; k < fmIds.size(); ++k) {
+            const long lni = fmIds[k];
+            if (lni < 0 || lni >= (long) getNumNodes() || duplicates[lni])
+                continue;
+            duplicates[lni] = true;
+            double * point = arg.getSampleDataRW(lni);
+            for (int d = 0; d < 3; ++d)
+                point[d] = fmXYZ[3*k + d];
+        }
+    }
 #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_COORDINATES_POINTS
     std::cout << "assembleCoordinates new points are..." << std::endl;
     for(int i = 0; i < getNumNodes() ; i++)
@@ -4719,6 +4736,61 @@ bool Brick::isConforming() const
 }
 
 //protected
+void Brick::farMasterCoords(std::vector<long>& ids,
+                            std::vector<double>& xyz) const
+{
+    ids.clear();
+    xyz.clear();
+
+    // A node referenced by our elements ONLY through hanging slots never gets a
+    // coordinate from the ordinary walk, which skips those slots so they cannot
+    // overwrite their master's position. That happens under MPI when the coarse
+    // octant the master is a corner of, and every fine octant it is a real
+    // corner of, sit on other ranks. The node is then left at the origin, and
+    // everything read through it - getX, any field built from it, and the
+    // averages that define the hanging nodes - is silently wrong.
+    //
+    // No halo and no communication are needed to repair it. Every hanging
+    // corner of a fine octant lies half way between the octant's anchor corner
+    // A - the corner touching no hanging face, which the face_code names - and
+    // the master its slot holds: an edge midpoint halves the coarse edge from A,
+    // a face centre halves the coarse face's diagonal from A. So that master
+    // sits at 2H - A, from this octant's own geometry. (The 2D rule, see
+    // Rectangle::farMasterCoords, is the same.)
+    static const int ones = P8EST_CHILDREN - 1;
+    const int V = nodes->vnodes;
+    long e = 0;
+    for (p8est_topidx_t treeid = p8est->first_local_tree;
+         treeid <= p8est->last_local_tree; ++treeid) {
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * octs = &tree->quadrants;
+        const p8est_locidx_t Q = (p8est_locidx_t) octs->elem_count;
+        for (p8est_locidx_t q = 0; q < Q; ++q, ++e) {
+            int masterCount[P8EST_CHILDREN], masterSlot[P8EST_CHILDREN][4];
+            if (!getHangingNodes(nodes->face_code[e], masterCount, masterSlot))
+                continue;
+            p8est_quadrant_t * oct = p8est_quadrant_array_index(octs, q);
+            const p8est_qcoord_t len = P8EST_QUADRANT_LEN(oct->level);
+            const int a = (int) (nodes->face_code[e] & ones);
+            double A[3];
+            p8est_qcoord_to_vertex(p8est->connectivity, treeid,
+                    oct->x + (a & 1) * len, oct->y + ((a >> 1) & 1) * len,
+                    oct->z + ((a >> 2) & 1) * len, A);
+            for (int c = 0; c < V; ++c) {
+                if (masterCount[c] == 0)
+                    continue;
+                double H[3];
+                p8est_qcoord_to_vertex(p8est->connectivity, treeid,
+                        oct->x + (c & 1) * len, oct->y + ((c >> 1) & 1) * len,
+                        oct->z + ((c >> 2) & 1) * len, H);
+                ids.push_back((long) nodes->element_nodes[(size_t) e * V + c]);
+                for (int d = 0; d < 3; ++d)
+                    xyz.push_back(2. * H[d] - A[d]);
+            }
+        }
+    }
+}
+
 bool Brick::getHangingNodes(p8est_lnodes_code_t face_code,
                             int masterCount[P8EST_CHILDREN],
                             int masters[P8EST_CHILDREN][4]) const
@@ -5209,6 +5281,22 @@ MeshAccess Brick::getMeshAccess(bool materializeHanging) const
                     m.nodeCoords[(size_t) ni * m.numDim + d] = cornerPos[c][d];
                 haveCoords[ni] = true;
             }
+        }
+    }
+
+    // Any node our elements only ever reference as a hanging slot has no
+    // coordinate yet; see farMasterCoords(). (MPI only.)
+    {
+        std::vector<long> fmIds;
+        std::vector<double> fmXYZ;
+        farMasterCoords(fmIds, fmXYZ);
+        for (size_t k = 0; k < fmIds.size(); ++k) {
+            const long ni = fmIds[k];
+            if (ni < 0 || ni >= m.numRealNodes || haveCoords[ni])
+                continue;
+            haveCoords[ni] = true;
+            for (int d = 0; d < m.numDim; ++d)
+                m.nodeCoords[(size_t) ni * m.numDim + d] = fmXYZ[3*k + d];
         }
     }
 

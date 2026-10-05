@@ -1221,6 +1221,29 @@ class Test_FinleyExportSplit3D(unittest.TestCase):
         self.assertAlmostEqual(self.interpolantIntegral(dom),
                                0.462587610042, places=11)
 
+    def test_every_node_has_its_coordinates(self):
+        """
+        A node a rank meets only in a hanging slot - its coarse octant and all
+        the fine octants it is a real corner of being on other ranks - got no
+        coordinate and sat at the origin. getX(), every field built from it,
+        and the seam averages read through it were then silently wrong. A
+        linear field has to cross to the export unchanged, materialised seam
+        and octant-centre nodes included, and come back unchanged.
+
+        Takes four or more ranks to provoke on this forest.
+        """
+        from esys.oxley import RefinementQueue3D
+        q = RefinementQueue3D()
+        q.refineSphere(x0=0.5, y0=0.5, z0=0.5, r=0.2, level=3)
+        dom = q.apply(Brick(n0=3, n1=3, n2=3, l0=1., l1=1., l2=1.,
+                            refine_level=1))
+        fin = dom.toFinley()
+        lin = lambda X: 1. + X[0] + 10.*X[1] + 100.*X[2]
+        self.assertLess(Lsup(toFinleyData(lin(dom.getX()), fin)
+                             - lin(fin.getX())), 1e-10)
+        self.assertLess(Lsup(fromFinleyData(lin(fin.getX()), dom)
+                             - lin(dom.getX())), 1e-10)
+
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
