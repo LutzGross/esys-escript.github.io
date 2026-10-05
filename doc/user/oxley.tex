@@ -1,0 +1,364 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2026 by the esys.escript Group
+% https://github.com/LutzGross/esys-escript.github.io
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Apache License, version 2.0
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% See CREDITS file for contributors and development history
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{The \oxley Module}\label{chap:oxley}\index{oxley}
+
+\oxley provides meshes which can be refined locally. A mesh is a forest of
+quadtrees in 2D and of octrees in 3D, managed by the \texttt{p4est}
+library\index{p4est}: the domain is divided into a grid of rectangular blocks,
+and each block is subdivided recursively into quadrants (octants in 3D), more
+often where more resolution is needed. The number of subdivisions an element
+has gone through is its \emph{level}. Neighbouring elements differ by at most
+one level, so where a fine element meets a coarse one a node of the fine
+element lies in the middle of an edge (or face) of the coarse element. These
+\emph{hanging nodes}\index{hanging node} are what make the mesh
+non-conforming.
+
+The \oxley module is used to
+\begin{itemize}
+\item create a mesh with \function{Rectangle} or \function{Brick},
+\item refine it locally with a \class{RefinementQueue2D} or
+\class{RefinementQueue3D}, and
+\item hand it to \finley to solve PDEs on it, see
+Section~\ref{sec:oxley:pdes}.
+\end{itemize}
+The examples used in this chapter are \file{refinement_queue.py},
+\file{refinement_queue_3d.py} and \file{refinement_queue_mpi4py.py} in the
+\file{usersguide} directory of the examples.
+
+\section{Meshes}
+A rectangle of $4 \times 4$ blocks, each subdivided twice, so that the mesh
+has $16 \times 16$ elements, is created by
+\begin{python}
+from esys.oxley import Rectangle
+coarse = Rectangle(n0=4, n1=4, l0=1., l1=1., refine_level=2)
+\end{python}
+The refinement level can also be given per block, as an array of shape
+\var{(n0, n1)}, which grades the mesh across the block seams:
+\begin{python}
+graded = Rectangle(n0=2, n1=2, l0=1., l1=1., refine_level=[[1, 3], [2, 1]])
+\end{python}
+\function{Brick} creates a 3D mesh in the same way.
+
+\section{Local Refinement}\label{sec:oxley:refinement}
+\index{oxley!refinement}\index{RefinementQueue}
+A mesh is refined by collecting refinement operations on a
+\class{RefinementQueue2D} (for a \function{Rectangle}) or
+\class{RefinementQueue3D} (for a \function{Brick}) and applying them to the
+mesh:
+\begin{python}
+from esys.oxley import RefinementQueue2D
+queue = RefinementQueue2D()
+queue.setRefinementLevel(4)
+queue.refineCircle(x0=0.3, y0=0.6, r=0.1)            # level 4
+queue.refineBorder(border="top", dx=0.1, level=3)    # a strip along x_1=1
+queue.refineRegion(x0=0.7, y0=0.0, x1=0.9, y1=0.2)   # level 4
+fine = queue.apply(coarse)
+\end{python}
+Three properties of a queue are worth keeping in mind:
+\begin{itemize}
+\item \method{apply} does not change the domain it is given: it returns a new,
+refined domain. The coarse domain, and any \Data object defined on it, stay
+valid. \Data objects on the coarse and on the refined domain cannot be
+combined; to carry values over, interpolate them or recompute them on the
+refined domain.
+\item A queue is a template which is not tied to a domain. The same queue can
+be applied to any number of domains of the right dimension, and is unchanged
+by being applied.
+\item A level is absolute: an element is subdivided until it reaches the
+requested level, and elements which are already as fine are left alone.
+Applying the same queue twice therefore changes nothing; only a higher level
+refines further.
+\end{itemize}
+Each operation takes an optional \var{level}. Without it, the level set by
+\method{setRefinementLevel} is used. The operations are applied in the order
+in which they were queued; \method{print} lists them.
+
+\subsection{Refinement Driven by Data}\label{sec:oxley:mask}
+\index{oxley!mask refinement}
+\method{refineMask} refines the elements in which a mask is positive, which
+lets the refinement follow a feature of the model rather than a geometric
+shape. As a queue is not tied to a domain, it does not hold the mask itself,
+only a name for it, the \emph{tag}. The mask is handed to \method{apply} as a
+keyword argument named after the tag, and has to be a scalar \Data object on
+the domain being refined:
+\begin{python}
+def sourceMask(domain):
+    x = Function(domain).getX()
+    return whereNegative(length(x - [0.3, 0.6]) - 0.05)
+
+queue.refineMask("source", level=5)
+fine = queue.apply(coarse, source=sourceMask(coarse))
+\end{python}
+An element is refined if the mask is positive at any of its quadrature points.
+To apply the queue to another domain, the mask is created on that domain:
+\begin{python}
+other = Rectangle(n0=8, n1=8, l0=1., l1=1., refine_level=1)
+finer = queue.apply(other, source=sourceMask(other))
+\end{python}
+\method{apply} raises an exception if a tag in the queue has no mask, if a
+keyword argument is not the tag of any mask refinement in the queue (most
+likely a misspelt tag), or if a mask is not a scalar on the domain being
+refined. A tag must be a valid \PYTHON name other than \var{domain}.
+
+\section{Solving PDEs}\label{sec:oxley:pdes}\index{oxley!solving PDEs}
+PDEs on an \oxley mesh are solved by \finley. \method{toFinley} converts the
+mesh, hanging nodes included, into a conforming \finley mesh, on which a
+\LinearPDE is set up and solved as usual. \function{fromFinleyData} brings
+the solution back to the nodes of the \oxley mesh:
+\begin{python}
+import esys.finley
+from esys.oxley import fromFinleyData
+
+def solve(domain):
+    fin = domain.toFinley()
+    x = fin.getX()
+    pde = LinearPDE(fin)
+    pde.setSymmetryOn()
+    gammaD = whereZero(x[0]) + whereZero(x[0]-1.) \
+           + whereZero(x[1]) + whereZero(x[1]-1.)
+    pde.setValue(A=kronecker(fin), Y=sourceMask(fin), q=gammaD)
+    return fromFinleyData(pde.getSolution(), domain)
+\end{python}
+Note that \finley has to be imported, even if it is not used by name: without
+it \method{toFinley} returns a domain which cannot be used to build a
+\LinearPDE. Coefficients can be defined directly on the \finley mesh, as
+above, or transferred from the \oxley mesh with \function{toFinleyData}.
+
+A \LinearPDE can also be built directly on an \oxley mesh which has no hanging
+nodes, i.e.\ one in which all elements have the same level. On a refined or
+graded mesh this raises a \texttt{NotImplementedError}.
+
+\section{Example}\label{sec:oxley:example}
+The example \file{refinement_queue.py} solves the Poisson problem
+\begin{equation}
+-\Delta u = f \mbox{ in } [0,1]^2, \quad u = 0 \mbox{ on the boundary},
+\end{equation}
+where $f=1$ in a disc of radius $0.05$ around $(0.3,0.6)$ and $f=0$ elsewhere,
+once on the coarse mesh of $16 \times 16$ elements and once on a mesh refined
+around the source:
+\begin{python}
+coarse = Rectangle(n0=4, n1=4, l0=1., l1=1., refine_level=2)
+
+queue = RefinementQueue2D()
+queue.setRefinementLevel(4)
+queue.refineCircle(x0=XC, y0=YC, r=2*R)             # around the source, level 4
+queue.refineMask("source", level=5)                 # the source itself, level 5
+queue.refineBorder(border="top", dx=0.1, level=3)   # a strip along y=1
+queue.refineRegion(x0=0.7, y0=0.0, x1=0.9, y1=0.2)  # a box, the default level
+queue.print()
+
+fine = queue.apply(coarse, source=sourceMask(coarse))
+
+u_coarse = solve(coarse)
+u_fine = solve(fine)
+\end{python}
+The output is
+\begin{verbatim}
+0: Circle at (0.3, 0.6) with r = 0.1, level=4
+1: Mask 'source', level=5
+2: Boundary  (Top) to depth 0.1
+3: Region (0.7, 0) (0.9, 0.2), level=4
+coarse mesh: 256 elements, max(u) = 2.510454e-03
+refined mesh: 907 elements, max(u) = 3.359582e-03
+queue applied to an 8 x 8 block domain: 2899 elements
+\end{verbatim}
+On the coarse mesh the source is resolved by only a few elements, and its
+maximum is underestimated by a quarter. The solutions are written to
+\file{refinement_coarse.vtu} and \file{refinement_fine.vtu} in the
+subdirectory \file{data}, which the script creates with the \MPI-safe
+\function{mkDir}:
+\begin{python}
+mkDir("data")
+saveVTK(os.path.join("data", "refinement_coarse.vtu"), u=u_coarse)
+saveVTK(os.path.join("data", "refinement_fine.vtu"), u=u_fine)
+\end{python}
+
+\subsection{A 3D Example}
+\file{refinement_queue_3d.py} solves the same problem in the unit cube with a
+\class{RefinementQueue3D}. The source is a ball of radius $0.1$ around
+$(0.3,0.6,0.4)$, refined with \method{refineSphere} and \method{refineMask},
+and the layer below the top face, $x_2=1$, is refined with
+\method{refineBorder}:
+\begin{python}
+coarse = Brick(n0=4, n1=4, n2=4, l0=1., l1=1., l2=1., refine_level=1)
+
+queue = RefinementQueue3D()
+queue.setRefinementLevel(3)
+queue.refineSphere(x0=XC, y0=YC, z0=ZC, r=2*R)      # around the source, level 3
+queue.refineMask("source", level=4)                 # the source itself, level 4
+queue.refineBorder(border="top", dx=0.1, level=2)   # a layer below x2=1
+
+fine = queue.apply(coarse, source=sourceMask(coarse))
+\end{python}
+In 3D, \var{"top"} and \var{"bottom"} are the faces normal to $x_2$,
+\var{"north"} and \var{"south"} (or \var{"back"} and \var{"front"}) those
+normal to $x_1$, and \var{"east"} and \var{"west"} (or \var{"right"} and
+\var{"left"}) those normal to $x_0$. The output is
+\begin{verbatim}
+0: Sphere at (0.3, 0.6, 0.4) with r = 0.2, level=3
+1: Mask 'source', level=4
+2: Boundary  (Top) to depth 0.1
+coarse mesh: 512 elements, max(u) = 3.379138e-03
+refined mesh: 6791 elements, max(u) = 4.227389e-03
+\end{verbatim}
+and the solutions are saved as \file{refinement3d_coarse.vtu} and
+\file{refinement3d_fine.vtu} in the subdirectory \file{data}.
+
+\section{Refinement and \MPI}\label{sec:oxley:mpi}\index{oxley!MPI}
+A queue has no communicator of its own: \method{apply} copies the domain it is
+given, so the refined domain lives on the same communicator as that domain,
+and \method{apply} is collective over it. Every rank of the communicator has
+to call \method{apply}, with the same queue, which is the case when every rank
+runs the same script. A mask is distributed like any other \Data object, each
+rank holding the values on its own elements; \method{apply} gathers the marked
+elements over the communicator, so that all ranks refine the same ones. The
+refined mesh, its \finley export and the solution obtained on it are
+therefore the same however many ranks are used.
+
+To refine on a sub-communicator\index{mpi4py!oxley}, it is enough to create the
+domain on it, see Chapter~\ref{CHAP:mpi4py}. The example
+\file{refinement_queue_mpi4py.py} splits the ranks into up to three groups.
+Each group refines the same coarse mesh around the source to a different
+level, solves the Poisson problem, and saves its solution as
+\file{data/refinement_group<k>.vtu}; world rank 0 collects a report from each
+group:
+\begin{python}
+world = MPI.COMM_WORLD
+mkDir("data")      # collective over all ranks, so before the split
+
+ngroups = min(world.size, MAX_GROUPS)
+color = world.rank % ngroups
+sub = world.Split(color, world.rank)
+level = BASE_LEVEL + 1 + color
+
+coarse = Rectangle(n0=4, n1=4, l0=1., l1=1., refine_level=BASE_LEVEL, comm=sub)
+
+queue = RefinementQueue2D()
+queue.refineCircle(x0=XC, y0=YC, r=2*R, level=level)
+queue.refineMask("source", level=level+1)
+fine = queue.apply(coarse, source=sourceMask(coarse))
+
+u = solve(fine)
+saveVTK(os.path.join("data", "refinement_group%d.vtu" % color), u=u)
+\end{python}
+Run on six ranks with
+\begin{verbatim}
+run-escript -n 6 refinement_queue_mpi4py.py
+\end{verbatim}
+each group has two ranks, and the output is
+\begin{verbatim}
+group ranks level  elements        max(u)   integral(u)
+    0     2     3       352  3.202207e-03  4.573424e-04
+    1     2     4       658  3.357074e-03  4.795395e-04
+    2     2     5      1774  3.340626e-03  4.751504e-04
+\end{verbatim}
+which is the same as with one rank per group. Note that a reduction over all
+ranks, such as \function{getMPIWorldSum}, mixes the groups. A sum over the
+ranks of a domain uses the communicator the domain lives on, which
+\method{getMPIComm} returns. The examples count the elements of a domain this
+way, adding up the elements each rank owns, which \method{getMeshInfo}
+reports; the samples of a \class{Function} would also count the elements a
+rank shares with its neighbours:
+\begin{python}
+def numElements(domain):
+    local = int(domain.getMeshInfo()["numElements"])
+    comm = domain.getMPIComm()
+    if comm is None:     # without mpi4py the domain lives on all ranks
+        return getMPIWorldSum(local)
+    return comm.allreduce(local)
+\end{python}
+
+\subsection{Node Coordinates at Hanging Nodes}\label{sec:oxley:mastercoords}
+\index{oxley!hanging node}\index{hanging node!coordinates}
+A hanging node is not a node of the \oxley mesh: its value is the average of
+its \emph{masters}, the corners of the coarse edge or face it lies on. A rank
+can hold a master without holding any element of which it is a corner, namely
+when the coarse element and every fine element meeting at that corner belong
+to other ranks; the master then only enters through the hanging nodes it
+defines. Its position follows from the fine element alone, since a hanging
+node lies half way between a corner of that element and the master, and
+\oxley computes it from there. So every rank knows the coordinates of every
+node it holds, and \method{getX}, any \Data object built from it, the hanging
+node values and the transfers to and from \finley are complete on every rank.
+
+\section{Functions}
+\paragraph{Rectangle(n0=10, n1=10, l0=1., l1=1., refine_level=0,
+diracPoints=list(), diracTags=list(), comm=None)}
+generates a \Domain object representing a two-dimensional rectangle between
+$(0,0)$ and $(l0,l1)$, made of \var{n0} by \var{n1} blocks. \var{l0} and
+\var{l1} can also be pairs giving the coordinate range along an axis. Each
+block is subdivided \var{refine_level} times; \var{refine_level} is either an
+integer or an array of shape \var{(n0, n1)} with a level per block.
+\var{diracPoints} is a list of coordinate-tuples of points within the mesh,
+each point tagged with the respective string within \var{diracTags}.
+\var{comm} is an optional \MPI communicator (from \texttt{mpi4py}).
+
+\paragraph{Brick(n0=10, n1=10, n2=10, l0=1., l1=1., l2=1., refine_level=0,
+diracPoints=list(), diracTags=list(), comm=None)}
+generates a \Domain object representing a three-dimensional brick between
+$(0,0,0)$ and $(l0,l1,l2)$, made of \var{n0} by \var{n1} by \var{n2} blocks.
+The arguments are as for \function{Rectangle}; a per-block \var{refine_level}
+has shape \var{(n0, n1, n2)}.
+
+\paragraph{RefinementQueue2D()} and \textbf{RefinementQueue3D()}
+create an empty queue of refinements for a \function{Rectangle} and a
+\function{Brick} respectively. The default level of the queue is $0$. A queue
+has the following methods; \var{level} defaults to the level of the queue.
+\begin{itemize}
+\item \method{setRefinementLevel}(\var{level}) sets the default level.
+\item \method{refineUniform}(\var{level}) refines every element.
+\item \method{refinePoint}(\var{x0}, \var{y0}, \var{level}) refines the
+element containing the point $(x0,y0)$; in 3D the point has a third
+coordinate \var{z0}.
+\item \method{refineRegion}(\var{x0}, \var{y0}, \var{x1}, \var{y1},
+\var{level}) refines the elements whose lower left corner lies in the
+rectangle between $(x0,y0)$ and $(x1,y1)$; in 3D the box also takes
+\var{z0} and \var{z1}.
+\item \method{refineCircle}(\var{x0}, \var{y0}, \var{r}, \var{level})
+(2D only) refines the elements which overlap the disc of radius \var{r}
+around $(x0,y0)$.
+\item \method{refineSphere}(\var{x0}, \var{y0}, \var{z0}, \var{r},
+\var{level}) (3D only) refines the elements which overlap the ball of radius
+\var{r} around $(x0,y0,z0)$.
+\item \method{refineBorder}(\var{border}, \var{dx}, \var{level}) refines the
+elements which reach into the layer of depth \var{dx} along a face of the
+domain. In 2D, \var{border} is one of \var{"top"} and \var{"bottom"} (or
+\var{"north"} and \var{"south"}), the faces normal to $x_1$, and
+\var{"left"} and \var{"right"} (or \var{"west"} and \var{"east"}), the
+faces normal to $x_0$. In 3D, \var{"top"} and \var{"bottom"} are the faces
+normal to $x_2$, \var{"north"} and \var{"south"} (or \var{"back"} and
+\var{"front"}) those normal to $x_1$, and \var{"east"} and \var{"west"} (or
+\var{"right"} and \var{"left"}) those normal to $x_0$.
+\item \method{refineMask}(\var{tag}, \var{level}) refines the elements in
+which the mask named \var{tag} is positive, see
+Section~\ref{sec:oxley:mask}.
+\item \method{print}() lists the queued operations.
+\item \method{apply}(\var{domain}, \var{**masks}) returns a new domain:
+\var{domain} refined by the queued operations, with \var{masks} giving the
+mask for each tag. \var{domain} is not modified.
+\end{itemize}
+
+\paragraph{toFinley()} is a method of an \oxley domain. It returns a \finley
+domain describing the same mesh, with each element split into triangles (2D)
+or tetrahedra (3D). \finley has to be imported before it is called.
+
+\paragraph{toFinleyData(source, target)}
+copies \var{source}, a \Data object on the \class{ContinuousFunction} of an
+\oxley domain, onto \var{target}, the \finley domain \method{toFinley}
+returned for it.
+
+\paragraph{fromFinleyData(source, target)}
+copies \var{source}, a \Data object on the \class{ContinuousFunction} of a
+\finley domain returned by \method{toFinley}, back onto \var{target}, the
+\oxley domain it was created from.

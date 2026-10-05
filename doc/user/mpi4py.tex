@@ -234,7 +234,7 @@ The \var{comm} parameter is available in all domain types:
 \item \textbf{Finley}: \texttt{ReadMesh()}, \texttt{ReadGmsh()}, \texttt{Rectangle()}, \texttt{Brick()}
 \item \textbf{Ripley}: \texttt{Rectangle()}, \texttt{Brick()}, \texttt{MultiRectangle()}, \texttt{MultiBrick()}
 \item \textbf{Speckley}: \texttt{Rectangle()}, \texttt{Brick()}
-\item \textbf{Oxley}: \texttt{Rectangle()}, \texttt{Brick()} (requires Trilinos)
+\item \textbf{Oxley}: \texttt{Rectangle()}, \texttt{Brick()} (requires Trilinos); a refined \oxley domain stays on the communicator of the domain it was refined from, see Section~\ref{sec:oxley:mpi}
 \end{itemize}
 
 \section{Retrieving Communicators from \escript Objects}

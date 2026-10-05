@@ -78,6 +78,9 @@ sortOutExample('usersguide/MT_master_slave.py', allowsMPI=True, minMPISize=2, re
 sortOutExample('usersguide/ensemble_example.py', allowsMPI=True, minMPISize=4, requiresMPI4py=True)
 sortOutExample('usersguide/thermo_mechanical.py', allowsMPI=True, minMPISize=8, requiresMPI4py=True)
 sortOutExample('usersguide/voxet_reader.py', allowsMPI=True)
+sortOutExample('usersguide/refinement_queue.py')
+sortOutExample('usersguide/refinement_queue_3d.py')
+sortOutExample('usersguide/refinement_queue_mpi4py.py', allowsMPI=True, requiresMPI4py=True)
 
 # Supporting files for examples
 example_deps.append('usersguide/simplemesh.msh')      # for simpletest.py
