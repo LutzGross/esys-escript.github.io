@@ -3,8 +3,62 @@ Changes from previous releases
 
 Unreleased
 ----------
-Changes since 6.1.1. This section is not complete yet: so far it lists the
-fixes to local refinement in oxley and the new user guide chapter.
+The main change is a rework of the oxley domain: its meshes, assembly and MPI
+support are rebuilt, local refinement works through a queue that returns a
+new domain, and refined meshes are solved on by exporting them to finley.
+Much of the oxley API changes; see "oxley: migrating from 6.1.1" below.
+
+Highlights
+~~~~~~~~~~
+ - oxley: block-structured meshes with a per-block refinement level,
+   assembly rewritten and checked against ripley in 2D and 3D, full MPI
+   support, local refinement with ``RefinementQueue2D``/``RefinementQueue3D``,
+   and an export to finley (``toFinley()``) to solve PDEs on refined meshes.
+ - New user guide chapter on oxley, with refinement examples in 2D, 3D and on
+   MPI sub-communicators.
+ - The bundled p4est/libsc is upgraded from 2.2 to 2.8.7.
+ - ``run-escript`` works with OpenMPI 5.
+ - macOS: Python extensions no longer link libpython, which made
+   ``import esys.escript`` segfault with conda-forge's Boost.
+
+oxley: migrating from 6.1.1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - ``Rectangle``/``Brick`` take the number of blocks per axis (``n0``,
+   ``n1``, ``n2``) and a ``refine_level``, an integer or an array with a level
+   per block, by which every block is subdivided.  With ``refine_level=0``
+   (the default) a mesh is the same as before.  ``Block(numBlocks, length,
+   origin, refine_level, ...)`` is a dimension-independent alternative.
+ - The arguments ``d0``/``d1``/``d2``, ``periodic0``/``1``/``2`` and
+   ``order`` never had any effect in oxley.  They are accepted and ignored
+   with a ``DeprecationWarning``; an unknown keyword argument now raises
+   ``TypeError`` instead of being ignored.
+ - A domain no longer refines itself.  ``refineMesh``, ``setRefinementLevel``,
+   ``refineBoundary``, ``refineRegion``, ``refinePoint``, ``refineCircle``,
+   ``refineSphere``, ``applyRefinementZone``, ``setAdaptiveRefinement``,
+   ``updateMeshInformation`` and ``updateSolutionInformation`` are gone from
+   the domain.  A domain refined in place left the Data defined on it sized
+   for a mesh that no longer existed.
+ - ``RefinementZone2D``/``RefinementZone3D`` are renamed
+   ``RefinementQueue2D``/``RefinementQueue3D``.  ``queue.apply(domain)``
+   returns a new, refined domain and leaves ``domain`` and the Data on it
+   unchanged.  ``refineUniform(level)`` replaces ``refineMesh("uniform")``,
+   and ``refineBorder`` takes the name of the border.
+ - A refinement level is absolute: elements are subdivided until they reach
+   it.  ``refineUniform(n)`` gives the same mesh as ``refine_level=n``; the
+   old ``refineMesh("uniform")`` subdivided once more than asked.
+ - ``refineMask`` takes the name of a mask, and the mask is passed to
+   ``apply``: ``queue.refineMask("fault", level)`` and then
+   ``queue.apply(domain, fault=mask)``.
+ - ``loadMesh(filename)`` is a module-level function returning a new domain,
+   rather than a domain method replacing its mesh.  ``saveMesh`` writes a
+   header ``<filename>.oxley`` with the geometry next to the p4est files, and
+   ``loadMesh`` refuses a mesh without one, so meshes saved with 6.1.1 cannot
+   be loaded.
+ - A ``LinearPDE`` on an oxley domain with hanging nodes (a refined or graded
+   mesh) raises ``NotImplementedError``: the oxley assembler does not handle
+   hanging nodes and returned a wrong solution without warning.  Solve on the
+   finley export instead (see below).  Uniformly refined domains are
+   unaffected.
 
 oxley: local refinement
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -18,21 +72,101 @@ oxley: local refinement
    ``"top"``/``"bottom"`` are the faces normal to x2, ``"north"``/``"south"``
    (or ``"back"``/``"front"``) those normal to x1, and ``"east"``/``"west"``
    (or ``"right"``/``"left"``) those normal to x0.
- - ``refineMask`` had no effect.  It now takes the name of a mask rather than
-   the mask itself, ``refineMask(tag, level)``, and the mask is passed when
-   the queue is applied: ``queue.apply(domain, tag=mask)``.  An element is
-   refined where the mask is positive at any of its quadrature points.  The
-   result does not depend on the number of MPI ranks, and a mask refinement
-   may appear anywhere in the queue.  This changes the signature of
-   ``refineMask``.
+ - ``refineMask`` had no effect.  An element is now refined where the mask is
+   positive at any of its quadrature points.  The result does not depend on
+   the number of MPI ranks, and a mask refinement may appear anywhere in the
+   queue.
+ - In 3D, ``refineRegion``, ``refinePoint``, ``refineSphere`` and
+   ``refineBorder`` crashed or refined nothing, as the callbacks read the
+   wrong tree and forest data.
  - Applying a 3D queue discarded any refinement the ``Brick`` already had,
    since the domain was rebuilt from level 0.  The refinement is now kept.
- - A ``LinearPDE`` built directly on an oxley domain with hanging nodes (a
-   refined or graded mesh) now raises ``NotImplementedError``.  The oxley
-   assembler does not handle hanging nodes and returned a wrong solution
-   without warning.  Solve on the finley export instead: ``toFinley()``, then
-   ``fromFinleyData()`` to bring the solution back.  Uniformly refined
-   domains are unaffected.
+ - A refined domain no longer depends on its source domain staying alive.
+
+oxley: solving PDEs on refined meshes through finley
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - ``domain.toFinley()`` returns a finley domain with the same mesh, each
+   element split into triangles (2D) or tetrahedra (3D), hanging nodes
+   included.  It works on graded and refined meshes in 2D and 3D, on any
+   number of MPI ranks, and gives the same mesh whatever the number of ranks.
+   Its conformity is checked, across ranks too.  ``esys.finley`` has to be
+   imported for it to return a usable domain.
+ - Tag names, node tags and Dirac points carry over to the export.
+ - ``toFinleyData``/``fromFinleyData`` copy a ``ContinuousFunction`` between
+   an oxley domain and its export; ``toFinleyReducedData``/
+   ``fromFinleyReducedData``, ``toFinleyFunctionData``/
+   ``fromFinleyFunctionData`` and ``toFinleyBoundaryData``/
+   ``fromFinleyBoundaryData`` do the same for ``ReducedFunction``,
+   ``Function`` and ``FunctionOnBoundary``.  Complex Data is supported.
+ - oxley builds without Trilinos.  It then has no assembler of its own, and
+   PDEs are solved on the finley export.
+
+oxley: assembly and data
+~~~~~~~~~~~~~~~~~~~~~~~~
+ - Nodes are numbered by p4est's ``lnodes`` instead of a hash of their
+   coordinates, and the Z/IZ hanging-node condensation is removed.
+   ``getMeshInfo()`` gives a Python view of the mesh.
+ - 3D results were wrong in many places and now match ripley: an OpenMP race
+   in the 3D assembly dropped contributions, only 4 of the 8 corners of an
+   element were assembled, elements at the finest level integrated to zero,
+   the Gauss points were ordered inconsistently, ``grad()`` returned garbage,
+   ``integrate()`` returned 0, ``FunctionOnBoundary`` was not available, PDE
+   systems (e.g. elasticity) gave a singular matrix, the Neumann/Robin terms
+   were read from the wrong samples, and Dirac points were ignored.
+ - ``grad()``, the interpolation onto elements and ``getX()`` take the
+   hanging nodes of graded meshes into account, in 2D and 3D and under MPI.
+
+oxley: MPI
+~~~~~~~~~~
+ - Each rank assembles complete rows for the nodes it owns, including the
+   contributions of elements on neighbouring ranks, for single PDEs, systems,
+   reduced order and boundary terms, in 2D and 3D.  Results are the same as in
+   serial.
+ - The mesh no longer depends on the number of ranks (more ranks used to
+   refine it further).
+ - A Dirac point is placed on one rank only; a point source used to scale
+   with the number of ranks.
+ - Fixes for boundary faces at partition boundaries, which were dropped,
+   ``setToNormal`` on the z faces of a ``Brick``, ``randomFill`` (which
+   corrupted the heap) and ``saveDataCSV`` (which aborted).
+
+weipa
+~~~~~
+ - ``saveVTK``/``saveSilo`` work for 3D oxley domains; they failed or
+   crashed before.
+ - Under MPI, ``saveVTK`` of a 2D oxley domain no longer drops cells.
+ - oxley meshes with hanging nodes, and their face elements, are written with
+   every cell in its place, through oxley's new mesh-access interface.
+
+Solvers and Trilinos
+~~~~~~~~~~~~~~~~~~~~
+ - Serialise ``Tpetra::sumIntoLocalValues`` in the unrolled block matrix
+   wrapper used for PDE systems as well.  With OpenMP threads, finley PDE
+   systems with Trilinos could abort with "double free or corruption".
+
+Build system and platforms
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - Bundled p4est/libsc upgraded from 2.2 to 2.8.7.
+ - macOS: Python extensions resolve the Python C API from the interpreter
+   (``-undefined dynamic_lookup``) instead of linking libpython; the duplicate
+   libpython corrupted Boost.Python's converter registry at import.
+ - ``run-escript`` passes ``--bind-to`` to OpenMPI.  OpenMPI 5 rejects the
+   old ``-bind-to``, so every MPI launch failed.
+ - Ubuntu 25.04 and later have no ``libparmetis-dev``; the debian/ubuntu
+   option templates use the ParMETIS library of ``libscotchparmetis-dev``
+   when needed, and the installation guide says so.
+ - Debian packaging (``localdebian/``) updated to the 6.1.1-1 packaging,
+   restricted to 64-bit architectures.
+ - CI workflows moved off the deprecated Node 20 actions.
+
+Testing and examples
+~~~~~~~~~~~~~~~~~~~~
+ - A test suite from which no tests are collected now fails instead of
+   passing silently; five suites were in that state.
+ - Examples that need several MPI ranks are run with that many by
+   ``scons py_tests``; the weipa tests run again with MPI enabled.
+ - ``MT_master_slave.py`` uses a direct solver; the iterative one did not
+   converge at the lowest frequency.
 
 Documentation
 ~~~~~~~~~~~~~
@@ -42,6 +176,10 @@ Documentation
    sub-communicators.
  - New examples ``refinement_queue.py``, ``refinement_queue_3d.py`` and
    ``refinement_queue_mpi4py.py``, which write their results to ``data/``.
+ - The ``grad()`` docstring says what a gradient on ``FunctionOnBoundary``
+   needs from the mesh.
+ - ``speckley.tex`` builds with strict TeX Live (Debian #1122465).
+ - README updated (conda-forge 6.1.1 for Linux, macOS and Windows).
 
 6.1.1
 -----
