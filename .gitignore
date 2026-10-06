@@ -54,6 +54,8 @@ uniform_mesh_ae.silo/removed_code/
 oxley_a3_*.vtu
 oxley_hanging_*.vtu
 _meshio_*
+# ... and what the refinement_queue*.py examples write
+doc/examples/usersguide/data/refinement*.vtu
 
 # design working notes, kept out of the repo
 oxley-designs/DESIGN.md
