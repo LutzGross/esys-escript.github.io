@@ -1,6 +1,48 @@
 Changes from previous releases
 ==============================
 
+Unreleased
+----------
+Changes since 6.1.1. This section is not complete yet: so far it lists the
+fixes to local refinement in oxley and the new user guide chapter.
+
+oxley: local refinement
+~~~~~~~~~~~~~~~~~~~~~~~
+ - ``refineCircle`` and ``refineSphere`` refined nothing: an element was
+   refined only if its centre lay exactly on the circle or sphere.  They now
+   refine every element that overlaps the disc or ball.
+ - ``refineBorder`` refined the wrong elements as soon as the domain was not
+   the unit square (nothing, the whole domain, or an arbitrary part of it),
+   and in 3D every border raised an error.  A border now refines exactly the
+   elements reaching into the strip of width ``dx`` along its face.  In 3D,
+   ``"top"``/``"bottom"`` are the faces normal to x2, ``"north"``/``"south"``
+   (or ``"back"``/``"front"``) those normal to x1, and ``"east"``/``"west"``
+   (or ``"right"``/``"left"``) those normal to x0.
+ - ``refineMask`` had no effect.  It now takes the name of a mask rather than
+   the mask itself, ``refineMask(tag, level)``, and the mask is passed when
+   the queue is applied: ``queue.apply(domain, tag=mask)``.  An element is
+   refined where the mask is positive at any of its quadrature points.  The
+   result does not depend on the number of MPI ranks, and a mask refinement
+   may appear anywhere in the queue.  This changes the signature of
+   ``refineMask``.
+ - Applying a 3D queue discarded any refinement the ``Brick`` already had,
+   since the domain was rebuilt from level 0.  The refinement is now kept.
+ - A ``LinearPDE`` built directly on an oxley domain with hanging nodes (a
+   refined or graded mesh) now raises ``NotImplementedError``.  The oxley
+   assembler does not handle hanging nodes and returned a wrong solution
+   without warning.  Solve on the finley export instead: ``toFinley()``, then
+   ``fromFinleyData()`` to bring the solution back.  Uniformly refined
+   domains are unaffected.
+
+Documentation
+~~~~~~~~~~~~~
+ - New user guide chapter on oxley: meshes, local refinement with
+   ``RefinementQueue2D``/``RefinementQueue3D``, refinement driven by a mask,
+   solving PDEs through finley, and refinement under MPI and on
+   sub-communicators.
+ - New examples ``refinement_queue.py``, ``refinement_queue_3d.py`` and
+   ``refinement_queue_mpi4py.py``, which write their results to ``data/``.
+
 6.1.1
 -----
 A maintenance release on top of 6.1.0, focused on build and packaging
