@@ -33,6 +33,11 @@ jobs:
             pandoc \
             python3-markdown \
             python3-sphinx \
+            python3-sphinxcontrib.applehelp \
+            python3-sphinxcontrib.devhelp \
+            python3-sphinxcontrib.htmlhelp \
+            python3-sphinxcontrib.qthelp \
+            python3-sphinxcontrib.serializinghtml \
             python3-numpy \
             python3-scipy \
             libboost-python-dev \
