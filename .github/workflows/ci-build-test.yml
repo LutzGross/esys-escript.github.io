@@ -11,6 +11,12 @@ on:
       - 'v*'
   workflow_dispatch:
 
+# bash runs steps with -o pipefail, so a failed "scons | tee" fails its step;
+# containers would otherwise use sh
+defaults:
+  run:
+    shell: bash
+
 jobs:
   # ==========================================================================
   # Ubuntu/Debian builds (native runner)
@@ -71,9 +77,8 @@ jobs:
           # Disable ParMETIS (Ubuntu package has broken CMake config)
           echo "parmetis = False" >> scons/ci_options.py
 
-          # Force building bundled Trilinos 16 (v17 source not in repo yet)
+          # Build the bundled Trilinos
           echo "build_trilinos = 'always'" >> scons/ci_options.py
-          echo "trilinos_src = 'trilinos_source16'" >> scons/ci_options.py
 
           cat scons/ci_options.py
 
@@ -158,6 +163,9 @@ jobs:
           # Disable ParMETIS
           echo "parmetis = False" >> scons/ci_options.py
 
+          # The template enables silo; its Homebrew install may have failed
+          brew list silo > /dev/null 2>&1 || echo "silo = False" >> scons/ci_options.py
+
           # Use Apple's system Clang instead of Homebrew LLVM (fixes arm64 __hash_memory bug)
           # See: https://github.com/llvm/llvm-project/issues/170970
           echo "cc = 'clang'" >> scons/ci_options.py
@@ -165,9 +173,8 @@ jobs:
           echo "omp_flags = ['-Xpreprocessor', '-fopenmp']" >> scons/ci_options.py
           echo "omp_ldflags = ['-lomp']" >> scons/ci_options.py
 
-          # Force building bundled Trilinos 16 (v17 source not in repo yet)
+          # Build the bundled Trilinos
           echo "build_trilinos = 'always'" >> scons/ci_options.py
-          echo "trilinos_src = 'trilinos_source16'" >> scons/ci_options.py
 
           cat scons/ci_options.py
 
@@ -227,8 +234,8 @@ jobs:
 
       - name: Verify checkout
         run: |
-          echo "=== Checking trilinos_source_17-0-0-rc1 ==="
-          ls -la trilinos_source_17-0-0-rc1/ | head -10 || echo "trilinos_source_17-0-0-rc1 NOT FOUND"
+          echo "=== Checking trilinos_source_17-0-0 ==="
+          ls -la trilinos_source_17-0-0/ | head -10 || echo "trilinos_source_17-0-0 NOT FOUND"
           echo "=== Current directory ==="
           pwd
           ls -la
@@ -254,9 +261,8 @@ jobs:
           # Disable ParMETIS
           echo "parmetis = False" >> scons/ci_options.py
 
-          # Force building bundled Trilinos 16 (v17 source not in repo yet)
+          # Build the bundled Trilinos
           echo "build_trilinos = 'always'" >> scons/ci_options.py
-          echo "trilinos_src = 'trilinos_source16'" >> scons/ci_options.py
 
           cat scons/ci_options.py
 
@@ -335,9 +341,8 @@ jobs:
           # Disable UMFPACK (header paths differ on Arch)
           echo "umfpack = False" >> scons/ci_options.py
 
-          # Force building bundled Trilinos 16 (v17 source not in repo yet)
+          # Build the bundled Trilinos
           echo "build_trilinos = 'always'" >> scons/ci_options.py
-          echo "trilinos_src = 'trilinos_source16'" >> scons/ci_options.py
 
           cat scons/ci_options.py
 
@@ -413,9 +418,8 @@ jobs:
           # Disable MUMPS (header paths differ on OpenSUSE)
           echo "mumps_seq = False" >> scons/ci_options.py
 
-          # Force building bundled Trilinos 16 (v17 source not in repo yet)
+          # Build the bundled Trilinos
           echo "build_trilinos = 'always'" >> scons/ci_options.py
-          echo "trilinos_src = 'trilinos_source16'" >> scons/ci_options.py
 
           cat scons/ci_options.py
 
@@ -500,9 +504,8 @@ jobs:
           # Fix boost library name for Rocky Linux 9 (uses boost_python39)
           echo "boost_libs = ['boost_python39']" >> scons/ci_options.py
 
-          # Force building bundled Trilinos 16 (v17 source not in repo yet)
+          # Build the bundled Trilinos
           echo "build_trilinos = 'always'" >> scons/ci_options.py
-          echo "trilinos_src = 'trilinos_source16'" >> scons/ci_options.py
 
           cat scons/ci_options.py
 
