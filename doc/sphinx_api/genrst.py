@@ -31,6 +31,16 @@ startpackage=sys.argv[2]
 startdir=os.path.join(pathdir, startpackage)
 outdir=sys.argv[3]
 
+# id(class) -> (class, [(page, name), ...]): every page a class is documented on
+classpages={}
+# pages listed in a package's toctree
+linked=set()
+
+def classBlock(page, name, noindex=False):
+  ni='   :no-index:\n' if noindex else ''
+  ni2='      :no-index:\n' if noindex else ''
+  return '.. autoclass:: '+page+'.'+name+'\n   :members:\n   :undoc-members:\n'+ni+'\n   .. automethod:: __init__\n'+ni2+'\n'
+
 def dumpPackage(mname, ignorelist, modset, banset):
   try:
     print(mname)
@@ -111,8 +121,8 @@ def dumpPackage(mname, ignorelist, modset, banset):
       pack.write('* `'+name+'`\n')
   pack.write('\n')
   for (name, mem) in clist:
-    pack.write('.. autoclass:: '+mname+'.'+name+'\n')
-    pack.write('   :members:\n   :undoc-members:\n\n   .. automethod:: __init__\n\n')
+    pack.write(classBlock(mname, name))
+    classpages.setdefault(id(mem), (mem, []))[1].append((mname, name))
   pack.write('\n')
     
   pack.write('Functions\n')
@@ -131,8 +141,51 @@ def dumpPackage(mname, ignorelist, modset, banset):
   pack.write('.. toctree::\n\n')
   for name in modlist:
       pack.write('   '+mname+'.'+name+'\n')
+      linked.add(mname+'.'+name)
   pack.write('\n')
   pack.close()
+
+def ownerPage(mem, pages):
+  # a class re-exported on several pages is indexed on the page of the module
+  # it comes from, or the closest documented parent of it (esys.escriptcore
+  # is documented through esys.escript)
+  m=getattr(mem, '__module__', None) or ''
+  if m.startswith('esys.escriptcore.'):
+    m='esys.escript.'+m[len('esys.escriptcore.'):]
+  while m:
+    if m in pages:
+      return m
+    m=m.rpartition('.')[0]
+  return min(pages, key=lambda p: (p.count('.'), p))
+
+def markDuplicates():
+  # Sphinx warns about a class documented on more than one page
+  for (mem, entries) in classpages.values():
+    if len(entries)<2:
+      continue
+    owner=ownerPage(mem, [page for (page, name) in entries])
+    for (page, name) in entries:
+      if page==owner:
+        continue
+      fname=os.path.join(outdir, page+'.rst')
+      with open(fname) as f:
+        text=f.read()
+      with open(fname, 'w') as f:
+        f.write(text.replace(classBlock(page, name), classBlock(page, name, noindex=True)))
+
+def linkOrphans(modset):
+  # modules found by walking the directory are not attributes of their
+  # package, so add them to the toctree of the closest documented parent
+  for n in sorted(modset):
+    if n.count('.')<2 or n in linked:
+      continue
+    parent=n.rpartition('.')[0]
+    while parent and not parent in modset:
+      parent=parent.rpartition('.')[0]
+    if parent:
+      with open(os.path.join(outdir, parent+'.rst'), 'a') as pack:
+        pack.write('   '+n+'\n')
+      linked.add(n)
 
 def listmods():
   W=os.walk(startdir,topdown=True)
@@ -166,8 +219,9 @@ def listmods():
       if m.split('.')[1]=='pyc' and m!='__init__.pyc':
         print(".."+n+"."+m)
         print(".."+(n+'.'+m)[:-4])
-        if not (n+'.'+m)[:-4] in banset:
-          dumpPackage((n+'.'+m)[:-4],[],modset, banset)
+        sub=(n+'.'+m)[:-4]
+        if not sub in banset and not sub in modset:
+          dumpPackage(sub,[],modset, banset)
   l=list(modset)
   l.sort()
   for n in l:
@@ -175,6 +229,8 @@ def listmods():
          main.write("   "+n+"\n")
   main.write('\n')
   main.close()
+  linkOrphans(modset)
+  markDuplicates()
     
     
 listmods()    

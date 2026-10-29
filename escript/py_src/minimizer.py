@@ -332,7 +332,7 @@ class LineSearch(object):
         :key alphaMax: maximum search length
         :type alphaMax: float
         :default alphaMax: 5000
-        :key overStepFactor : factor to increase step size in line search
+        :key overStepFactor: factor to increase step size in line search
         :type overStepFactor: float
         :default overStepFactor: 2.
         :key iterMax: maximum number of line search iterations
@@ -356,21 +356,18 @@ class LineSearch(object):
         :key zoom_iterMax: maximum number of zoom iterations
         :type zoom_iterMax: int
         :default zoom_iterMax: 20
-
-        :key phiEpsilon : tolerance for `greater than` check of cost function values
+        :key phiEpsilon: tolerance for `greater than` check of cost function values
         :type phiEpsilon: float
         :default phiEpsilon: ``np.sqrt(EPSILON)``
-
-        :key  alphaOffset : minimal relative distance of new alpha from boundaries
-        :type alphaOffset : float
-        :default alphaOffset : 1e-4
-
-        :key alphaWidthMin : minimal relative distance of new alpha from boundaries
+        :key alphaOffset: minimal relative distance of new alpha from boundaries
+        :type alphaOffset: float
+        :default alphaOffset: 1e-4
+        :key alphaWidthMin: minimal relative distance of new alpha from boundaries
         :type alphaWidthMin: float
         :default alphaWidthMin: ``np.sqrt(EPSILON)``
         :key zoom_reductionMin: minimal reduction search interval length between zoom steps
-        :type zoom_reductionMin : float
-        :default zoom_reductionMin :0.66
+        :type zoom_reductionMin: float
+        :default zoom_reductionMin: 0.66
         """
         self.lslogger.debug("Setting options: %s" % (str(opts)))
         for o in opts:
@@ -848,7 +845,7 @@ class AbstractMinimizer(object):
         :type grad_tol: `float` or None
         :default grad_tol: 1e-4
         :key truncation: sets the number of previous LBFGS iterations to keep
-        :type truncation : `int`
+        :type truncation: `int`
         :default truncation: 30
         :key restart: restart after this many iteration steps.
         :type restart: `int`

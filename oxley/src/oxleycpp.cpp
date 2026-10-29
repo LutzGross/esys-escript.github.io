@@ -608,7 +608,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
         ;
 
     const char* applyDoc =
-            "apply(domain, **masks)\n\n"
+            "apply(domain, \\*\\*masks)\n\n"
             "Applies the queued refinements to a domain and returns the RESULT as\n"
             "a new domain. The domain passed in is not modified, so the caller\n"
             "keeps a usable handle on the coarser mesh and on any Data over it.\n"
@@ -659,8 +659,8 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param r :\n:type float: the radius of the circle.\n"
                 ":param level:\n:type float: the level of refinement.\n")
         .def("refineBorder", static_cast<void (oxley::RefinementQueue2D::*)(std::string, float, int)>(&oxley::RefinementQueue2D::refineBorder), (arg("border"),arg("dx"),arg("level")=-1),
-                "Refines the border of the mesh to depth dx to the level of refinement"
-                "set by setRefinementLevel\n"
+                "Refines the border of the mesh to depth dx to the level of refinement "
+                "set by setRefinementLevel\n\n"
                 ":param border: top or bottom (north, south): the faces normal to x1;\n"
                 "    left or right (west, east): the faces normal to x0\n"
                 ":type border: ``string``\n"
@@ -718,8 +718,8 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param r :\n:type float: the radius of the circle.\n"
                 ":param level:\n:type float: the level of refinement.\n")
         .def("refineBorder", static_cast<void (oxley::RefinementQueue3D::*)(std::string, float, int)>(&oxley::RefinementQueue3D::refineBorder), (arg("border"),arg("dx"),arg("level")=-1),
-                "Refines the border of the mesh to depth dx to the level of refinement"
-                "set by setRefinementLevel\n"
+                "Refines the border of the mesh to depth dx to the level of refinement "
+                "set by setRefinementLevel\n\n"
                 ":param border: top or bottom: the faces normal to x2; north or south\n"
                 "    (back, front): normal to x1; east or west (right, left): normal to x0\n"
                 ":type border: ``string``\n"
