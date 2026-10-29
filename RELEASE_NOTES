@@ -158,6 +158,9 @@ Build system and platforms
  - Debian packaging (``localdebian/``) updated to the 6.1.1-1 packaging,
    restricted to 64-bit architectures.
  - CI workflows moved off the deprecated Node 20 actions.
+ - The documentation workflow builds with the system Python, which matches
+   the system Boost.Python; on the Ubuntu 26 runners the Python 3.11 of
+   ``setup-python`` could not import the Python 3.14 Boost.Python.
 
 Testing and examples
 ~~~~~~~~~~~~~~~~~~~~
@@ -180,6 +183,14 @@ Documentation
    needs from the mesh.
  - ``speckley.tex`` builds with strict TeX Live (Debian #1122465).
  - README updated (conda-forge 6.1.1 for Linux, macOS and Windows).
+ - The Python API reference builds without Sphinx warnings: a class
+   re-exported by several modules (e.g. ``Data`` in ``esys.escript`` and
+   ``esys.escript.linearPDEs``) is indexed once, every module page is
+   reachable from its package, and the malformed docstrings of
+   ``LineSearch.setOptions``, ``AbstractMinimizer.setOptions`` and of
+   ``apply``/``refineBorder`` of the oxley refinement queues are fixed.
+   The welcome, installation and options pages are converted from the
+   current markdown again (pandoc was missing in CI).
 
 6.1.1
 -----
