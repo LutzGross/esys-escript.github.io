@@ -169,6 +169,9 @@ Build system and platforms
    supported: their GCC 8.5 cannot build the C++20 code that Trilinos 17
    requires.  The ``rhel`` option templates and the installation guide now
    cover RHEL 9 and later.
+ - The ``rhel_options.py`` template no longer sets ``cxx_extra =
+   '-std=c++11'``, which overrode the C++20 default and broke the build
+   against the Trilinos 17 headers (``std::remove_const_t`` undefined).
 
 Testing and examples
 ~~~~~~~~~~~~~~~~~~~~
