@@ -181,6 +181,12 @@ Build system and platforms
    ``escriptcpp.so`` referenced the adapter's vtable without linking
    ``libtrilinoswrap``, and ``import esys.escript`` failed with an undefined
    symbol.
+ - macOS with Apple Clang and Homebrew's keg-only ``libomp``: the bundled
+   Trilinos failed to build its SuiteSparse KLU sources, first because
+   ``omp.h`` was not found and then because libomp was not linked
+   (``__kmpc_*`` undefined).  ``scripts/trilinos_nompi.sh`` links libomp when
+   ``OpenMP_ROOT`` points to it, and the macOS CI job puts libomp's include
+   directory on ``CPATH``.
 
 Testing and examples
 ~~~~~~~~~~~~~~~~~~~~
