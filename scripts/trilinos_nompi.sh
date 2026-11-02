@@ -38,6 +38,10 @@ if [ "$(uname)" = "Darwin" ]; then
         # Add explicit libc++ and libc++abi linking for macOS with LLVM clang
         EXTRA_LINKER_FLAGS="-L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++ -lc++ -lc++abi"
     fi
+    # Keg-only Homebrew libomp (Apple Clang): CMake does not add it for C targets
+    if [ -n "${OpenMP_ROOT}" ] && [ -f "${OpenMP_ROOT}/lib/libomp.dylib" ]; then
+        EXTRA_LINKER_FLAGS="${EXTRA_LINKER_FLAGS} -L${OpenMP_ROOT}/lib -Wl,-rpath,${OpenMP_ROOT}/lib -lomp"
+    fi
 fi
 
 cmake \
