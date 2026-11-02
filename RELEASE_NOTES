@@ -161,6 +161,10 @@ Build system and platforms
  - The documentation workflow builds with the system Python, which matches
    the system Boost.Python; on the Ubuntu 26 runners the Python 3.11 of
    ``setup-python`` could not import the Python 3.14 Boost.Python.
+ - On Fedora, RHEL-compatible systems and OpenSUSE the bundled Trilinos
+   installs into ``esys.trilinos/lib64``.  The CI jobs add it to
+   ``LD_LIBRARY_PATH`` (``import esys.escript`` failed with "libmuelu.so.17:
+   cannot open shared object file"), and the installation guide says so.
 
 Testing and examples
 ~~~~~~~~~~~~~~~~~~~~
