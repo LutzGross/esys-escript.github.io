@@ -165,6 +165,10 @@ Build system and platforms
    installs into ``esys.trilinos/lib64``.  The CI jobs add it to
    ``LD_LIBRARY_PATH`` (``import esys.escript`` failed with "libmuelu.so.17:
    cannot open shared object file"), and the installation guide says so.
+ - RHEL 8 and its derivatives (Rocky Linux 8, AlmaLinux 8) are no longer
+   supported: their GCC 8.5 cannot build the C++20 code that Trilinos 17
+   requires.  The ``rhel`` option templates and the installation guide now
+   cover RHEL 9 and later.
 
 Testing and examples
 ~~~~~~~~~~~~~~~~~~~~
