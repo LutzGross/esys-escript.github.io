@@ -25,7 +25,6 @@
 
 #ifdef ESYS_HAVE_TRILINOS
 #include <trilinoswrap/CrsMatrixWrapper.h>
-#include <trilinoswrap/TrilinosMatrixAdapter.h>
 #include <trilinoswrap/types.h>
 #include <Teuchos_Comm.hpp>
 #include <Tpetra_CrsMatrix_decl.hpp>

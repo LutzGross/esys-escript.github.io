@@ -185,6 +185,8 @@ jobs:
           OMP_PREFIX=$(brew --prefix libomp)
           export OpenMP_ROOT="${OMP_PREFIX}"
           export CMAKE_PREFIX_PATH="${OMP_PREFIX}:${CMAKE_PREFIX_PATH}"
+          # The Trilinos script sets CMAKE_C_FLAGS itself, so pass omp.h via CPATH
+          export CPATH="${OMP_PREFIX}/include${CPATH:+:${CPATH}}"
 
           # Build and install (default target includes Python module installation)
           scons -j2 options_file=scons/ci_options.py 2>&1 | tee build.log
@@ -246,7 +248,7 @@ jobs:
             python3-devel python3-numpy python3-scipy python3-matplotlib python3-sympy \
             gcc-c++ gcc-gfortran scons cmake make \
             boost-devel boost-python3-devel boost-python3 boost-numpy3 boost-iostreams boost-random \
-            hdf5-devel netcdf-devel libnetcdf_c++4-devel suitesparse-devel lapack-devel MUMPS-devel zlib-devel metis-devel \
+            hdf5-devel netcdf-devel netcdf-cxx4-devel suitesparse-devel lapack-devel MUMPS-devel zlib-devel metis-devel \
             git
 
       - name: Configure build
@@ -282,14 +284,14 @@ jobs:
       - name: Run sanity check
         run: |
           export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
-          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${LD_LIBRARY_PATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${GITHUB_WORKSPACE}/esys.trilinos/lib64:${LD_LIBRARY_PATH}"
 
           ./bin/run-escript scripts/release_sanity.py
 
       - name: Run Python tests
         run: |
           export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
-          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${LD_LIBRARY_PATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${GITHUB_WORKSPACE}/esys.trilinos/lib64:${LD_LIBRARY_PATH}"
 
           python3 -c "from esys.escript import *; print('escript OK')"
           python3 -c "from esys.finley import Rectangle; d = Rectangle(10,10); print('finley OK')"
@@ -362,14 +364,14 @@ jobs:
       - name: Run sanity check
         run: |
           export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
-          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${LD_LIBRARY_PATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${GITHUB_WORKSPACE}/esys.trilinos/lib64:${LD_LIBRARY_PATH}"
 
           ./bin/run-escript scripts/release_sanity.py
 
       - name: Run Python tests
         run: |
           export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
-          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${LD_LIBRARY_PATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${GITHUB_WORKSPACE}/esys.trilinos/lib64:${LD_LIBRARY_PATH}"
 
           python3 -c "from esys.escript import *; print('escript OK')"
           python3 -c "from esys.finley import Rectangle; d = Rectangle(10,10); print('finley OK')"
@@ -439,14 +441,14 @@ jobs:
       - name: Run sanity check
         run: |
           export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
-          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${LD_LIBRARY_PATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${GITHUB_WORKSPACE}/esys.trilinos/lib64:${LD_LIBRARY_PATH}"
 
           ./bin/run-escript scripts/release_sanity.py
 
       - name: Run Python tests
         run: |
           export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
-          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${LD_LIBRARY_PATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${GITHUB_WORKSPACE}/esys.trilinos/lib64:${LD_LIBRARY_PATH}"
 
           python3 -c "from esys.escript import *; print('escript OK')"
           python3 -c "from esys.finley import Rectangle; d = Rectangle(10,10); print('finley OK')"
@@ -525,14 +527,14 @@ jobs:
       - name: Run sanity check
         run: |
           export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
-          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${LD_LIBRARY_PATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${GITHUB_WORKSPACE}/esys.trilinos/lib64:${LD_LIBRARY_PATH}"
 
           ./bin/run-escript scripts/release_sanity.py
 
       - name: Run Python tests
         run: |
           export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
-          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${LD_LIBRARY_PATH}"
+          export LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/lib/esys:${GITHUB_WORKSPACE}/esys.trilinos/lib:${GITHUB_WORKSPACE}/esys.trilinos/lib64:${LD_LIBRARY_PATH}"
 
           python3 -c "from esys.escript import *; print('escript OK')"
           python3 -c "from esys.finley import Rectangle; d = Rectangle(10,10); print('finley OK')"

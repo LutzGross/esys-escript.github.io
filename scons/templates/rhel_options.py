@@ -45,7 +45,6 @@ pythonincpath = [f'/usr/include/python3.{subversion}']
 # Compiler settings
 openmp = True
 werror = 0
-cxx_extra = '-std=c++11'
 
 # Boost configuration
 boost_libs = ['boost_python3']
