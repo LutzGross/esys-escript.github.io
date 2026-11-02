@@ -176,6 +176,11 @@ Build system and platforms
    (``libnetcdf_c++4-devel`` does not exist on Fedora), and the installation
    guide lists the netCDF C++ package for Fedora (``netcdf-cxx4-devel``),
    OpenSUSE (``libnetcdf_c++4-devel``) and Arch (``netcdf-cxx``).
+ - ``AbstractContinuousDomain.h`` no longer includes the unused
+   ``trilinoswrap/TrilinosMatrixAdapter.h``.  Built with GCC 16,
+   ``escriptcpp.so`` referenced the adapter's vtable without linking
+   ``libtrilinoswrap``, and ``import esys.escript`` failed with an undefined
+   symbol.
 
 Testing and examples
 ~~~~~~~~~~~~~~~~~~~~
