@@ -96,6 +96,8 @@ export PYTHONPATH=$PWD:$PYTHONPATH
 export LD_LIBRARY_PATH=$PWD/lib/esys:$PWD/esys.trilinos/lib:$LD_LIBRARY_PATH
 ```
 
+On Fedora, RHEL-compatible systems and OpenSUSE, Trilinos installs its libraries into `esys.trilinos/lib64`; add `$PWD/esys.trilinos/lib64` to `LD_LIBRARY_PATH` as well.
+
 5. (Optional) Test your build:
 
 ```bash
@@ -248,7 +250,7 @@ Install required packages:
 ```bash
 sudo pacman -Sy python python-numpy python-scipy python-matplotlib
 sudo pacman -Sy gcc scons cmake
-sudo pacman -Sy boost boost-libs suitesparse hdf5 netcdf lapack mumps zlib metis
+sudo pacman -Sy boost boost-libs suitesparse hdf5 netcdf netcdf-cxx lapack mumps zlib metis
 ```
 
 For MPI support:
@@ -287,7 +289,7 @@ Install required packages:
 sudo dnf install python3-devel python3-numpy python3-scipy python3-matplotlib
 sudo dnf install gcc-c++ gcc-gfortran scons cmake
 sudo dnf install boost-devel boost-python3-devel boost-python3 boost-numpy3 boost-iostreams boost-random
-sudo dnf install hdf5-devel netcdf-devel suitesparse-devel lapack-devel MUMPS-devel zlib-devel metis-devel
+sudo dnf install hdf5-devel netcdf-devel netcdf-cxx4-devel suitesparse-devel lapack-devel MUMPS-devel zlib-devel metis-devel
 ```
 
 For MPI support:
@@ -326,7 +328,7 @@ Install required packages:
 sudo zypper in python3-devel python3-numpy python3-scipy python3-matplotlib
 sudo zypper in gcc gcc-c++ gcc-fortran scons cmake
 sudo zypper in libboost_python3-devel libboost_numpy3-devel libboost_random-devel libboost_iostreams-devel
-sudo zypper in hdf5-devel netcdf-devel suitesparse-devel lapack-devel mumps-devel zlib-devel metis-devel
+sudo zypper in hdf5-devel netcdf-devel libnetcdf_c++4-devel suitesparse-devel lapack-devel mumps-devel zlib-devel metis-devel
 ```
 
 For MPI support:
@@ -359,14 +361,14 @@ scons -j4 options_file=scons/templates/opensuse_options.py
 
 ### RHEL / Rocky Linux / AlmaLinux
 
-Works with RHEL 8/9, Rocky Linux, AlmaLinux, and CentOS Stream.
+Works with RHEL 9, Rocky Linux 9, AlmaLinux 9, and CentOS Stream 9 or later.
+RHEL 8 and its derivatives are not supported: their default GCC 8.5 cannot build the C++20 code required by Trilinos 17.
 
 Enable required repositories:
 
 ```bash
 sudo dnf install epel-release
-sudo dnf config-manager --set-enabled powertools  # RHEL 8 / Rocky 8
-# or: sudo dnf config-manager --set-enabled crb   # RHEL 9 / Rocky 9
+sudo dnf config-manager --set-enabled crb
 ```
 
 Install required packages:
@@ -394,10 +396,10 @@ sudo dnf install python3-sphinx python3-markdown pandoc
 sudo dnf install texlive-scheme-basic texlive-latex
 ```
 
-For symbolic mathematics support:
+For symbolic mathematics support (SymPy is not packaged for Rocky Linux 9):
 
 ```bash
-sudo dnf install python3-sympy
+pip3 install sympy
 ```
 
 Build esys-escript:
@@ -673,7 +675,7 @@ The symbolic module provides support for symbolic expressions, automatic differe
 
 ### Trilinos Support
 
-esys-escript includes Trilinos for advanced solver capabilities. Trilinos is built automatically during the esys-escript build process.
+esys-escript includes Trilinos 17 for advanced solver capabilities. Trilinos is built automatically during the esys-escript build process.
 
 For complex-valued PDEs and advanced preconditioners, ensure Trilinos support is enabled in your build.
 
@@ -719,7 +721,7 @@ esys-escript.github.io/
 ├── lib/
 │   └── esys/                    # Compiled libraries
 ├── esys.trilinos/               # Trilinos installation
-│   └── lib/
+│   └── lib/                     # lib64/ on Fedora, RHEL and OpenSUSE
 ├── release/                     # Documentation (if built)
 │   └── doc/
 │       ├── index.html
@@ -765,6 +767,8 @@ If not using the launcher, set environment variables:
 export PYTHONPATH=/path/to/esys-escript.github.io:$PYTHONPATH
 export LD_LIBRARY_PATH=/path/to/esys-escript.github.io/lib/esys:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=/path/to/esys-escript.github.io/esys.trilinos/lib:$LD_LIBRARY_PATH
+# Fedora, RHEL and OpenSUSE:
+export LD_LIBRARY_PATH=/path/to/esys-escript.github.io/esys.trilinos/lib64:$LD_LIBRARY_PATH
 
 python3 myscript.py
 ```
@@ -779,7 +783,7 @@ python3 myscript.py
 
 **Build failures:**
 - Verify all required packages are installed
-- Check compiler compatibility (C++11 support required)
+- Check compiler compatibility (C++20 support required, see Compiler Requirements)
 - Review `config.log` for detailed error messages
 
 **Test failures:**
@@ -839,18 +843,12 @@ brew install gmsh          # macOS
 
 ## Compiler Requirements
 
-esys-escript requires a C++11 compliant compiler. Tested compilers include:
+esys-escript is compiled as C++20, which the bundled Trilinos 17 (Kokkos 5) requires. Minimum compiler versions:
 
-- GCC g++ 10.2+
-- Clang 11.0+
-- Intel icpc v17+
+- GCC g++ 10.4+ (tested up to GCC 16)
+- Clang 14+ (including Apple Clang from current Xcode Command Line Tools)
 
-Required C++11 features:
-- `std::complex<>`
-- `auto` type declarations
-- `decltype(T)` type declarations
-- Explicit template instantiation
-- `std::isnan()` in `std` namespace
+The classic Intel compiler (`icpc`) cannot build Trilinos 17 and is no longer supported.
 
 ## License and Credits
 

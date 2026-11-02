@@ -13,13 +13,12 @@
 ##############################################################################
 
 # This is a template configuration file for escript on RHEL-compatible distributions:
-# RHEL 8/9, Rocky Linux, AlmaLinux, CentOS Stream.
+# RHEL 9+, Rocky Linux 9+, AlmaLinux 9+, CentOS Stream 9+ (RHEL 8: GCC too old for C++20).
 # Refer to installation.md for usage instructions.
 #
 # Prerequisites:
 #   sudo dnf install epel-release
-#   sudo dnf config-manager --set-enabled powertools  # RHEL 8 / Rocky 8
-#   # or: sudo dnf config-manager --set-enabled crb   # RHEL 9 / Rocky 9
+#   sudo dnf config-manager --set-enabled crb
 #   sudo dnf install python3-devel python3-numpy python3-scipy python3-sympy python3-matplotlib
 #   sudo dnf install gcc gcc-c++ gcc-gfortran scons cmake
 #   sudo dnf install boost-devel boost-python3 boost-python3-devel
