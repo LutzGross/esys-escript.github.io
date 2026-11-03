@@ -140,7 +140,7 @@ jobs:
         run: |
           brew update
           # Use libomp for OpenMP support with Apple's Clang (avoids LLVM arm64 bug)
-          brew install python@3.11 scons cmake libomp
+          brew install scons cmake libomp
           brew install boost boost-python3
           brew install hdf5 suite-sparse netcdf netcdf-cxx metis openblas zlib scotch
           # Note: silo may not be available, skip if needed

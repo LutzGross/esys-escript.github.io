@@ -318,10 +318,17 @@ def checkPython(env):
         print("Cannot find python include files (tried 'Python.h' in directory %s)" % (python_inc_path))
         env.Exit(1)
     if not env['IS_WINDOWS']:
-        if not conf.CheckFunc('Py_Exit', language='c++'):
+        # The check links a test executable. On macOS libpython is kept off
+        # the link line (see above), so add it for the check only, as the
+        # pythonMPI* executables do in pythonMPI/src/SConscript.
+        saved_libs = list(conf.env.get('LIBS', []))
+        if env['IS_OSX']:
+            conf.env.AppendUnique(LIBS = python_libs)
+        found = conf.CheckFunc('Py_Exit', language='c++')
+        conf.env['LIBS'] = saved_libs
+        if not found:
             print("Cannot find python library method Py_Exit (tried %s in directory %s)" % (python_libs, python_lib_path))
-            print("Warning: Py_Exit check failed but continuing (Python 3.14+ compatibility)")
-            # env.Exit(1)  # Disabled: Python 3.14 has Py_Exit but CheckFunc may fail
+            print("Warning: Py_Exit check failed but continuing")
 
     return conf.Finish()
 
