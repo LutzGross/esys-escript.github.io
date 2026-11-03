@@ -18,7 +18,7 @@
 # Prerequisites:
 #   brew install python3 scons cmake llvm
 #   brew install boost boost-python3
-#   brew install hdf5 suite-sparse netcdf netcdf-cxx4 zlib metis openblas scotch
+#   brew install hdf5 suite-sparse netcdf netcdf-cxx zlib metis openblas scotch
 #   brew install open-mpi mpi4py
 #   brew install numpy scipy python-matplotlib
 #
