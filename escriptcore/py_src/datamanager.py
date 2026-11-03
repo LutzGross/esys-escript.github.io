@@ -99,7 +99,7 @@ class DataManager(object):
             restart_folders = []
             for f in os.listdir(self._workdir):
                 if f.startswith(self._restartprefix):
-                    if os.path.isdir(f):
+                    if os.path.isdir(os.path.join(self._workdir, f)):
                         restart_folders.append(f)
             # remove unneeded restart directories
             if len(restart_folders)>0:
@@ -108,11 +108,11 @@ class DataManager(object):
                     self._restartdir=restart_folders[-1]
                     print(("Restart from "+os.path.join(self._workdir, self._restartdir)))
                     for f in restart_folders[:-1]:
-                        self.__removeDirectory(f)
+                        self.__removeDirectory(os.path.join(self._workdir, f))
                     self.__loadState()
                 else:
                     for f in restart_folders:
-                        self.__removeDirectory(f)
+                        self.__removeDirectory(os.path.join(self._workdir, f))
 
     def addData(self, **data):
         """
@@ -356,13 +356,34 @@ class DataManager(object):
         except:
             raise ImportError("Unable to load %s using %s.%s!"%(ff, modname, clsname))
 
+    def __checkPicklable(self):
+        """
+        Raises ``pickle.PicklingError`` naming every value added through
+        addData() that cannot be pickled into the restart stamp file.
+        """
+        failed=[]
+        for name, var in sorted(list(self._stamp.items()), key=lambda x: x[0]):
+            try:
+                pickle.dumps(var)
+            except Exception as e:
+                failed.append("'%s' (%s.%s): %s"%(name, type(var).__module__,
+                                                 type(var).__name__, e))
+        if failed:
+            raise pickle.PicklingError("DataManager.export: cannot save "
+                "the following values for restart because they cannot be "
+                "pickled:\n  "+"\n  ".join(failed)+"\naddData() accepts "
+                "escript Data objects and picklable Python values. The "
+                "domain is saved automatically and must not be added.")
+
     def __saveState(self):
+        self.__checkPicklable()
         restartdir = "%s_%04d"%(self._restartprefix, self._N)
         util.mkDir(os.path.join(self._workdir, restartdir))
         stamp_file=self.__getStampFilename(restartdir)
         self._stamp['__domainmodule']=self._domain.__module__
         self._stamp['__domainclass']=type(self._domain).__name__
-        pickle.dump(self._stamp, open(stamp_file, "wb"))
+        with open(stamp_file, "wb") as f:
+            pickle.dump(self._stamp, f)
         ff=self.__getDumpFilename("_domain", restartdir)
         self._domain.dump(ff)
         for name, var in sorted(list(self._data.items()), key=lambda x: x[0]):

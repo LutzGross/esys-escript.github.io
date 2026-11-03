@@ -130,6 +130,18 @@ oxley: MPI
    ``setToNormal`` on the z faces of a ``Brick``, ``randomFill`` (which
    corrupted the heap) and ``saveDataCSV`` (which aborted).
 
+escript
+~~~~~~~
+ - ``DataManager``: when a value given to ``addData()`` cannot be saved for
+   restart, ``export()`` raises ``pickle.PicklingError`` naming every such
+   argument and its type, and writes no restart files (issue #137).  The
+   error used to name only the class, e.g. "Pickling of
+   esys.finley.finleycpp.FinleyDomain instances is not enabled", when the
+   domain itself had been passed to ``addData()``.
+ - ``DataManager`` looks up restart folders in ``work_dir``.  It looked in
+   the current directory, so with any other ``work_dir`` a run never
+   restarted, and ``do_restart=False`` left old restart folders in place.
+
 weipa
 ~~~~~
  - ``saveVTK``/``saveSilo`` work for 3D oxley domains; they failed or
