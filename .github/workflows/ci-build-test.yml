@@ -169,9 +169,13 @@ jobs:
           # See: https://github.com/llvm/llvm-project/issues/170970
           echo "cc = 'clang'" >> scons/ci_options.py
           echo "cxx = 'clang++'" >> scons/ci_options.py
-          echo "omp_flags = ['-Xpreprocessor', '-fopenmp']" >> scons/ci_options.py
-          # libomp is keg-only: without -L every configure link check fails
+          # The template's cxx_extra is for GCC; clang rejects this option
+          echo "cxx_extra = [f for f in cxx_extra if f != '-Wno-error=maybe-uninitialized']" >> scons/ci_options.py
+          # libomp is keg-only: pass its include and library directories.
+          # SCons does not forward CPATH, and without -L every configure link
+          # check fails.
           OMP_PREFIX=$(brew --prefix libomp)
+          echo "omp_flags = ['-Xpreprocessor', '-fopenmp', '-I${OMP_PREFIX}/include']" >> scons/ci_options.py
           echo "omp_ldflags = ['-L${OMP_PREFIX}/lib', '-Wl,-rpath,${OMP_PREFIX}/lib', '-lomp']" >> scons/ci_options.py
 
           # Build the bundled Trilinos
