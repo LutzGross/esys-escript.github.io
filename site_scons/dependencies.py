@@ -328,7 +328,7 @@ def checkPython(env):
         conf.env['LIBS'] = saved_libs
         if not found:
             print("Cannot find python library method Py_Exit (tried %s in directory %s)" % (python_libs, python_lib_path))
-            print("Warning: Py_Exit check failed but continuing")
+            env.Exit(1)
 
     return conf.Finish()
 

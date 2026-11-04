@@ -205,7 +205,14 @@ Build system and platforms
    GCC-only ``-Wno-error=maybe-uninitialized`` from the Homebrew template's
    ``cxx_extra``, which clang rejects, and disables silo,
    which has no Homebrew formula (``brew install silo`` installs an
-   unrelated app).
+   unrelated app).  The installation guide describes these settings for
+   Apple Clang with ``libomp``.
+ - The configure check for ``Py_Exit`` stops the build again when it fails;
+   it had only printed a warning.  On macOS it links libpython for the check
+   only, since escript's Python extensions do not link it.
+ - ``scripts/trilinos_nompi.sh`` adds Homebrew LLVM's ``libc++`` link flags
+   only for Homebrew LLVM clang.  With Apple Clang, ld warned about a
+   duplicate ``-lc++`` and a missing search path.
  - The ``ci-build-test`` jobs have a 180-minute timeout instead of 120: the
    Linux jobs, which build Trilinos from source, take up to about two hours,
    and the Arch job was cancelled at the old limit shortly before its build

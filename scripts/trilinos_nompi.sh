@@ -33,9 +33,11 @@ fi
 # Detect if we're using clang on macOS - if so, add explicit libc++ linking
 EXTRA_LINKER_FLAGS=""
 if [ "$(uname)" = "Darwin" ]; then
-    # Check if compiler is clang
-    if $3 --version 2>&1 | grep -q "clang"; then
-        # Add explicit libc++ and libc++abi linking for macOS with LLVM clang
+    # Homebrew LLVM clang: link its own libc++/libc++abi. Not for Apple Clang,
+    # which links the system libc++ itself (ld warned about a duplicate -lc++
+    # and, without Homebrew LLVM, a missing search path).
+    if $3 --version 2>&1 | grep -q "clang" && ! $3 --version 2>&1 | grep -q "Apple clang" \
+       && [ -d /opt/homebrew/opt/llvm/lib/c++ ]; then
         EXTRA_LINKER_FLAGS="-L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++ -lc++ -lc++abi"
     fi
     # Keg-only Homebrew libomp (Apple Clang): CMake does not add it for C targets

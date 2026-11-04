@@ -417,7 +417,7 @@ Install Homebrew from [https://brew.sh](https://brew.sh), then:
 ```bash
 brew install python3 scons cmake llvm
 brew install boost boost-python3
-brew install hdf5 netcdf suite-sparse openblas zlib metis scotch
+brew install hdf5 netcdf netcdf-cxx suite-sparse openblas zlib metis scotch
 brew install libomp  # For OpenMP support with Apple Clang
 ```
 
@@ -462,15 +462,26 @@ brew install libomp
 # Create a custom options file
 cp scons/templates/homebrew_options.py scons/my_options.py
 
-# Edit my_options.py and change:
+# Edit my_options.py and change (libomp is keg-only, so its include and
+# library directories must be given; /opt/homebrew/opt/libomp is the
+# output of `brew --prefix libomp`):
 #   cc = 'clang'
 #   cxx = 'clang++'
-#   omp_flags = ['-Xpreprocessor', '-fopenmp']
-#   omp_ldflags = ['-lomp']
+#   omp_flags = ['-Xpreprocessor', '-fopenmp', '-I/opt/homebrew/opt/libomp/include']
+#   omp_ldflags = ['-L/opt/homebrew/opt/libomp/lib', '-Wl,-rpath,/opt/homebrew/opt/libomp/lib', '-lomp']
+# and remove '-Wno-error=maybe-uninitialized' from cxx_extra (GCC only).
+
+# The bundled Trilinos build finds libomp through OpenMP_ROOT:
+export OpenMP_ROOT=$(brew --prefix libomp)
+export CPATH="${OpenMP_ROOT}/include${CPATH:+:${CPATH}}"
 
 # Then build with:
 scons -j4 options_file=scons/my_options.py
 ```
+
+Setting `CPATH` alone is not enough for esys-escript itself: SCons does not pass it on to the compiler, so `omp.h` must be in `omp_flags`. With `omp_ldflags = ['-lomp']` but no `-L`, every SCons configure check that links a test program fails (for example `Checking for C++ function Py_Exit()... no`).
+
+Homebrew has no formula for the LLNL Silo library (`brew install silo` installs an unrelated app), so set `silo = False` unless you have built Silo yourself.
 
 ### macOS with MacPorts
 

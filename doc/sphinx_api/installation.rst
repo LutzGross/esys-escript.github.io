@@ -477,7 +477,7 @@ Install Homebrew from https://brew.sh, then:
    brew install python3 numpy scipy matplotlib
    brew install scons cmake
    brew install boost boost-python3
-   brew install hdf5 netcdf suite-sparse lapack mumps metis
+   brew install hdf5 netcdf netcdf-cxx suite-sparse openblas zlib metis scotch
    brew install open-mpi
 
 Some Python packages may need pip:
@@ -507,6 +507,40 @@ Build esys-escript:
 
 To build **without MPI**, use ``homebrew_nompi_options.py`` instead and
 ``open-mpi`` and ``mpi4py`` can be omitted.
+
+To build with Apple's system Clang and Homebrew's ``libomp`` instead of
+Homebrew LLVM (for example on arm64, where Homebrew LLVM 21.x fails with
+``__hash_memory`` undefined symbols), copy the options file and set the
+following. ``libomp`` is keg-only, so its include and library directories
+must be given (``/opt/homebrew/opt/libomp`` is the output of
+``brew --prefix libomp``):
+
+.. code-block:: python
+
+   cc = 'clang'
+   cxx = 'clang++'
+   omp_flags = ['-Xpreprocessor', '-fopenmp', '-I/opt/homebrew/opt/libomp/include']
+   omp_ldflags = ['-L/opt/homebrew/opt/libomp/lib',
+                  '-Wl,-rpath,/opt/homebrew/opt/libomp/lib', '-lomp']
+   # GCC-only option, rejected by clang
+   cxx_extra = [f for f in cxx_extra if f != '-Wno-error=maybe-uninitialized']
+
+The bundled Trilinos build finds ``libomp`` through ``OpenMP_ROOT``:
+
+.. code-block:: bash
+
+   brew install libomp
+   export OpenMP_ROOT=$(brew --prefix libomp)
+   export CPATH="${OpenMP_ROOT}/include${CPATH:+:${CPATH}}"
+
+``CPATH`` alone is not enough for esys-escript itself: SCons does not pass
+it on to the compiler, so ``omp.h`` must be in ``omp_flags``.  Without the
+``-L`` in ``omp_ldflags`` every SCons configure check that links a test
+program fails (for example ``Checking for C++ function Py_Exit()... no``).
+
+Homebrew has no formula for the LLNL Silo library (``brew install silo``
+installs an unrelated app), so set ``silo = False`` unless you have built
+Silo yourself.
 
 
 macOS with MacPorts
