@@ -238,7 +238,11 @@ Documentation
  - The ``grad()`` docstring says what a gradient on ``FunctionOnBoundary``
    needs from the mesh.
  - ``speckley.tex`` builds with strict TeX Live (Debian #1122465).
- - README updated (conda-forge 6.1.1 for Linux, macOS and Windows).
+ - README and installation guide: Debian has 5.6 in stable and 6.1.1 in
+   unstable (sid); conda-forge currently provides 5.10 for Linux only, with
+   6.1.1 for Linux, macOS and Windows pending the feedstock update; on
+   Windows, WSL2 is recommended, consistently in the README and both
+   installation guides (issue #128).
  - The Python API reference builds without Sphinx warnings: a class
    re-exported by several modules (e.g. ``Data`` in ``esys.escript`` and
    ``esys.escript.linearPDEs``) is indexed once, every module page is

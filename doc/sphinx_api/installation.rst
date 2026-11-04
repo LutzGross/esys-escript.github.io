@@ -5,7 +5,8 @@ Installation Guide
 This guide is for **Version 6** of esys-escript.
 
 esys-escript is primarily developed on Linux systems. The current version provides
-some support for macOS but has not been ported to Windows.
+some support for macOS. On Windows, use WSL2 (Windows Subsystem for Linux), see
+`Windows (via WSL2)`_.
 
 For support and questions, please visit the
 `Issues site <https://github.com/esys-escript/esys-escript.github.io/issues>`_.
@@ -609,6 +610,28 @@ For symbolic mathematics support:
 .. code-block:: bash
 
    sudo pkg install py39-sympy
+
+
+Windows (via WSL2)
+------------------
+
+The recommended way to run esys-escript on Windows is WSL2 (Windows Subsystem
+for Linux), which provides a full Linux environment. Install it from an
+administrator PowerShell and restart when prompted:
+
+.. code-block:: powershell
+
+   wsl --install            # Ubuntu by default
+   wsl --install -d Debian  # or Debian
+
+Inside a Debian WSL2 distribution, install the Debian package (``sudo apt
+install python3-escript``); current Ubuntu releases do not have it. Otherwise
+build from source following the Debian or Ubuntu instructions above. GUI applications such as VisIt or ParaView need WSLg
+(included in Windows 11) or an X server on Windows 10.
+
+Native Windows builds are not supported: SConstruct can build with the MSVC
+toolchain (``scons/templates/windows_options.py``), but this is not tested.
+Packages for Windows are planned through conda-forge.
 
 
 Advanced Configuration

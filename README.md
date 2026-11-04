@@ -35,7 +35,7 @@ See [RELEASE_NOTES](RELEASE_NOTES) for the full change list.
 - parallelisation with OpenMP and MPI support
 - Flux Controlled Transport solver (FEM-FCT)
 - visualisation with VisIt, paraview, mayavi and others
-- primary platform is Linux; macOS and Windows are supported through conda-forge packages
+- primary platform is Linux; macOS is supported for builds from source; on Windows, use WSL2
 
 ## Access: 
 
@@ -56,17 +56,32 @@ Please inspect the [installation guide](installation.md) for information on a sp
 
 ## Debian Distribution 
 
-Debian packages `python3-escript` and `python3-escript-mpi` are available
-(version 5 in the current Debian release; version 6.1.1 is in Debian experimental).
+Debian packages `python3-escript` and `python3-escript-mpi` are available:
+version 5.6 in Debian stable (trixie) and oldstable (bookworm), and
+version 6.1.1 in Debian unstable (sid). Install with
 
-## Conda Installation (version 6.1.1)
+    sudo apt install python3-escript
+
+or `python3-escript-mpi` for the MPI version. Of the Ubuntu releases, only
+22.04 (jammy) has these packages (version 5.6).
+
+## Conda Installation
 
 To install *esys-escript* from [conda-forge](https://conda-forge.org), run
 
     conda install esys-escript -c conda-forge
 
-conda-forge packages are provided for Linux, macOS and Windows, and this is the
-recommended way to run esys-escript on macOS and Windows.
+conda-forge currently provides version 5.10, for Linux only. Packages of
+version 6.1.1 for Linux, macOS and Windows will follow once the
+[conda-forge feedstock](https://github.com/conda-forge/esys-escript-feedstock)
+has been updated.
+
+## Windows
+
+On Windows, use WSL2 (Windows Subsystem for Linux) and follow the Linux
+instructions: in a Debian WSL2 distribution, install the Debian package, or
+build from source, see the Windows section of the
+[installation guide](installation.md).
 
 ## Using *esys-escript*
 
