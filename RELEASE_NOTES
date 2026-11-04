@@ -198,7 +198,11 @@ Build system and platforms
    ``omp.h`` was not found and then because libomp was not linked
    (``__kmpc_*`` undefined).  ``scripts/trilinos_nompi.sh`` links libomp when
    ``OpenMP_ROOT`` points to it, and the macOS CI job puts libomp's include
-   directory on ``CPATH``.
+   directory on ``CPATH``.  The CI job also passes libomp's library
+   directory in ``omp_ldflags``; with ``-lomp`` alone every configure link
+   check failed (``Py_Exit``, ``gethostname``, ...).  It disables silo,
+   which has no Homebrew formula (``brew install silo`` installs an
+   unrelated app).
  - The ``ci-build-test`` jobs have a 180-minute timeout instead of 120: the
    Linux jobs, which build Trilinos from source, take up to about two hours,
    and the Arch job was cancelled at the old limit shortly before its build

@@ -143,8 +143,6 @@ jobs:
           brew install scons cmake libomp
           brew install boost boost-python3
           brew install hdf5 suite-sparse netcdf netcdf-cxx metis openblas zlib scotch
-          # Note: silo may not be available, skip if needed
-          brew install silo || echo "silo not available, skipping"
 
       - name: Install Python dependencies
         run: |
@@ -163,15 +161,18 @@ jobs:
           # Disable ParMETIS
           echo "parmetis = False" >> scons/ci_options.py
 
-          # The template enables silo; its Homebrew install may have failed
-          brew list silo > /dev/null 2>&1 || echo "silo = False" >> scons/ci_options.py
+          # The template enables silo, but Homebrew has no formula for the LLNL
+          # library ("brew install silo" installs an unrelated app cask)
+          echo "silo = False" >> scons/ci_options.py
 
           # Use Apple's system Clang instead of Homebrew LLVM (fixes arm64 __hash_memory bug)
           # See: https://github.com/llvm/llvm-project/issues/170970
           echo "cc = 'clang'" >> scons/ci_options.py
           echo "cxx = 'clang++'" >> scons/ci_options.py
           echo "omp_flags = ['-Xpreprocessor', '-fopenmp']" >> scons/ci_options.py
-          echo "omp_ldflags = ['-lomp']" >> scons/ci_options.py
+          # libomp is keg-only: without -L every configure link check fails
+          OMP_PREFIX=$(brew --prefix libomp)
+          echo "omp_ldflags = ['-L${OMP_PREFIX}/lib', '-Wl,-rpath,${OMP_PREFIX}/lib', '-lomp']" >> scons/ci_options.py
 
           # Build the bundled Trilinos
           echo "build_trilinos = 'always'" >> scons/ci_options.py
